@@ -1,4 +1,4 @@
-import { WalletTopUpCatalogV1 } from "@lasoviet/contracts";
+import { getLaPrice, WalletTopUpCatalogV1 } from "@lasoviet/contracts";
 
 export type LaPackPresentation = {
   id: "LA-ENTRY-300" | "LA-START-1100" | "LA-DISCOVER-3000" | "LA-LIBRARY-8000";
@@ -77,27 +77,35 @@ export type MembershipTierPresentation = {
   };
 };
 
+function membershipPresentationPrice(sku: "MEMBERSHIP-MONTHLY-P0" | "MEMBERSHIP-YEARLY-P0", days: number) {
+  const priceLa = getLaPrice(sku);
+  if (priceLa === undefined) throw new Error("MEMBERSHIP_CATALOG_PRICE_MISSING");
+  return { priceLa, priceFormatted: {
+    vi: `${new Intl.NumberFormat("vi-VN").format(priceLa)} Lá · ${days} ngày`,
+    en: `${new Intl.NumberFormat("en-US").format(priceLa)} Lá · ${days} days`,
+  } };
+}
+
 export const MEMBERSHIP_TIERS: readonly MembershipTierPresentation[] = [
   {
     id: "membership-monthly",
     name: { vi: "Hội viên tháng", en: "Monthly Membership" },
-    priceLa: 1500,
+    ...membershipPresentationPrice("MEMBERSHIP-MONTHLY-P0", 30),
     durationDays: 30,
-    priceFormatted: { vi: "1.500 Lá · 30 ngày", en: "1,500 Lá · 30 days" },
     comingSoon: true,
     badge: { vi: "Sắp có", en: "Coming soon" },
     deliverables: {
       vi: [
         { text: "Hôm nay của bạn, mỗi sáng" },
-        { text: "Nguyệt vận từng tháng" },
-        { text: "Bản theo lá số của mọi công cụ" },
+        { text: "Nguyệt vận từng tháng — sắp có" },
+        { text: "Bản theo lá số của mọi công cụ — sắp có" },
         { text: "Giảm 20% khi mở luận giải" },
         { text: "Bản Toàn diện mua riêng", excluded: true },
       ],
       en: [
         { text: "Personalized daily reading each morning" },
-        { text: "Monthly decadal and transit insights" },
-        { text: "Chart-personalized readings for all tools" },
+        { text: "Monthly decadal and transit insights — coming soon" },
+        { text: "Chart-personalized readings for all tools — coming soon" },
         { text: "20% discount on report unlocks" },
         { text: "Comprehensive report purchased separately", excluded: true },
       ],
@@ -106,9 +114,8 @@ export const MEMBERSHIP_TIERS: readonly MembershipTierPresentation[] = [
   {
     id: "membership-yearly",
     name: { vi: "Hội viên năm", en: "Annual Membership" },
-    priceLa: 8000,
+    ...membershipPresentationPrice("MEMBERSHIP-YEARLY-P0", 365),
     durationDays: 365,
-    priceFormatted: { vi: "8.000 Lá · 365 ngày", en: "8,000 Lá · 365 days" },
     description: {
       vi: "Tiết kiệm hơn 56% so với 12 lần gói tháng.",
       en: "Save over 56% compared to 12 monthly packages.",
@@ -119,12 +126,12 @@ export const MEMBERSHIP_TIERS: readonly MembershipTierPresentation[] = [
     deliverables: {
       vi: [
         { text: "Mọi quyền lợi gói tháng, trọn năm" },
-        { text: "Nguyệt vận đủ 12 tháng" },
+        { text: "Nguyệt vận đủ 12 tháng — sắp có" },
         { text: "Giảm 20% khi mở luận giải" },
       ],
       en: [
         { text: "All monthly benefits, full year" },
-        { text: "Complete 12-month annual guidance" },
+        { text: "Complete 12-month annual guidance — coming soon" },
         { text: "20% discount on report unlocks" },
       ],
     },

@@ -3640,11 +3640,14 @@ describe("database schema integration", () => {
       ALTER TABLE commerce_entitlements
       ALTER COLUMN order_id SET NOT NULL
     `;
+    await client`DROP TABLE IF EXISTS wallet_topup_continuations`;
     await client`DROP TABLE IF EXISTS wallet_command_receipts`;
     await client`DROP TABLE IF EXISTS wallet_restoration_allocations`;
     await client`DROP TABLE IF EXISTS wallet_spend_allocations`;
     await client`DROP TABLE IF EXISTS wallet_ledger_entries`;
     await client`DROP TABLE IF EXISTS wallet_credit_lots`;
+    await client`DROP TABLE IF EXISTS membership_subscriptions`;
+    await client`DROP TABLE IF EXISTS daily_reading_unlocks`;
     await client`DROP TABLE IF EXISTS guarantee_claims`;
     await client`DROP TABLE IF EXISTS part_feedbacks`;
     await client`DROP TABLE IF EXISTS wallet_transactions`;

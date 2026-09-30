@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { customerContactConfig } from "@lasoviet/config";
 
 import type { CurrentActor } from "@lasoviet/contracts";
-import { WalletTopUpPackIdSchema } from "@lasoviet/contracts";
+import { WalletTopUpContinuationRequestV1Schema, WalletTopUpPackIdSchema } from "@lasoviet/contracts";
 import {
   resolveVerifiedAccountActor,
   VerifiedAccountResolutionError,
@@ -22,11 +22,20 @@ export default async function TopUpPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ pack?: string }>;
+  searchParams?: Promise<{ pack?: string; intent?: string; intentVersion?: string; price?: string; tab?: string; open?: string }>;
 }) {
   const { locale: requestedLocale } = await params;
   const locale = requestedLocale === "en" ? "en" : "vi";
-  const requestedPack = (await searchParams)?.pack;
+  const query = await searchParams;
+  const requestedPack = query?.pack;
+  const continuationResult = WalletTopUpContinuationRequestV1Schema.safeParse({
+    purchaseIntentId: query?.intent, expectedIntentVersion: Number(query?.intentVersion),
+    confirmedPriceLa: Number(query?.price), returnTab: query?.tab ?? "topics", ...(query?.open ? { returnOpen: query.open } : {}),
+  });
+  const continuation = continuationResult.success ? continuationResult.data : undefined;
+  const returnQuery = new URLSearchParams();
+  for (const [key, value] of Object.entries(query ?? {})) if (typeof value === "string") returnQuery.set(key, value);
+  const topUpReturnPath = `${locale === "en" ? "/en" : ""}/nap-la?${returnQuery}`;
   const parsedPack = WalletTopUpPackIdSchema.safeParse(requestedPack);
   const initialPackId = parsedPack.success ? parsedPack.data : undefined;
 
@@ -54,8 +63,10 @@ export default async function TopUpPage({
       <div className="container">
         <PaidTopicSelector
           locale={locale}
-          initialTab="nap-la"
+          initialTab={query?.tab === "hoi-vien" ? "hoi-vien" : "nap-la"}
           initialPackId={initialPackId}
+          topUpContinuation={continuation}
+          topUpReturnPath={topUpReturnPath}
           supportEmail={customerContactConfig.email.value}
           userBalance={userBalance}
         />

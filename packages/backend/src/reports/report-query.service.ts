@@ -6,6 +6,12 @@ import { buildReportChartSnapshotFromStored } from "./report-chart-snapshot.js";
 import { customerContactConfig } from "@lasoviet/config";
 import {
   EvidenceItemV1Schema,
+  isSinglePalaceSku,
+  ReportPalacesReadyViewV1Schema,
+  ZIWEI_PALACE_IDS,
+  type ZiweiComprehensiveReportContentV1,
+  type ZiweiComprehensiveReportContentV2,
+  type ZiweiComprehensiveReportContentV3,
   IdentityReportV1Schema,
   ReportPendingViewV1Schema,
   ReportReadyViewV1Schema,
@@ -157,8 +163,48 @@ function forbidden(): Result<never, ReportQueryError> {
   };
 }
 
+function projectOwnedPalaces(
+  record: AuthorizedReportQueryRecord,
+  stored: ZiweiComprehensiveReportContentV1 | ZiweiComprehensiveReportContentV2 | ZiweiComprehensiveReportContentV3,
+  family: "v3" | "v4" | "v4_1",
+) {
+  const sections = new Set<ComprehensiveReportSectionId>();
+  const palaces = new Set<string>();
+  for (const entitlement of record.entitlements.filter((item) => item.active)) {
+    const parsedScope = EntitlementScopeSchema.safeParse(entitlement.scope);
+    if (!parsedScope.success) throw new ReportQueryDataError();
+    const scope = parsedScope.data;
+    scope.sections.forEach((section) => sections.add(section));
+    scope.palaces?.forEach((palace) => palaces.add(palace));
+  }
+  const tier = resolveEffectiveComprehensiveTier(sections, family);
+  if (palaces.size === 0 || tier === 2) return null;
+  const identity = tier === 1
+    ? family === "v4_1"
+      ? projectComprehensiveReportPublicContentV3(stored as ZiweiComprehensiveReportContentV3, TIER_1_ENTITLEMENT_SCOPE)
+      : family === "v4"
+        ? projectComprehensiveReportPublicContentV2(stored as ZiweiComprehensiveReportContentV2, TIER_1_ENTITLEMENT_SCOPE)
+        : projectComprehensiveReportPublicContent(stored as ZiweiComprehensiveReportContentV1, TIER_1_ENTITLEMENT_SCOPE)
+    : undefined;
+  return ReportPalacesReadyViewV1Schema.parse({
+    version: 1, state: "ready", contentVersion: "ziwei-palaces.v1", locale: "vi",
+    reportId: record.reservation.reportId, reportVersionId: record.reservation.reportVersionId,
+    sku: record.reservation.sku, fulfillmentStatus: record.reservation.status,
+    chartId: record.chartId,
+    content: {
+      palaceReadings: stored.palaceReadings.filter((palace) => palaces.has(palace.palaceId))
+        .map(({ palaceId, title, narrative }) => ({ palaceId, title, narrative })),
+      lockedPalaces: ZIWEI_PALACE_IDS.filter((palace) => !palaces.has(palace)),
+      ...(identity ? { identity } : {}),
+    },
+    chartSnapshot: buildReportChartSnapshotFromStored(record.chartNormalizedOutput, record.sourceSnapshot, record.reservation.chartVersionId),
+    lineage: { supersedesReportVersionId: record.version?.supersedesReportVersionId ?? null },
+  });
+}
+
 export function createReportQueryService(options: {
   repository: ReportQueryRepository;
+  now?: () => Date;
 }): ReportQueryService {
   return {
     async getReport(actor, reportId) {
@@ -184,6 +230,12 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
+      const currentTime = (options.now ?? (() => new Date()))().getTime();
+      const activeEntitlements = record.entitlements.filter((entitlement) =>
+        entitlement.active && (!entitlement.expiresAt || entitlement.expiresAt.getTime() > currentTime),
+      );
+      const primaryEntitlement = record.entitlements.find((entitlement) => entitlement.id === record.reservation.entitlementId);
+      if (primaryEntitlement?.expiresAt && primaryEntitlement.expiresAt.getTime() <= currentTime) return notFound();
       const { reservation, version, evidenceItems } = record;
 
       const allowedSkus: readonly string[] = [
@@ -195,7 +247,7 @@ export function createReportQueryService(options: {
         "ZIWEI-YEAR-2026-P0",
       ];
       if (
-        !allowedSkus.includes(reservation.sku) ||
+        (!allowedSkus.includes(reservation.sku) && !isSinglePalaceSku(reservation.sku)) ||
         (reservation.locale !== "vi" && reservation.locale !== "en") ||
         (reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" && reservation.locale !== "vi")
       ) {
@@ -371,7 +423,9 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        const partial = projectOwnedPalaces({ ...record, entitlements: activeEntitlements }, parsedV4_1.data, "v4_1");
+        if (partial) return { ok: true, value: partial };
+
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
         }
@@ -441,7 +495,9 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        const partial = projectOwnedPalaces({ ...record, entitlements: activeEntitlements }, parsedV4.data, "v4");
+        if (partial) return { ok: true, value: partial };
+
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
@@ -512,7 +568,9 @@ export function createReportQueryService(options: {
         }
 
         // Calculate effective scope as union of all non-refunded entitlements for this owner and chart
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        const partial = projectOwnedPalaces({ ...record, entitlements: activeEntitlements }, parsedV3.data, "v3");
+        if (partial) return { ok: true, value: partial };
+
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();

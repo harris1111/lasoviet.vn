@@ -352,6 +352,8 @@ export {
   WalletSpendV1Schema,
   WalletTopUpCatalogV1,
   WalletTopUpOrderCreateV1Schema,
+  WalletTopUpContinuationRequestV1Schema,
+  WalletTopUpContinuationViewV1Schema,
   WalletTopUpPackIdSchema,
   WalletTransactionReceiptV1Schema,
 } from "./wallet-commerce-v1.js";
@@ -367,6 +369,8 @@ export type {
   WalletSpendAllocationV1,
   WalletSpendV1,
   WalletTopUpOrderCreateV1,
+  WalletTopUpContinuationRequestV1,
+  WalletTopUpContinuationViewV1,
   WalletTopUpPackId,
   WalletTransactionReceiptV1,
 } from "./wallet-commerce-v1.js";
@@ -545,6 +549,7 @@ export {
   ComprehensiveReportPublicContentV3Schema,
   projectComprehensiveReportPublicContentV3,
   ReportComprehensiveV3ReadyViewV1Schema,
+  ReportPalacesReadyViewV1Schema,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
@@ -571,6 +576,7 @@ export type {
   ComprehensiveReportPublicContentV3,
   ComprehensiveReportViewContentV3,
   ReportComprehensiveV3ReadyViewV1,
+  ReportPalacesReadyViewV1,
 } from "./identity-report-v1.js";
 
 export {
@@ -803,6 +809,38 @@ export type {
 
 
 export {
+  DailyAspectKeySchema,
+  PersonalDailyReadingAspectSchema,
+  PersonalDailyReadingActionPlanSchema,
+  PersonalDailyReadingQualityGateSchema,
+  PersonalDailyReadingV1Schema,
+} from "./personal-daily-reading-v1.js";
+export type {
+  DailyAspectKey,
+  PersonalDailyReadingAspect,
+  PersonalDailyReadingActionPlan,
+  PersonalDailyReadingQualityGate,
+  PersonalDailyReadingV1,
+} from "./personal-daily-reading-v1.js";
+
+export {
+  TimeLimitedEntitlementSourceSchema,
+  TimeLimitedEntitlementV1Schema,
+  DailyReadingAccessStatusSchema,
+  DailyReadingAccessEvaluationV1Schema,
+  DAILY_READING_CATALOG_BLOCKER_MESSAGE,
+  calculateBonusExpiry,
+  isTimeLimitedEntitlementActive,
+  getTimeLimitedEntitlementRemainingMs,
+  evaluateDailyReadingAccess,
+} from "./time-limited-entitlement-v1.js";
+export type {
+  TimeLimitedEntitlementSource,
+  TimeLimitedEntitlementV1,
+  DailyReadingAccessStatus,
+  DailyReadingAccessEvaluationV1,
+} from "./time-limited-entitlement-v1.js";
+export {
   ZIWEI_TOPIC_DEEP_DIVE_IDS,
   ZIWEI_TOPIC_SKU_MAP,
   CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI,
@@ -861,6 +899,7 @@ export {
   type ReportDecadalCycleV1,
 } from "./report-chart-snapshot-v1.js";
 
+export { MembershipExpiryEmailRequestSchema, type MembershipExpiryEmailRequest } from "./auth-email.js";
 export { ZiweiPeriodFactV1Schema, ZiweiPeriodReadingFactsV1Schema, ZiweiPeriodReadingContentV1Schema, type ZiweiPeriodReadingFactsV1, type ZiweiPeriodReadingContentV1 } from "./ziwei-period-reading-v1.js";
 export { ZiweiTopicDeepDivePublicContentV1Schema, projectTopicDeepDivePublicContent, type ZiweiTopicDeepDivePublicContentV1 } from "./ziwei-topic-deep-dive-v1.js";
 export { ReportTopicReadyViewV1Schema, PaidReportSkuSchema, type ReportTopicReadyViewV1 } from "./identity-report-v1.js";

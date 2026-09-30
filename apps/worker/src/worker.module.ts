@@ -1,3 +1,4 @@
+import { createMembershipExpiryReminderService, membershipReminderAllowed } from "@lasoviet/backend";
 import { calculateIztroReportSnapshot } from "@lasoviet/engine-adapters";
 import { Module } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
@@ -85,6 +86,7 @@ export function createMaintenanceRunner() {
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
     preferenceChecker: preferenceStore,
+    membershipReminderAllowed: (request, now) => membershipReminderAllowed(database, request, now),
   });
   const telegramAlert = createTelegramAlertProvider({
     botToken: environment.value.telegram?.botToken,
@@ -107,7 +109,10 @@ export function createMaintenanceRunner() {
           repository: createDatabaseAnonymousRetentionRepository(database),
         }).purgeExpired(new Date(), limit),
     },
-    retryAuthEmail: (limit) => email.retryDue(limit),
+    retryAuthEmail: async (limit) => {
+      await createMembershipExpiryReminderService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret ?? "" }).scanAndEnqueue(limit);
+      return email.retryDue(limit);
+    },
     reconciliation,
     analyticsRetention: createAnalyticsRetentionService({
       repository: createDatabaseAnalyticsRepository(database),

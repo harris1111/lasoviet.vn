@@ -34,7 +34,7 @@ describe("resolveWalletUnlockLoadedState", () => {
       { totalLa: 100 },
       1,
     );
-    expect(result).toEqual({ step: "short_balance", balance: 100, priceLa: 960 });
+    expect(result).toEqual({ step: "short_balance", balance: 100, priceLa: 960, intentId: "intent-1", intentVersion: 1, walletVersion: 1 });
   });
 
   it("shows the short-balance state at zero balance", () => {

@@ -15,7 +15,10 @@ import * as analytics from "./schema/analytics.js";
 import * as walletCommerce from "./schema/wallet-commerce.js";
 import * as generatedPreview from "./schema/generated-preview.js";
 
+import * as membership from "./schema/membership.js";
+
 const schema = {
+  ...membership,
   ...auth,
   ...audit,
   ...adminAccess,

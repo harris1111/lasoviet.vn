@@ -2,6 +2,7 @@ import {
   Controller,
   Headers,
   HttpCode,
+  Header,
   HttpStatus,
   Inject,
   Get,
@@ -130,6 +131,16 @@ export class ZiweiController {
       chartId,
       request,
     );
+  }
+
+  @Get("charts/:chartId/daily-reading")
+  @Header("Cache-Control", "private, no-store")
+  @Header("X-Robots-Tag", "noindex, nofollow")
+  async personalDaily(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+  ) {
+    return this.queryService.readPersonalDaily(await this.actor(authorization), chartId);
   }
 
   @Get("charts/:chartId/horoscope")

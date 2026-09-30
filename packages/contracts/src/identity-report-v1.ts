@@ -1,3 +1,4 @@
+import { isSinglePalaceSku } from "./la-catalog.js";
 import { ZiweiPeriodReadingPublicContentV1Schema } from "./ziwei-period-reading-public-v1.js";
 import { ZiweiTopicDeepDivePublicContentV1Schema } from "./ziwei-topic-deep-dive-v1.js";
 import { z } from "zod";
@@ -192,7 +193,7 @@ export const ReportPendingViewV1Schema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: PaidReportSkuSchema,
+  sku: z.union([PaidReportSkuSchema, z.string().refine(isSinglePalaceSku)]),
   fulfillmentStatus: z.enum(REPORT_PENDING_STATUSES),
   refreshAfterMs: z.literal(5000),
 }).strict();
@@ -709,7 +710,7 @@ const baseReportReadyViewV1Schema = z.object({
   state: z.literal("ready"),
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
-  sku: CommerceSkuSchema,
+  sku: z.union([CommerceSkuSchema, z.string().refine(isSinglePalaceSku)]),
   fulfillmentStatus: ReportStatusSchema,
   lineage: z.object({
     supersedesReportVersionId: z.string().trim().min(1).nullable(),
@@ -788,6 +789,22 @@ export type ReportComprehensiveV3ReadyViewV1 = z.infer<
   typeof ReportComprehensiveV3ReadyViewV1Schema
 >;
 
+export const ReportPalacesReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei-palaces.v1"),
+  locale: z.literal("vi"),
+  content: z.object({
+    palaceReadings: z.array(ComprehensiveReportPalaceReadingItemSchema).min(1).max(12),
+    lockedPalaces: z.array(z.enum(ZIWEI_PALACE_IDS)),
+    identity: z.union([
+      ComprehensiveReportTier1PublicContentV3Schema,
+      ComprehensiveReportTier1PublicContentV2Schema,
+      ComprehensiveReportTier1PublicContentV1Schema,
+    ]).optional(),
+  }).strict(),
+  chartSnapshot: ReportChartSnapshotV1Schema.nullable().optional(),
+}).strict();
+export type ReportPalacesReadyViewV1 = z.infer<typeof ReportPalacesReadyViewV1Schema>;
+
 export const ReportTopicReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
   contentVersion: z.literal("ziwei.topic-deep-dive.v1"),
   locale: z.literal("vi"),
@@ -804,6 +821,7 @@ export const ReportPeriodReadyViewV1Schema = baseReportReadyViewV1Schema.extend(
 export type ReportPeriodReadyViewV1 = z.infer<typeof ReportPeriodReadyViewV1Schema>;
 
 export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
+  ReportPalacesReadyViewV1Schema,
   ReportPeriodReadyViewV1Schema,
   ReportTopicReadyViewV1Schema,
   ReportLegacyReadyViewV1Schema,
@@ -812,6 +830,7 @@ export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
   ReportComprehensiveV3ReadyViewV1Schema,
 ]);
 export type ReportReadyViewV1 =
+  | ReportPalacesReadyViewV1
   | ReportPeriodReadyViewV1
   | ReportTopicReadyViewV1
   | ReportLegacyReadyViewV1
@@ -825,7 +844,7 @@ export const ReportFailedViewV1Schema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: PaidReportSkuSchema,
+  sku: z.union([PaidReportSkuSchema, z.string().refine(isSinglePalaceSku)]),
   fulfillmentStatus: z.literal("terminal_failure"),
   invoiceNumber: z.string().trim().min(1),
   paymentReceivedAt: z.iso.datetime({ offset: true }),

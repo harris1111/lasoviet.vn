@@ -21,6 +21,7 @@ export const notificationDeliveryKind = pgEnum("notification_delivery_kind", [
   "nurture_verified_signin",
   "han_month_reminder",
   "delayed_unlock_completed",
+  "membership_expiry",
 ]);
 
 export const notificationDeliveryStatus = pgEnum("notification_delivery_status", [
