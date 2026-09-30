@@ -23,3 +23,5 @@ export {
 export type {
   CalculateHoroscopeOptions,
 } from "./ziwei/iztro-horoscope.js";
+
+export { calculatePeriodReadingFacts } from "./ziwei/period-reading-facts.js";

@@ -737,3 +737,5 @@ export {
 export type {
   AdminBusinessMetricsRepository,
 } from "./admin-business-metrics/business-metrics.repository.js";
+
+export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
