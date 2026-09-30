@@ -2,7 +2,7 @@ import { ZiweiPeriodReadingContentV1Schema, ZiweiPeriodReadingFactsV1Schema, typ
 import { resolveZiweiReportQualityConfig } from "@lasoviet/config";
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
 import type { AiProvider } from "../ai/ai-provider.js";
-import { countVietnameseSyllables, ENGLISH_BRIGHTNESS_PATTERN, HAN_IDEOGRAPH_PATTERN, wholeWord } from "./comprehensive-report-quality-v4.js";
+import { countVietnameseSyllables, hasDiscouragedTerm, ENGLISH_BRIGHTNESS_PATTERN, HAN_IDEOGRAPH_PATTERN, wholeWord } from "./comprehensive-report-quality-v4.js";
 import { REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY, REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY } from "./identity-report-config.js";
 
 export const PERIOD_READING_TUPLE = {
@@ -18,6 +18,7 @@ export function validatePeriodReading(content: ZiweiPeriodReadingContentV1, fact
   if (content.kind !== facts.kind || content.targetYear !== facts.targetYear || content.periodKey !== facts.periodKey || content.calendar !== "lunar") findings.push("PERIOD_LINEAGE_MISMATCH");
   if (content.periods.length !== facts.periods.length || new Set(content.periods.map(p => p.periodId)).size !== facts.periods.length) findings.push("PERIOD_COVERAGE_MISMATCH");
   const check = (text: string, keys: string[], allowed: string[], minimum: number, months: number[], canNameAdversity: boolean) => {
+    text = text.normalize("NFC");
     if (countVietnameseSyllables(text) < minimum) findings.push("MINIMUM_DEPTH");
     if (!keys.length || keys.some(key => !allowed.includes(key))) findings.push("EVIDENCE_MISMATCH");
     if (HAN_IDEOGRAPH_PATTERN.test(text) || ENGLISH_BRIGHTNESS_PATTERN.test(text)) findings.push("LOCALE_INVALID");
@@ -28,10 +29,13 @@ export function validatePeriodReading(content: ZiweiPeriodReadingContentV1, fact
       const month = monthWords[match[1]!] ?? Number(match[1]);
       if (!months.includes(month)) findings.push("UNCOMPUTED_MONTH");
     }
+    if (config.discouragedTerms.some(term => hasDiscouragedTerm(text, term))) findings.push("EDITORIAL_TERM");
+    if (/(?:mắc|bị|chẩn đoán|nguy cơ)[^.!?\n]{0,80}(?:ung thư|tiểu đường|đái tháo đường|cao huyết áp|trầm cảm|đột quỵ|nhồi máu)/iu.test(text)) findings.push("NAMED_DISEASE_DIAGNOSIS");
+    if (/\d+(?:[.,]\d+)?\s*%|\d+\s*(?:điểm|trên\s*100)/iu.test(text)) findings.push("UNCOMPUTED_SCORE");
     if (!canNameAdversity && /(?:hạn\s+nặng|hao\s+tài|tai\s+họa|tháng\s+hạn)/iu.test(text)) findings.push("UNCOMPUTED_ADVERSITY");
   };
   // Overview comparisons must associate every named adverse month with its own computed obstacle.
-  for (const sentence of (content.title + ". " + content.overview.narrative).split(/[.!?;\n]+/u)) {
+  for (const sentence of (content.title + ". " + content.overview.narrative).normalize("NFC").split(/[.!?;\n]+/u)) {
     if (!/(?:hạn\s+nặng|hao\s+tài|tai\s+họa|tháng\s+hạn)/iu.test(sentence)) continue;
     const months = [...sentence.toLocaleLowerCase("vi").matchAll(monthPattern)].map(match => monthWords[match[1]!] ?? Number(match[1]));
     if (months.length === 0 || months.some(month => !facts.periods.filter(period => period.month === month).every(period => period.obstacleStarIds.length > 0))) findings.push("UNCOMPUTED_ADVERSITY");
@@ -55,7 +59,7 @@ export async function writePeriodReading(input: { facts: ZiweiPeriodReadingFacts
       use: "production_report_generation", costContext: input.costContext ? { ...input.costContext,
         ...(input.costContext.idempotencyKey ? { idempotencyKey: `${input.costContext.idempotencyKey}:${attempt ? "rewrite" : "report"}` } : {}),
         purpose: attempt ? "rewrite" : "report" } : undefined, purpose: attempt ? "rewrite" : "report", maxOutputTokens: facts.kind === "annual" ? 20000 : 8000,
-      system: "Write a substantial Vietnamese astrology reading from the supplied computed lunar periods. Return only the exact JSON schema. Explain star terms immediately for beginners. Copy period identifiers and evidence keys exactly, cover every supplied period once including leap-month halves. Annual: at least150 Vietnamese syllables of substantive prose and actions per period. Monthly: at least700 per period. Overview: at least180. Distinguish preparation from predictions. No invented scores, events, dates, months, ritual advice, death/lifespan claims, certainty promises, lottery numbers, Han ideographs, or English brightness labels. Only mention adverse monthly patterns when the relevant period includes obstacleStarIds; explain the matching stars as context, never inevitable events. Do not mention AI or internal inputs. All dates refer to the lunar calendar. Each period may name only its own month. No specific days. Annual overview may compare supplied months but may not attribute an adverse pattern to a month without obstacle evidence. Do not reproduce birth data or technical identifiers in prose.",
+      system: "Write a substantial Vietnamese astrology reading from the supplied computed lunar periods. Return only the exact JSON schema. Explain star terms immediately for beginners. Copy period identifiers and evidence keys exactly, cover every supplied period once including leap-month halves. Annual: at least150 Vietnamese syllables of substantive prose and actions per period. Monthly: at least700 per period. Overview: at least180. Distinguish preparation from predictions. No invented scores, events, dates, months, ritual advice, death/lifespan claims, named-disease diagnoses, certainty promises, lottery numbers, Han ideographs, or English brightness labels. Measured general health warnings are allowed. Use plain language, explain traditional terms immediately. Only mention adverse monthly patterns when the relevant period includes obstacleStarIds; explain the matching stars as context, never inevitable events. Do not mention AI or internal inputs. All dates refer to the lunar calendar. Each period may name only its own month. No specific days. Annual overview may compare supplied months but may not attribute an adverse pattern to a month without obstacle evidence. Do not reproduce birth data or technical identifiers in prose.",
       user: JSON.stringify({ tuple: PERIOD_READING_TUPLE, facts, knowledgePacks: (input.knowledgePacks ?? []).map(pack => ({ id: pack.id, passages: pack.passages.slice(0, 2).map(passage => ({ passageId: passage.passageId, content: passage.content.slice(0, 1800) })) })), ...(prior ? { rewrite: { prior, findings } } : {}) }),
     });
     if (!result.ok) return result;

@@ -26,6 +26,15 @@ describe("period writer fail-closed quality", () => {
     const wrong = content(); wrong.kind = "annual"; wrong.overview.narrative += " Tháng chín hao tài.";
     expect(validatePeriodReading(wrong, annual).findings).toContain("UNCOMPUTED_ADVERSITY");
   });
+  it.each([
+    ["Bạn có nguy cơ mắc ung thư.", "NAMED_DISEASE_DIAGNOSIS"],
+    ["Điểm vận may là 90 điểm.", "UNCOMPUTED_SCORE"],
+    ["Khả năng thuận lợi là 90%.", "UNCOMPUTED_SCORE"],
+    ["tháng mười một".normalize("NFD"), "UNCOMPUTED_MONTH"],
+  ])("rejects unsupported claims: %s", (text, finding) => {
+    const wrong = content(); wrong.periods[0]!.narrative += text;
+    expect(validatePeriodReading(wrong, facts).findings).toContain(finding);
+  });
   it("allows one corrective rewrite and never returns failed quality as success", async () => {
     const wrong = content(); wrong.periods[0]!.narrative = "Ngắn.";
     const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: wrong, providerId: "fixture", modelId: "fixture" } });
