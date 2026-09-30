@@ -1,0 +1,84 @@
+{
+  "date": "2026-09-30",
+  "worktreeCount": 35,
+  "localBranchCount": 52,
+  "stashCount": 9,
+  "mainBranch": "fix/wallet-dialog-viewport",
+  "localMasterAhead": 4,
+  "localMasterBehind": 64,
+  "preservedChanges": [
+    {
+      "path": "/home/debian/projects/lasoviet.vn-develop",
+      "branch": "refs/heads/fix/wallet-dialog-viewport",
+      "status": [
+        "?? plan/2026-09-27_fd104-review-and-kaneo-followup.md",
+        "?? plan/2026-09-27_fd105-todo-execution.md",
+        "?? plan/2026-09-28_handoff-current-context.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-agent-lsv-18",
+      "branch": "refs/heads/plan/lsv-18-commerce-data-20260913",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-agent-lsv-19",
+      "branch": "refs/heads/plan/lsv-19-ui-core-20260913",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-agent-lsv-29",
+      "branch": "refs/heads/plan/lsv-29-report-quality-20260913",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-agent-lsv-9",
+      "branch": "refs/heads/plan/lsv-9-trust-ui-20260913",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-parallel-agent-rules",
+      "branch": "refs/heads/docs/parallel-agent-pr-workflow-20260913",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-unlock-state-version",
+      "branch": "refs/heads/fix/fd105-unlock-state-version",
+      "status": [
+        " M apps/web/next-env.d.ts"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet-ziwei-v4-plan",
+      "branch": "refs/heads/plan/ziwei-v4-editorial-20260913",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn-backup-retention-hotfix",
+      "branch": "refs/heads/hotfix/deploy-backup-retention-20260911",
+      "status": [
+        " M AGENTS.md",
+        " M docs/superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md"
+      ]
+    }
+  ],
+  "destructiveCleanupPerformed": false
+}

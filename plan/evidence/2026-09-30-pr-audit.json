@@ -1,0 +1,672 @@
+{
+  "capturedAt": "2026-09-30T11:17:59.145426+00:00",
+  "pullRequests": [
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/troi-nam-homepage",
+      "headRefOid": "7a0ebf5fecd95262f9ea38e10b753d3e6d2e6ab8",
+      "isDraft": false,
+      "number": 238,
+      "title": "feat(troi-nam): Tr\u1eddi Nam preview homepage \u2014 Plan 1-3 (assets, static sections, motion)",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/238",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707633544/job/109861562502"
+        },
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707459894/job/109860999049"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/backlog-integration-20260930",
+      "headRefOid": "220b6d0e052c83eed340071dcdaeca9ab296487d",
+      "isDraft": true,
+      "number": 237,
+      "title": "feat: integrate reviewed wallet and report backlog candidates",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/237",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707387678/job/109860761879"
+        },
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707383705/job/109860749431"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-60-delayed-unlock-20260930",
+      "headRefOid": "bba285d5c58adc6e7f414682dcd28016f5a6989c",
+      "isDraft": false,
+      "number": 236,
+      "title": "feat(notifications): complete owned unlock and reading reminders",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/236",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "FAILURE",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36706993852/job/109859478742"
+        },
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36706973973/job/109859412687"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-65-combo-20260930",
+      "headRefOid": "96c7bcebb061842b6af4dc47c1dc8cdc3585b39d",
+      "isDraft": true,
+      "number": 235,
+      "title": "feat(commerce): fulfill lifetime and annual combo atomically",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/235",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707435125/job/109860918088"
+        },
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707428384/job/109860895270"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-64-membership",
+      "headRefOid": "04b14fef16d0e0b6889563cd2d4c7180c46a063e",
+      "isDraft": false,
+      "number": 234,
+      "title": "feat(membership): add manual renewal and time-bound wallet benefits",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/234",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "IN_PROGRESS",
+          "conclusion": "",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707039949/job/109859629988"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707034331/job/109859611128"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "docs/backlog-reconciliation-20260930",
+      "headRefOid": "30b28381347a245d1a17e324bbc1b64bf88f23fc",
+      "isDraft": false,
+      "number": 233,
+      "title": "docs: reconcile Kaneo backlog and release evidence",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/233",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705023658/job/109853132594"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36704767502/job/109852305216"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-63-period-readings-20260930",
+      "headRefOid": "a096f9f8c0f3e56ea6e76d4af1222328b4048696",
+      "isDraft": true,
+      "number": 232,
+      "title": "feat(reports): add grounded lunar month and annual readings",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/232",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705646256/job/109855133492"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705642658/job/109855120913"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-66-compatibility-20260930",
+      "headRefOid": "cbac4ab88de19df6f986b1ab89496dfe1c9e8793",
+      "isDraft": false,
+      "number": 231,
+      "title": "docs(compatibility): define gated dual-system readiness draft",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/231",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36703451572/job/109848044392"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36703424969/job/109847959583"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-51-unlock-continuation-20260930",
+      "headRefOid": "bfb42e39ed217523d20d1a1e0b85ce85a1769d26",
+      "isDraft": false,
+      "number": 230,
+      "title": "feat(commerce): complete confirmed unlock after wallet top-up",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/230",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705340111/job/109854140795"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705334637/job/109854124110"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-69-chart-navigation-20260930",
+      "headRefOid": "d1adbf32efb8ccbd6890e8c0a225d1c4d95306b1",
+      "isDraft": false,
+      "number": 229,
+      "title": "feat(reports): add accessible chart navigation and print restoration",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/229",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36702440675/job/109844784576"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36702406661/job/109844673679"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-61-reader-upsell-20260930",
+      "headRefOid": "77d545dc076fe796584845cfc9e558f2a5e8c0f6",
+      "isDraft": false,
+      "number": 228,
+      "title": "feat(reports): add server-priced upgrades inside the reader",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/228",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36702034772/job/109843491654"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36701905367/job/109843078087"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-54-palace-unlock-20260930",
+      "headRefOid": "45fe41491d6ffdf242d0b846c04a903ab3a81191",
+      "isDraft": false,
+      "number": 227,
+      "title": "feat(reports): share natal generation across palace unlocks",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/227",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36702519449/job/109850839848"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36702513731/job/109845008714"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feature/lsv-68-beginner-writing-20260930",
+      "headRefOid": "f450771ddd37c9ea0730c91c43ddf62875ab0559",
+      "isDraft": true,
+      "number": 226,
+      "title": "feat(reports): add gated beginner writing and decadal teasers",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/226",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36701234222/job/109840905443"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36701228912/job/109840886928"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "docs/free-result-page-plan",
+      "headRefOid": "d5ed53e05ed1d12658749111fb9fa40eef9da87f",
+      "isDraft": false,
+      "number": 220,
+      "title": "content revised",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/220",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36531484351/job/109285920548"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36531479309/job/109285904405"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-2-1-personal-daily-foundation",
+      "headRefOid": "d0c0333eefeb88d080c7e7a38e02cee795a10d0e",
+      "isDraft": false,
+      "number": 213,
+      "title": "feat(daily): add paid readings, expiring bonuses, and La-back guarantee",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/213",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36703102302/job/109846900375"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36703093664/job/109846872502"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-1-11-notification-foundation",
+      "headRefOid": "8d1d5b977237f6d10ec0b76b60d02848a718ccda",
+      "isDraft": false,
+      "number": 212,
+      "title": "feat(notifications): FD105 1.11 notification delivery foundation and worker primitives",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/212",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36684461914/job/109787005237"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36684458145/job/109786993469"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-1-9-topic-writers",
+      "headRefOid": "e32832ad1cf8cfb789adc15dd00d71d81b2566d7",
+      "isDraft": true,
+      "number": 211,
+      "title": "feat(reports): deliver gated paid topic deep dives",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/211",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36704367173/job/109851000196"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36704362153/job/109850983420"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-1-10-feedback-guarantee",
+      "headRefOid": "f81d9809c4184602cf7866606b0f5e4474566f4b",
+      "isDraft": false,
+      "number": 210,
+      "title": "feat(commerce): add part feedback and La-back guarantee",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/210",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36706087550/job/109858966097"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36706082200/job/109856540164"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-1-8-funnel-analytics",
+      "headRefOid": "773a597894ea51b3ba62be752008ce9751305392",
+      "isDraft": false,
+      "number": 209,
+      "title": "feat(analytics): instrument FD-105 funnel events",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/209",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36699646890/job/109835824015"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36699640140/job/109835802620"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-1-4-secure-preview",
+      "headRefOid": "2c0a682e293410a8a73554fe5b1b8d0f20074566",
+      "isDraft": false,
+      "number": 208,
+      "title": "feat(preview): secure FD-105 magnet reveal and blur",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/208",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36699643755/job/109835814120"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36699638081/job/109835795816"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "feat/fd105-1-6-welcome-grant",
+      "headRefOid": "8f0a9b235508b2eed2c9356aaa0aa02e4b84c33e",
+      "isDraft": false,
+      "number": 203,
+      "title": "feat(wallet): 60-L\u00e1 welcome grant for first verified sign-in (FD-105 1.6)",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/203",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705952692/job/109856118775"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36705948640/job/109856105501"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "docs/drop-fake-review-ban-fd089-fd091",
+      "headRefOid": "9aa45fa96ca2a5fafc071845ec928701bdd54c73",
+      "isDraft": false,
+      "number": 197,
+      "title": "docs: drop the testimonial ban from FD-089 and FD-091",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/197",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36197993625/job/108278120618"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/36197988488/job/108278104930"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "docs/codex-brief-la-topup-membership-tools",
+      "headRefOid": "cff69fcb05f61ad1dc7d56e7bd653fc6f3b9ecd2",
+      "isDraft": false,
+      "number": 177,
+      "title": "docs: brief for N\u1ea1p L\u00e1, H\u1ed9i vi\u00ean and free tools pages",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/177",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/35986758074/job/107591136620"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/35986751951/job/107591117343"
+        }
+      ]
+    },
+    {
+      "baseRefName": "product/experience-spec-v1",
+      "headRefName": "docs/consolidate-business-sources",
+      "headRefOid": "1044ca64d0a4ac8f41864c2bc9b8c014b4e2841c",
+      "isDraft": false,
+      "number": 152,
+      "title": "docs: consolidate business and concept sources into a single canonical set",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/152",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/35506593768/job/106067353980"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/35506591181/job/106067348896"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "plan/lsv-19-ui-core-20260913",
+      "headRefOid": "7722fb1e92d65ae51df56e52614cb72bc29de78b",
+      "isDraft": false,
+      "number": 54,
+      "title": "docs: plan core UI implementation queue",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/54",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34771922231/job/103762954451"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34771910099/job/103762920575"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "plan/lsv-9-trust-ui-20260913",
+      "headRefOid": "9feabab985b16f4061a47a496863b5c1a396b059",
+      "isDraft": false,
+      "number": 53,
+      "title": "docs: plan trust content and dependent UI queue",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/53",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34771714779/job/103762385097"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34771701389/job/103762349545"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "plan/lsv-29-report-quality-20260913",
+      "headRefOid": "55cadbacf53d455b6a594653af5e5fe86e8494e8",
+      "isDraft": false,
+      "number": 52,
+      "title": "docs: plan report quality dependency queue",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/52",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34771625387/job/103762144991"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34771606798/job/103762094313"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "docs/parallel-agent-pr-workflow-20260913",
+      "headRefOid": "b0711296b767e8d4f142cdf2b0c29cfedaaec278",
+      "isDraft": false,
+      "number": 51,
+      "title": "docs: update parallel agent pull request workflow",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/51",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34770099117/job/103758001704"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34770089586/job/103757974992"
+        }
+      ]
+    },
+    {
+      "baseRefName": "master",
+      "headRefName": "hotfix/deploy-backup-retention-20260911",
+      "headRefOid": "5eba2bec1e0a30608807beebd4c64045fe21073d",
+      "isDraft": false,
+      "number": 31,
+      "title": "fix(deploy): retain newest backups by timestamp",
+      "url": "https://github.com/harris1111/lasoviet.vn/pull/31",
+      "checks": [
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34553497742/job/103121101373"
+        },
+        {
+          "name": "verify",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "detailsUrl": "https://github.com/harris1111/lasoviet.vn/actions/runs/34553473699/job/103121027100"
+        }
+      ]
+    }
+  ]
+}

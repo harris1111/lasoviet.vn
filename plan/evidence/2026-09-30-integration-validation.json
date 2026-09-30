@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-30",
+  "candidate": "https://github.com/harris1111/lasoviet.vn/pull/237",
+  "head": "220b6d0e",
+  "requiredChecks": {
+    "i18n": "passed",
+    "lint": "passed; four existing warnings",
+    "typecheck": "passed",
+    "content": "passed",
+    "productionBuild": "passed"
+  },
+  "isolatedBrowser": {
+    "passed": 20,
+    "coverage": [
+      "feedback and explicit refund",
+      "wallet confirmation and viewport",
+      "reader upgrade",
+      "chart navigation, focus and print",
+      "period reader",
+      "topic reader"
+    ]
+  },
+  "vitestFullRun": {
+    "command": "pnpm exec vitest run --maxWorkers=4",
+    "passedFiles": 389,
+    "failedFiles": 1,
+    "skippedFiles": 2,
+    "passedTests": 3487,
+    "failedTests": 10,
+    "skippedTests": 2,
+    "failure": "Migration0054 recreated an existing index during historical-schema upgrade tests; later schema cases cascaded after the failed upgrade."
+  },
+  "correction": {
+    "commit": "220b6d0e",
+    "change": "CREATE UNIQUE INDEX IF NOT EXISTS for the combo spend/SKU authority index",
+    "schemaRerun": {
+      "passedFiles": 1,
+      "passedTests": 25
+    },
+    "ticket65Commit": "96c7bceb",
+    "ticket65SchemaRerunPassed": 25
+  },
+  "liveProviderCampaignsRun": false,
+  "liveEmailsSent": false,
+  "deploymentPerformed": false,
+  "doneTransitions": 0,
+  "nodeScriptTests": {
+    "passed": 17,
+    "failed": 0
+  }
+}
