@@ -69,13 +69,17 @@
   z-index: 1;
 }
 
-/* The world replaces the hero's static photo plates once it has a real
-   first frame — never the legibility scrim, and only after `data-troi-nam-
-   world-ready` lands (failure/reduced-motion leave the plates untouched). */
-.tn[data-troi-nam-world-ready] .tn-hero-media {
-  opacity: 0;
-  transition: opacity 600ms ease;
-}
+/*
+ * Deliberately NOT dimming `.tn-hero-media` here. The effects contract's
+ * plan was to replace the photo with the 3D world once ready; rendered and
+ * reviewed live, the flat vector-silhouette karst reads as noticeably
+ * cheaper than the real Tràng An photography next to the hero's otherwise
+ * refined typography/form — a regression, not an upgrade (founder call,
+ * 2026-10-01). The photo stays the hero's real background; the world still
+ * renders behind it (harmless, fully covered) so the scroll-driven Explore
+ * choreography and Task 1–5 engine stay intact for a future redesign pass
+ * that uses it as a supplementary effect instead of a replacement.
+ */
 
 /* ---- Hero ---- */
 
