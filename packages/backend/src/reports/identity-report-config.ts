@@ -35,6 +35,12 @@ export const REPORT_CONTENT_VERSION_COMPREHENSIVE_V3 = "ziwei-comprehensive.v3" 
 export const REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY = "ziwei-comprehensive-html.v2" as const;
 export const REPORT_RENDER_VERSION_V4_1_SENSITIVITY = "identity-report-pdf.v2" as const;
 
+// FD-106 wave 2: beginner-first writing. Runs beside the v4.1.2 tuple, which stays live
+// until the FD-082 gate passes on this one.
+export const REPORT_PROMPT_VERSION_V4_2_BEGINNER = "ziwei.comprehensive.prompt.v4.2-beginner" as const;
+export const REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER = "ziwei.comprehensive.report.v4.2-sectioned-beginner" as const;
+export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER = "ziwei.comprehensive.quality.v2.4-beginner" as const;
+
 export const REPORT_TIMING_RULE_VERSION_V1 = "ziwei.timing.v1" as const;
 export const REPORT_SENSITIVITY_RULE_VERSION_V1 = "ziwei.sensitivity.v1" as const;
 
@@ -183,6 +189,17 @@ export type ReportVersionSelectionV4_1_2Sensitivity = Omit<
   qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
 };
 
+export type ReportVersionSelectionV4_2Beginner = Omit<ReportVersionSelectionV4_1_2Sensitivity, "promptVersion" | "reportConfigVersion" | "qualityVersion"> & {
+  promptVersion: typeof REPORT_PROMPT_VERSION_V4_2_BEGINNER;
+  reportConfigVersion: typeof REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER;
+  qualityVersion: typeof REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER;
+};
+export function v4_2BeginnerReportVersions(_locale = "vi"): ReportVersionSelectionV4_2Beginner {
+  return { ...v4_1_2SensitivityReportVersions(), promptVersion: REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+    reportConfigVersion: REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+    qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER };
+}
+
 export type ReportVersionSelection =
   | ReportVersionSelectionV2
   | ReportVersionSelectionV3
@@ -192,7 +209,8 @@ export type ReportVersionSelection =
   | ReportVersionSelectionV4_1Sensitivity
   | ReportVersionSelectionV4_1_1Sensitivity
   | ReportVersionSelectionV4_1_1KeyConfigSensitivity
-  | ReportVersionSelectionV4_1_2Sensitivity;
+  | ReportVersionSelectionV4_1_2Sensitivity
+  | ReportVersionSelectionV4_2Beginner;
 
 export type ReportVersionResolver = (locale: string) => ReportVersionSelection;
 
@@ -313,9 +331,11 @@ export type ReportRuntimePolicy = {
 const REPORT_RUNTIME_POLICIES: Readonly<Record<
   | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
   | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
-  | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+  | typeof REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
   ReportRuntimePolicy
 >> = Object.freeze({
+  [REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER]: Object.freeze({ maximumWallClockMs: 60 * 60 * 1_000 }),
   [REPORT_CONFIG_VERSION_V4_1_SECTIONED]: Object.freeze({
     maximumWallClockMs: 60 * 60 * 1_000,
   }),

@@ -584,3 +584,18 @@ describe("critiqueComprehensiveZiweiReportV4", () => {
   });
 
 });
+
+import { REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER } from "./identity-report-config.js";
+
+it("adds translate-on-arrival advisory warnings for beginner reports only", async () => {
+  const facts = buildComprehensiveZiweiFactsV4(createSampleChart(), createSampleSnapshot());
+  const provider = { generateStructured: vi.fn().mockResolvedValue({ ok: true, value: { value: { warnings: [] } } }) };
+  for (const config of [REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER, REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY]) {
+    const result = await critiqueComprehensiveZiweiReportSectionedV4({} as never, facts, provider as never, { warningOnly: true, reportConfigVersion: config });
+    expect(result.ok).toBe(true);
+    const request = provider.generateStructured.mock.calls.at(-1)![0];
+    expect(request.system.includes("giải nghĩa ngay")).toBe(config === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER);
+    expect(request.schema.safeParse({ warnings: [{ key: "overview", category: "beginner", note: "Tên sao chưa giải nghĩa." }] }).success).toBe(config === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER);
+    expect(request.schema.safeParse({ warnings: [{ key: "decadalTeasers", category: "beginner", note: "Tên sao chưa giải nghĩa." }] }).success).toBe(config === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER);
+  }
+});

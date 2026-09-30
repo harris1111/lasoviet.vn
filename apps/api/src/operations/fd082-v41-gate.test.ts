@@ -243,3 +243,18 @@ describe("FD-082 V4.1 gate", () => {
     expect(restore).not.toHaveBeenCalled();
   });
 });
+
+import { v4_2BeginnerReportVersions, resolveComprehensiveReportSectionKeys } from "@lasoviet/backend";
+
+it("checks the isolated beginner tuple, including its teaser checkpoint, without changing the default", () => {
+  const tuple = v4_2BeginnerReportVersions();
+  const evidence = exactEvidence();
+  evidence.reservation = { ...evidence.reservation!, promptVersion: tuple.promptVersion, reportConfigVersion: tuple.reportConfigVersion };
+  evidence.immutable = { ...evidence.immutable!, promptVersion: tuple.promptVersion, reportConfigVersion: tuple.reportConfigVersion };
+  evidence.checkpoints = resolveComprehensiveReportSectionKeys(tuple.reportConfigVersion).map((sectionKey) => ({ ...evidence.checkpoints[0]!, sectionKey, promptVersion: tuple.promptVersion, reportConfigVersion: tuple.reportConfigVersion, qualityConfigVersion: tuple.qualityVersion }));
+  expect(passesFd082Evidence(evidence, tuple)).toBe(true);
+  expect(passesFd082Evidence(evidence)).toBe(false);
+  evidence.checkpoints = evidence.checkpoints.filter((item) => item.sectionKey !== "decadalTeasers");
+  expect(passesFd082Evidence(evidence, tuple)).toBe(false);
+  expect(parseFd082GateArguments(["--owner-id=owner", "--campaign-id=beginner", "--runs=20", "--tuple=v4.2-beginner"]).tuple).toBe("v4.2-beginner");
+});

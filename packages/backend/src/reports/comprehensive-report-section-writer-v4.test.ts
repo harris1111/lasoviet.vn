@@ -943,3 +943,24 @@ describe("writeComprehensiveReportSectionGroupV4", () => {
     })).rejects.toThrow("COMPREHENSIVE_REPORT_GROUP_PROMPT_UNSUPPORTED");
   });
 });
+
+import { REPORT_PROMPT_VERSION_V4_2_BEGINNER, REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER } from "./identity-report-config.js";
+import { teaserCyclesFor } from "./comprehensive-report-decadal-teasers.js";
+
+describe("beginner writer", () => {
+  it("passes seven derived cycles to G3, uses the beginner voice and a 20k cap", async () => {
+    const chartFacts = productionFacts();
+    if (chartFacts.timing.decadal.state !== "active") throw new Error("Expected active timing");
+    chartFacts.timing.decadal.earthlyBranchId = "ziwei.branch.dragon";
+    const items = teaserCyclesFor(chartFacts).map((cycle) => ({ ordinal: cycle.ordinal, narrative: "Bạn nên cân nhắc trước khi quyết định.", evidenceKeys: [chartFacts.evidenceKeys[0]!] }));
+    const provider = { generateStructured: vi.fn(async (_request: any) => ({ ok: true as const, value: { value: { sections: [{ key: "decadalTeasers", value: items }] }, providerId: "provider", modelId: "model" } })) };
+    const result = await writeComprehensiveReportSectionGroupV4({ groupId: "G3", sectionKeys: ["decadalTeasers"], facts: chartFacts, knowledgePacks: [], provider, promptVersion: REPORT_PROMPT_VERSION_V4_2_BEGINNER, reportConfigVersion: REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER });
+    expect(result.ok).toBe(true);
+    const request = provider.generateStructured.mock.calls[0]![0];
+    expect(request.maxOutputTokens).toBe(20_000);
+    expect(request.system).toContain("giọng tâm tình");
+    expect(request.system).not.toContain("ít nhất hai sao thực có trong cung");
+    expect(JSON.parse(request.user).sections[0].teaserCycles).toHaveLength(7);
+    expect(request.schema.safeParse({ sections: [{ key: "decadalTeasers", value: [{ ...items[0], palaceId: "ziwei.palace.life" }] }] }).success).toBe(false);
+  });
+});

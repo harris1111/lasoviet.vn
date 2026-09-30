@@ -1,3 +1,4 @@
+import { findBannedOpener, findBannedPhrase, findMachineSubheading, overviewArcProblem, starDensityProblem } from "./comprehensive-report-beginner-gates.js";
 import type { ZiweiPalaceId } from "@lasoviet/contracts";
 import {
   resolveZiweiReportQualityConfig,
@@ -15,6 +16,7 @@ export type ComprehensiveReportQualitySectionV4 = {
   key: string;
   kind: ZiweiReportQualitySectionKind;
   text: string;
+  title?: string;
   evidenceKeys: readonly string[];
   palaceId?: ZiweiPalaceId;
 };
@@ -32,6 +34,10 @@ export const COMPREHENSIVE_REPORT_QUALITY_FINDING_CODES_V4 = [
   "PALACE_FACTS",
   "PALACE_ANCHORS",
   "EVIDENCE_ANCHORS",
+  "BANNED_PHRASE",
+  "MACHINE_SUBHEADING",
+  "STAR_DENSITY",
+  "OVERVIEW_ARC",
 ] as const;
 
 export type ComprehensiveReportQualityFindingCodeV4 =
@@ -174,6 +180,10 @@ export function findUncomputedMisfortunePeriods(
   return [...new Set(uncomputed)];
 }
 
+// Resolve lazily: the validator also imports the quality checks.
+const starLabelsVi = () => Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+  .filter(([id]) => id.startsWith("ziwei.star."))
+  .map(([, label]) => label.replace(/^sao\s+/u, ""));
 const MAX_SECTION_KEY_CHARS = 96;
 const HAN_IDEOGRAPH_PATTERN = /(?:[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|\p{Script=Han})/u;
 const ENGLISH_BRIGHTNESS_PATTERN =
@@ -341,7 +351,23 @@ export function validateComprehensiveReportSectionQualityV4(
   }
   if (HAN_IDEOGRAPH_PATTERN.test(rawText)) add("LOCALE_HAN", "Contains a Han ideograph.");
   if (ENGLISH_BRIGHTNESS_PATTERN.test(text)) add("ENGLISH_BRIGHTNESS", "Contains an English brightness descriptor.");
-  if (qualityVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY) {
+  const beginner = "bannedPhrases" in config;
+  if (beginner) {
+    if (!("bannedPhrases" in config)) throw new Error("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
+    const title = normalizeComprehensiveReportModelProse(section.title ?? "");
+    const banned = findBannedPhrase(`${title}\n${text}`, config.bannedPhrases)
+      ?? findBannedOpener(`${title}\n${text}`, config.bannedOpeners);
+    if (banned) add("BANNED_PHRASE", `Contains banned wording: ${banned}.`);
+    const heading = findMachineSubheading(text);
+    if (heading) add("MACHINE_SUBHEADING", `Paragraph has a machine sub-heading: ${heading}.`);
+    const density = starDensityProblem(text, starLabelsVi(), config.maxDistinctStarNamesPer80Syllables);
+    if (density) add("STAR_DENSITY", density);
+    if (section.kind === "overview") {
+      const arc = overviewArcProblem(text, starLabelsVi(), config.overviewMinimumParagraphs);
+      if (arc) add("OVERVIEW_ARC", arc);
+    }
+  }
+  if (qualityVersion !== REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY && !beginner) {
     if (!("properNames" in config) || !("maxProperNamesPer100Syllables" in config)) {
       throw new Error("ZIWEI_REPORT_QUALITY_VERSION_MISMATCH");
     }
@@ -365,7 +391,13 @@ export function validateComprehensiveReportSectionQualityV4(
           }),
       ).size;
       const hasNoMajor = hasTrueNoMajorStarState(palace.stars);
-      if (namedStars < config.minimumPalaceStars && !(hasNoMajor && wholeWord(text, "không có chính tinh"))) {
+      const evidenceIds = referencedEvidenceFactIds(section.evidenceKeys, facts);
+      const anchoredIds = new Set(palace.stars.map((star) => star.id.toLowerCase()).filter((id) => evidenceIds.has(id)));
+      const namedAnchoredStars = [...anchoredIds].filter((id) => { const label = displayFact(id); return label !== undefined && wholeWord(text, label); }).length;
+      const lacksAnchors = "minimumNamedAnchorsInProse" in config
+        ? anchoredIds.size < config.minimumPalaceStars || namedAnchoredStars < config.minimumNamedAnchorsInProse
+        : namedStars < config.minimumPalaceStars;
+      if (lacksAnchors && !(hasNoMajor && wholeWord(text, "không có chính tinh"))) {
         add("PALACE_ANCHORS", `Requires ${config.minimumPalaceStars} actual palace stars or the true no-major-star state.`);
       }
     }
@@ -374,7 +406,10 @@ export function validateComprehensiveReportSectionQualityV4(
       const label = displayFact(id);
       return label !== undefined && wholeWord(text, label);
     });
-    if (anchors.length < config.minimumEvidenceAnchors) {
+    const lacksAnchors = "minimumNamedAnchorsInProse" in config
+      ? referencedEvidenceFactIds(section.evidenceKeys, facts).size < config.minimumEvidenceAnchors || anchors.length < config.minimumNamedAnchorsInProse
+      : anchors.length < config.minimumEvidenceAnchors;
+    if (lacksAnchors) {
       add("EVIDENCE_ANCHORS", `Requires ${config.minimumEvidenceAnchors} distinct named evidence-backed chart facts.`);
     }
   }

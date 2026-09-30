@@ -413,7 +413,7 @@ export function ReportDecadalTimeline({
         {t("reader.timeline_title")}
       </h4>
       <ol className="report-cycles">
-        {cycles.slice(0, 9).map((cycle) => {
+        {cycles.slice(0, 8).map((cycle) => {
           const isCurrent = cycle.ordinal === current;
           const isPast = current !== null && cycle.ordinal < current;
           const palace = snapshot.palaces.find((p) => p.palaceId === cycle.palaceId);
