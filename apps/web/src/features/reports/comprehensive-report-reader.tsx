@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { ReaderUpgrade } from "./reader-upgrade";
 import type {
   ComprehensiveReportTier2PublicContentV1,
   ComprehensiveReportTier2PublicContentV3,
@@ -851,41 +852,7 @@ export function ComprehensiveReportReader({
 
               {/* Tier 1 In-Reader Upgrade Box: Only rendered after reading meaningful content */}
               {!isTier2 && canShowUpgrade && (
-                <div className="report-upgrade-box" id="nang-cap">
-                  <h3>{t("reader.upgrade_title")}</h3>
-                  <p>{t("reader.upgrade_desc")}</p>
-
-                  <div className="report-upgrade-map">
-                    <div className="report-upgrade-map-col">
-                      <h4>{t("reader.unlocked_map_title")}</h4>
-                      <ul>
-                        <li>✓ {report.content.overview.title}</li>
-                        <li>✓ {report.content.coreAxis.title}</li>
-                        <li>✓ {report.content.strengthsAndTensions.title}</li>
-                        <li>✓ Định hướng thực tế</li>
-                      </ul>
-                    </div>
-                    <div className="report-upgrade-map-col">
-                      <h4>{t("reader.locked_map_title")}</h4>
-                      <ul>
-                        <li>🔒 12 cung chi tiết</li>
-                        <li>🔒 Cấu trúc trọng yếu</li>
-                        <li>🔒 4 lĩnh vực đời sống</li>
-                        <li>🔒 Đại vận và lưu niên</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <p className="report-upgrade-deadline">
-                    {t("reader.upgrade_price_notice")}
-                  </p>
-
-                  <div className="report-upgrade-row">
-                    <a className="btn-upgrade" href="/nap-la">
-                      {t("reader.upgrade_cta")}
-                    </a>
-                  </div>
-                </div>
+                <ReaderUpgrade key={`${report.chartId}:${report.chartVersionId}:${locale}`} locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} />
               )}
 
               {v4_1Content && (
