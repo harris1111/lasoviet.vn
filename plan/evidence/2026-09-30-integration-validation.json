@@ -47,5 +47,14 @@
   "nodeScriptTests": {
     "passed": 17,
     "failed": 0
+  },
+  "finalCi": {
+    "run": "https://github.com/harris1111/lasoviet.vn/actions/runs/36707383705",
+    "head": "220b6d0e052c83eed340071dcdaeca9ab296487d",
+    "conclusion": "success",
+    "passedTestFiles": 390,
+    "passedTests": 3497,
+    "skippedTests": 2,
+    "nodeScriptTestsPassed": 17
   }
 }
