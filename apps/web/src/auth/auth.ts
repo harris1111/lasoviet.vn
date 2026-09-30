@@ -17,6 +17,7 @@ import {
 } from "@lasoviet/database/runtime";
 
 import { sendAuthEmail } from "./auth-email-client";
+import { ensureSessionWelcomeGrant } from "./ensure-session-welcome-grant";
 
 function configuration() {
   const result = loadEnvironment(process.env);
@@ -89,6 +90,9 @@ export function createAuth() {
     },
   },
   databaseHooks: {
+    session: {
+      create: { after: ensureSessionWelcomeGrant },
+    },
     user: {
       create: {
         after: async (user) => {

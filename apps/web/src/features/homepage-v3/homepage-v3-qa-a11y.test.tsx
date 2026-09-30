@@ -27,6 +27,7 @@ vi.mock("next-intl", () => {
   );
 
   return {
+    useLocale: () => "vi",
     useTranslations: (ns: string) => {
       const section = ns.replace("homepage-v3.", "");
       const msgs = viMessages[section] ?? {};
@@ -79,6 +80,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
 
   it("Requirement 2: Keyboard and ARIA state in FAQ, comparison tabs, and theme toggle controls", () => {
     const compareHtml = renderToStaticMarkup(createElement(HomepageV3Compare));
+    expect(compareHtml).toContain("<details class=\"hv3-compare-details\">");
     expect(compareHtml).toContain('role="group"');
     expect(compareHtml).toContain('aria-pressed="true"');
     expect(compareHtml).toContain('aria-pressed="false"');
@@ -92,7 +94,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
     // 3a. Hero chart is one labelled image; the date/name/branch text overlaid on it is decorative (aria-hidden)
     // and there is no live region, so nothing is announced on every keystroke.
     const heroHtml = renderToStaticMarkup(createElement(HomepageV3Hero, { locale: "vi" }));
-    expect(heroHtml).toContain('role="img" aria-label="Lá số của bạn"');
+    expect(heroHtml).toContain('role="img" aria-label="Đồ hình lá số của bạn"');
     expect(heroHtml).toContain('class="hv3-chart-center" aria-hidden="true"');
     expect(heroHtml).not.toContain("aria-live");
     expect(heroHtml).not.toContain("hv3-folio");

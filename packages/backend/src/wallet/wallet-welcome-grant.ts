@@ -1,4 +1,5 @@
 import type { Database } from "@lasoviet/database";
+import type { WalletTransactionReceiptV1 } from "@lasoviet/contracts";
 
 import { createDatabaseWalletRepository } from "./wallet.repository.js";
 
@@ -20,13 +21,13 @@ export async function ensureWalletWelcomeGrant(
   database: Database,
   ownerId: string,
   context: { now: () => Date; requestId: string; traceId: string },
-): Promise<void> {
+): Promise<WalletTransactionReceiptV1 | null> {
   const token = {};
   const wallet = createDatabaseWalletRepository(database, {
     now: context.now,
     trustedGrantAuthority: { token, actorId: ownerId },
   });
-  await wallet.grant({
+  const result = await wallet.grant({
     targetOwnerId: ownerId,
     topUpOrderId: null,
     trustedGrantToken: token,
@@ -42,6 +43,5 @@ export async function ensureWalletWelcomeGrant(
       topUpPackId: null,
     },
   });
-  // Failure (already granted, or account not yet eligible) is not surfaced:
-  // the caller's own flow (reading balance, unlocking) must still complete.
+  return result.ok ? result.value : null;
 }

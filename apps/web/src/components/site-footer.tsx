@@ -91,8 +91,8 @@ export function SiteFooter({ locale }: SiteFooterProps) {
           </div>
           <p>
             {vi
-              ? "Lập lá số Tử Vi và luận giải bằng tiếng Việt dễ hiểu."
-              : "Build your Zi Wei chart and read it in plain language."}
+              ? "Lập lá số Tử Vi và luận giải bằng tiếng Việt sáng tỏ, có căn cứ."
+              : "Build your Zi Wei chart and read grounded interpretations in clear language."}
           </p>
           {customerContactConfig.email.visible && (
             <a

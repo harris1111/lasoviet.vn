@@ -6,7 +6,7 @@ import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import {
   parseCheckoutStatus,
   type CheckoutStatus,
@@ -38,6 +38,9 @@ export type VietQrCheckoutPollingOptions = {
 };
 
 function needsPolling(status: CheckoutStatus): boolean {
+  if (status.order.kind === "wallet_topup") {
+    return status.order.status === "pending";
+  }
   return (
     status.order.status === "pending"
     || (status.order.status === "paid" && status.reportId === null)
@@ -266,6 +269,10 @@ export type VietQrCheckoutLabels = {
   returnToTopicSelectorAction?: string;
   footerSupportPrefix?: string;
   footerSupportAction?: string;
+  topUpCreditedTitle?: string;
+  topUpCreditedDescription?: string;
+  topUpNewBalanceLabel?: string;
+  topUpBackToLibraryAction?: string;
 };
 
 export type VietQrCheckoutProps = {
@@ -523,6 +530,43 @@ export function VietQrCheckout({
     return null;
   }
 
+  if (status.order.status === "paid" && status.order.kind === "wallet_topup") {
+    const creditedTitle = labels.topUpCreditedTitle ?? (isVi ? "Đã cộng Lá vào ví" : "Lá credited to your wallet");
+    const creditedLa = status.order.creditedLa;
+    const creditedDesc = labels.topUpCreditedDescription ?? (
+      creditedLa !== null
+        ? (isVi
+            ? `Bạn đã được cộng ${creditedLa.toLocaleString(priceLocale)} Lá vào ví.`
+            : `${creditedLa.toLocaleString(priceLocale)} Lá has been credited to your wallet.`)
+        : (isVi ? "Lá đã được cộng vào ví của bạn." : "Lá has been credited to your wallet.")
+    );
+    const backToLibraryLabel = labels.topUpBackToLibraryAction ?? (isVi ? "Xem số dư Lá" : "View Lá balance");
+    const libraryPath = isVi ? "/tai-khoan" : "/en/tai-khoan";
+
+    return (
+      <>
+        {orderSummaryBlock}
+        <section
+          className="vietqr-checkout-recovery vietqr-checkout-topup-credited"
+          data-checkout-status="paid"
+          role="status"
+        >
+          <div className="vietqr-recovery-content">
+            <p className="vietqr-status">{labels.status.paid}</p>
+            <h2>{creditedTitle}</h2>
+            <p className="vietqr-recovery-description">{creditedDesc}</p>
+            <div className="vietqr-recovery-actions">
+              <Link href={libraryPath} className="button button-primary">
+                {backToLibraryLabel}
+              </Link>
+            </div>
+          </div>
+        </section>
+        {footerSupportBlock}
+      </>
+    );
+  }
+
   if (status.order.status === "paid" && status.reportId === null) {
     const paidTitle = labels.paidProcessingTitle ?? (isVi ? "Đã nhận thanh toán thành công" : "Payment received successfully");
     const paidDesc = labels.paidProcessingDescription ?? (isVi ? "Hệ thống đã ghi nhận thanh toán của bạn và đang chuẩn bị báo cáo luận giải. Vui lòng chờ trong giây lát hoặc kiểm tra lịch sử đơn hàng." : "Your payment has been recorded and your interpretation report is being prepared. Please wait a moment or check your order history.");
@@ -756,7 +800,7 @@ export function VietQrCheckout({
         onClick={() => copyField(field)}
         type="button"
       >
-        <Icon name={copiedField === field ? "check" : "hash"} />
+        <LsvIcon name={copiedField === field ? "ui-check" : "ui-copy"} size={18} />
         <span>{copyLabels[field]}</span>
       </button>
     );
@@ -827,7 +871,7 @@ export function VietQrCheckout({
             <div>
               <dt>{labels.remainingTime}</dt>
               <dd className="vietqr-time">
-                <Icon name="clock" />
+                <LsvIcon name="payment-pending" size={20} />
                 <time dateTime={instructions.expiresAt}>{remainingTime}</time>
                 <span className="vietqr-time-deadline">
                   {" ("}{expiresAtLabel}{" "}

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => {
     const map: Record<string, string> = {
@@ -117,6 +120,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
           initialStatus={{
             order: {
               id: "internal-uuid-order-expired-999",
+              kind: "content_purchase",
               status: "expired",
               amount: 79000,
               currency: "VND",
@@ -127,6 +131,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
               createdAt: "2026-09-08T00:00:00Z",
               creditApplied: 0,
               creditExpiresAt: null,
+              creditedLa: null,
               supportUrl: "/lien-he?order=LSVEXPIREDCODE",
             },
             paymentInstructions: null,
@@ -157,6 +162,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
           initialStatus={{
             order: {
               id: "internal-uuid-order-failed-888",
+              kind: "content_purchase",
               status: "failed",
               amount: 79000,
               currency: "VND",
@@ -167,6 +173,7 @@ describe("Customer support & contact invariants (LSV-26 / UI-08)", () => {
               createdAt: "2026-09-08T00:00:00Z",
               creditApplied: 0,
               creditExpiresAt: null,
+              creditedLa: null,
               supportUrl: "/lien-he?order=LSVFAILEDCODE",
             },
             paymentInstructions: null,

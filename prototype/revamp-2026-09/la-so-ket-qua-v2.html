@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="vi" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lá số của bạn - Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<link rel="stylesheet" href="doc-bao-cao-tuong-tac.css">
+<link rel="stylesheet" href="la-so-ket-qua-v2.css">
+<script>
+  try { var t = localStorage.getItem("lasoviet:theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<script src="icons.js"></script>
+<a class="sr-only" href="#main">Bỏ qua, tới nội dung</a>
+
+<header class="site-header fr-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html" aria-label="Lá Số Việt, trang chủ"><svg aria-hidden="true"><use href="#logo"/></svg><span class="brand-word">Lá Số Việt</span></a>
+    <div class="fr-head-right" id="headRight"></div>
+  </div>
+</header>
+
+<div class="container proto-bar fr-proto" id="protoBar">
+  <span class="proto-note">Mẫu thử trang kết quả miễn phí (FD-105, FD-108). Lá số lấy từ lá số thật trong báo cáo mẫu. Số tháng hạn năm 2026 và gói nạp là số minh hoạ. Mọi nút mua và thanh toán đều giả lập. Nút mở từng cung (120 Lá) chỉ hiện khi gói 1.5 đã chạy thật.</span>
+  <div class="fr-proto-row">
+    <div class="seg" role="group" aria-label="Trạng thái khách">
+      <button type="button" data-who="guest" aria-pressed="true">Khách chưa đăng nhập</button>
+      <button type="button" data-who="signed" aria-pressed="false">Đã đăng nhập</button>
+    </div>
+    <div class="seg theme" role="group" aria-label="Giao diện">
+      <button type="button" data-theme-btn="dark">Tối</button><button type="button" data-theme-btn="light">Sáng</button>
+    </div>
+    <a class="fr-proto-link" href="la-so-ket-qua-v2-dien-thoai.html">Xem trong khung điện thoại</a>
+  </div>
+</div>
+
+<main id="main" class="container fr-page">
+  <section class="fr-top" aria-labelledby="frTitle">
+    <p class="eyebrow">Lá số Tử Vi</p>
+    <h1 id="frTitle">Lá số của bạn</h1>
+    <p class="fr-meta" id="frMeta"></p>
+    <div class="fr-actions">
+      <button type="button" class="chip-btn"><svg aria-hidden="true"><use href="#ui-download"/></svg>Tải ảnh</button>
+      <button type="button" class="chip-btn"><svg aria-hidden="true"><use href="#ui-share"/></svg>Chia sẻ</button>
+      <button type="button" class="chip-btn"><svg aria-hidden="true"><use href="#ui-edit"/></svg>Sửa</button>
+    </div>
+    <p class="fr-guest-note" id="guestNote"><svg aria-hidden="true"><use href="#ui-clock"/></svg><span>Lá số này tự xoá sau 24 giờ. <button type="button" class="link-btn" data-save>Lưu lại miễn phí</button> để đọc tiếp và nhận 60 Lá tặng.</span></p>
+  </section>
+
+  <nav class="fr-tabs" aria-label="Các phần của lá số">
+    <div role="tablist" id="tabs"></div>
+  </nav>
+
+  <div class="fr-layout">
+    <aside class="fr-side" aria-label="Lá số">
+      <section class="fr-sec fr-chart-sec" id="s-chart" aria-label="Lá số 12 cung">
+        <div class="chart" id="chartMain"></div>
+        <p class="fr-hint">Chạm một cung để xem cung đó nói gì về bạn.</p>
+      </section>
+    </aside>
+
+    <div class="fr-main" id="frMain">
+      <section class="fr-sec" data-tab="tong-quan" id="s-insight" aria-labelledby="insightTitle"></section>
+      <section class="fr-sec" data-tab="tong-quan" id="s-save" aria-labelledby="saveTitle"></section>
+      <section class="fr-sec" data-tab="tong-quan" id="s-member" aria-labelledby="memberTitle"></section>
+      <section class="fr-sec" data-tab="tong-quan" id="s-palace-free" aria-labelledby="palaceFreeTitle"></section>
+      <section class="fr-sec" data-tab="la-so" id="s-scores" aria-labelledby="scoresTitle"></section>
+      <section class="fr-sec" data-tab="nam-nay" id="s-year" aria-labelledby="yearTitle"></section>
+      <section class="fr-sec" data-tab="12-cung" id="s-palaces" aria-labelledby="palacesTitle"></section>
+      <section class="fr-sec" data-tab="chu-de" id="s-topics" aria-labelledby="topicsTitle"></section>
+      <section class="fr-sec" data-tab="chu-de" id="s-end" aria-labelledby="endTitle"></section>
+      <section class="fr-sec" data-tab="can-cu" id="s-basis" aria-labelledby="basisTitle"></section>
+    </div>
+  </div>
+
+  <footer class="fr-foot">
+    <p>Lá số riêng tư, không hiện trên Google.</p>
+    <p><a href="bao-cao-mau.html">Xem bản luận giải mẫu</a> · <a href="lap-la-so.html">Lập lá số cho người thân</a></p>
+  </footer>
+</main>
+
+<div class="fr-sticky" id="sticky" aria-label="Việc tiếp theo"></div>
+
+<!-- Palace sheet -->
+<div class="sheet-wrap" id="palaceSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="psTitle">
+    <div class="handle"></div>
+    <div class="sheet-top"><b id="psTitle">Cung</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div id="psBody"></div>
+  </div>
+</div>
+
+<!-- The single door: stands in for /la-so/{id}/chon-luan-giai -->
+<div class="sheet-wrap" id="offerSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ofTitle">
+    <div class="handle"></div>
+    <div class="sheet-top"><b id="ofTitle">Mở luận giải cho lá số của bạn</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div id="ofBody"></div>
+  </div>
+</div>
+
+<!-- Confirm spend -->
+<div class="sheet-wrap" id="confirmSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet fr-small-sheet" role="dialog" aria-modal="true" aria-labelledby="cfTitle">
+    <div class="handle"></div>
+    <div class="sheet-top"><b id="cfTitle">Mở phần này</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div id="cfBody"></div>
+  </div>
+</div>
+
+<!-- Top-up -->
+<div class="sheet-wrap" id="topupSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet fr-small-sheet" role="dialog" aria-modal="true" aria-labelledby="tuTitle">
+    <div class="handle"></div>
+    <div class="sheet-top"><b id="tuTitle">Nạp thêm Lá</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div id="tuBody"></div>
+  </div>
+</div>
+
+<!-- Save / sign-in -->
+<div class="sheet-wrap" id="saveSheet" hidden>
+  <div class="scrim" data-close></div>
+  <div class="sheet fr-small-sheet" role="dialog" aria-modal="true" aria-labelledby="svTitle">
+    <div class="handle"></div>
+    <div class="sheet-top"><b id="svTitle">Lưu lá số của bạn</b><button type="button" class="icon-btn" data-close aria-label="Đóng"><svg aria-hidden="true"><use href="#ui-close"/></svg></button></div>
+    <div class="fr-save-body">
+      <p>Lưu miễn phí bằng tài khoản Google. Bạn đọc được <b>điều thứ hai lá số nói riêng về bạn</b>, nhận <b>60 Lá tặng</b>, và xem lại lá số bất cứ lúc nào.</p>
+      <button type="button" class="btn btn-primary fr-google" id="doSignIn"><span class="g-dot" aria-hidden="true">G</span>Tiếp tục với Google</button>
+      <p class="fr-fine">Chưa lưu thì lá số tự xoá sau 24 giờ.</p>
+    </div>
+  </div>
+</div>
+
+<div class="fr-toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="doc-bao-cao-tuong-tac-elements.js"></script>
+<script src="doc-bao-cao-tuong-tac-data.js"></script>
+<script src="doc-bao-cao-tuong-tac-score.js"></script>
+<script src="doc-bao-cao-tuong-tac-palaces.js"></script>
+<script src="la-so-ket-qua-v2.js"></script>
+</body>
+</html>

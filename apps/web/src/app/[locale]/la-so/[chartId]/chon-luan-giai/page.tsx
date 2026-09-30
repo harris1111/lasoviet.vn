@@ -48,11 +48,16 @@ export default async function PaidTopicSelectionPage({
 
   let ownershipByOfferKey: Partial<Record<PublicOfferKey, OfferOwnershipState>> = {};
   let orderHistory: OrderHistoryItemV1[] = [];
+  let userBalance = 0;
   if (actor !== null) {
-    const [libraryResult, ordersResult] = await Promise.all([
+    const [libraryResult, ordersResult, balanceResult] = await Promise.all([
       accountDataLoader.loadLibrary(actor),
       accountDataLoader.loadOrders(actor),
+      accountDataLoader.loadWalletBalance(actor),
     ]);
+    if (balanceResult.ok) {
+      userBalance = balanceResult.value.totalLa;
+    }
     if (!libraryResult.ok || !ordersResult.ok) {
       ownershipByOfferKey = {
         "ziwei-comprehensive": { kind: "unavailable" },
@@ -87,6 +92,7 @@ export default async function PaidTopicSelectionPage({
           orderHistory={orderHistory}
           topics={topics.value}
           supportEmail={customerContactConfig.email.value}
+          userBalance={userBalance}
         />
       </div>
     </main>

@@ -68,6 +68,18 @@ describe("wallet welcome grant (FD-105 package 1.6)", () => {
     expect(await walletOf(unverified)).toBeUndefined();
   });
 
+  it("credits once across concurrent devices and returns the original grant receipt", async () => {
+    const ownerId = await createAccount();
+    const now = () => new Date("2026-09-30T10:00:00.000Z");
+    const receipts = await Promise.all(Array.from({ length: 5 }, (_, index) =>
+      ensureWalletWelcomeGrant(database, ownerId, { now, requestId: `concurrent-${index}`, traceId: `concurrent-${index}` }),
+    ));
+    expect(receipts.every((receipt) => receipt !== null)).toBe(true);
+    expect(new Set(receipts.map((receipt) => receipt?.transactionId)).size).toBe(1);
+    expect(receipts.filter((receipt) => receipt?.status === "completed")).toHaveLength(1);
+    expect(await walletOf(ownerId)).toMatchObject({ purchasedBalance: 0, promotionalBalance: 60 });
+  });
+
   it("grants to a formerly-ineligible account once it becomes verified, still only once", async () => {
     const ownerId = await createAccount({ emailVerified: false });
     const now = () => new Date("2026-09-27T05:00:00.000Z");

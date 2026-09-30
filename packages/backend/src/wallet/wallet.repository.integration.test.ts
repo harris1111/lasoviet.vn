@@ -180,6 +180,72 @@ describe("wallet repository", () => {
     expect(result).toMatchObject({ ok: false, error: { code: "WALLET_ACCOUNT_REQUIRED" } });
   });
 
+  it("returns zero balance with stateVersion 1 for uninitialized account and exposes real stateVersion for existing wallet", async () => {
+    const auditActorId = await createAccount("wallet-state-version-audit");
+    const targetOwnerId = await createAccount("wallet-state-version-target");
+    const { authority, repository } = trustedRepository(auditActorId);
+
+    // 1. Uninitialized account has no wallet row -> zero balance with stateVersion: 1
+    const uninitialized = await repository.readBalance(accountActor(targetOwnerId));
+    expect(uninitialized).toEqual({
+      ok: true,
+      value: {
+        version: 1,
+        stateVersion: 1,
+        purchasedLa: 0,
+        promotionalLa: 0,
+        totalLa: 0,
+        updatedAt: expect.any(String),
+      },
+    });
+
+    // 2. Perform a grant which creates the wallet (default stateVersion 1 is incremented to 2)
+    const grantReceipt = await repository.grant({
+      targetOwnerId,
+      grant: promotionalGrant(auditActorId, `grant-${randomUUID()}`),
+      topUpOrderId: null,
+      trustedGrantToken: authority.token,
+    });
+    expect(grantReceipt).toMatchObject({
+      ok: true,
+      value: {
+        balance: {
+          version: 1,
+          stateVersion: 2,
+          totalLa: 100000,
+        },
+      },
+    });
+
+    // 3. Existing wallet readBalance reflects the current stateVersion (2)
+    const afterGrant = await repository.readBalance(accountActor(targetOwnerId));
+    expect(afterGrant).toEqual({
+      ok: true,
+      value: {
+        version: 1,
+        stateVersion: 2,
+        purchasedLa: 0,
+        promotionalLa: 100000,
+        totalLa: 100000,
+        updatedAt: expect.any(String),
+      },
+    });
+
+    // 4. Also check history balance reflects current stateVersion (2)
+    const history = await repository.readHistory(accountActor(targetOwnerId));
+    expect(history).toMatchObject({
+      ok: true,
+      value: {
+        version: 1,
+        balance: {
+          version: 1,
+          stateVersion: 2,
+          totalLa: 100000,
+        },
+      },
+    });
+  });
+
   it("grants non-expiring promotional Lá to a target distinct from the audit actor exactly once", async () => {
     const auditActorId = await createAccount("wallet-audit-actor");
     const targetOwnerId = await createAccount("wallet-target-owner");

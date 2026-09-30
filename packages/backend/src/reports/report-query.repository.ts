@@ -9,6 +9,7 @@ import {
   evidenceItems,
   evidenceSets,
   reportReservations,
+  reportSourceSnapshots,
   reportVersions,
   walletAccounts,
   walletPurchaseIntents,
@@ -33,6 +34,9 @@ type AuthorizedReportQueryCommon = {
   version: typeof reportVersions.$inferSelect | null;
   evidenceItems: Array<typeof evidenceItems.$inferSelect>;
   entitlements: AuthorizedReportEntitlement[];
+  // FD-104: raw inputs for the display-only chart snapshot. Optional so existing fixtures stay valid.
+  chartNormalizedOutput?: unknown;
+  sourceSnapshot?: unknown;
 };
 
 export type AuthorizedReportQueryRecord =
@@ -493,6 +497,7 @@ export function createDatabaseReportQueryRepository(
           evidenceItems: evidenceList,
           source: "order",
           entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+          ...(await loadChartSnapshotInputs(version)),
         };
       }
 
@@ -522,6 +527,24 @@ export function createDatabaseReportQueryRepository(
     },
   };
 
+  async function loadChartSnapshotInputs(version: typeof reportVersions.$inferSelect | null) {
+    if (!version) return { chartNormalizedOutput: null, sourceSnapshot: null };
+    const [chartRow] = await database
+      .select({ normalizedOutput: ziweiChartVersions.normalizedOutput })
+      .from(ziweiChartVersions)
+      .where(eq(ziweiChartVersions.id, version.chartVersionId))
+      .limit(1);
+    const [snapshotRow] = await database
+      .select({ snapshot: reportSourceSnapshots.snapshot })
+      .from(reportSourceSnapshots)
+      .where(eq(reportSourceSnapshots.reportVersionId, version.reportVersionId))
+      .limit(1);
+    return {
+      chartNormalizedOutput: chartRow?.normalizedOutput ?? null,
+      sourceSnapshot: snapshotRow?.snapshot ?? null,
+    };
+  }
+
   async function readWalletAuthorizedReport(
     ownerId: string,
     reportId: string,
@@ -538,6 +561,7 @@ export function createDatabaseReportQueryRepository(
       evidenceItems: items,
       entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
       wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id },
+      ...(await loadChartSnapshotInputs(record.version)),
     };
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type { LifeStageV1, TopConcernV1 } from "@lasoviet/contracts";
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import type { WizardReadingContextDraft } from "./birth-wizard-state";
 
 export const LIFE_STAGE_OPTIONS: readonly LifeStageV1[] = [
@@ -191,7 +191,7 @@ export function BirthWizardReviewStep({
             onClick={onEditSubject}
             type="button"
           >
-            <Icon name="pencil" />
+            <LsvIcon name="ui-edit" size={16} />
             <span>{editLabel}</span>
           </button>
         </div>
@@ -212,7 +212,7 @@ export function BirthWizardReviewStep({
             onClick={onEditBirth}
             type="button"
           >
-            <Icon name="pencil" />
+            <LsvIcon name="ui-edit" size={16} />
             <span>{editLabel}</span>
           </button>
         </div>
@@ -318,7 +318,7 @@ export function BirthWizardReviewStep({
       ) : null}
 
       <div className="wizard-disclosure">
-        <Icon name="shield-lock" />
+        <LsvIcon name="privacy" size={20} />
         <p>{disclosure}</p>
       </div>
 

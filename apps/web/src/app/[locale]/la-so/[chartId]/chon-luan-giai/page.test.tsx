@@ -6,6 +6,7 @@ vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND");
   }),
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
 
 let mockLocale = "vi";
@@ -54,6 +55,10 @@ vi.mock("../../../../../features/account/account-data-loader", () => ({
     loadOrders: vi.fn().mockResolvedValue({
       ok: true,
       value: { version: 1, orders: [], items: [], totalCount: 0 },
+    }),
+    loadWalletBalance: vi.fn().mockResolvedValue({
+      ok: true,
+      value: { version: 1, stateVersion: 1, totalLa: 0, purchasedLa: 0, promotionalLa: 0, updatedAt: "2026-09-27T10:00:00.000+07:00" },
     }),
   },
 }));
@@ -137,9 +142,8 @@ describe("PaidTopicSelectionPage", () => {
     const html = renderToStaticMarkup(jsx);
 
     expect(html).toContain("Luận giải cho lá số của Minh An");
-    expect(html).toContain("Nạp và mở: 99.000đ");
+    expect(html).toContain("Mở khóa: 960 Lá");
     expect(html).toContain("Xem bản mẫu");
-    expect((html.match(/type="submit"/g) || []).length).toBe(1);
     expect(accountDataLoader.loadLibrary).not.toHaveBeenCalled();
   });
 

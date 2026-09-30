@@ -163,6 +163,7 @@ const copy = {
 const sampleCheckoutStatus = (locale: "vi" | "en") => ({
   order: {
     id: "order-1",
+    kind: "content_purchase" as const,
     status: "pending" as const,
     amount: 79_000,
     currency: "VND" as const,
@@ -173,6 +174,7 @@ const sampleCheckoutStatus = (locale: "vi" | "en") => ({
     createdAt: "2026-09-05T00:00:00.000Z",
     creditApplied: 0,
     creditExpiresAt: null,
+    creditedLa: null,
     supportUrl: locale === "en" ? "/en/lien-he?order=LSV-order-1" : "/lien-he?order=LSV-order-1",
   },
   paymentInstructions: {
@@ -246,6 +248,7 @@ describe("checkout page", () => {
         value: {
           order: {
             id: "order-1",
+            kind: "content_purchase",
             status: "pending",
             amount: 79_000,
             currency: "VND",
@@ -566,6 +569,7 @@ describe("checkout page", () => {
         value: {
           order: {
             id: "order-dynamic-1",
+            kind: "content_purchase",
             status: "pending",
             amount: 19000,
             currency: "VND",
@@ -576,6 +580,7 @@ describe("checkout page", () => {
             createdAt: "2026-09-10T10:00:00.000Z",
             creditApplied: 0,
             creditExpiresAt: null,
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: {
@@ -623,6 +628,7 @@ describe("checkout page", () => {
         value: {
           order: {
             id: "order-upgrade-page-1",
+            kind: "content_purchase",
             status: "pending",
             amount: 60000,
             currency: "VND",
@@ -633,6 +639,7 @@ describe("checkout page", () => {
             createdAt: "2026-09-10T10:00:00.000Z",
             creditApplied: 19000,
             creditExpiresAt: "2026-09-17T10:00:00.000Z",
+            creditedLa: null,
             supportUrl: "/lien-he?order=LSV-order-1",
           },
           paymentInstructions: {

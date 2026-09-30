@@ -548,6 +548,12 @@ export {
   ensureWalletWelcomeGrant,
   WALLET_WELCOME_GRANT_PROMOTIONAL_LA,
 } from "./wallet/wallet-welcome-grant.js";
+export {
+  isWalletTopUpOrder,
+  walletTopUpCreditedLa,
+  walletTopUpPackTitle,
+  type WalletTopUpOrder,
+} from "./commerce/wallet-topup.js";
 export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
 export type {
   WalletUnlockService,

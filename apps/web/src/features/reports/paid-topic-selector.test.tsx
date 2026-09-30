@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
 import { renderToStaticMarkup } from "react-dom/server";
 import type { PaidTopicSelectionViewV1 } from "@lasoviet/contracts";
 
@@ -32,6 +35,28 @@ vi.mock("next-intl", async () => {
 });
 
 import { PaidTopicSelector, formatUpgradeDeadline } from "./paid-topic-selector";
+
+function findElementInTree(
+  node: unknown,
+  predicate: (el: { type: unknown; props: Record<string, unknown> }) => boolean,
+): { type: unknown; props: Record<string, unknown> } | null {
+  if (!node || typeof node !== "object") return null;
+  const candidate = node as { type?: unknown; props?: Record<string, unknown> };
+  if (candidate.type && candidate.props && predicate(candidate as { type: unknown; props: Record<string, unknown> })) {
+    return candidate as { type: unknown; props: Record<string, unknown> };
+  }
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findElementInTree(child, predicate);
+      if (found) return found;
+    }
+  }
+  if (candidate.props && candidate.props.children) {
+    return findElementInTree(candidate.props.children, predicate);
+  }
+  return null;
+}
+
 
 const mockTopics: PaidTopicSelectionViewV1 = {
   version: 1,
@@ -97,7 +122,6 @@ describe("PaidTopicSelector", () => {
     expect(activeCardMatch).not.toBeNull();
     const activeCardHtml = activeCardMatch?.[1] ?? "";
     expect(activeCardHtml).not.toContain("vận trình thời gian");
-    expect(activeCardHtml).not.toContain("trọn đời");
     expect(activeCardHtml).not.toContain("đại vận");
     expect(activeCardHtml).not.toContain("lưu niên");
     expect(activeCardHtml).not.toContain("dự báo");
@@ -106,9 +130,9 @@ describe("PaidTopicSelector", () => {
     expect(html).not.toContain("ZIWEI-IDENTITY-P0");
     expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
 
-    // Exactly one active purchase submit button for this single-offer view
-    const submitMatches = (html.match(/type="submit"/g) || []).length;
-    expect(submitMatches).toBe(1);
+    // Exactly one active purchase CTA button for this single-offer view (opens the Lá unlock dialog)
+    const ctaMatches = (html.match(/Mở khóa: 960 Lá/g) || []).length;
+    expect(ctaMatches).toBe(1);
   });
 
   it("renders English offer title and equivalent scope without promising V3 delivery", () => {
@@ -117,7 +141,7 @@ describe("PaidTopicSelector", () => {
       const html = renderToStaticMarkup(
         <PaidTopicSelector locale="en" topics={mockTopics} />,
       );
-      expect(html).toContain("Comprehensive Zi Wei reading");
+      expect(html).toContain("Lifetime Zi Wei reading");
       expect(html).toContain("Full interpretation of all 12 palaces.");
       expect(html).toContain("Key configurations and patterns in the chart.");
       expect(html).toContain("Four thematic syntheses connecting chart facets into a cohesive view.");
@@ -154,7 +178,7 @@ describe("PaidTopicSelector", () => {
     );
     expect(htmlVi).toContain("/bao-cao-mau/tu-vi");
     expect(htmlVi).toContain("Xem bản mẫu");
-    expect((htmlVi.match(/type="submit"/g) || []).length).toBe(1);
+    expect((htmlVi.match(/Mở khóa: 960 Lá/g) || []).length).toBe(1);
 
     mockLocale = "en";
     let htmlEn: string;
@@ -167,7 +191,7 @@ describe("PaidTopicSelector", () => {
     }
     expect(htmlEn).toContain("/en/bao-cao-mau/tu-vi");
     expect(htmlEn).toContain("View sample report");
-    expect((htmlEn.match(/type="submit"/g) || []).length).toBe(1);
+    expect((htmlEn.match(/Unlock: 960 Lá/g) || []).length).toBe(1);
   });
 
   it("renders generic heading when birthSummary is omitted or has no displayName", () => {
@@ -316,7 +340,7 @@ describe("PaidTopicSelector", () => {
       );
       expect(htmlEn).not.toContain('id="ziwei-natal-excerpt"');
       expect(htmlEn).not.toContain("data-testid=\"topic-ziwei-natal-excerpt-active\"");
-      expect(htmlEn).toContain("Comprehensive Zi Wei reading");
+      expect(htmlEn).toContain("Lifetime Zi Wei reading");
       expect(htmlEn).toContain("data-testid=\"topic-lifetime-active\"");
     } finally {
       mockLocale = "vi";
@@ -689,6 +713,48 @@ describe("PaidTopicSelector", () => {
     );
     expect(html).toContain("Thiếu 960 Lá");
     expect(html).toContain("Gói Khởi Đọc (1100 Lá · 99.000đ) là gói nhỏ nhất đủ mở.");
-    expect(html).toContain("Nạp và mở: 99.000đ");
+    // The unlock button itself always reads "Mở khóa: N Lá"; the short-balance
+    // sheet with the covering pack now lives inside the confirm dialog
+    // (FD-105 package 1.2), which opens on click rather than server-rendering.
+    expect(html).toContain("Mở khóa: 960 Lá");
+  });
+
+  it("passes only serializable string labels across the client WalletUnlockButton boundary in both vi and en", () => {
+    const checkBoundaryProps = (locale: "vi" | "en") => {
+      mockLocale = locale;
+      const elementTree = PaidTopicSelector({ locale, topics: mockTopics });
+      const unlockButton = findElementInTree(
+        elementTree,
+        (el) =>
+          typeof el.type === "function" &&
+          (el.type.name === "WalletUnlockButton" ||
+            (Boolean(el.props?.sku) && Boolean(el.props?.labels))),
+      );
+
+      expect(unlockButton).not.toBeNull();
+      const labels = unlockButton!.props.labels as Record<string, unknown>;
+      expect(typeof labels).toBe("object");
+      expect(labels).not.toBeNull();
+
+      const entries = Object.entries(labels);
+      expect(entries.length).toBeGreaterThan(0);
+
+      // Verify no functions cross the client boundary: every label must be a non-empty string
+      for (const [key, value] of entries) {
+        expect(typeof value, `label ${key} should be a string, not function`).toBe("string");
+        expect((value as string).length).toBeGreaterThan(0);
+      }
+
+      // Explicitly check that deprecated client boundary functions are absent
+      expect("shortBalanceBody" in labels).toBe(false);
+      expect("topUpAction" in labels).toBe(false);
+    };
+
+    try {
+      checkBoundaryProps("vi");
+      checkBoundaryProps("en");
+    } finally {
+      mockLocale = "vi";
+    }
   });
 });

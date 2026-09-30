@@ -591,3 +591,120 @@ html[data-theme="light"] .paybar {
   background: var(--paper-50);
   border-top-color: var(--paper-300);
 }
+
+/* Wallet unlock confirm dialog (FD-105 package 1.2) */
+.wallet-unlock-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  inset: 0;
+  z-index: 120;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.wallet-unlock-dialog {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--lacquer-line);
+  background: var(--lacquer-800);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wallet-unlock-dialog h2 {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--pearl-50);
+  margin: 0;
+}
+
+.wallet-unlock-dialog-item {
+  font-size: 14.5px;
+  color: var(--pearl-300);
+  margin: 0;
+}
+
+.wallet-unlock-dialog-item strong {
+  color: var(--pearl-50);
+}
+
+.wallet-unlock-dialog-summary,
+.wallet-unlock-dialog-short-balance {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wallet-unlock-dialog-summary p,
+.wallet-unlock-dialog-short-balance p {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14.5px;
+  color: var(--pearl-300);
+  margin: 0;
+}
+
+.wallet-unlock-dialog-summary strong,
+.wallet-unlock-dialog-short-balance strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--gold-400);
+}
+
+.wallet-unlock-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.wallet-unlock-dialog-error {
+  color: var(--son-400, #e26a56);
+  font-size: 14px;
+}
+
+.wallet-unlock-dialog-short-balance h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--pearl-50);
+  margin: 0;
+}
+
+.wallet-unlock-dialog-topup-note {
+  font-size: 13px;
+  color: var(--pearl-500);
+}
+
+html[data-theme="light"] .wallet-unlock-dialog {
+  background: var(--paper-50);
+  border-color: var(--paper-300);
+  color: var(--ink-800);
+}
+
+html[data-theme="light"] .wallet-unlock-dialog h2,
+html[data-theme="light"] .wallet-unlock-dialog-item strong,
+html[data-theme="light"] .wallet-unlock-dialog-short-balance h3 {
+  color: var(--ink-900);
+}
+
+html[data-theme="light"] .wallet-unlock-dialog-summary strong,
+html[data-theme="light"] .wallet-unlock-dialog-short-balance strong {
+  color: var(--gold-800);
+}

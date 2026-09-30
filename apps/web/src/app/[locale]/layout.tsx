@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { routing } from "../../i18n/routing";
 import { AnalyticsCollector } from "../../features/analytics/analytics-collector";
 import { MessengerBubble } from "../../components/ui/messenger-bubble";
+import { WelcomeGrantNotice } from "../../features/commerce/welcome-grant-notice";
 import "../../styles/global.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -72,6 +73,7 @@ export default async function LocaleLayout({
           <AnalyticsCollector />
           {children}
           <MessengerBubble locale={locale as "vi" | "en"} />
+          <WelcomeGrantNotice locale={locale as "vi" | "en"} />
         </NextIntlClientProvider>
       </body>
     </html>

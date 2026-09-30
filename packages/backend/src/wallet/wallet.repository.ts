@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import {
+  findLaProduct,
   resolveProductTitle,
   type CurrentActor,
   type WalletBalanceV1,
@@ -146,6 +147,7 @@ function canonicalize(value: unknown): unknown {
 function balance(wallet: typeof walletAccounts.$inferSelect): WalletBalanceV1 {
   return {
     version: 1,
+    stateVersion: wallet.stateVersion,
     purchasedLa: wallet.purchasedBalance,
     promotionalLa: wallet.promotionalBalance,
     totalLa: wallet.purchasedBalance + wallet.promotionalBalance,
@@ -156,6 +158,7 @@ function balance(wallet: typeof walletAccounts.$inferSelect): WalletBalanceV1 {
 function zeroBalance(now: Date): WalletBalanceV1 {
   return {
     version: 1,
+    stateVersion: 1,
     purchasedLa: 0,
     promotionalLa: 0,
     totalLa: 0,
@@ -366,10 +369,11 @@ export function createDatabaseWalletRepository(
         if (purchasedDelta === undefined || promotionalDelta === undefined) return failure("WALLET_RECONCILIATION_FAILED");
         purchased += purchasedDelta;
         promotional += promotionalDelta;
+        if (purchasedDelta + promotionalDelta === 0) continue;
         const candidateSku = row.transaction.kind === "restoration"
           ? originalSkuBySpendId.get(row.transaction.reversalOfTransactionId!)
           : row.sku;
-        const sku = candidateSku === "ZIWEI-IDENTITY-P0" || candidateSku === "ZIWEI-NATAL-EXCERPT-P0" ? candidateSku : null;
+        const sku = candidateSku && findLaProduct(candidateSku) !== undefined ? candidateSku : null;
         items.push({
           id: publicHistoryId(row.transaction.id),
           category: row.transaction.kind as "grant" | "spend" | "restoration",
@@ -423,7 +427,7 @@ export function createDatabaseWalletRepository(
         const replay = await replayReceipt(transaction, wallet.id, grant.idempotencyKey, fingerprint);
         if (replay !== undefined) return replay.ok ? { ok: true, value: replay.value.receipt } : replay;
         const [entry] = await transaction.insert(walletTransactions).values({
-          walletId: wallet.id, kind: "grant", idempotencyKey: grant.idempotencyKey, fingerprint, topUpOrderId,
+          walletId: wallet.id, kind: "grant", idempotencyKey: grant.idempotencyKey, fingerprint, topUpOrderId, createdAt: now(),
         }).returning();
         if (entry === undefined) return failure("WALLET_INVALID_COMMAND");
         const ledger = [
@@ -491,7 +495,7 @@ export function createDatabaseWalletRepository(
           .for("update");
         if (lots.reduce((total, lot) => total + lot.remainingLa, 0) < spend.amountLa) return failure("WALLET_INSUFFICIENT_BALANCE");
         const [entry] = await transaction.insert(walletTransactions).values({
-          walletId: wallet.id, kind: "spend", idempotencyKey: spend.idempotencyKey, fingerprint, purchaseIntentId: intent.id,
+          walletId: wallet.id, kind: "spend", idempotencyKey: spend.idempotencyKey, fingerprint, purchaseIntentId: intent.id, createdAt: now(),
         }).returning();
         if (entry === undefined) return failure("WALLET_INVALID_COMMAND");
         let remaining = spend.amountLa;
@@ -604,7 +608,7 @@ export function createDatabaseWalletRepository(
           .where(eq(walletSpendAllocations.spendTransactionId, original.id)).for("update");
         if (allocations.length === 0) return failure("WALLET_RESTORATION_INVALID");
         const [entry] = await transaction.insert(walletTransactions).values({
-          walletId: wallet.id, kind: "restoration", idempotencyKey: restoration.idempotencyKey, fingerprint, reversalOfTransactionId: original.id,
+          walletId: wallet.id, kind: "restoration", idempotencyKey: restoration.idempotencyKey, fingerprint, reversalOfTransactionId: original.id, createdAt: now(),
         }).returning();
         if (entry === undefined) return failure("WALLET_RESTORATION_INVALID");
         let purchasedDelta = 0;

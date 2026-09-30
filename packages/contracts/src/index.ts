@@ -331,6 +331,7 @@ export type {
 } from "./commerce-report-v2.js";
 export {
   WalletBalanceV1Schema,
+  WalletContentPriceV1Schema,
   WalletCreditLotV1Schema,
   WalletGrantV1Schema,
   WalletHistoryItemV1Schema,
@@ -340,11 +341,13 @@ export {
   WalletSpendAllocationV1Schema,
   WalletSpendV1Schema,
   WalletTopUpCatalogV1,
+  WalletTopUpOrderCreateV1Schema,
   WalletTopUpPackIdSchema,
   WalletTransactionReceiptV1Schema,
 } from "./wallet-commerce-v1.js";
 export type {
   WalletBalanceV1,
+  WalletContentPriceV1,
   WalletCreditLotV1,
   WalletGrantV1,
   WalletHistoryItemV1,
@@ -353,9 +356,43 @@ export type {
   WalletRestorationV1,
   WalletSpendAllocationV1,
   WalletSpendV1,
+  WalletTopUpOrderCreateV1,
   WalletTopUpPackId,
   WalletTransactionReceiptV1,
 } from "./wallet-commerce-v1.js";
+export {
+  ANNUAL_2026_PRICE_LA,
+  CANONICAL_PALACE_SKU_MAP,
+  COMBO_2026_PRICE_LA,
+  LA_PRODUCT_CATALOG,
+  LIFETIME_BASE_PRICE_LA,
+  LaSkuSchema,
+  MEMBERSHIP_MONTHLY_PRICE_LA,
+  MEMBERSHIP_YEARLY_PRICE_LA,
+  MONTHLY_READING_PRICE_LA,
+  NATAL_EXCERPT_PRICE_LA,
+  REVERSE_PALACE_SKU_MAP,
+  ROLLOVER_WINDOW_DAYS,
+  ROLLOVER_WINDOW_MS,
+  SINGLE_PALACE_BASE_PRICE_LA,
+  SINGLE_PALACE_SKUS,
+  TODAY_READING_PRICE_LA,
+  TOPIC_DEEP_DIVE_PRICE_LA,
+  calculateRolloverCredit,
+  findLaProduct,
+  getLaPrice,
+  getPalaceIdFromSku,
+  getSkuForPalaceId,
+  isQualifyingRolloverSku,
+  isSinglePalaceSku,
+} from "./la-catalog.js";
+export type {
+  LaCatalogItem,
+  LaProductCategory,
+  LaSku,
+  QualifyingSpend,
+  RolloverResult,
+} from "./la-catalog.js";
 export type {
   FreeIdentityPreviewV1,
   PaidTopicSelectionRequestV1,
@@ -754,3 +791,14 @@ export type {
   ZiweiHoroscopeResultV1,
 } from "./ziwei-horoscope-v1.js";
 
+
+export {
+  ReportChartPalaceV1Schema,
+  ReportChartSnapshotV1Schema,
+  ReportChartStarV1Schema,
+  ReportDecadalCycleV1Schema,
+  type ReportChartPalaceV1,
+  type ReportChartSnapshotV1,
+  type ReportChartStarV1,
+  type ReportDecadalCycleV1,
+} from "./report-chart-snapshot-v1.js";
