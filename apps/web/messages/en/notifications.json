@@ -1,0 +1,15 @@
+{
+  "unsubscribe": {
+    "page_title": "Unsubscribe from notifications",
+    "title": "Unsubscribe from optional notification emails",
+    "description": "Are you sure you want to unsubscribe from optional news, reminders, and nurture emails from La So Viet? You will continue to receive essential transactional emails such as order confirmations, password resets, and report completion notices.",
+    "confirm_button": "Confirm unsubscribe",
+    "submitting": "Processing...",
+    "success_title": "Successfully unsubscribed",
+    "success_message": "You have been unsubscribed from optional news and reminder emails. Essential transactional emails will still be delivered normally.",
+    "error_title": "Unable to process request",
+    "error_invalid_or_expired": "The unsubscribe link is invalid or has expired.",
+    "error_no_token": "No valid unsubscribe confirmation token was found.",
+    "back_to_home": "Back to Home"
+  }
+}

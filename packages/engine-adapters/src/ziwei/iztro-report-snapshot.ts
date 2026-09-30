@@ -1,3 +1,4 @@
+import { calculatePeriodReadingFacts } from "./period-reading-facts.js";
 import { createHash } from "node:crypto";
 
 import { astro } from "iztro";
@@ -39,6 +40,7 @@ export const ZIWEI_TIMING_RULE_VERSION_V1 = "ziwei.timing.v1";
 export const ZIWEI_SENSITIVITY_RULE_VERSION_V1 = "ziwei.sensitivity.v1";
 
 export type CalculateIztroReportSnapshotInput = {
+  periodReading?: { chartId: string; kind: "monthly" | "annual" };
   chartVersionId: string;
   birthProfile: NormalizedBirthProfileV1;
   asOfDate: string;
@@ -703,6 +705,7 @@ export async function calculateIztroReportSnapshot(
     sensitivityRuleVersion,
     timing: timingSnapshot,
     sensitivity: sensitivitySnapshot,
+    ...(input.periodReading ? { periodReading: calculatePeriodReadingFacts({ birthProfile: input.birthProfile, chartId: input.periodReading.chartId, chartVersionId: input.chartVersionId, asOfDate: input.asOfDate, kind: input.periodReading.kind, targetYear: input.targetYear }) } : {}),
     provenance: unhashedProvenance,
   };
 

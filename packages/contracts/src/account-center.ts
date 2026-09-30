@@ -1,3 +1,5 @@
+import { ZiweiPeriodReadingPublicContentV1Schema } from "./ziwei-period-reading-public-v1.js";
+import { ZiweiTopicDeepDivePublicContentV1Schema } from "./ziwei-topic-deep-dive-v1.js";
 import { z } from "zod";
 
 import {
@@ -281,6 +283,8 @@ export const AccountExportReportV1Schema = z
     locale: z.enum(["vi", "en"]),
     status: z.string().trim().min(1).max(32),
     content: z.union([
+      ZiweiTopicDeepDivePublicContentV1Schema,
+      ZiweiPeriodReadingPublicContentV1Schema,
       IdentityReportContentV1Schema,
       ZiweiComprehensiveReportContentV1Schema,
     ]),

@@ -100,6 +100,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   chartVersionId: text("chart_version_id").notNull(),
   sku: text("sku").notNull(),
   locale: text("locale").notNull(),
+  periodKey: text("period_key").notNull().default("lifetime"),
   priceLa: integer("price_la").notNull(),
   status: text("status").notNull().default("pending"),
   stateVersion: integer("state_version").notNull().default(1),

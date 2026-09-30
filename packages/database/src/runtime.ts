@@ -13,7 +13,8 @@ export {
   authVerifications,
 } from "./schema/auth.js";
 export { birthProfiles } from "./schema/birth-profile.js";
-export { notificationDeliveries } from "./schema/notifications.js";
+export { notificationDeliveries, notificationPreferences } from "./schema/notifications.js";
+export { consents } from "./schema/privacy.js";
 export { reportAssets } from "./schema/assets.js";
 export { supportCases } from "./schema/support-cases.js";
 export {

@@ -7,6 +7,7 @@ import type {
 } from "@lasoviet/contracts";
 import { useTranslations } from "next-intl";
 
+import { PartFeedback } from "./part-feedback";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import {
   ziweiPresentation,
@@ -114,6 +115,7 @@ export function FreeIdentityPreview({
               </div>
               <h3 className="insight-card-title">{item.title}</h3>
               <p className="insight-card-prose">{item.description}</p>
+              <PartFeedback locale={locale} chartId={chartId} partId={item.id} />
               <div className="insight-card-footer">
                 <EvidenceDrawer
                   chart={chart}
@@ -132,6 +134,7 @@ export function FreeIdentityPreview({
                 <span className="insight-numeral">0{index + 1}</span>
               </div>
               <h3 className="insight-card-title">{presentation.insight(insight.id)}</h3>
+              <PartFeedback locale={locale} chartId={chartId} partId={insight.id} />
               <div className="insight-card-footer">
                 <EvidenceDrawer
                   chart={chart}

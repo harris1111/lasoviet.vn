@@ -105,6 +105,9 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
   return (
+    (sku === "ZIWEI-MONTHLY-P0" && priceLa === 300) ||
+    (sku === "ZIWEI-YEAR-2026-P0" && priceLa === 480) ||
+    ((sku === "ZIWEI-RELATIONSHIP-P0" || sku === "ZIWEI-CAREER-P0") && priceLa === 480) ||
     (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
     (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
   );
@@ -242,6 +245,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           row.intent.chartId !== entitlement.chartId ||
           row.intent.chartVersionId !== row.reservation.chartVersionId ||
           row.intent.sku !== entitlement.sku ||
+          row.intent.periodKey !== entitlement.periodKey ||
           row.intent.sku !== row.reservation.sku ||
           row.intent.locale !== row.reservation.locale ||
           !validWalletPrice(row.intent.sku, row.intent.priceLa)
@@ -427,6 +431,16 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           return invalid();
         }
 
+        let paidPeriodKey: string | undefined;
+        if (snapshotRecord.snapshot.periodReading) {
+          const [authority] = await dependencies.database.select({periodKey: commerceEntitlements.periodKey, chartId: commerceEntitlements.chartId})
+            .from(reportReservations).innerJoin(commerceEntitlements, eq(commerceEntitlements.id, reportReservations.entitlementId))
+            .where(eq(reportReservations.reportVersionId, input.reportVersionId)).limit(1);
+          if (!authority || authority.periodKey !== snapshotRecord.snapshot.periodReading.periodKey ||
+              authority.chartId !== snapshotRecord.snapshot.periodReading.chartId) return invalid();
+          paidPeriodKey = authority.periodKey;
+        }
+
         const sourceSnapshot = {
           version: 1 as const,
           reportId: snapshotRecord.reportId,
@@ -524,6 +538,8 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           knowledgePassages: aggregatedPassages,
           comprehensiveFacts: factsV4.natal,
           comprehensiveFactsV4: factsV4,
+          periodReadingFacts: snapshotRecord.snapshot.periodReading,
+          paidPeriodKey,
           knowledgePacks,
           readingContext,
         };

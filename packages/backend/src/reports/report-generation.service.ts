@@ -1,3 +1,9 @@
+import { periodKindForSku, isPeriodReportTuple, periodReportVersions } from "./period-report-config.js";
+import { writePeriodReading } from "./period-reading-writer.js";
+import { renderPeriodReportHtml } from "./period-report-html.js";
+import { topicIdForSku, isTopicReportTuple, topicReportVersions } from "./topic-report-config.js";
+import { writeZiweiTopicDeepDiveV4 } from "./topic-deep-dive-writer-v4.js";
+import { renderTopicReportHtml } from "./topic-report-html.js";
 import type { AiCostRequestContext, IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
 import { createHash } from "node:crypto";
 import {
@@ -1352,6 +1358,111 @@ export function createReportGenerationService(
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
     }
     const source = sourceResult.value;
+
+    // Product dispatch precedes every natal/comprehensive writer. Topic reads
+    // always commit their own immutable content under the paid SKU and tuple.
+    const periodKind = periodKindForSku(payload.sku);
+    if (periodKind) {
+      const facts = source.periodReadingFacts;
+      if (!isPeriodReportTuple(payload) || job.name !== "report.generate.v2" || !facts ||
+          facts.kind !== periodKind || facts.chartVersionId !== payload.chartVersionId ||
+          facts.asOfDate !== ("asOfDate" in payload ? payload.asOfDate : null) || facts.periodKey !== source.paidPeriodKey ||
+          (periodKind === "annual" && (facts.targetYear !== 2026 || facts.periodKey !== "2026"))) {
+        return failAttempt("REPORT_EVIDENCE_INVALID", false);
+      }
+      let blocked: Awaited<ReturnType<typeof lifecycleFence>> = null;
+      let budgetRejected = false;
+      const provider: typeof dependencies.provider = {
+        async generateStructured(request) {
+          if (request.purpose === "rewrite") {
+            const budget = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
+            if (!budget.ok || !budget.value.consumed) {
+              budgetRejected = true;
+              return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+            }
+          }
+          blocked = await lifecycleFence(input);
+          if (blocked) return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+          if (guardState(input) !== "active") {
+            budgetRejected = true;
+            return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+          }
+          return dependencies.provider.generateStructured(request);
+        },
+      };
+      let draft: Awaited<ReturnType<typeof writePeriodReading>>;
+      try { draft = await writePeriodReading({facts, provider, knowledgePacks: source.knowledgePacks,
+        costContext: {...baseCostContext, idempotencyKey: `${payload.reportVersionId}:period`}}); }
+      catch { return failAttempt("AI_TIMEOUT", true); }
+      if (blocked) return blocked;
+      if (budgetRejected || guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      if (!draft.ok) {
+        if (draft.error.code === "PERIOD_QUALITY_REJECTED") return failAttempt("AI_OUTPUT_INVALID", false);
+        const error = mapProviderError(draft.error); return failAttempt(error.code, error.retryable);
+      }
+      const beforeCommit = await lifecycleFence(input);
+      if (beforeCommit) return beforeCommit;
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      const versions = periodReportVersions();
+      const committed = await dependencies.versionRepository.commitImmutableVersion({
+        reportId: payload.reportId, reportVersionId: payload.reportVersionId, entitlementId: payload.entitlementId,
+        chartVersionId: payload.chartVersionId, evidenceVersionId: payload.evidenceVersionId,
+        knowledgeVersionId: payload.knowledgeVersionId, promptVersion: payload.promptVersion,
+        reportConfigVersion: payload.reportConfigVersion, templateVersion: versions.templateVersion,
+        renderVersion: versions.renderVersion, locale: payload.locale, sku: payload.sku,
+        providerId: draft.value.providerId, modelId: draft.value.modelId,
+        structuredContent: draft.value.content as unknown as IdentityReportV1, htmlContent: renderPeriodReportHtml(draft.value.content),
+        jobId, workerId, attemptNumber, traceId: job.traceId,
+        supersedesReportVersionId: supersedesReportVersionId(payload),
+      });
+      return committed.ok ? {ok: true, value: committed.value} : failAttempt("REPORT_VERSION_CONFLICT", false);
+    }
+
+    const topicId = topicIdForSku(payload.sku);
+    if (topicId) {
+      if (!isTopicReportTuple(payload) || job.name !== "report.generate.v2" || !source.comprehensiveFactsV4 || !source.knowledgePacks) {
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      const beforeWrite = await lifecycleFence(input);
+      if (beforeWrite) return beforeWrite;
+      const write = async (rewrite?: Parameters<typeof writeZiweiTopicDeepDiveV4>[0]["rewrite"]) => writeZiweiTopicDeepDiveV4({
+        topicId, facts: source.comprehensiveFactsV4!, knowledgePacks: source.knowledgePacks!,
+        provider: dependencies.provider, readingContext: source.readingContext, rewrite,
+        costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:topic:${rewrite ? "rewrite" : "report"}`, purpose: rewrite ? "rewrite" : "report" },
+      });
+      let draft: Awaited<ReturnType<typeof write>>;
+      try { draft = await write(); } catch { return failAttempt("AI_TIMEOUT", true); }
+      if (!draft.ok) { const error = mapProviderError(draft.error); return failAttempt(error.code, error.retryable); }
+      if (draft.value.content.topicId !== topicId) return failAttempt("AI_OUTPUT_INVALID", false);
+      if (!draft.value.quality.ok) {
+        const budget = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
+        if (!budget.ok || !budget.value.consumed) return failAttempt("AI_OUTPUT_INVALID", false);
+        if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+        const beforeRewrite = await lifecycleFence(input);
+        if (beforeRewrite) return beforeRewrite;
+        try { draft = await write({ priorContent: draft.value.content, findings: draft.value.quality.findings }); }
+        catch { return failAttempt("AI_TIMEOUT", true); }
+        if (!draft.ok) { const error = mapProviderError(draft.error); return failAttempt(error.code, error.retryable); }
+      }
+      if (!draft.value.quality.ok || draft.value.content.topicId !== topicId) return failAttempt("AI_OUTPUT_INVALID", false);
+      const beforeCommit = await lifecycleFence(input);
+      if (beforeCommit) return beforeCommit;
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      const versions = topicReportVersions();
+      const committed = await dependencies.versionRepository.commitImmutableVersion({
+        reportId: payload.reportId, reportVersionId: payload.reportVersionId, entitlementId: payload.entitlementId,
+        chartVersionId: payload.chartVersionId, evidenceVersionId: payload.evidenceVersionId,
+        knowledgeVersionId: payload.knowledgeVersionId, promptVersion: payload.promptVersion,
+        reportConfigVersion: payload.reportConfigVersion, templateVersion: versions.templateVersion,
+        renderVersion: versions.renderVersion, locale: payload.locale, sku: payload.sku,
+        providerId: draft.value.providerId, modelId: draft.value.modelId,
+        structuredContent: draft.value.content as unknown as IdentityReportV1, htmlContent: renderTopicReportHtml(draft.value.content),
+        jobId, workerId, attemptNumber, traceId: job.traceId,
+        supersedesReportVersionId: supersedesReportVersionId(payload),
+      });
+      return committed.ok ? { ok: true, value: committed.value } : failAttempt("REPORT_VERSION_CONFLICT", false);
+    }
 
     if (family === "v4" || family === "v4_1") {
       if (!source.comprehensiveFactsV4 || !source.knowledgePacks) {

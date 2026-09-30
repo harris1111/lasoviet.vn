@@ -24,6 +24,7 @@ import type {
 } from "./report-source-snapshot.repository.js";
 
 export type ReportSnapshotCalculatorInput = {
+  periodReading?: { chartId: string; kind: "monthly" | "annual" };
   chartVersionId: string;
   birthProfile: NormalizedBirthProfileV1;
   asOfDate: string;
@@ -147,6 +148,7 @@ export function createReportSourceSnapshotPreparationService(
 
       let row:
         | {
+            chartId?: string;
             originalInput: Record<string, unknown>;
             normalizedInput: Record<string, unknown> | null;
           }
@@ -154,6 +156,7 @@ export function createReportSourceSnapshotPreparationService(
       try {
         const [found] = await dependencies.database
           .select({
+            chartId: ziweiCharts.id,
             originalInput: birthProfileRevisions.originalInput,
             normalizedInput: birthProfileRevisions.normalizedInput,
           })
@@ -190,6 +193,7 @@ export function createReportSourceSnapshotPreparationService(
       >;
       try {
         calcResult = await dependencies.calculateSnapshot({
+          ...(["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(data.sku) && row.chartId ? { periodReading: { chartId: row.chartId, kind: (data.sku as string) === "ZIWEI-MONTHLY-P0" ? "monthly" as const : "annual" as const } } : {}),
           chartVersionId: data.chartVersionId,
           birthProfile: parsedProfile.data,
           asOfDate: data.asOfDate,
