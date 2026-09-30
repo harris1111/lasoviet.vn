@@ -160,9 +160,9 @@ export function resolveRelatedPalaceSuggestion(partId: string): RelatedPalaceSug
 }
 
 function computeGuaranteeFingerprint(input: {
-  reportId?: string | null;
   accountId: string;
   chartId: string;
+  reportId: string | null;
   partId: string;
   rating: string;
   comment: string | null;
@@ -173,11 +173,11 @@ function computeGuaranteeFingerprint(input: {
       JSON.stringify({
         accountId: input.accountId,
         chartId: input.chartId,
+        reportId: input.reportId,
         partId: input.partId,
         rating: input.rating,
         comment: input.comment,
         idempotencyKey: input.idempotencyKey,
-        ...(input.reportId ? {reportId: input.reportId} : {}),
       }),
     )
     .digest("hex");
@@ -335,12 +335,24 @@ export function createGuaranteeFeedbackService(
 
       const isPeriod = periodKindForSku(parsed.data.partId.toUpperCase()) !== null;
       if (isPeriod && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
+      // The optional report association is private owner data, including on the refund path.
+      if (parsed.data.reportId) {
+        const [report] = await transaction.select({ id: reportReservations.id })
+          .from(reportReservations)
+          .innerJoin(commerceEntitlements, and(
+            eq(commerceEntitlements.id, reportReservations.entitlementId),
+            eq(commerceEntitlements.ownerId, actor.userId),
+            eq(commerceEntitlements.chartId, parsed.data.chartId),
+          ))
+          .where(eq(reportReservations.reportId, parsed.data.reportId)).limit(1);
+        if (!report) return { ok: false, code: "GUARANTEE_NOT_OWNER" };
+      }
 
       // 3. Replay idempotency check
       const fingerprint = computeGuaranteeFingerprint({
-        ...(isPeriod ? {reportId: parsed.data.reportId} : {}),
         accountId: actor.userId,
         chartId: parsed.data.chartId,
+        reportId: parsed.data.reportId ?? null,
         partId: parsed.data.partId,
         rating: parsed.data.rating,
         comment: parsed.data.comment ?? null,
