@@ -677,7 +677,8 @@ export function createReportQueryService(options: {
           : CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN;
 
       const readyParse = ReportReadyViewV1Schema.safeParse({
-          chartVersionId: version.chartVersionId,
+        chartId: record.chartId,
+        chartVersionId: version.chartVersionId,
         version: 1,
         state: "ready",
         contentVersion: "identity.v1",
