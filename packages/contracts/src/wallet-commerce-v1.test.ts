@@ -5,6 +5,7 @@ import {
   WalletCreditLotV1Schema,
   WalletGrantV1Schema,
   WalletHistoryItemV1Schema,
+  WalletContentPriceV1Schema,
   WalletPurchaseIntentV1Schema,
   WalletSpendAllocationV1Schema,
   WalletTopUpCatalogV1,
@@ -128,4 +129,59 @@ describe("wallet commerce V1 contracts", () => {
     expect(WalletHistoryItemV1Schema.safeParse({ ...item, id: "transaction-1" }).success).toBe(false);
     expect(WalletHistoryItemV1Schema.safeParse({ ...item, id: "wh_ABCDEF0123456789ABCDEF0123456789" }).success).toBe(false);
   });
+  it("validates all new SKUs and rollover prices in WalletPurchaseIntentV1Schema", () => {
+    const base = {
+      id: "intent-123",
+      chartVersionId: "chart-version-456",
+      status: "pending" as const,
+      stateVersion: 1,
+      createdAt: "2026-10-01T00:00:00.000Z",
+    };
+
+    // Single palaces (120)
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-P0", locale: "vi", amountLa: 120 }).success).toBe(false);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi", amountLa: 120 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi", amountLa: 120 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi", amountLa: 240 }).success).toBe(false);
+
+    // Topics (480)
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-RELATIONSHIP-P0", locale: "vi", amountLa: 480 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-CAREER-P0", locale: "en", amountLa: 480 }).success).toBe(true);
+
+    // Forecasts & Combos
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-TODAY-P0", locale: "vi", amountLa: 60 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-MONTHLY-P0", locale: "vi", amountLa: 300 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-YEAR-2026-P0", locale: "vi", amountLa: 480 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-COMBO-2026-P0", locale: "vi", amountLa: 1300 }).success).toBe(true);
+
+    // Memberships
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi", amountLa: 1500 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "MEMBERSHIP-YEARLY-P0", locale: "vi", amountLa: 8000 }).success).toBe(true);
+
+    // Rollover amounts for ZIWEI-IDENTITY-P0 (any valid discount from 0 to 960)
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 840 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 600 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 480 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 0 }).success).toBe(true);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 961 }).success).toBe(false);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: -1 }).success).toBe(false);
+  });
+
+  it("validates WalletContentPriceV1Schema against catalog prices and rollover bounds", () => {
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-NATAL-EXCERPT-P0", amountLa: 240 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-NATAL-EXCERPT-P0", amountLa: 120 }).success).toBe(false);
+
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-PALACE-LIFE-P0", amountLa: 120 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-PALACE-LIFE-P0", amountLa: 240 }).success).toBe(false);
+
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 960 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 840 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 720 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 0 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 1000 }).success).toBe(false);
+
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-COMBO-2026-P0", amountLa: 1300 }).success).toBe(true);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "MEMBERSHIP-YEARLY-P0", amountLa: 8000 }).success).toBe(true);
+  });
+
 });

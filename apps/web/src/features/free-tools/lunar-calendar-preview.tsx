@@ -230,8 +230,8 @@ export function LunarCalendarPreview({ locale, className }: LunarCalendarPreview
     : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const tuviHref = isVi
-    ? `/tao-la-so/tu-vi?birthDay=${activeDay.dayOfMonth}&birthMonth=${selectedMonth}&birthYear=${selectedYear}`
-    : `/en/tao-la-so/tu-vi?birthDay=${activeDay.dayOfMonth}&birthMonth=${selectedMonth}&birthYear=${selectedYear}`;
+    ? "/tao-la-so/tu-vi?from=lich-am"
+    : "/en/tao-la-so/tu-vi?from=lich-am";
 
   const freeResults = isVi ? FREE_RESULTS_VI : FREE_RESULTS_EN;
   const glossaryItems = isVi ? GLOSSARY_ITEMS_VI : GLOSSARY_ITEMS_EN;

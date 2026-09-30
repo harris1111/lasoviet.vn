@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "campaignId": "9fec0d94-095c-49d6-bbe5-779b1493c47a",
+  "asOfDate": "2026-09-30",
+  "selectedTopics": [
+    "relationship_marriage",
+    "career_wealth"
+  ],
+  "requestedRuns": 20,
+  "source": "synthetic profiles calculated by Iztro; real configured provider required for acceptance",
+  "status": "dry_run_not_acceptance",
+  "acceptedTopics": [],
+  "evidence": [
+    {
+      "index": 0,
+      "chartVersionId": "synthetic-topic-0",
+      "snapshotHash": "cccaacca6b08d516d54f3a091379491e01ea608999165d0dcf912958f92c7bb1",
+      "evidenceCount": 371
+    },
+    {
+      "index": 1,
+      "chartVersionId": "synthetic-topic-1",
+      "snapshotHash": "7739faafccd9c42350e44147272c08d75791ff9366d96c365a1748171996980c",
+      "evidenceCount": 371
+    },
+    {
+      "index": 2,
+      "chartVersionId": "synthetic-topic-2",
+      "snapshotHash": "cf3be2280fbe216127c7f66f798f4d14e2e14abd43240e06c7abe8fcb3fcbe50",
+      "evidenceCount": 371
+    },
+    {
+      "index": 3,
+      "chartVersionId": "synthetic-topic-3",
+      "snapshotHash": "82b1ad429802b8ec37f49840f10d77729fea10d6d3393622fc810a9c487cd686",
+      "evidenceCount": 371
+    },
+    {
+      "index": 4,
+      "chartVersionId": "synthetic-topic-4",
+      "snapshotHash": "15df469bc4bf9e8376ba9ecb067758e4be68ae6531ae333224d65fa99001fa85",
+      "evidenceCount": 371
+    },
+    {
+      "index": 5,
+      "chartVersionId": "synthetic-topic-5",
+      "snapshotHash": "20062f2afe283e0188228d7bb185f01bf5f069fbcbda9da64c4a6f1cc83800b6",
+      "evidenceCount": 371
+    },
+    {
+      "index": 6,
+      "chartVersionId": "synthetic-topic-6",
+      "snapshotHash": "a5792074a575cdc4ff13f6be1ead048defb20c3450bdaa007d6845c0e24913af",
+      "evidenceCount": 371
+    },
+    {
+      "index": 7,
+      "chartVersionId": "synthetic-topic-7",
+      "snapshotHash": "07d3d935f03078b837339a9ce58c2820887c1c8d16af41bac05ea7cbbc930159",
+      "evidenceCount": 373
+    },
+    {
+      "index": 8,
+      "chartVersionId": "synthetic-topic-8",
+      "snapshotHash": "3b6b6d6977dd5869266ec6d659871eb2ac08526ab7bf1ea68c36d1102a5e5145",
+      "evidenceCount": 372
+    },
+    {
+      "index": 9,
+      "chartVersionId": "synthetic-topic-9",
+      "snapshotHash": "5124853af16bcdd23c697e3c7306f96c936965363d65c34c653b1f203109b273",
+      "evidenceCount": 371
+    },
+    {
+      "index": 10,
+      "chartVersionId": "synthetic-topic-10",
+      "snapshotHash": "622b8c93b8c10efe7fe3afe3904bc44045d4c62106fbade553631156fbf19db5",
+      "evidenceCount": 372
+    },
+    {
+      "index": 11,
+      "chartVersionId": "synthetic-topic-11",
+      "snapshotHash": "af89a0ff77c81e80f9563a428046c5a5bd11473fc2e42849b32a7a67103ce558",
+      "evidenceCount": 371
+    },
+    {
+      "index": 12,
+      "chartVersionId": "synthetic-topic-12",
+      "snapshotHash": "2b6911574b4217d9a46e03a94cb24ac4c050fa6bbde2cdd62734bd3364cb8c9b",
+      "evidenceCount": 371
+    },
+    {
+      "index": 13,
+      "chartVersionId": "synthetic-topic-13",
+      "snapshotHash": "e6b49a2ab7da52aae6e00521ccf57a867a7ea9d7bd31208a71bd6aad6a830d44",
+      "evidenceCount": 371
+    },
+    {
+      "index": 14,
+      "chartVersionId": "synthetic-topic-14",
+      "snapshotHash": "c2d3ef7932d126db661d70b28d757bdb95cf05dd43c37d6a35f3a9921545f33c",
+      "evidenceCount": 371
+    },
+    {
+      "index": 15,
+      "chartVersionId": "synthetic-topic-15",
+      "snapshotHash": "18d2e08ee721d110104849c8020180f3f1b8f1114091810bdcd4b6bf97c5805b",
+      "evidenceCount": 371
+    },
+    {
+      "index": 16,
+      "chartVersionId": "synthetic-topic-16",
+      "snapshotHash": "02ed0059e6a71276081dd549fbf759468821ecc263f624d8a3a58ce3b2e4e0f2",
+      "evidenceCount": 371
+    },
+    {
+      "index": 17,
+      "chartVersionId": "synthetic-topic-17",
+      "snapshotHash": "147744ff8b8821949c743056183e3dae1fdcd314cf48692c104fbb3920f095cb",
+      "evidenceCount": 372
+    },
+    {
+      "index": 18,
+      "chartVersionId": "synthetic-topic-18",
+      "snapshotHash": "e89e48b60a8fc68078f60807ff87d34768fccf1e813a86b0a7bb1179f3c0cce1",
+      "evidenceCount": 371
+    },
+    {
+      "index": 19,
+      "chartVersionId": "synthetic-topic-19",
+      "snapshotHash": "577c9fca693113f13b66d769b4bac4466f3d6dba5ffa1e0c06e661ce0ca18914",
+      "evidenceCount": 371
+    }
+  ]
+}

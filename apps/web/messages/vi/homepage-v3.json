@@ -2,9 +2,9 @@
   "hero": {
     "h1a": "Lập lá số.",
     "h1b": "Hiểu vận mệnh.",
-    "sub": "Công việc, tình cảm hay bản thân: bắt đầu từ lá số của bạn.",
-    "formLabel": "Lập lá số",
-    "dateLabel": "Ngày sinh",
+    "sub": "Ngã rẽ sự nghiệp, nút thắt tình cảm hay khoảng lặng nội tâm: Mọi câu trả lời đều bắt đầu từ tấm bản đồ của chính bạn.",
+    "formLabel": "Khởi tạo lá số của bạn",
+    "dateLabel": "Ngày tháng năm sinh",
     "calendarLabel": "Loại lịch",
     "solar": "Dương lịch",
     "lunar": "Âm lịch",
@@ -12,371 +12,372 @@
     "month": "Tháng",
     "year": "Năm",
     "leap": "Tháng nhuận",
-    "timeLabel": "Giờ sinh",
-    "modeExact": "Nhập giờ cụ thể",
-    "modeBranch": "Chọn khoảng giờ",
+    "timeLabel": "Khung giờ sinh",
+    "modeExact": "Biết rõ giờ sinh",
+    "modeBranch": "Nhớ khoảng giờ (Canh giờ)",
     "hourSr": "Giờ sinh, từ 00 đến 23",
     "minuteSr": "Phút sinh, từ 00 đến 59",
     "branchSr": "Khoảng giờ sinh",
-    "branchPlaceholder": "Chọn giờ sinh",
-    "unknown": "Tôi không biết giờ sinh",
+    "branchPlaceholder": "Chọn canh giờ sinh",
+    "unknown": "Tôi chưa nhớ rõ giờ sinh",
     "genderLabel": "Giới tính",
     "male": "Nam",
     "female": "Nữ",
-    "nameLabel": "Tên lá số",
-    "nameOptional": "(không bắt buộc)",
-    "namePlaceholder": "Ví dụ: Minh An",
-    "submit": "Lập lá số miễn phí",
+    "nameLabel": "Tên người xem",
+    "nameOptional": "(để ghi dấu trên lá số)",
+    "namePlaceholder": "Ví dụ: An Nhiên",
+    "submit": "Khai mở lá số riêng của bạn",
     "errors": {
-      "dateEmpty": "Nhập đủ ngày, tháng và năm sinh (năm gồm 4 chữ số).",
-      "dateImpossible": "Ngày này không có trên lịch. Xem lại ngày, tháng và năm.",
+      "dateEmpty": "Vui lòng nhập đủ ngày, tháng và năm sinh (năm gồm 4 chữ số).",
+      "dateImpossible": "Ngày này không có trên lịch thực tế. Bạn hãy kiểm tra lại nhé.",
       "dateFuture": "Ngày sinh không thể ở tương lai.",
-      "dateRange": "Năm sinh cần từ 1920 đến năm nay.",
+      "dateRange": "Năm sinh hợp lệ từ năm 1920 đến nay.",
       "time": "Nhập giờ từ 00 đến 23 và phút từ 00 đến 59.",
-      "branch": "Chọn một khoảng giờ sinh.",
-      "gender": "Chọn Nam hoặc Nữ.",
-      "storage": "Trình duyệt không lưu được thông tin. Hãy bật lưu trữ trang web rồi thử lại."
+      "branch": "Vui lòng chọn một khoảng giờ sinh phù hợp.",
+      "gender": "Vui lòng chọn giới tính Nam hoặc Nữ.",
+      "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé."
     }
   },
   "heroChart": {
-    "chartAria": "Lá số của bạn",
+    "chartAria": "Đồ hình lá số của bạn",
     "birthHour": "giờ sinh",
-    "lunar": "(âm)",
-    "lunarLeap": "(âm, nhuận)",
+    "lunar": "(âm lịch)",
+    "lunarLeap": "(âm lịch, nhuận)",
     "hourOf": "giờ {name}",
-    "open": "Xem lá số đang hình thành",
-    "close": "Thu gọn lá số"
+    "open": "Xem đồ hình lá số đang mở ra",
+    "close": "Thu gọn đồ hình lá số"
   },
   "story": {
-    "title": "Có những câu hỏi cứ theo mình mãi.",
-    "body": "Chúng hiện lên lúc nửa đêm, trên đường về, hay ngay giữa một cuộc họp. Những lúc ấy, một góc nhìn đủ sâu có thể giúp ta bước tiếp rõ ràng hơn.",
-    "q1": "Có nên đổi việc?",
-    "q2": "Vì sao chuyện tình cảm cứ lặp lại?",
-    "q3": "Mình đang bỏ lỡ điều gì ở chính mình?"
+    "title": "Có những câu hỏi cứ khiến ta trăn trở mãi không thôi...",
+    "body": "Chúng ghé lại vào những đêm khuya mất ngủ, chen vào dòng người tan tầm vội vã, hay dấy lên ngay giữa một buổi họp tưởng chừng bình yên. Giữa những ngổn ngang đó, điều bạn cần không phải một lời phán xét hay hứa hẹn viển vông—mà là một góc nhìn đủ sâu sắc để thấy rõ căn nguyên và tự tin bước tiếp.",
+    "q1": "Bao giờ thì thời vận mỉm cười với sự nỗ lực của mình?",
+    "q2": "Vì sao mình cứ lặp đi lặp lại một sai lầm trong chuyện tình cảm?",
+    "q3": "Công việc đang làm liệu có phù hợp với mình không?",
+    "q4": "Mình thực sự sinh ra để làm gì giữa cuộc đời này?"
   },
   "ticker": {
-    "label": "Những điều bạn có thể khám phá",
-    "a1": "Công việc nào hợp với mình?",
-    "a2": "Vì sao chuyện cũ lặp lại?",
-    "a3": "Cung Mệnh nói gì về mình?",
-    "a4": "Khi nào nên đổi hướng?",
-    "b1": "Cung Quan Lộc",
-    "b2": "Cung Phu Thê",
-    "b3": "Cung Tài Bạch",
-    "b4": "Khám phá theo điều bạn cần"
+    "label": "Từng mảnh ghép cuộc đời đang chờ bạn mở lối",
+    "a1": "Đâu là mảnh đất dụng võ cho tài năng của bạn?",
+    "a2": "Nút thắt tình duyên: Bắt đầu từ đâu để hóa giải?",
+    "a3": "Căn nguyên tính cách và khí chất gốc",
+    "a4": "Thuận thời thì tiến, nghịch cảnh liệu nên lui?",
+    "b1": "Đường công danh & nền tảng sự nghiệp",
+    "b2": "Nhân duyên & bến đỗ cuộc đời",
+    "b3": "Dòng chảy tiền tài & cách giữ của bền lâu",
+    "b4": "Chọn đúng trăn trở để tìm lời giải đáp ↗"
   },
   "explore": {
-    "eyebrow": "Khám phá 12 cung",
-    "title": "Một lá số, nhiều điều để đọc.",
-    "lead": "Bắt đầu từ cung Mệnh. Chạm sang Quan Lộc, Tài Bạch hay Phu Thê để thấy những mối nối ít khi hiện ra nếu chỉ đọc từng ô.",
-    "shortcutsLabel": "Cung thường đọc trước",
+    "eyebrow": "Khám phá 12 cung số",
+    "title": "Một đồ hình lá số. Mười hai nếp đời người.",
+    "lead": "Đừng để những thuật ngữ xa lạ làm bạn băn khoăn. Bắt đầu từ cung Mệnh để thấu suốt bản tính, rồi mở sang Quan Lộc, Tài Bạch hay Phu Thê. Bạn sẽ thấy từng sự kiện trong đời chưa bao giờ diễn ra rời rạc—chúng đan cài và nâng đỡ lẫn nhau.",
+    "shortcutsLabel": "Những cung vị thường được mở xem trước",
     "mobileHint": "Chạm vào lưới để mở 8 cung còn lại.",
-    "chartLabel": "12 cung",
-    "palaceAria": "Cung {name}, {branch}",
-    "reading": "Đang đọc",
+    "chartLabel": "12 cung số",
+    "palaceAria": "Cung {name}, chi {branch}",
+    "reading": "Đang xem",
     "palacePrefix": "Cung",
     "trine": "Tam hợp",
-    "opposite": "Đối cung",
-    "cycles": "Ngoài 12 cung còn có nhịp thời gian: mỗi mười năm một đại vận, mỗi năm một lưu niên.",
-    "cta": "Lập lá số của tôi",
-    "sample": "Xem một lá số đầy đủ →"
+    "opposite": "Xung chiếu (Đối cung)",
+    "cycles": "Bên cạnh 12 cung tĩnh tại là nhịp chảy của thời gian: mười năm một đại vận đổi thay, một năm một lưu niên thử thách.",
+    "cta": "Lập lá số để soi chiếu đời mình",
+    "sample": "Xem thử một lá số mẫu hoàn chỉnh →"
   },
   "palaces": {
     "menh": {
       "name": "Mệnh",
-      "title": "Con người gốc",
-      "desc": "Tính khí, điểm tựa và cách bạn phản ứng khi mọi thứ chệch hướng. Các cung khác đều được đọc từ đây."
+      "title": "Căn cốt & Khí chất",
+      "desc": "Nền tảng tính cách, điểm tựa tinh thần và cách bạn phản ứng khi cuộc sống chệch hướng. Mọi cung số khác đều bắt rễ từ nơi này."
     },
     "huynh": {
       "name": "Huynh Đệ",
-      "title": "Anh chị em",
-      "desc": "Những người lớn lên cùng bạn, và cách hai bên nâng đỡ hay va chạm nhau."
+      "title": "Anh em & Tri kỷ cùng thời",
+      "desc": "Mối liên kết ruột thịt và cách những người cùng thế hệ nâng đỡ, đồng hành hay thử thách lòng kiên nhẫn của bạn."
     },
     "phuthe": {
       "name": "Phu Thê",
-      "title": "Tình duyên",
-      "desc": "Kiểu người khiến bạn muốn ở lại lâu, và những khác biệt cần học cách lắng nghe."
+      "title": "Duyên nợ & Bến đỗ lứa đôi",
+      "desc": "Mẫu người khiến trái tim bạn muốn dừng chân, cùng những va đập khác biệt đòi hỏi sự lắng nghe và bao dung để đi đường dài."
     },
     "tutuc": {
       "name": "Tử Tức",
-      "title": "Con cái",
-      "desc": "Duyên với con trẻ và cách bạn chăm chút cho thế hệ sau."
+      "title": "Con cái & Sự tiếp nối",
+      "desc": "Duyên phận với thế hệ sau, cách bạn trao truyền yêu thương và gieo mầm hy vọng cho tương lai."
     },
     "taibach": {
       "name": "Tài Bạch",
-      "title": "Tiền bạc",
-      "desc": "Tiền đến với bạn từ đâu, và vì sao có lúc nó đi nhanh hơn bạn nghĩ."
+      "title": "Tiền bạc & Dòng chảy tài lộc",
+      "desc": "Bạn kiếm tiền nhờ tài hoa hay cơ hội? Vì sao có lúc tiền vào như nước, có khi lại trôi tuột ngoài tầm tay?"
     },
     "tatach": {
       "name": "Tật Ách",
-      "title": "Sức khỏe",
-      "desc": "Những chỗ cơ thể hay lên tiếng, để bạn biết lúc nào nên nghỉ. Không thay cho lời khuyên của bác sĩ."
+      "title": "Thân thể & Điềm báo sức khỏe",
+      "desc": "Nơi cơ thể âm thầm gửi tín hiệu để bạn biết khi nào nên dừng lại dưỡng sức. Giữ gìn thân tâm luôn là gốc rễ của vạn sự."
     },
     "thiendi": {
       "name": "Thiên Di",
-      "title": "Đi xa",
-      "desc": "Bạn thay đổi thế nào khi rời vùng quen: chỗ làm mới, thành phố mới, con đường mới."
+      "title": "Ra ngoài & Chạm ngõ cuộc đời",
+      "desc": "Khí sắc và bản lĩnh của bạn khi bước ra khỏi vùng an toàn: một môi trường mới, một thành phố xa, hay những chuyến đi định hình số phận."
     },
     "nobo": {
       "name": "Nô Bộc",
-      "title": "Bạn bè, cộng sự",
-      "desc": "Ai đứng cùng bạn khi việc khó, và mối quan hệ nào đang lấy của bạn nhiều hơn cho lại."
+      "title": "Bạn bè, đồng sự & Đối tác",
+      "desc": "Ai sẽ kề vai sát cánh khi gian khó, và mối quan hệ nào đang âm thầm bào mòn năng lượng sống của bạn?"
     },
     "quanloc": {
       "name": "Quan Lộc",
-      "title": "Công việc",
-      "desc": "Môi trường giúp bạn làm tốt nhất: quy củ, ổn định hay được tự quyết."
+      "title": "Sự nghiệp & Vị thế xã hội",
+      "desc": "Đâu là môi trường để bạn tỏa sáng nhất: sự ổn định khuôn thước, vị trí lãnh đạo uy quyền hay tự do bứt phá kinh doanh?"
     },
     "dientrach": {
       "name": "Điền Trạch",
-      "title": "Nhà cửa",
-      "desc": "Chuyện an cư, tích lũy tài sản và nơi bạn thấy mình thật sự được về."
+      "title": "Đất đai, nhà cửa & Chốn an cư",
+      "desc": "Duyên tích lũy sản nghiệp, không gian sống nuôi dưỡng tinh thần và cảm giác thật sự được 'thuộc về một mái nhà'."
     },
     "phucduc": {
       "name": "Phúc Đức",
-      "title": "Đời sống tinh thần",
-      "desc": "Điều giữ bạn bình tâm, và gốc rễ gia đình phía sau bạn."
+      "title": "Gốc rễ phước lành & Sự an yên",
+      "desc": "Nền tảng tâm thức, sự thanh thản nội tại và mạch ngầm gia đạo che chở bạn đi qua những biến cố cuộc đời."
     },
     "phumau": {
       "name": "Phụ Mẫu",
-      "title": "Cha mẹ",
-      "desc": "Sợi dây với cha mẹ và những gì bạn mang theo từ mái nhà thuở nhỏ."
+      "title": "Cha mẹ & Nếp nhà thuở nhỏ",
+      "desc": "Sợi dây liên kết với đấng sinh thành cùng những bài học ấu thơ vô hình theo bạn suốt cả hành trình trưởng thành."
     }
   },
   "needs": {
-    "title": "Bạn đang muốn hiểu điều gì nhất?",
-    "lead": "Một ngã rẽ công việc. Một mối quan hệ khó gọi tên. Hay chính mình, sau một chặng đường dài.",
-    "groupLabel": "Điều bạn muốn hiểu",
+    "title": "Hôm nay, lòng bạn đang ngổn ngang điều gì nhất?",
+    "lead": "Một quyết định chuyển hướng dở dang. Một mối quan hệ buông không đành, giữ chẳng xong. Hay đơn giản là chính bạn, sau những năm tháng miệt mài mà bỗng thấy chông chênh.",
+    "groupLabel": "Điều bạn muốn thấu tỏ",
     "items": {
       "self": {
-        "title": "Hiểu mình hơn",
-        "question": "Mình mạnh ở đâu? Vì sao cứ chần chừ trước những việc lớn?",
-        "path": "Đọc từ cung Mệnh: cốt cách, điểm tựa và những thói quen bạn chưa kịp gọi tên.",
-        "cta": "Bắt đầu từ cung Mệnh",
+        "title": "Thấu hiểu chính mình",
+        "question": "Mình thực sự mạnh ở đâu? Vì sao trước những khúc ngoặt quan trọng, mình cứ chần chừ bỏ lỡ?",
+        "path": "Soi chiếu từ cung Mệnh và cung Thân để thấy rõ căn cơ, điểm tựa nội tại và những nút thắt tâm lý bạn chưa từng đặt tên.",
+        "cta": "Khám phá căn cốt bản thân",
         "c1": "Mệnh",
         "c2": "Thân"
       },
       "work": {
-        "title": "Công việc và tiền bạc",
-        "question": "Có nên nghỉ việc lúc này? Dốc sức làm hay giữ tiền chờ thời?",
-        "path": "Quan Lộc cho thấy cách bạn làm việc, Tài Bạch cho thấy dòng tiền, đại vận cho thấy nhịp của từng giai đoạn.",
-        "cta": "Xem công việc trên lá số",
+        "title": "Sự nghiệp & Tiền tài",
+        "question": "Có nên nghỉ việc để bắt đầu lại? Giai đoạn này nên dốc lực tiến công hay thu mình chờ thời?",
+        "path": "Quan Lộc chỉ rõ cách làm việc và môi trường phát huy; Tài Bạch soi sáng dòng tiền; Đại vận 10 năm chỉ rõ nhịp thịnh suy để đi đúng thời điểm.",
+        "cta": "Xem thời vận công danh",
         "secondary": "Hoặc tìm hiểu Bát Tự",
         "c1": "Quan Lộc",
         "c2": "Tài Bạch",
         "c3": "Đại vận"
       },
       "love": {
-        "title": "Tình cảm",
-        "question": "Vì sao chuyện cũ cứ lặp lại? Người thế nào mới thật sự hợp mình?",
-        "path": "Cung Phu Thê nói về người bạn dễ gắn bó. Đọc cùng cung Mệnh để thấy vì sao.",
-        "cta": "Xem chuyện tình cảm",
+        "title": "Chuyện tình cảm",
+        "question": "Vì sao cứ va vào cùng một mẫu hình làm mình đau lòng? Người như thế nào mới thực sự là bến đỗ bình yên?",
+        "path": "Đọc cung Phu Thê phối chiếu cùng cung Mệnh để bóc tách mẫu người bạn dễ rung động và cách hòa giải xung đột từ gốc rễ.",
+        "cta": "Soi tỏ duyên tình",
         "secondary": "Hoặc tìm hiểu Chiêm Tinh",
         "c1": "Phu Thê",
         "c2": "Mệnh"
       },
       "decision": {
         "title": "Một quyết định trước mắt",
-        "question": "Ký hợp đồng này, nhận lời chuyến đi này, hay đợi thêm?",
-        "path": "Với một câu hỏi cụ thể, Kinh Dịch cho một quẻ để bạn cân nhắc nên tiến hay nên dừng.",
-        "cta": "Tìm hiểu Kinh Dịch",
+        "question": "Đứng trước một ngã ba đường: Ký hợp đồng này, nhận lời chuyến đi này, hay nên lùi lại một bước?",
+        "path": "Khi cần lời khuyên cho một thời điểm cụ thể, trí tuệ dịch lý giúp bạn nhận diện thời thế: nên quyết đoán tiến hay điềm tĩnh thủ.",
+        "cta": "Tham vấn Kinh Dịch",
         "c1": "Kinh Dịch"
       }
     },
-    "lensTitle": "Mỗi lăng kính, một cách nhìn.",
-    "lensLead": "Tử Vi bắt đầu từ lá số của bạn. Nếu muốn mở rộng góc nhìn, hãy khám phá các bộ môn còn lại.",
+    "lensTitle": "Mỗi môn phái, một góc nhìn sáng rõ.",
+    "lensLead": "Tử Vi giúp bạn đọc trọn bức tranh đời mình. Khi muốn mở rộng góc nhìn trước những sự việc đặc thù, hãy khám phá các bộ môn cổ học tinh hoa.",
     "disciplines": {
       "tuvi": {
         "name": "Tử Vi Đẩu Số",
-        "desc": "Bản đồ mười hai cung dựng từ ngày giờ sinh của bạn.",
-        "cta": "Lập lá số"
+        "desc": "Bản đồ 12 cung và hơn 100 tinh tú, giải mã toàn diện tính cách, nhân duyên và từng bước ngoặt đời người.",
+        "cta": "Lập lá số ngay"
       },
       "batu": {
-        "name": "Bát Tự",
-        "desc": "Bốn trụ năm, tháng, ngày, giờ và thế cân bằng của ngũ hành.",
+        "name": "Bát Tự (Tứ Trụ)",
+        "desc": "Bốn trụ Năm - Tháng - Ngày - Giờ, luận giải sự cân bằng âm dương và chu kỳ ngũ hành thịnh suy.",
         "cta": "Tìm hiểu Bát Tự"
       },
       "chiemtinh": {
-        "name": "Chiêm Tinh",
-        "desc": "Vị trí các hành tinh lúc bạn chào đời, đọc qua 12 cung hoàng đạo và 12 nhà.",
+        "name": "Chiêm Tinh Học",
+        "desc": "Vị trí các vì tinh tú thời khắc chào đời qua 12 cung hoàng đạo, soi tỏ thế giới nội tâm và tiềm năng vô thức.",
         "cta": "Tìm hiểu Chiêm Tinh"
       },
       "kinhdich": {
         "name": "Kinh Dịch",
-        "desc": "Một câu hỏi, một quẻ, và gợi ý nên tiến hay nên dừng.",
+        "desc": "Trí tuệ thời vị qua 64 quẻ dịch, soi sáng lẽ biến dịch và gợi mở ứng xử trước từng tình huống cụ thể.",
         "cta": "Tìm hiểu Kinh Dịch"
       },
       "thansohoc": {
         "name": "Thần Số Học",
-        "desc": "Những con số từ tên và ngày sinh, cùng nhịp năm cá nhân.",
+        "desc": "Khám phá tần số rung động của họ tên và ngày sinh cùng nhịp điệu của các chu kỳ năm cá nhân.",
         "cta": "Tìm hiểu Thần Số Học"
       }
     }
   },
   "compare": {
-    "title": "Câu trả lời có thể đến rất nhanh. Điều gì còn ở lại?",
-    "lead": "Một cách cho bạn tốc độ. Một cách cho bạn cuộc trò chuyện. Lá Số Việt cho bạn một lá số để trở lại, đối chiếu và đọc tiếp.",
-    "tableLabel": "Một điểm đáng chọn và năm giới hạn của mỗi cách tìm câu trả lời",
+    "title": "Tốc độ hay cuộc trò chuyện? Điều gì sẽ thực sự ở lại cùng bạn?",
+    "lead": "Trang tử vi phổ thông cho sự nhanh chóng. Hỏi đáp AI cho sự linh hoạt. Gặp thầy cho sự lắng nghe. Lá Số Việt trao bạn một bản đồ vận mệnh chuẩn xác, có căn cứ cổ thư và đồng hành trọn đời.",
+    "tableLabel": "Một điểm đáng chọn và các giới hạn thực tế của mỗi cách tìm câu trả lời",
     "groupLabel": "Cách bạn đang cân nhắc",
     "colLsv": "Lá Số Việt",
     "colWeb": "Trang tử vi phổ thông",
-    "colAi": "Hỏi AI",
-    "colThay": "Gặp thầy",
+    "colAi": "Hỏi đáp AI",
+    "colThay": "Gặp thầy tử vi",
     "tabLsv": "Lá Số Việt",
     "tabWeb": "Trang tử vi",
-    "tabAi": "Hỏi AI",
+    "tabAi": "Hỏi đáp AI",
     "tabThay": "Gặp thầy",
-    "cardTitle": "{name} có gì đáng chọn?",
-    "fixLabel": "Lá Số Việt:",
-    "ctaDesktop": "Lập lá số của tôi →",
+    "cardTitle": "{name} có gì đáng để bạn lựa chọn?",
+    "fixLabel": "Tại Lá Số Việt:",
+    "ctaDesktop": "Khai mở lá số của tôi →",
     "cta": "Bắt đầu với lá số của tôi →",
     "rows": {
       "strength": {
-        "k": "Điểm đáng chọn",
-        "lsv": "Một lá số để khám phá, giữ lại và đọc tiếp.",
-        "web": "Tra rất nhanh; nhiều nơi có phần miễn phí.",
-        "ai": "Hỏi bằng lời của mình, trả lời tức thì.",
-        "thay": "Đối thoại trực tiếp, hỏi tiếp ngay tại chỗ."
+        "k": "Điểm đáng chọn nhất",
+        "lsv": "Bản đồ vận mệnh chuẩn xác, cá nhân hóa sâu sắc và lưu trữ đồng hành trọn đời.",
+        "web": "Tra cứu miễn phí, trả kết quả lá số thô và bài đọc tự động tức thì.",
+        "ai": "Trò chuyện linh hoạt 24/7 bằng lời văn tự nhiên, phản hồi ngay tức thì.",
+        "thay": "Đối thoại 1-1 trực tiếp, được lắng nghe và an ủi cảm xúc tại chỗ."
       },
       "own": {
-        "k": "Riêng cho mình",
-        "lsv": "Bắt đầu từ ngày giờ sinh và điều bạn đang quan tâm.",
-        "web": "Một bản luận sẵn khó theo sát câu hỏi riêng.",
-        "ai": "Câu trả lời dựa nhiều vào thông tin bạn tự kể trong prompt.",
-        "thay": "Độ sâu phụ thuộc người xem và thời lượng buổi gặp."
+        "k": "Độ cá nhân hóa",
+        "lsv": "An sao chuẩn từng phút sinh; bóc tách đúng trăn trở bạn đang bận tâm.",
+        "web": "Văn mẫu đóng sẵn; hai người cùng sao nhận bài đọc giống hệt nhau.",
+        "ai": "Phụ thuộc câu lệnh tự nhập; dễ bị định kiến người dùng dẫn dắt.",
+        "thay": "Phụ thuộc lớn vào kinh nghiệm, tâm trạng và cảm quan cá nhân của thầy."
       },
       "basis": {
-        "k": "Căn cứ trên lá số",
-        "lsv": "Đi từ nhận định về cung, sao và mối liên hệ liên quan.",
-        "web": "Kết luận có sẵn đôi khi thiếu đường dẫn về cung, sao.",
-        "ai": "Lời văn có thể thuyết phục dù chưa kiểm được dữ liệu lá số.",
-        "thay": "Lời giải có thể rất sâu, nhưng cần ghi lại để đối chiếu."
+        "k": "Căn cứ học thuật",
+        "lsv": "Minh bạch tuyệt đối. Mọi luận giải đều gắn đường dẫn đối chiếu sao và cung.",
+        "web": "Dữ liệu đại trà chưa kiểm chứng; buông lời phán mơ hồ gây hoang hoảng.",
+        "ai": "Dễ bị 'ảo giác' an sai vị trí sao nhưng vẫn trả lời rất tự tin.",
+        "thay": "Truyền miệng thiếu cơ sở logic chuẩn hóa; khó kiểm chứng tính đúng sai."
       },
       "links": {
-        "k": "Thấy mối liên hệ",
-        "lsv": "Chạm một cung để nhìn tam hợp, đối cung cùng lúc.",
-        "web": "Nhiều đoạn văn rời khiến bạn phải tự ghép các mối nối.",
-        "ai": "Mỗi lượt hỏi có thể tách khỏi tổng thể mười hai cung.",
-        "thay": "Mối liên hệ được nói bằng lời, khó xem lại thành một bức tranh."
+        "k": "Nhìn nhận toàn diện",
+        "lsv": "Đồ hình tương tác trực quan: chạm một cung để thấy trọn vẹn Tam hợp, Xung chiếu.",
+        "web": "Nội dung cắt vụn; các cung phán mâu thuẫn buộc bạn tự chắp vá.",
+        "ai": "Mỗi lần hỏi là một lát cắt rời rạc, mất đi tính nhất quán toàn cục.",
+        "thay": "Lời phán thoảng qua, khó hình dung rõ bức tranh tổng thể mười hai cung."
       },
       "return": {
-        "k": "Trở lại lúc cần",
-        "lsv": "Giữ lá số và phần đã mở để trở lại đúng chỗ.",
-        "web": "Khó tìm lại chính đoạn từng khiến bạn suy nghĩ.",
-        "ai": "Cuộc trò chuyện dài khiến thông tin quan trọng dễ trôi.",
-        "thay": "Khi buổi xem kết thúc, bạn phải dựa vào trí nhớ hoặc ghi chép."
+        "k": "Tính nhất quán & Khách quan",
+        "lsv": "Khách quan & Nhất quán tuyệt đối; chuẩn hóa dữ liệu, loại bỏ hoàn toàn cảm tính.",
+        "web": "Thông tin thiếu ổn định; các bài tra cứu mâu thuẫn nhau giữa các lần đọc.",
+        "ai": "Thiếu tính nhất quán; mỗi lượt hỏi lại cho ra một kết quả mâu thuẫn.",
+        "thay": "Thiếu tính đồng nhất; cùng lá số nhưng mỗi thầy phán một kiểu khác nhau."
       },
       "depth": {
-        "k": "Đi sâu theo ý mình",
-        "lsv": "Chọn gói luận giải hoặc phần bạn muốn đọc; thấy rõ chi phí và quyền lợi trước khi mở.",
-        "web": "Thường đi theo bài hoặc gói đã đóng sẵn.",
-        "ai": "Hỏi thêm rất dễ, nhưng bạn tự kiểm tính nhất quán của từng lượt.",
-        "thay": "Muốn hỏi thêm thường phải chờ một buổi khác và thêm chi phí."
+        "k": "Chi phí & Trải nghiệm",
+        "lsv": "Xem miễn phí nền tảng; chủ động mở sâu đúng phần bạn cần với chi phí minh bạch.",
+        "web": "Giao diện tràn ngập quảng cáo; bài viết đóng gói cứng nhắc, thừa thãi.",
+        "ai": "Tốn phí thuê bao tháng; người dùng phải tự gánh rủi ro tự kiểm chứng.",
+        "thay": "Chi phí đắt đỏ từ trăm nghìn đến tiền triệu; khó đặt lịch để hỏi thêm."
       }
     }
   },
   "testimonials": {
-    "eyebrow": "Lời người đọc",
+    "eyebrow": "Lời hồi đáp chân thực",
     "titleA": "Điều đọng lại",
-    "titleB": "sau một lá số.",
-    "lead": "Mỗi người đến với một câu hỏi khác nhau. Đây là điều họ mang theo sau khi đọc.",
-    "readFull": "Đọc đầy đủ ↗",
-    "readFullAria": "Đọc đầy đủ lời của {name}",
-    "more": "Thêm góc nhìn từ người đọc ↓",
-    "less": "Thu gọn lời người đọc ↑",
+    "titleB": "sau một lần soi tỏ.",
+    "lead": "Mỗi người tìm đến Lá Số Việt mang theo một trăn trở riêng. Nhưng rời đi, họ đều mang theo một điểm tựa an lòng.",
+    "readFull": "Đọc trọn vẹn ↗",
+    "readFullAria": "Đọc trọn vẹn chia sẻ của {name}",
+    "more": "Xem thêm chia sẻ từ người đọc ↓",
+    "less": "Thu gọn chia sẻ ↑",
     "start": "Bắt đầu với lá số của bạn ↗",
-    "filterLabel": "Lọc lời người đọc",
+    "filterLabel": "Lọc chia sẻ theo chủ đề",
     "filterAll": "Tất cả",
     "group": {
-      "self": "Hiểu mình",
-      "work": "Công việc và thời vận",
-      "method": "Cách luận giải",
-      "reading": "Cách đọc và cảm nhận"
+      "self": "Thấu hiểu chính mình",
+      "work": "Thời vận & Sự nghiệp",
+      "method": "Lập luận có căn cứ",
+      "reading": "Cảm nhận sau khi đọc"
     },
     "label13": "Nhẹ lòng khi xem cho con",
     "label12": "Liên kết nhiều cung",
     "label09": "Đọc sâu dễ theo",
     "label01": "Lập luận rõ",
-    "prev": "Lời trước",
-    "next": "Lời tiếp theo",
+    "prev": "Chia sẻ trước",
+    "next": "Chia sẻ tiếp theo",
     "close": "Đóng",
-    "dialogEyebrow": "Lời người đọc",
+    "dialogEyebrow": "Lời người đọc chia sẻ",
     "pause": "Tạm dừng",
     "play": "Tiếp tục",
-    "rotationLabel": "Lời người đọc, tự đổi sau vài giây"
+    "rotationLabel": "Chia sẻ từ người đọc, tự động chuyển sau vài giây"
   },
   "usp": {
-    "title": "Càng nhìn kỹ, càng thấy chuyện của mình.",
-    "lead": "Một lá số không nên kết thúc ở vài dòng phán đoán. Mở từng lớp, hiểu từng mối nối, rồi quay lại khi bạn cần.",
+    "title": "Càng nhìn sâu, càng thấy rõ bóng hình mình trong đó.",
+    "lead": "Một lá số chân chính không bao giờ kết thúc ở vài lời phán xét nông cạn. Nó là hành trình bóc tách từng lớp căn duyên, hiểu từng mối dây ràng buộc, để rồi mỗi khi chông chênh, bạn luôn có một chốn trở về soi chiếu.",
     "n1": {
-      "title": "Từ tàng thư kim cổ.",
-      "body": "Tri thức Tử Vi được sắp xếp để mỗi nhận định có chỗ bắt đầu, thay vì đứng lẻ loi thành một câu kết."
+      "title": "Kế thừa tinh hoa cổ thư.",
+      "body": "Mỗi lời luận giải đều được đúc kết từ thuật số chính tông phương Đông, hệ thống hóa lớp lang để từng câu chữ đều có gốc có ngọn, tuyệt đối không suy diễn hàm hồ."
     },
     "n2": {
-      "title": "Bắt đầu từ bạn.",
-      "body": "Ngày giờ sinh mở ra lá số. Điều bạn đang bận tâm quyết định nơi câu chuyện bắt đầu."
+      "title": "Khởi phát từ chính bạn.",
+      "body": "Thời khắc bạn cất tiếng khóc chào đời dựng nên đồ hình số phận. Nhưng chính nỗi bận tâm của bạn ở hiện tại mới là chiếc chìa khóa mở lối cho câu chuyện."
     },
     "n3": {
-      "title": "Thấy các mối nối.",
-      "body": "Chọn một cung để thấy tam hợp, đối cung và phần đời đang liên hệ. Mười hai cung kể cùng một câu chuyện.",
+      "title": "Mạch ngầm liên kết.",
+      "body": "Chạm vào một cung số để thấy thế tam hợp, nhị hợp và xung chiếu cùng lúc bừng sáng. Mười hai cung không bao giờ cô lập—chúng cùng kể một câu chuyện về đời bạn.",
       "link": "Chạm thử vào lá số →"
     },
     "n4": {
-      "title": "Đi sâu theo nhịp của mình.",
-      "body": "Công việc, tình cảm hay một giai đoạn sắp tới: chọn phần luận giải phù hợp và thấy rõ chi phí trước khi mở."
+      "title": "Thong dong theo nhịp riêng.",
+      "body": "Sự nghiệp, tình cảm hay vận hạn một năm trước mắt: bạn làm chủ hoàn toàn hành trình khám phá, thấy rõ từng giá trị và chi phí trước khi quyết định mở đọc."
     }
   },
   "value": {
-    "title": "Đọc trước một chút. Đi sâu khi bạn muốn.",
-    "lead": "Bắt đầu với lá số và những điều đầu tiên bạn nhận ra về mình. Muốn giữ lại và đọc tiếp, bạn lưu lá số. Phần luận giải sâu hơn được mở bằng Lá, theo đúng điều bạn quan tâm.",
+    "title": "Thấu hiểu trước một phần. Đi sâu khi lòng đã tỏ.",
+    "lead": "Bạn hoàn toàn có thể khởi đầu bằng việc lập lá số và đọc những nhận định cốt lõi nhất về mình mà không tốn một đồng. Khi thấy hữu ích và muốn giữ lại cho riêng mình, bạn đăng nhập lưu trữ. Những tầng luận giải chuyên sâu chỉ mở ra khi bạn thực sự cần, bằng Lá, với chi phí minh bạch đến từng con số.",
     "s1": {
-      "title": "Bắt đầu miễn phí",
-      "body": "Lá số 12 cung và những điều đầu tiên về bạn, không cần tài khoản."
+      "title": "Bước 1: Trải nghiệm trọn vẹn đồ hình",
+      "body": "Xem đầy đủ lá số 12 cung an sao chuẩn xác cùng 2 nhận định trọng tâm về bản mệnh. Hoàn toàn miễn phí, không cần đăng ký tài khoản."
     },
     "s2": {
-      "title": "Lưu lá số",
-      "body": "Đăng nhập để giữ lá số, mở lại khi cần và đọc bản tóm lược."
+      "title": "Bước 2: Ghi dấu & Lưu giữ",
+      "body": "Đăng nhập một chạm để lưu lại lá số trọn đời, mở khóa bản tóm lược vận khí tổng quan và những lưu ý quan trọng trong năm."
     },
     "s3": {
-      "title": "Chọn phần đọc sâu",
-      "body": "Mở bằng Lá, đúng phần bạn quan tâm. Số Lá hiện rõ trước khi bạn đồng ý."
+      "title": "Bước 3: Mở khóa theo nhu cầu riêng",
+      "body": "Dùng Lá để mở đúng phần bạn muốn thấu tỏ: Đại vận 10 năm, thời vận từng năm hay chuyên sâu từng cung. Số Lá và số tiền hiện rõ ràng trước khi bạn bấm xác nhận."
     },
-    "packsTitle": "Gói Lá",
-    "packsNote": "Giá ghi cả số Lá và số tiền. Thanh toán qua VietQR.",
-    "packBonus": "{base} Lá + {bonus} Lá tặng"
+    "packsTitle": "Gói nạp Lá",
+    "packsNote": "Mỗi gói hiển thị song song số Lá và số tiền VNĐ. Quét mã VietQR tự động trong vài giây.",
+    "packBonus": "{base} Lá + {bonus} Lá tặng thêm"
   },
   "faq": {
-    "title": "Điều bạn muốn biết trước khi bắt đầu.",
-    "more": "Xem thêm câu hỏi →",
+    "title": "Những điều bạn có thể muốn hỏi trước khi khởi tạo.",
+    "more": "Xem thêm câu hỏi thường gặp →",
     "items": {
       "q1": {
-        "q": "Không nhớ giờ sinh thì sao?",
-        "a": "Bạn vẫn bắt đầu được. Chọn “Tôi không biết giờ sinh”. Ở bước sau, Lá Số Việt sẽ nói rõ giờ sinh ảnh hưởng thế nào và để bạn thêm vào khi đã hỏi được người nhà."
+        "q": "Tôi không nhớ chính xác giờ sinh thì có lập lá số được không?",
+        "a": "Bạn vẫn có thể bắt đầu. Hãy chọn 'Tôi chưa nhớ rõ giờ sinh'. Hệ thống vẫn sẽ lập đồ hình cơ bản và chỉ rõ cho bạn thấy giờ sinh quyết định đến những cung vị nào, để bạn có thể hỏi lại người thân và hoàn thiện lá số sau mà không mất dữ liệu đã tạo."
       },
       "q2": {
-        "q": "Đọc miễn phí được tới đâu?",
-        "a": "Bạn xem lá số 12 cung và các nhận định đầu tiên về bản thân, định hướng hành động. Không cần tài khoản."
+        "q": "Xem miễn phí thì tôi đọc được những gì?",
+        "a": "Bạn được xem trọn vẹn đồ hình lá số 12 cung an sao chuẩn xác theo thiên văn, tra cứu ý nghĩa các sao khi chạm vào cung, và nhận ngay 2 nhận định đúc kết quan trọng về bản mệnh. Bạn không phải trả bất kỳ chi phí nào và cũng không cần nhập thông tin thẻ."
       },
       "q3": {
-        "q": "Lá dùng để làm gì?",
-        "a": "Lá dùng để mở các phần luận giải sâu hơn. Mỗi gói ghi rõ số Lá và số tiền, thanh toán qua VietQR."
+        "q": "\"Lá\" trong hệ thống dùng để làm gì và tính phí thế nào?",
+        "a": "Lá là đơn vị để bạn tùy ý mở đọc các phần luận giải chuyên sâu (như phân tích đại vận, dự báo chi tiết năm hạn hay đối chiếu cung phối). Mỗi gói Lá đều hiển thị song song số tiền VNĐ tương ứng rõ ràng, thanh toán qua chuyển khoản VietQR tự động trong vài giây. Chúng tôi tuyệt đối không tạo tỷ giá ảo hay thu phí duy trì ngầm."
       },
       "q4": {
-        "q": "Xem lại lá số ở đâu?",
-        "a": "Đăng nhập để lưu. Lá số và các phần bạn đã mở nằm trong mục Tài khoản."
+        "q": "Sau này muốn xem lại lá số của mình thì tìm ở đâu?",
+        "a": "Chỉ cần đăng nhập bằng tài khoản cá nhân, lá số và toàn bộ các phần luận giải bạn đã mở sẽ được lưu giữ vĩnh viễn trong mục Tài khoản. Bạn có thể mở lại trên điện thoại hay máy tính bất cứ khi nào cần chiêm nghiệm."
       },
       "q5": {
-        "q": "Dữ liệu ngày sinh được lưu ra sao?",
-        "a": "Cách lưu, dùng và xóa dữ liệu được ghi trong",
-        "linkLabel": "Chính sách bảo mật."
+        "q": "Thông tin ngày giờ sinh của tôi có được bảo mật không?",
+        "a": "Lá Số Việt coi sự riêng tư của bạn là nguyên tắc tối thượng. Dữ liệu ngày sinh của người dùng ẩn danh sẽ tự động xóa sau 24 giờ. Chúng tôi không gửi ngày giờ sinh, họ tên hay nội dung lá số của bạn cho bất kỳ công cụ bên thứ ba nào, và bạn luôn có quyền bấm xóa vĩnh viễn hồ sơ của mình bất kỳ lúc nào.",
+        "linkLabel": "Chính sách bảo mật"
       }
     }
   },
   "about": {
-    "title": "Lá Số Việt bắt đầu từ một câu hỏi giản dị: làm sao để hiểu một lá số, thay vì chỉ nghe một lời phán?",
-    "body": "Chúng tôi đặt những tri thức xưa vào một cách đọc gần gũi hơn: có lá số để nhìn, có căn cứ để lần theo, có khoảng lặng để tự hiểu mình.",
-    "link": "Tìm hiểu Lá Số Việt →",
-    "ctaTitle": "Câu chuyện của bạn bắt đầu từ đâu?",
-    "cta": "Lập lá số của tôi"
+    "title": "Đơn giản hóa tinh hoa huyền học Đông Tây, đưa tri thức cổ học đúc kết ngàn năm đến gần hơn với người Việt.",
+    "body": "Lá Số Việt hội tụ tinh hoa các bộ môn thuật số kim cổ—từ Tử Vi, Bát Tự đến Chiêm Tinh, Kinh Dịch và Thần Số Học. Bằng ngôn ngữ tiếng Việt thuần túy, dễ hiểu và có căn cứ minh bạch, Lá Số Việt giúp bạn thấu hiểu sâu sắc chính mình, nhìn rõ những cột mốc vận hạn để luôn có sự chuẩn bị chủ động và vững vàng nhất cho cuộc sống.",
+    "link": "Tìm hiểu thêm về Lá Số Việt →",
+    "ctaTitle": "Chặng đường phía trước của bạn đã sẵn sàng được soi tỏ.",
+    "cta": "Khai mở lá số của bạn ngay"
   }
 }

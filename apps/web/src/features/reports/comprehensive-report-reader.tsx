@@ -11,6 +11,18 @@ import type {
 
 import { ArtifactImage } from "../../components/artifact-image";
 import { useReportReaderAnalytics } from "./report-analytics";
+import {
+  ReportChart,
+  ReportDecadalTimeline,
+  ReportPalaceRadar,
+  ReportScoreBadge,
+  ReportScoreExplainer,
+  ReportStarChips,
+} from "./report-chart-visuals";
+import { computePalaceScores } from "./report-palace-score";
+import { ReportNarrative } from "./report-narrative";
+import { splitLeadSentence, splitNarrative } from "./report-paragraphs";
+import { resolveActiveSectionIndex } from "./report-reading-position";
 
 export type ComprehensiveReportReaderProps = {
   locale?: "vi" | "en";
@@ -63,6 +75,70 @@ export function ComprehensiveReportReader({
     report.contentVersion === "ziwei-comprehensive.v3" && isV4_1Tier2Content(report.content)
       ? report.content
       : null;
+
+  const chartSnapshot =
+    "chartSnapshot" in report && report.chartSnapshot ? report.chartSnapshot : null;
+  const snapshotPalace = (palaceId: string | undefined) =>
+    chartSnapshot && palaceId
+      ? chartSnapshot.palaces.find((p) => p.palaceId === palaceId) ?? null
+      : null;
+  const lifePalace = chartSnapshot?.palaces.find((p) => p.isLife) ?? null;
+  const bodyPalace = chartSnapshot?.palaces.find((p) => p.isBody) ?? null;
+  const currentCycle = chartSnapshot?.decadal.cycles.find(
+    (c) => c.ordinal === chartSnapshot.decadal.currentOrdinal,
+  );
+  const decadalPalace = snapshotPalace(currentCycle?.palaceId);
+  const annualPalace = snapshotPalace(chartSnapshot?.annual.palaceId);
+  const palaceScores = chartSnapshot ? computePalaceScores(chartSnapshot) : null;
+  // Lá số ở đầu bài và ở cột đọc đều sáng theo cung người đọc đang chọn.
+  const [selectedPalaceId, setSelectedPalaceId] = useState<string>(
+    () => chartSnapshot?.palaces.find((p) => p.isLife)?.palaceId ?? "ziwei.palace.life",
+  );
+  const openPalaceById = (palaceId: string) => {
+    setSelectedPalaceId(palaceId);
+    setPalaceOpen(palaceId, true);
+    const el = document.getElementById(`palace-${palaceId.replace("ziwei.palace.", "")}`);
+    if (el) {
+      el.scrollIntoView({ block: "start" });
+    }
+  };
+
+  const [openPalaces, setOpenPalaces] = useState<Set<string>>(
+    () =>
+      new Set(
+        isTier2Content(report.content)
+          ? report.content.palaceReadings.slice(0, 2).map((p) => p.palaceId)
+          : [],
+      ),
+  );
+  const palaceCount = isTier2Content(report.content) ? report.content.palaceReadings.length : 0;
+  const allPalacesOpen = palaceCount > 0 && openPalaces.size === palaceCount;
+  const setPalaceOpen = (palaceId: string, open: boolean) => {
+    setOpenPalaces((prev) => {
+      if (prev.has(palaceId) === open) return prev;
+      const next = new Set(prev);
+      if (open) next.add(palaceId);
+      else next.delete(palaceId);
+      return next;
+    });
+  };
+  const toggleAllPalaces = () => {
+    if (!isTier2Content(report.content)) return;
+    setOpenPalaces(
+      allPalacesOpen ? new Set() : new Set(report.content.palaceReadings.map((p) => p.palaceId)),
+    );
+  };
+
+  // Printing and PDF export must include every palace.
+  useEffect(() => {
+    const openAll = () => {
+      document.querySelectorAll<HTMLDetailsElement>(".report-palace-card").forEach((card) => {
+        card.open = true;
+      });
+    };
+    window.addEventListener("beforeprint", openAll);
+    return () => window.removeEventListener("beforeprint", openAll);
+  }, []);
 
   const tocSections = useMemo(() => {
     if (!isTier2) {
@@ -199,45 +275,45 @@ export function ComprehensiveReportReader({
     };
   }, [report.reportId, tocSections]);
 
-  // Section observer for TOC tracking and read progress tracking
+  // Scroll-based section tracking: works for sections taller than the viewport.
   useEffect(() => {
     const reportId = report.reportId;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const idx = tocSections.findIndex((s) => s.id === entry.target.id);
-            if (idx !== -1) {
-              setActiveSectionIdx(idx);
-              const section = tocSections[idx]!;
-
-              // Mark section as read
-              setReadSectionIds((prev) => {
-                const next = new Set(prev);
-                next.add(section.id);
-                try {
-                  localStorage.setItem(
-                    `lsv-reader-read-${reportId}`,
-                    JSON.stringify(Array.from(next)),
-                  );
-                  localStorage.setItem(`lsv-reader-active-${reportId}`, section.id);
-                } catch {
-                  // Ignore storage errors
-                }
-                return next;
-              });
-            }
-          }
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const tops = tocSections.map((section) => {
+        const el = document.getElementById(section.id);
+        return el ? el.getBoundingClientRect().top : Number.POSITIVE_INFINITY;
+      });
+      const doc = document.documentElement;
+      const atBottom = window.innerHeight + window.scrollY >= doc.scrollHeight - 4;
+      const idx = resolveActiveSectionIndex(tops, window.innerHeight, atBottom);
+      if (idx < 0) return;
+      const section = tocSections[idx]!;
+      setActiveSectionIdx(idx);
+      setReadSectionIds((prev) => {
+        if (prev.has(section.id)) return prev;
+        const next = new Set(prev);
+        next.add(section.id);
+        try {
+          localStorage.setItem(`lsv-reader-read-${reportId}`, JSON.stringify(Array.from(next)));
+          localStorage.setItem(`lsv-reader-active-${reportId}`, section.id);
+        } catch {
+          // Local storage failure must not block reading
         }
-      },
-      { rootMargin: "-20% 0px -50% 0px", threshold: 0.1 },
-    );
-
-    const elements = document.querySelectorAll("[data-report-section]");
-    elements.forEach((el) => observer.observe(el));
-
+        return next;
+      });
+    };
+    const schedule = () => {
+      if (frame === 0) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    schedule();
     return () => {
-      observer.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (frame !== 0) cancelAnimationFrame(frame);
     };
   }, [tocSections, report.reportId]);
 
@@ -337,7 +413,7 @@ export function ComprehensiveReportReader({
     const url = window.location.href;
     const title = report.sku === "ZIWEI-NATAL-EXCERPT-P0"
       ? "Luận giải Bản mệnh Tử Vi — Lá Số Việt"
-      : "Luận giải Tử Vi toàn diện — Lá Số Việt";
+      : "Tử Vi trọn đời — Lá Số Việt";
 
     if (navigator.share) {
       try {
@@ -357,7 +433,7 @@ export function ComprehensiveReportReader({
     }
   };
 
-  const readCount = Math.min(tocSections.length, Math.max(readSectionIds.size, activeSectionIdx + 1));
+  const readCount = tocSections.filter((section) => readSectionIds.has(section.id)).length;
   const totalCount = tocSections.length;
   const activeSection = tocSections[activeSectionIdx] ?? tocSections[0];
 
@@ -591,6 +667,18 @@ export function ComprehensiveReportReader({
               />
             </div>
 
+            {chartSnapshot && (
+              <div className="report-hero-chart">
+                <ReportChart
+                  snapshot={chartSnapshot}
+                  selectedPalaceId={selectedPalaceId}
+                  t={t}
+                  meta={{ targetYear: chartSnapshot.annual.targetYear }}
+                  onSelect={openPalaceById}
+                />
+              </div>
+            )}
+
             <div className="report-intro-meta">
               <p className="eyebrow">
                 {isTier2 ? "BÁO CÁO LUẬN GIẢI TOÀN DIỆN · TỬ VI ĐẨU SỐ" : "BẢN MỆNH VÀ TIỀM NĂNG · TỬ VI ĐẨU SỐ"}
@@ -612,9 +700,8 @@ export function ComprehensiveReportReader({
                   <span className="report-section-numeral">01</span>
                   <h3 className="report-section-title">{report.content.overview.title}</h3>
                 </div>
-                <div className="report-section-narrative">
-                  <p>{report.content.overview.narrative}</p>
-                </div>
+                {lifePalace && <ReportStarChips palace={lifePalace} t={t} />}
+                <ReportNarrative className="report-section-narrative" text={report.content.overview.narrative} />
               </section>
 
               {/* 2. Core Axis */}
@@ -627,9 +714,8 @@ export function ComprehensiveReportReader({
                   <span className="report-section-numeral">02</span>
                   <h3 className="report-section-title">{report.content.coreAxis.title}</h3>
                 </div>
-                <div className="report-section-narrative">
-                  <p>{report.content.coreAxis.narrative}</p>
-                </div>
+                {bodyPalace && <ReportStarChips palace={bodyPalace} t={t} />}
+                <ReportNarrative className="report-section-narrative" text={report.content.coreAxis.narrative} />
               </section>
 
               {/* Tier-2 only sections */}
@@ -649,7 +735,7 @@ export function ComprehensiveReportReader({
                       {report.content.keyConfigurations.map((config, index) => (
                         <article key={index} className="report-subcard">
                           <h4 className="report-subcard-title">{config.title}</h4>
-                          <p className="report-subcard-narrative">{config.narrative}</p>
+                          <ReportNarrative className="report-subcard-narrative" text={config.narrative} />
                         </article>
                       ))}
                     </div>
@@ -665,17 +751,66 @@ export function ComprehensiveReportReader({
                       <span className="report-section-numeral">04</span>
                       <h3 className="report-section-title">Luận Giải Chi Tiết Mười Hai Cung</h3>
                     </div>
+                    {chartSnapshot && palaceScores && (
+                      <>
+                        <ReportPalaceRadar snapshot={chartSnapshot} scores={palaceScores} t={t} />
+                        <ReportScoreExplainer t={t} />
+                      </>
+                    )}
+                    <div className="report-palace-tools">
+                      <button
+                        type="button"
+                        className="report-palace-toggle-all"
+                        onClick={toggleAllPalaces}
+                        aria-pressed={allPalacesOpen}
+                      >
+                        {allPalacesOpen ? t("reader.palaces_collapse_all") : t("reader.palaces_expand_all")}
+                      </button>
+                    </div>
                     <div className="report-subcard-group">
-                      {report.content.palaceReadings.map((palace) => (
-                        <article
-                          key={palace.palaceId}
-                          id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`}
-                          className="report-subcard"
-                        >
-                          <h4 className="report-subcard-title">{palace.title}</h4>
-                          <p className="report-subcard-narrative">{palace.narrative}</p>
-                        </article>
-                      ))}
+                      {report.content.palaceReadings.map((palace) => {
+                        const palaceData = snapshotPalace(palace.palaceId);
+                        return (
+                          <details
+                            key={palace.palaceId}
+                            id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`}
+                            className="report-subcard report-palace-card"
+                            open={openPalaces.has(palace.palaceId)}
+                            onToggle={(event) => setPalaceOpen(palace.palaceId, event.currentTarget.open)}
+                          >
+                            <summary className="report-palace-summary">
+                              {chartSnapshot && (
+                                <ReportChart
+                                  snapshot={chartSnapshot}
+                                  selectedPalaceId={palace.palaceId}
+                                  variant="thumb"
+                                  t={t}
+                                />
+                              )}
+                              <span className="report-subcard-title">
+                                {palace.title}
+                                {palaceScores?.get(palace.palaceId) && (
+                                  <ReportScoreBadge score={palaceScores.get(palace.palaceId)!} t={t} />
+                                )}
+                              </span>
+                              {palaceScores?.get(palace.palaceId) && (
+                                <span className="report-band">
+                                  {t(`reader.score_band_${palaceScores.get(palace.palaceId)!.band}`)}
+                                </span>
+                              )}
+                              <span className="report-palace-lead">
+                                {splitLeadSentence(splitNarrative(palace.narrative)[0] ?? "").lead}
+                              </span>
+                            </summary>
+                            {palaceData && <ReportStarChips palace={palaceData} t={t} />}
+                            <ReportNarrative
+                              className="report-subcard-narrative"
+                              text={palace.narrative}
+                              lead={false}
+                            />
+                          </details>
+                        );
+                      })}
                     </div>
                   </section>
 
@@ -693,7 +828,7 @@ export function ComprehensiveReportReader({
                       {report.content.thematicSynthesis.map((theme) => (
                         <article key={theme.id} id={`theme-${theme.id}`} className="report-subcard">
                           <h4 className="report-subcard-title">{theme.title}</h4>
-                          <p className="report-subcard-narrative">{theme.narrative}</p>
+                          <ReportNarrative className="report-subcard-narrative" text={theme.narrative} />
                         </article>
                       ))}
                     </div>
@@ -711,9 +846,7 @@ export function ComprehensiveReportReader({
                   <span className="report-section-numeral">{isTier2 ? "06" : "03"}</span>
                   <h3 className="report-section-title">{report.content.strengthsAndTensions.title}</h3>
                 </div>
-                <div className="report-section-narrative">
-                  <p>{report.content.strengthsAndTensions.narrative}</p>
-                </div>
+                <ReportNarrative className="report-section-narrative" text={report.content.strengthsAndTensions.narrative} />
               </section>
 
               {/* Tier 1 In-Reader Upgrade Box: Only rendered after reading meaningful content */}
@@ -766,9 +899,15 @@ export function ComprehensiveReportReader({
                       <span className="report-section-numeral">07</span>
                       <h3 className="report-section-title">{v4_1Content.currentDecadal.title}</h3>
                     </div>
-                    <div className="report-section-narrative">
-                      <p>{v4_1Content.currentDecadal.narrative}</p>
-                    </div>
+                    {chartSnapshot && (
+                      <ReportDecadalTimeline
+                        snapshot={chartSnapshot}
+                        t={t}
+                        onOpenPalace={openPalaceById}
+                      />
+                    )}
+                    {decadalPalace && <ReportStarChips palace={decadalPalace} t={t} />}
+                    <ReportNarrative className="report-section-narrative" text={v4_1Content.currentDecadal.narrative} />
                   </section>
 
                   <section
@@ -780,9 +919,8 @@ export function ComprehensiveReportReader({
                       <span className="report-section-numeral">08</span>
                       <h3 className="report-section-title">{v4_1Content.annualSnapshot.title}</h3>
                     </div>
-                    <div className="report-section-narrative">
-                      <p>{v4_1Content.annualSnapshot.narrative}</p>
-                    </div>
+                    {annualPalace && <ReportStarChips palace={annualPalace} t={t} />}
+                    <ReportNarrative className="report-section-narrative" text={v4_1Content.annualSnapshot.narrative} />
                   </section>
 
                   <section
@@ -799,13 +937,13 @@ export function ComprehensiveReportReader({
                         <h4 className="report-sensitivity-factor-title">
                           {v4_1Content.birthTimeSensitivity.stableFactors.title}
                         </h4>
-                        <p>{v4_1Content.birthTimeSensitivity.stableFactors.narrative}</p>
+                        <ReportNarrative lead={false} text={v4_1Content.birthTimeSensitivity.stableFactors.narrative} />
                       </article>
                       <article className="report-sensitivity-factor report-sensitivity-factor-sensitive">
                         <h4 className="report-sensitivity-factor-title">
                           {v4_1Content.birthTimeSensitivity.sensitiveFactors.title}
                         </h4>
-                        <p>{v4_1Content.birthTimeSensitivity.sensitiveFactors.narrative}</p>
+                        <ReportNarrative lead={false} text={v4_1Content.birthTimeSensitivity.sensitiveFactors.narrative} />
                       </article>
                     </div>
                   </section>
@@ -822,17 +960,29 @@ export function ComprehensiveReportReader({
                   <span className="report-section-numeral">{v4_1Content ? "10" : isTier2 ? "07" : "04"}</span>
                   <h3 className="report-section-title">Định Hướng Và Hành Động Thực Tế</h3>
                 </div>
-                <ul className="report-directions-list">
-                  {report.contentVersion === "ziwei-comprehensive.v3"
-                    ? report.content.practicalDirection.map((direction, index) => (
-                      <li key={index}>
-                        <strong>{direction.recommendation}.</strong> {direction.rationale} {direction.avoid}
+                {report.contentVersion === "ziwei-comprehensive.v3" ? (
+                  <ol className="report-action-cards">
+                    {report.content.practicalDirection.map((direction, index) => (
+                      <li key={index} className="report-action-card">
+                        <h4 className="report-action-title">{direction.recommendation}</h4>
+                        <p>
+                          <span className="report-action-label">{t("reader.action_why")}</span>{" "}
+                          {direction.rationale}
+                        </p>
+                        <p>
+                          <span className="report-action-label">{t("reader.action_avoid")}</span>{" "}
+                          {direction.avoid}
+                        </p>
                       </li>
-                    ))
-                    : report.content.practicalDirection.map((direction, index) => (
+                    ))}
+                  </ol>
+                ) : (
+                  <ul className="report-directions-list">
+                    {report.content.practicalDirection.map((direction, index) => (
                       <li key={index}>{direction}</li>
                     ))}
-                </ul>
+                  </ul>
+                )}
               </section>
             </div>
 

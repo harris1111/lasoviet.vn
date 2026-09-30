@@ -4,6 +4,8 @@
 @import "./homepage-content.css";
 @import "./homepage-conversion.css";
 @import "./homepage-v3.css";
+@import "./homepage-v3-visuals.css";
+@import "./lsv-icon-effects.css";
 @import "./homepage-v3-hero-logo.css";
 @import "./homepage-v3-motion.css";
 @import "./birth-profile-wizard.css";
@@ -14,7 +16,10 @@
 @import "./discipline-pages-results.css";
 @import "./pricing-and-topup.css";
 @import "./report-reader.css";
+@import "./report-reader-structure.css";
 @import "./knowledge.css";
+@import "./static-editorial.css";
+@import "./brand-about.css";
 
 * { box-sizing: border-box; }
 html { background: var(--lacquer-800); color-scheme: dark; }

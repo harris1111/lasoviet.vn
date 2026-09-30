@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 
 export type BirthWizardSubjectStepProps = {
   title: string;
@@ -76,7 +76,7 @@ export function BirthWizardSubjectStep({
         </label>
         <div className="ui-field-shell__control">
           <span aria-hidden="true" className="ui-field-shell__icon">
-            <Icon name="user" />
+            <LsvIcon name="ui-user" size={20} />
           </span>
           <input
             className="ui-field-shell__input"
@@ -100,7 +100,7 @@ export function BirthWizardSubjectStep({
             onClick={() => onForWhomChange("self")}
             type="button"
           >
-            <Icon name="user-circle" />
+            <LsvIcon name="ui-user" size={20} />
             <span>{selfLabel}</span>
           </button>
           <button
@@ -109,7 +109,7 @@ export function BirthWizardSubjectStep({
             onClick={() => onForWhomChange("other")}
             type="button"
           >
-            <Icon name="user" />
+            <LsvIcon name="ui-user" size={20} />
             <span>{otherLabel}</span>
           </button>
         </div>

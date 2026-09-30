@@ -648,8 +648,8 @@ export function GoodDaysPreview({ locale, className }: GoodDaysPreviewProps) {
                   <Link
                     href={
                       isVi
-                        ? `/tao-la-so/tu-vi?birthDay=${inspectedDay.dayOfMonth}&birthMonth=${selectedMonth}&birthYear=${selectedYear}`
-                        : `/en/tao-la-so/tu-vi?birthDay=${inspectedDay.dayOfMonth}&birthMonth=${selectedMonth}&birthYear=${selectedYear}`
+                        ? "/tao-la-so/tu-vi?from=xem-ngay"
+                        : "/en/tao-la-so/tu-vi?from=xem-ngay"
                     }
                     style={{
                       display: "inline-block",

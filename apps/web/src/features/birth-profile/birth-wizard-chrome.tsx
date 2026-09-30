@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 
 export type BirthWizardHeaderProps = {
   locale: "en" | "vi";
@@ -38,7 +38,7 @@ export function BirthWizardHeader({
         onClick={onBack}
         type="button"
       >
-        <Icon name="chevron-right" />
+        <LsvIcon name="ui-back" size={20} />
       </button>
 
       <span className="wizard-mobile-step-label">{stepLabel}</span>
@@ -62,7 +62,7 @@ export function BirthWizardHeader({
 
       <div className="wizard-header-actions">
         <Link aria-label={helpLabel} href={helpHref}>
-          <Icon name="help-circle" />
+          <LsvIcon name="ui-info" size={20} />
         </Link>
         <button
           aria-label={exitLabel}
@@ -70,7 +70,7 @@ export function BirthWizardHeader({
           onClick={onExit}
           type="button"
         >
-          <Icon name="close" />
+          <LsvIcon name="ui-close" size={18} />
         </button>
       </div>
     </header>
@@ -109,7 +109,7 @@ export function BirthWizardProgress({
           return (
             <li className={stepClass} key={label}>
               <span className="wizard-step-circle">
-                {isComplete ? <Icon name="check" /> : stepCode}
+                {isComplete ? <LsvIcon name="ui-check" size={16} /> : stepCode}
               </span>
               <span className="wizard-step-label">{label}</span>
               {index < labels.length - 1 ? (
