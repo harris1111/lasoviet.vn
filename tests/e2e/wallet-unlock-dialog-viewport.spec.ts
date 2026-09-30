@@ -71,7 +71,7 @@ async function mountFixture(page: Page, balance = 2200) {
   await page.route("**/*", async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/commerce/wallet/purchase-intents") {
-      await route.fulfill({ json: { id: "intent-fixture", amountLa: 960, stateVersion: 1 } });
+      await route.fulfill({ json: { id: "11111111-1111-4111-8111-111111111111", amountLa: 960, stateVersion: 1 } });
     } else if (path === "/api/commerce/wallet/balance") {
       await route.fulfill({ json: { totalLa: balance, stateVersion: 7 } });
     } else if (path === "/api/commerce/wallet/unlock") {
@@ -129,7 +129,7 @@ for (const viewport of [
     await expect(dialog).toHaveCount(0);
     expect(unlocks).toHaveLength(1);
     expect(unlocks[0]).toMatchObject({
-      purchaseIntentId: "intent-fixture",
+      purchaseIntentId: "11111111-1111-4111-8111-111111111111",
       expectedIntentVersion: 1,
       expectedWalletVersion: 7,
     });
@@ -165,9 +165,17 @@ test("Escape, cancel, and backdrop dismiss without spending", async ({ page }) =
 test("short-balance dialog can scroll to its actions on a short viewport", async ({ page }) => {
   await page.setViewportSize({ width: 667, height: 280 });
   const unlocks = await mountFixture(page, 0);
+  await page.evaluate(() => history.replaceState(null, "", "/la-so/fixture-chart?tab=palaces&open=life"));
   await page.getByRole("button", { name: "Open fixture dialog" }).click();
   const dialog = page.getByRole("dialog", { name: "Mở luận giải này" });
-  const topUp = dialog.locator('a[href="/nap-la?pack=LA-START-1100"]');
+  const topUp = dialog.locator('a[href^="/nap-la?pack=LA-START-1100&intent="]');
+  const destination = new URL((await topUp.getAttribute("href"))!, "http://wallet-layout.test");
+  expect(Object.fromEntries(destination.searchParams)).toEqual({
+    pack: "LA-START-1100", intent: "11111111-1111-4111-8111-111111111111",
+    intentVersion: "1", price: "960", tab: "palaces", open: "life",
+  });
+  await expect(dialog).toContainText("tự mở");
+  await expect(dialog).toContainText("960 Lá");
   await topUp.scrollIntoViewIfNeeded();
   await expect(topUp).toBeInViewport();
   await dialog.getByRole("button", { name: "Huỷ", exact: true }).click();

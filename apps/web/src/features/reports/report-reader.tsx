@@ -600,6 +600,21 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
 }
 
 export function ReportReader({ locale, report }: ReportReaderProps) {
+  if (report.contentVersion === "ziwei-palaces.v1") {
+    const identity = report.content.identity;
+    return <main className="report-reader">
+      {identity && <>
+        {[identity.overview, identity.coreAxis, identity.strengthsAndTensions].map((section) =>
+          <section key={section.title}><h2>{section.title}</h2><p>{section.narrative}</p></section>)}
+        <ul>{identity.practicalDirection.map((action, index) => <li key={index}>
+          {typeof action === "string" ? action : <>{action.recommendation}<p>{action.rationale}</p></>}
+        </li>)}</ul>
+      </>}
+      {report.content.palaceReadings.map((palace) => <section key={palace.palaceId} id={palace.palaceId}>
+        <h2>{palace.title}</h2><p style={{ whiteSpace: "pre-line" }}>{palace.narrative}</p>
+      </section>)}
+    </main>;
+  }
   if (report.contentVersion === "ziwei.period-reading.v1") return <PeriodReportReader report={report} />;
   if (report.contentVersion === "ziwei.topic-deep-dive.v1") return <TopicReportReader report={report} />;
   if (report.contentVersion === "ziwei-comprehensive.v1") {

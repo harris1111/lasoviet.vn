@@ -96,6 +96,7 @@ describe("DailyHoroscopePreview", () => {
     expect(html).toContain("Chọn con giáp của bạn");
     expect(html).toContain("Hôm nay của bạn · Hội viên");
     expect(html).toContain("Lập lá số Tử Vi của bạn");
+    expect(html).toContain('href="/tao-la-so/tu-vi?from=tu-vi-hom-nay');
   });
 
   it("renders daily horoscope shell in English", () => {
@@ -105,5 +106,6 @@ describe("DailyHoroscopePreview", () => {
 
     expect(html).toContain("Daily Horoscope 12 Zodiacs");
     expect(html).toContain("Coming Soon");
+    expect(html).toContain('href="/en/tao-la-so/tu-vi?from=tu-vi-hom-nay');
   });
 });

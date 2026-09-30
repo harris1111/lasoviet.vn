@@ -1,3 +1,5 @@
+import { createDatabaseReportQueryRepository } from "./report-query.repository.js";
+import { findLaProduct } from "@lasoviet/contracts";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 import {
@@ -104,13 +106,10 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 }
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
-  return (
-    (sku === "ZIWEI-MONTHLY-P0" && priceLa === 300) ||
-    (sku === "ZIWEI-YEAR-2026-P0" && priceLa === 480) ||
-    ((sku === "ZIWEI-RELATIONSHIP-P0" || sku === "ZIWEI-CAREER-P0") && priceLa === 480) ||
-    (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
-    (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
-  );
+  const product = findLaProduct(sku);
+  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
+  return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }
 
 export function createDatabaseReportGenerationSourceRepository(dependencies: {
@@ -124,6 +123,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
     >["retrieveZiweiKnowledge"];
   };
   snapshotRepository?: ReportSourceSnapshotRepository;
+  now?: () => Date;
 }): ReportGenerationSourceRepository {
   return {
     async validateLifecycle(input) {
@@ -217,7 +217,8 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
         (
           !row.order ||
           row.order.kind !== "content_purchase" ||
-          row.order.status !== "paid" ||
+          !["paid", "refunded"].includes(row.order.status) ||
+          row.order.paidAt === null ||
           row.order.ownerId !== entitlement.ownerId ||
           row.order.chartId !== entitlement.chartId ||
           row.order.chartVersionId !== row.reservation.chartVersionId ||
@@ -262,16 +263,6 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       }
       if (hasWalletAuthority) {
         const spendId = row.spend!.id;
-        const [restoration] = await dependencies.database
-          .select({ id: walletTransactions.id })
-          .from(walletTransactions)
-          .where(
-            and(
-              eq(walletTransactions.kind, "restoration"),
-              eq(walletTransactions.reversalOfTransactionId, spendId),
-            ),
-          )
-          .limit(1);
         const [allocation] = await dependencies.database
           .select({
             amountLa: sql<number>`coalesce(sum(${walletSpendAllocations.amountLa}), 0)`,
@@ -280,13 +271,19 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           .where(eq(walletSpendAllocations.spendTransactionId, spendId));
         const allocatedAmountLa = Number(allocation?.amountLa);
         if (
-          restoration ||
           !Number.isSafeInteger(allocatedAmountLa) ||
           allocatedAmountLa < 0 ||
           allocatedAmountLa !== row.intent!.priceLa
         ) {
           return contextMismatch();
         }
+      }
+      // Keep the original paid provenance immutable, but fulfillment may be backed by
+      // another independently authorized purchase linked to this exact reservation.
+      const authority = await createDatabaseReportQueryRepository(dependencies.database, dependencies.now)
+        .readAuthorizedReport(entitlement.ownerId, row.reservation.reportId);
+      if (!authority || authority.reservation.reportVersionId !== input.reportVersionId || !authority.entitlements.some((item) => item.active)) {
+        return contextMismatch();
       }
       if ((row.reservationContextRevisionId ?? null) !== input.readingContextRevisionId) {
         return contextMismatch();

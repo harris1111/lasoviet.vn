@@ -1,3 +1,4 @@
+import type { DailyReadingService } from "../commerce/personal-daily-reading.service.js";
 import {
   EvidenceItemV1Schema,
   NormalizedBirthProfileV1Schema,
@@ -35,6 +36,7 @@ export type ZiweiQueryError =
 
 export type ZiweiQueryServiceOptions = {
   repository: ZiweiQueryRepository;
+  personalDailyReading?: DailyReadingService;
   now?: () => Date;
   calculateHoroscope?: (
     profile: import("@lasoviet/contracts").NormalizedBirthProfileV1,
@@ -289,6 +291,11 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
       }
       const view = topicView(record.chartId, record.chartVersionId);
       return { ok: true, value: view };
+    },
+
+    async readPersonalDaily(actor: CurrentActor, chartId: string) {
+      if (!options.personalDailyReading) return error("SKU_UNAVAILABLE");
+      return options.personalDailyReading.read(actor, chartId);
     },
 
     async readHoroscope(

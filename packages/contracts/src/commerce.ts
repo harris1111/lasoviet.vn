@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { isSinglePalaceSku, getPalaceIdFromSku, type LaSku } from "./la-catalog.js";
-import type { ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
+import { PalaceIdSchema, type ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
 
 export const CommerceSkuSchema = z.enum([
   "ZIWEI-IDENTITY-P0",
@@ -95,14 +95,15 @@ export const COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS = [
 export const EntitlementScopeSchema = z
   .object({
     sections: z.array(ComprehensiveReportSectionIdSchema),
-    palaces: z.array(z.string().trim().min(1)).optional(),
+    palaces: z.array(PalaceIdSchema).optional(),
+    dailyDates: z.array(z.iso.date()).optional(),
   })
   .strict()
   .superRefine((val, ctx) => {
-    if (val.sections.length === 0 && (!val.palaces || val.palaces.length === 0)) {
+    if (val.sections.length === 0 && (!val.palaces || val.palaces.length === 0) && (!val.dailyDates || val.dailyDates.length === 0)) {
       ctx.addIssue({
         code: "custom",
-        message: "scope must contain at least one section or palace",
+        message: "scope must contain at least one section, palace, or daily date",
       });
     }
   });

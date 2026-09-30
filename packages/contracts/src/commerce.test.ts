@@ -504,3 +504,9 @@ describe("commerce contracts", () => {
       }).success).toBe(false);
     });
   });
+
+it("keeps a daily-date entitlement separate from natal report sections", () => {
+  expect(EntitlementScopeSchema.parse({ sections: [], dailyDates: ["2026-09-30"] })).toEqual({ sections: [], dailyDates: ["2026-09-30"] });
+  expect(EntitlementScopeSchema.safeParse({ sections: [], dailyDates: ["2026-02-31"] }).success).toBe(false);
+  expect(EntitlementScopeSchema.safeParse({ sections: [], dailyDates: [] }).success).toBe(false);
+});

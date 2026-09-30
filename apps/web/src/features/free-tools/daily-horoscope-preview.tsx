@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { Solar } from "lunar-typescript";
 
+import { buildDailyHoroscopeWizardHref } from "./daily-horoscope-bridge";
 import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
 import {
   translateGanZhi,
@@ -390,7 +391,7 @@ export function DailyHoroscopePreview({ locale, className }: DailyHoroscopePrevi
             </div>
 
             <Link
-              href={isVi ? "/tao-la-so/tu-vi" : "/en/tao-la-so/tu-vi"}
+              href={buildDailyHoroscopeWizardHref({ locale, zodiac: selectedZodiac })}
               style={{
                 display: "block",
                 textAlign: "center",

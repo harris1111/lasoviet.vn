@@ -1,3 +1,5 @@
+import { createMembershipService, createWalletService, createDatabaseWalletRepository } from "@lasoviet/backend";
+import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
 import { lunarPeriodPurchaseKey } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
@@ -22,6 +24,7 @@ import {
   WalletBalanceV1Schema,
   WalletHistoryV1Schema,
   WalletTopUpOrderCreateV1Schema,
+  type WalletTopUpContinuationViewV1,
   GuaranteeClaimRequestV1Schema,
   GuaranteeClaimResultV1Schema,
   PartFeedbackCreateV1Schema,
@@ -125,7 +128,9 @@ function customerWalletIntent(value: {
     if (value.amountLa < 0 || value.amountLa > LIFETIME_BASE_PRICE_LA) {
       throw new Error("WALLET_INTENT_PROJECTION_INVALID");
     }
-  } else if (value.amountLa !== product.priceLa) {
+  } else if (value.sku === "ZIWEI-MONTHLY-P0" && value.amountLa === 0) {
+    // Included membership benefit, authorized at purchase and read time.
+  } else if (value.amountLa !== product.priceLa && value.amountLa !== Math.ceil(product.priceLa * 0.8)) {
     throw new Error("WALLET_INTENT_PROJECTION_INVALID");
   }
   return {
@@ -188,6 +193,7 @@ export class CommerceController {
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
+      dailyReadingWriter: writePersonalDailyReading,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
       resolveMonthlyPeriodKey: lunarPeriodPurchaseKey,
     });
@@ -283,7 +289,7 @@ export class CommerceController {
     };
   }
 
-  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null) {
+  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null, continuation?: WalletTopUpContinuationViewV1 | null) {
     const orderLocale = (order.locale === "en" ? "en" : "vi") as "vi" | "en";
     const supportUrl = orderLocale === "en"
       ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
@@ -302,6 +308,7 @@ export class CommerceController {
       creditApplied: 0,
       creditExpiresAt: null,
       creditedLa,
+      ...(continuation ? { continuation } : {}),
       supportUrl,
     };
   }
@@ -391,6 +398,34 @@ export class CommerceController {
     const actor = await this.actor(authorization);
     const value = await this.repository().readOrderHistory(actor);
     return { ok: true, value };
+  }
+
+  private membership() {
+    return createMembershipService(this.database, createWalletService(createDatabaseWalletRepository(this.database)));
+  }
+
+  @Get("membership")
+  async membershipStatus(@Headers("authorization") authorization: string | undefined) {
+    const result = await this.membership().read(await this.actor(authorization));
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
+  @Post("membership/intents")
+  async membershipIntent(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
+    if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length !== 2 || !("sku" in body) || typeof body.sku !== "string" || !("locale" in body) || (body.locale !== "vi" && body.locale !== "en")) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.membership().createIntent(await this.actor(authorization), { sku: body.sku, locale: body.locale });
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
+  @Post("membership/purchase")
+  async membershipPurchase(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
+    const input = walletUnlockRequest(body);
+    if (!input) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.membership().purchase(await this.actor(authorization), input);
+    if (!result.ok) walletError(result.code);
+    return result;
   }
 
   @Get("wallet/balance")
@@ -506,7 +541,7 @@ export class CommerceController {
       throw new ServiceUnavailableException({ code: "TOP_UP_UNAVAILABLE" });
     }
     const repository = this.repository();
-    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale);
+    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale, parsed.data.continuation);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") throw new UnauthorizedException({ code: result.code });
       if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") throw new ForbiddenException({ code: result.code });
@@ -540,7 +575,7 @@ export class CommerceController {
         return {
           ok: true,
           value: {
-            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa),
+            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa, paidProjection.continuation),
             paymentInstructions: null,
             reportId: null,
           },
@@ -554,7 +589,7 @@ export class CommerceController {
     return {
       ok: true,
       value: {
-        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa),
+        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa, projection.continuation),
         paymentInstructions: this.buildPaymentInstructions(projection.order),
         reportId: null,
       },
@@ -578,7 +613,7 @@ export class CommerceController {
       return {
         ok: true,
         value: {
-          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa),
+          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa, topUp.continuation),
           paymentInstructions: this.sepayEnvironment === "disabled" || topUp.order.status !== "pending"
             ? null
             : this.buildPaymentInstructions(topUp.order),

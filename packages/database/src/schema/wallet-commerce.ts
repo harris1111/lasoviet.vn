@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import { check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import type { PersonalDailyReadingV1 } from "@lasoviet/contracts";
+import { ziweiCharts, ziweiChartVersions } from "./birth-profile.js";
 import { authUsers } from "./auth.js";
-import { commerceOrders } from "./commerce.js";
+import { commerceEntitlements, commerceOrders } from "./commerce.js";
 
 export const walletAccounts = pgTable("wallet_accounts", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -109,17 +111,17 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
 }, (table) => [
   uniqueIndex("wallet_purchase_intents_owner_chart_sku_pending_unique").on(table.ownerId, table.chartId, table.sku).where(sql`${table.status} = 'pending'`),
   check("wallet_purchase_intents_valid", sql`(
-    (${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} = 240)
+    (${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} IN (240, 192))
     OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} >= 0 AND ${table.priceLa} <= 960)
-    OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
-    OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
+    OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
+    OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
-    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 300)
-    OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
-    OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1300)
+    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240, 0))
+    OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
+    OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040))
     OR (${table.sku} IN ('MEMBERSHIP-MONTHLY-P0', 'MEMBERSHIP-MONTHLY-1500') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1500)
     OR (${table.sku} IN ('MEMBERSHIP-YEARLY-P0', 'MEMBERSHIP-YEARLY-8000') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 8000)
-    OR (${table.sku} LIKE 'ZIWEI-PALACE-%' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 120)
+    OR (${table.sku} LIKE 'ZIWEI-PALACE-%' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (120, 96))
   ) AND ${table.status} IN ('pending', 'completed', 'cancelled', 'expired') AND ${table.stateVersion} > 0`),
 ]);
 
@@ -132,3 +134,41 @@ export const walletCommandReceipts = pgTable("wallet_command_receipts", {
   result: jsonb("result").$type<Record<string, unknown>>().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("wallet_command_receipts_wallet_key_unique").on(table.walletId, table.idempotencyKey)]);
+
+
+export const walletTopUpContinuations = pgTable("wallet_topup_continuations", {
+  orderId: uuid("order_id").primaryKey().references(() => commerceOrders.id),
+  ownerId: text("owner_id").notNull().references(() => authUsers.id),
+  purchaseIntentId: uuid("purchase_intent_id").notNull().references(() => walletPurchaseIntents.id),
+  intentStateVersion: integer("intent_state_version").notNull(),
+  confirmedPriceLa: integer("confirmed_price_la").notNull(),
+  returnTab: text("return_tab").notNull(),
+  returnOpen: text("return_open"),
+  status: text("status").notNull().default("pending"),
+  reportId: text("report_id"),
+  remainingLa: integer("remaining_la"),
+  errorCode: text("error_code"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+}, (table) => [
+  index("wallet_topup_continuations_intent_idx").on(table.purchaseIntentId),
+  check("wallet_topup_continuations_terms_valid", sql`${table.intentStateVersion} > 0 AND ${table.confirmedPriceLa} >= 0 AND ${table.returnTab} IN ('chart', 'overview', 'palaces', 'topics', 'nam-nay', 'evidence')`),
+  check("wallet_topup_continuations_state_valid", sql`${table.status} IN ('pending', 'completed', 'blocked')`),
+]);
+
+// A daily unlock is an entitlement to one persisted chart/day reading, independent of natal reports.
+export const dailyReadingUnlocks = pgTable("daily_reading_unlocks", {
+  id: uuid("id").primaryKey().references(() => commerceEntitlements.id, { onDelete: "cascade" }),
+  ownerId: text("owner_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+  chartId: text("chart_id").notNull().references(() => ziweiCharts.id, { onDelete: "cascade" }),
+  chartVersionId: text("chart_version_id").notNull().references(() => ziweiChartVersions.id, { onDelete: "cascade" }),
+  readingDate: text("reading_date").notNull(),
+  ledgerSpendId: uuid("ledger_spend_id").notNull().references(() => walletTransactions.id),
+  content: jsonb("content").$type<PersonalDailyReadingV1>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }).notNull(),
+}, (table) => [
+  uniqueIndex("daily_reading_unlocks_spend_unique").on(table.ledgerSpendId),
+  index("daily_reading_unlocks_owner_chart_date_idx").on(table.ownerId, table.chartId, table.readingDate),
+  check("daily_reading_unlocks_date_valid", sql`${table.readingDate} ~ '^\\d{4}-\\d{2}-\\d{2}$' AND ${table.expiresAt} > ${table.createdAt}`),
+]);

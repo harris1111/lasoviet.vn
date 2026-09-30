@@ -228,6 +228,8 @@ export function mapToolToTopConcern(from?: string): TopConcernV1 | undefined {
       return "career";
     case "12-con-giap":
     case "zodiac":
+    case "tu-vi-hom-nay":
+    case "daily-horoscope":
       return "self_understanding";
     case "lich-am":
     case "lunar-calendar":

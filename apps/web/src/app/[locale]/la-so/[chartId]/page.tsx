@@ -1,3 +1,5 @@
+import { loadTopUpCompletion, TopUpCompletionNotice } from "../../../../features/commerce/topup-completion";
+import { PersonalDailyReadingPanel } from "../../../../features/ziwei/personal-daily-reading-panel";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -55,12 +57,15 @@ export default async function ZiweiChartResultPage({
   if (!chartResult.ok || !previewResult.ok) notFound();
 
   // 2. Canonicalize query params ONLY AFTER authorized chart loaders pass
-  const tabState = parseResultTabState(rawSearchParams);
+  const { topupOrder, ...tabSearchParams } = rawSearchParams ?? {};
+  const tabState = parseResultTabState(tabSearchParams);
   const currentChartPath = localizedChartPath(locale, chartId);
-  const canonicalChartUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+  const completion = await loadTopUpCompletion(actor, topupOrder, currentChartPath);
+  const canonicalTabUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+  const canonicalChartUrl = completion && typeof topupOrder === "string" ? `${canonicalTabUrl}${canonicalTabUrl.includes("?") ? "&" : "?"}topupOrder=${encodeURIComponent(topupOrder)}` : canonicalTabUrl;
 
   // If incoming query parameters differ from canonical URL, safely redirect to canonical URL
-  if (hasNonCanonicalQueryParams(rawSearchParams, tabState)) {
+  if (hasNonCanonicalQueryParams(tabSearchParams, tabState) || (topupOrder !== undefined && !completion)) {
     redirect(canonicalChartUrl);
   }
 
@@ -93,6 +98,7 @@ export default async function ZiweiChartResultPage({
           <p>{heroCopy}</p>
         </section>
 
+        {completion && <TopUpCompletionNotice continuation={completion} locale={locale} chartId={chartId} />}
         {/* 5-layer result tabs shell */}
         <ZiweiResultTabs
           basePath={currentChartPath}
@@ -106,6 +112,8 @@ export default async function ZiweiChartResultPage({
           loadEvidence={loadZiweiEvidence}
           preview={safePreview}
         />
+
+        {actor.kind === "account" && <PersonalDailyReadingPanel chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale} />}
 
         <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
           <div className="result-paid-report-head">

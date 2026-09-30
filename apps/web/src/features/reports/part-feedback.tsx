@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { GuaranteeClaimResultV1Schema, PartFeedbackResultV1Schema, type PartFeedbackRating } from "@lasoviet/contracts";
 import { ziweiPresentation } from "../ziwei/ziwei-presentation";
 
-export function PartFeedback({ chartId, partId, reportId, paid = false, locale = "vi" }: { chartId: string; partId: string; reportId?: string; paid?: boolean; locale?: "vi" | "en" }) {
+export function PartFeedback({ chartId, partId, reportId, paid = false, locale = "vi", onClaimed }: { chartId: string; partId: string; reportId?: string; paid?: boolean; locale?: "vi" | "en"; onClaimed?: () => void }) {
   const t = useTranslations("reports.feedback");
   const router = useRouter();
   const [rating, setRating] = useState<PartFeedbackRating>();
@@ -39,6 +39,7 @@ export function PartFeedback({ chartId, partId, reportId, paid = false, locale =
         setClaimed(true);
         setRelatedPalaceId(result.data.relatedPalaceSuggestion.palaceId);
         setMessage(t("restored", { amount: result.data.amountLaRestored }));
+        onClaimed?.();
         router.refresh();
       } else {
         const result = PartFeedbackResultV1Schema.safeParse(data);

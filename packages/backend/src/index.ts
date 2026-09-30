@@ -795,6 +795,19 @@ export type {
   AdminBusinessMetricsRepository,
 } from "./admin-business-metrics/business-metrics.repository.js";
 
+export {
+  TimeLimitedEntitlementService,
+} from "./commerce/time-limited-entitlement.service.js";
+export type {
+  CreateLifetimeBonusEntitlementInput,
+  AssertDailyReadingAccessResult,
+} from "./commerce/time-limited-entitlement.service.js";
+
+export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";
+
+export * from "./commerce/membership.service.js";
+
+export * from "./notifications/membership-expiry.service.js";
 export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
 export {
   DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG,

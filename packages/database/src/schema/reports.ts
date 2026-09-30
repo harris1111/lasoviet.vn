@@ -60,6 +60,13 @@ export const reportReservations = pgTable("report_reservations", {
   ),
 ]);
 
+// Additional purchases share the immutable reservation and generated content.
+export const reportEntitlementLinks = pgTable("report_entitlement_links", {
+  entitlementId: uuid("entitlement_id").primaryKey().references(() => commerceEntitlements.id),
+  reservationId: uuid("reservation_id").notNull().references(() => reportReservations.id),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [index("report_entitlement_links_reservation_idx").on(table.reservationId)]);
+
 export const reportQueueJobs = pgTable("report_queue_jobs", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
