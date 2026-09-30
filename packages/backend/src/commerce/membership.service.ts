@@ -76,7 +76,7 @@ export function createMembershipService(database: Database, wallet: WalletServic
         active: !!active, expiresAt: coverage?.expiresAt.toISOString() ?? null,
         automaticRenewal: false, discountPercent: active ? 20 : 0,
         plans: Object.entries(MEMBERSHIP_PLANS).map(([sku, terms]) => ({ sku, ...terms, available: catalog(sku)?.availability === "active" })),
-        benefits: { daily: !!active, monthly: false, paidTools: false },
+        benefits: { daily: !!active, monthly: !!active && catalog("ZIWEI-MONTHLY-P0")?.availability === "active", paidTools: false },
       } };
     },
     async createIntent(actor: CurrentActor, request: { sku: string; locale: "vi" | "en" }) {

@@ -350,6 +350,7 @@
     "activeUntil": "Membership is active until {date}.",
     "inactive": "Membership is not active.",
     "manualRenewal": "Manual renewal adds time to your remaining period. We never renew or spend Lá automatically.",
+    "benefitsMonthlyEnabled": "Monthly readings are included while your membership is active. Personalized tools: coming soon. Comprehensive reports are purchased separately. The lower of the 20% price or rollover price applies without stacking.",
     "benefitsPending": "Monthly readings and personalized tools: coming soon. Comprehensive reports are purchased separately. The 20% price is compared with rollover credit; the lower price applies without stacking.",
     "signIn": "Sign in to view membership",
     "renew": "Renew {days} days · {price} Lá",
