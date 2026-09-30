@@ -116,7 +116,15 @@ export function createMembershipService(database: Database, wallet: WalletServic
         },
       });
       if (!result.ok) return fail(result.error.code);
-      return { ok: true as const, value: { subscriptionId: result.value.continuation?.subscriptionId, balance: result.value.balance } };
+      if (!result.value.continuation) return fail("WALLET_RECONCILIATION_FAILED");
+      const [saved] = await database.select().from(membershipSubscriptions).where(and(
+        eq(membershipSubscriptions.id, result.value.continuation.subscriptionId),
+        eq(membershipSubscriptions.ownerId, actor.userId), eq(membershipSubscriptions.sku, intent.sku),
+        eq(membershipSubscriptions.ledgerSpendId, result.value.transactionId),
+      )).limit(1);
+      const [completed] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, intent.id)).limit(1);
+      if (!saved || completed?.status !== "completed") return fail("WALLET_RECONCILIATION_FAILED");
+      return { ok: true as const, value: { subscriptionId: saved.id, balance: result.value.balance } };
     },
   };
 }
