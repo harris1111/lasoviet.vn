@@ -470,6 +470,18 @@
 .tn .tn-explore .hv3-cell[data-state="selected"] {
   border-color: var(--son);
   background: var(--lacquer-900);
+  animation: tn-cell-select 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* A ring that pulses out once from a newly selected palace; default
+   animation-fill-mode means it leaves no lingering shadow behind. */
+@keyframes tn-cell-select {
+  0% {
+    box-shadow: 0 0 0 0 rgb(242 220 160 / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgb(242 220 160 / 0);
+  }
 }
 
 .tn .tn-explore .hv3-cell-glyph {
@@ -484,6 +496,23 @@
 .tn .tn-explore .hv3-chart-core > div {
   border-color: var(--son);
   outline-color: var(--son);
+}
+
+/*
+ * The relation rays (trine/opposite lines + dots) already re-render with new
+ * coordinates on every palace selection (homepage-v3-explore.tsx, unmodified);
+ * this only adds motion to that existing SVG, so they glide to the newly
+ * selected palace instead of snapping.
+ */
+.tn .tn-explore .hv3-chart-lines line,
+.tn .tn-explore .hv3-chart-lines circle {
+  transition:
+    x1 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    y1 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    x2 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    y2 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    cx 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    cy 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .tn .tn-explore .hv3-line-trine {
