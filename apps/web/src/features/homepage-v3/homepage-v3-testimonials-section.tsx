@@ -66,7 +66,9 @@ function useInView<T extends HTMLElement>(threshold: number) {
  * 15 quotes gets shown. Mobile gets one swipeable row of all 15. Reader quotes stay in Vietnamese
  * on both locales, so quote and attribution carry lang="vi".
  */
-export function HomepageV3Testimonials() {
+export function HomepageV3Testimonials({ avatars }: {
+  avatars?: Readonly<Record<string, { src: string; srcSet?: string; width?: number; height?: number }>>;
+}) {
   const t = useTranslations("homepage-v3.testimonials");
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
@@ -196,6 +198,7 @@ export function HomepageV3Testimonials() {
   }
 
   function card(item: Testimonial, variant: "slot" | "row" | "list", index: number) {
+    const avatar = avatars?.[item.id];
     const cardPhase = variant === "slot" && phase?.slot === index ? phase.kind : undefined;
     return (
       <article
@@ -212,7 +215,22 @@ export function HomepageV3Testimonials() {
           <p className="hv3-tt-quote" lang="vi">“{item.excerpt}”</p>
           <div className="hv3-tt-foot">
             <div className="hv3-tt-who">
-              <span aria-hidden="true" className="hv3-tt-mono">{testimonialMonogram(item.name)}</span>
+              {avatar ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  className="hv3-tt-avatar"
+                  src={avatar.src}
+                  srcSet={avatar.srcSet}
+                  sizes="48px"
+                  width={avatar.width}
+                  height={avatar.height}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span aria-hidden="true" className="hv3-tt-mono">{testimonialMonogram(item.name)}</span>
+              )}
               <div lang="vi">
                 <div className="hv3-tt-name">{item.name}</div>
                 <div className="hv3-tt-city">{item.city}</div>
@@ -324,3 +342,4 @@ export function HomepageV3Testimonials() {
     </div>
   );
 }
+

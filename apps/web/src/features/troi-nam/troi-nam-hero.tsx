@@ -1,0 +1,124 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
+
+import {
+  HomepageV3BirthForm,
+  useHomepageV3BirthForm,
+} from "../homepage-v3/homepage-v3-birth-form";
+import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
+import { troiNamAsset } from "./troi-nam-assets";
+import { clampProgress, scenePhases } from "./troi-nam-motion-math";
+import { createTroiNamProgress } from "./troi-nam-scroll-progress";
+
+const MOBILE = "(max-width: 879px)";
+
+export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
+  const t = useTranslations("troi-nam");
+  const state = useHomepageV3BirthForm(locale);
+  const desktop = troiNamAsset("L01");
+  const mobile = troiNamAsset("L02");
+  const dusk = troiNamAsset("L03");
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    const root = section?.closest<HTMLElement>(".tn");
+    if (!root) return;
+
+    // Two Hero mounts (StrictMode) would both call this synchronously; the second
+    // throws on the first's still-live owner, so let that instance's effect cleanup
+    // run first before this one creates its own.
+    let controller: ReturnType<typeof createTroiNamProgress> = null;
+    try {
+      controller = createTroiNamProgress(root);
+    } catch {
+      return;
+    }
+    if (!controller) return;
+
+    const unsubscribe = controller.subscribe((snapshot) => {
+      if (!section) return;
+      if (snapshot.reducedMotion || !snapshot.rangeValid) {
+        section.style.setProperty("--tn-hero-dusk", "0");
+        section.style.setProperty("--tn-hero-night", "0");
+        return;
+      }
+      // `snapshot.progress` spans the whole hero->explore "world" range (Plan 4's
+      // job to make that visible via a pinned scene). Until then, re-derive a
+      // progress local to the hero's own height so the crossfade actually
+      // finishes while the plate is still on screen, instead of off-screen by
+      // the time it reaches dusk/night.
+      const scrolledPast = snapshot.progress * (snapshot.range.end - snapshot.range.start);
+      const heroHeight = section.offsetHeight || 1;
+      const local = clampProgress(scrolledPast / heroHeight);
+      const { dusk, night } = scenePhases(local);
+      section.style.setProperty("--tn-hero-dusk", String(dusk));
+      section.style.setProperty("--tn-hero-night", String(night));
+    });
+
+    return () => {
+      unsubscribe();
+      controller?.dispose();
+    };
+  }, []);
+
+  return (
+    <section className="tn-hero" data-troi-nam-block="hero" id="lap-la-so" ref={sectionRef}>
+      <div className="tn-hero-media">
+        <picture>
+          <source media={MOBILE} srcSet={mobile.srcSet} sizes="100vw" />
+          <img
+            className="tn-hero-plate"
+            src={desktop.src}
+            srcSet={desktop.srcSet}
+            sizes="100vw"
+            width={desktop.width}
+            height={desktop.height}
+            alt={t("hero.plateAlt")}
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
+        {/* Desktop-only art direction for now — L03 has no phone crop yet, so the
+            dusk crossfade is scoped to the >=880px layout (see CSS). */}
+        <img
+          className="tn-hero-plate tn-hero-plate-dusk"
+          src={dusk.src}
+          srcSet={dusk.srcSet}
+          sizes="100vw"
+          width={dusk.width}
+          height={dusk.height}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+        />
+      </div>
+      <div className="tn-hero-scrim" aria-hidden="true" />
+      <div className="tn-hero-scrim-night" aria-hidden="true" />
+
+      <div className="tn-hero-content">
+        <div className="tn-hero-left">
+          <div className="tn-hero-copy">
+            <h1 className="tn-hero-title">
+              <span>{t("hero.h1a")}</span>
+              <span>{t("hero.h1b")}</span>
+            </h1>
+            <p className="tn-hero-sub">{t("hero.sub")}</p>
+          </div>
+
+          <div className="hv3 tn-hero-form">
+            <HomepageV3BirthForm state={state} />
+          </div>
+        </div>
+
+        {/* Reused verbatim from the live homepage: the chart reveals as the same
+            birth-form values are typed, so it must read `state.hero`, not a copy. */}
+        <div className="tn-hero-chart-slot">
+          <HomepageV3HeroChart hero={state.hero} locale={locale} />
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -20,6 +20,7 @@
 @import "./knowledge.css";
 @import "./static-editorial.css";
 @import "./brand-about.css";
+@import "./troi-nam.css";
 
 * { box-sizing: border-box; }
 html { background: var(--lacquer-800); color-scheme: dark; }

@@ -12,8 +12,12 @@ type Column = (typeof COLUMNS)[number];
 const COLUMN_TITLE = { lsv: "colLsv", web: "colWeb", ai: "colAi", thay: "colThay" } as const;
 const TAB_TITLE = { lsv: "tabLsv", web: "tabWeb", ai: "tabAi", thay: "tabThay" } as const;
 
-/** One strength and five limits per way of finding an answer; the first row is the strength. */
-export function HomepageV3Compare() {
+/**
+ * One strength and five limits per way of finding an answer; the first row is the strength.
+ * `lead` and `defaultOpen` are optional so the live homepage keeps its current copy and
+ * collapsed-by-default table; Trời Nam passes a shorter lead and opens the table directly.
+ */
+export function HomepageV3Compare({ lead, defaultOpen = false }: { lead?: string; defaultOpen?: boolean } = {}) {
   const t = useTranslations("homepage-v3.compare");
   const locale = useLocale();
   const [active, setActive] = useState<Column>("lsv");
@@ -23,7 +27,7 @@ export function HomepageV3Compare() {
     <div className="hv3-container">
       <div className="hv3-compare-head">
         <h2 className="hv3-h2">{t("title")}</h2>
-        <p className="hv3-lead">{t("lead")}</p>
+        <p className="hv3-lead">{lead ?? t("lead")}</p>
       </div>
 
       <div className="hv3-compare-points" aria-label={locale === "vi" ? "Ba điểm để đối chiếu" : "Three ways to compare"}>
@@ -33,7 +37,7 @@ export function HomepageV3Compare() {
         ).map((point, index) => <span key={point}><LsvIcon name={(["chart-palaces", "related-palaces", "reading-depth"] as const)[index] ?? "chart-palaces"} size={40} />{point}</span>)}
       </div>
 
-      <details className="hv3-compare-details">
+      <details className="hv3-compare-details" open={defaultOpen}>
         <summary>{locale === "vi" ? "Xem bảng so sánh đầy đủ" : "View the full comparison"}</summary>
 
       <table className="hv3-compare-table" role="table">
