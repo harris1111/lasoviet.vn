@@ -1222,10 +1222,10 @@ html[data-theme="light"] .result-tab-button.is-active {
 .topic-reader-tools a, .topic-reader-tools button { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-heading); }
 .topic-reader-tools button { border: 1px solid var(--border-soft); background: var(--surface-panel); border-radius: 8px; padding-inline: 16px; cursor: pointer; }
 @media print { .topic-reader-tools { display: none; } .topic-report-reader { width: 100%; } }
-.part-feedback { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border-subtle, #8884); }
+.part-feedback { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border-hairline); }
 .part-feedback-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .part-feedback button { min-height: 44px; padding: .5rem .75rem; border: 1px solid currentColor; border-radius: 8px; color: inherit; background: transparent; cursor: pointer; }
-.part-feedback button[aria-pressed="true"] { background: var(--gold-400, #cba85c); color: #191522; }
+.part-feedback button[aria-pressed="true"] { background: var(--text-heading); color: var(--surface-panel); }
 .part-feedback button:disabled { opacity: .65; cursor: wait; }
 .part-feedback-guarantee { max-width: 40rem; }
 @media print { .part-feedback { display: none !important; } }
