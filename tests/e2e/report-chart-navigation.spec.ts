@@ -22,7 +22,7 @@ test.beforeAll(async () => {
     `, loader: "tsx", resolveDir: resolve(root, "apps/web") },
     bundle: true, write: false, format: "iife", platform: "browser", jsx: "automatic",
     alias: {"@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts")},
-    define: { "process.env.NODE_ENV": '"production"' },
+    define: { "process.env": "{}", "process.env.NODE_ENV": '"production"' },
   });
   bundle = result.outputFiles[0].text;
 });
@@ -32,7 +32,7 @@ for (const width of [320, 390, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.emulateMedia({ reducedMotion: "reduce" });
     const errors: string[] = [];
-    page.on("pageerror", error => errors.push(error.message));
+    page.on("pageerror", error => { errors.push(error.message); console.error(error.message); });
     await page.route("**/*", route => {
       if (new URL(route.request().url()).pathname === "/") return route.fulfill({contentType: "text/html", body: '<!doctype html><html data-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture"></div></body></html>'});
       return route.fulfill({ status: 204 });
