@@ -14,7 +14,8 @@ import type {
   OrderHistoryV1,
   OrderStatus,
 } from "@lasoviet/contracts";
-import { resolveProductTitle, resolveEntitlementScopeForSku } from "@lasoviet/contracts";
+import { resolveProductTitle, resolveEntitlementScopeForSku, type GuaranteeClaimRequestV1, type PartFeedbackCreateV1 } from "@lasoviet/contracts";
+import { createGuaranteeFeedbackService, resolveRelatedPalaceSuggestion } from "./guarantee-feedback.service.js";
 import {
   auditLogs,
   birthProfileReadingContexts,
@@ -137,6 +138,9 @@ export function createDatabaseCommerceRepository(
     now: getNow,
     reportVersionResolver,
     dailyReadingWriter: options.dailyReadingWriter,
+  });
+  const guaranteeFeedback = createGuaranteeFeedbackService(database, {
+    now: getNow,
   });
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
@@ -1019,6 +1023,7 @@ export function createDatabaseCommerceRepository(
       .where(and(
         eq(commerceEntitlements.ownerId, actor.userId),
         isNull(commerceEntitlements.orderId),
+        isNull(commerceEntitlements.revokedAt),
       ))
       .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
     const walletItems: AccountLibraryV2["items"] = walletRows.map((row) => {
@@ -1066,6 +1071,12 @@ export function createDatabaseCommerceRepository(
     },
     unlockWalletPurchase(actor: CurrentActor, input: Parameters<typeof walletUnlock.unlock>[1]) {
       return walletUnlock.unlock(actor, input);
+    },
+    submitPartFeedback(actor: CurrentActor, input: PartFeedbackCreateV1) {
+      return guaranteeFeedback.submitPartFeedback(actor, input);
+    },
+    claimGuarantee(actor: CurrentActor, input: GuaranteeClaimRequestV1) {
+      return guaranteeFeedback.claimGuarantee(actor, input);
     },
     readAccountLibraryV2,
 

@@ -325,7 +325,14 @@
       "breakpoints": true
     },
     {
-      "idx": 46,
+      "idx": 47,
+      "version": "7",
+      "when": 1790813580000,
+      "tag": "0047_part_feedback_and_guarantee_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
       "version": "7",
       "when": 1790813640000,
       "tag": "0048_daily_entitlement_expiry",

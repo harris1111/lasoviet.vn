@@ -550,6 +550,14 @@ export {
   walletTopUpPackTitle,
   type WalletTopUpOrder,
 } from "./commerce/wallet-topup.js";
+export {
+  createGuaranteeFeedbackService,
+  resolveRelatedPalaceSuggestion,
+} from "./commerce/guarantee-feedback.service.js";
+export type {
+  GuaranteeFeedbackService,
+  GuaranteeFeedbackServiceOptions,
+} from "./commerce/guarantee-feedback.service.js";
 export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
 export type {
   WalletUnlockService,
