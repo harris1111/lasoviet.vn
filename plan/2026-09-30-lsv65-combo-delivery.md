@@ -11,3 +11,10 @@ The bundle intent has one ledger spend and exactly two child entitlements: `ZIWE
 ## Release boundary
 
 No activation, merge, deployment, production mutation, or Done transition. PR targets master and depends on the shared natal, period delivery, and membership implementation.
+
+## Validation evidence
+
+- 66 focused wallet, report-query, generation-authority, and period-delivery tests passed.
+- 102 wallet/top-up/guarantee/catalog/reserved-offer/migration regression tests passed after the membership lock-order integration.
+- The 29-test wallet suite covers base and member combo prices, concurrent replay, full transaction rollback after both child reservations, shared natal reuse, pre-owned component rejection, original and annual generation authority, daily bonus access, and restoration of both reports.
+- Additional tamper checks require matching annual evidence, tuple, period, and scope; a malformed companion cannot authorize the lifetime child.

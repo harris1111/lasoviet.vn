@@ -371,6 +371,9 @@ describe("wallet unlock repository integration", () => {
       expect(await service.createPurchaseIntent(owner.actor,request)).toMatchObject({ok:false,code:"WALLET_ENTITLEMENT_EXISTS"});
       await database.update(commerceEntitlements).set({revokedAt:frozenNow}).where(eq(commerceEntitlements.id,annual.id));expect(await query.readAuthorizedReport(owner.userId,first.value.reportId)).toBeNull();
       await database.update(commerceEntitlements).set({revokedAt:null}).where(eq(commerceEntitlements.id,annual.id));
+      await database.update(reportReservations).set({promptVersion:"identity-report.prompt.v1"}).where(eq(reportReservations.id,year!.id));expect(await query.readAuthorizedReport(owner.userId,first.value.reportId)).toBeNull();
+      await database.update(reportReservations).set({promptVersion:year!.promptVersion}).where(eq(reportReservations.id,year!.id));
+      await expect(database.update(commerceEntitlements).set({periodKey:"2027"}).where(eq(commerceEntitlements.id,annual.id))).rejects.toThrow();
       const guarantee=createGuaranteeFeedbackService(database,{now:()=>frozenNow});expect(await guarantee.claimGuarantee(owner.actor,{chartId:owner.chartId,partId:annual.sku,reportId:year!.reportId,rating:"inaccurate",idempotencyKey:`combo-guarantee-${randomUUID()}`})).toMatchObject({ok:false,code:"GUARANTEE_PRICE_EXCEEDS_LIMIT"});
       const restoration={kind:"restoration" as const,actorId:owner.userId,originalSpendId:annual.ledgerSpendId!,expectedWalletVersion:first.value.balance.stateVersion,reasonCode:"test.combo.restore",requestId:randomUUID(),traceId:randomUUID(),idempotencyKey:randomUUID()};
       expect(await repository.restore({actor:owner.actor,restoration})).toMatchObject({ok:true,value:{balance:{totalLa:3000}}});expect(await repository.restore({actor:owner.actor,restoration})).toMatchObject({ok:true,value:{balance:{totalLa:3000}}});
