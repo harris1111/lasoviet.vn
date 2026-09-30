@@ -33,6 +33,7 @@ export const COMPREHENSIVE_REPORT_SECTION_IDS = [
   "currentDecadal",
   "annualSnapshot",
   "birthTimeSensitivity",
+  "topicDeepDive",
 ] as const;
 
 export const ComprehensiveReportSectionIdSchema = z.enum(COMPREHENSIVE_REPORT_SECTION_IDS);
@@ -151,6 +152,9 @@ export function resolveEntitlementScopeForSku(
   }
 
   switch (sku) {
+    case "ZIWEI-RELATIONSHIP-P0":
+    case "ZIWEI-CAREER-P0":
+      return { sections: ["topicDeepDive"] };
     case "ZIWEI-NATAL-EXCERPT-P0":
       return TIER_1_ENTITLEMENT_SCOPE;
     case "ZIWEI-IDENTITY-P0":

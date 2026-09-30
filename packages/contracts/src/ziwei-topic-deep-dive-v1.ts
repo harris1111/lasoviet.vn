@@ -200,3 +200,27 @@ export const ZiweiTopicDeepDiveContentV1Schema = z
 export type ZiweiTopicDeepDiveContentV1 = z.infer<
   typeof ZiweiTopicDeepDiveContentV1Schema
 >;
+
+// Paid readers receive prose and chart references, never internal evidence keys.
+const publicNarrativeSchema = narrativeSectionSchema.omit({ evidenceKeys: true });
+export const ZiweiTopicDeepDivePublicContentV1Schema = z.object({
+  topicId: ZiweiTopicDeepDiveIdSchema,
+  title: z.string().trim().min(1).max(160),
+  overview: publicNarrativeSchema,
+  palaceAnchors: z.array(publicNarrativeSchema.extend({ palaceId: z.enum(ZIWEI_PALACE_IDS) }).strict()).min(1).max(6),
+  thematicDimensions: z.array(publicNarrativeSchema.extend({ key: z.string().trim().min(1).max(64) }).strict()).min(2).max(6),
+  decadalTiming: publicNarrativeSchema,
+  actions: z.array(ZiweiTopicActionItemSchema.omit({ evidenceKeys: true })).min(3).max(5),
+}).strict();
+export type ZiweiTopicDeepDivePublicContentV1 = z.infer<typeof ZiweiTopicDeepDivePublicContentV1Schema>;
+
+export function projectTopicDeepDivePublicContent(content: ZiweiTopicDeepDiveContentV1): ZiweiTopicDeepDivePublicContentV1 {
+  const prose = ({title, narrative}: {title: string; narrative: string}) => ({title, narrative});
+  return ZiweiTopicDeepDivePublicContentV1Schema.parse({
+    topicId: content.topicId, title: content.title, overview: prose(content.overview),
+    palaceAnchors: content.palaceAnchors.map(item => ({...prose(item), palaceId: item.palaceId})),
+    thematicDimensions: content.thematicDimensions.map(item => ({...prose(item), key: item.key})),
+    decadalTiming: prose(content.decadalTiming),
+    actions: content.actions.map(({recommendation, rationale, avoid}) => ({recommendation, rationale, avoid})),
+  });
+}

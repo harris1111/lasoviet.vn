@@ -1180,3 +1180,10 @@ html[data-theme="light"] .result-tab-button.is-active {
   color: var(--pearl-200);
   text-decoration: underline;
 }
+
+/* Dedicated paid topic reader; prose remains selectable and printable. */
+.topic-report-reader { width: min(100% - 32px, 760px); margin-inline: auto; padding-block: 24px 64px; }
+.topic-reader-tools { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.topic-reader-tools a, .topic-reader-tools button { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-heading); }
+.topic-reader-tools button { border: 1px solid var(--border-soft); background: var(--surface-panel); border-radius: 8px; padding-inline: 16px; cursor: pointer; }
+@media print { .topic-reader-tools { display: none; } .topic-report-reader { width: 100%; } }

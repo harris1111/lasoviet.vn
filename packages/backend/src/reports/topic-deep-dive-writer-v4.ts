@@ -27,12 +27,7 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
 } from "./identity-report-config.js";
 
-export const REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1 =
-  "ziwei.topic-deep-dive.report.v1" as const;
-export const REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1 =
-  "ziwei.topic-deep-dive.prompt.v1" as const;
-export const REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1 =
-  "ziwei.topic-deep-dive.quality.v1" as const;
+export { REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1 } from "./topic-report-config.js";
 
 export type ZiweiTopicDeepDiveWriterRewrite = {
   priorContent: ZiweiTopicDeepDiveContentV1;

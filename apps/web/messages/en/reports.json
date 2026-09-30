@@ -288,5 +288,13 @@
     "timeline_living": "Living now",
     "timeline_read_full": "Read this cycle in full",
     "timeline_read_palace": "Read the {palace} palace"
+  },
+  "topicReader": {
+    "eyebrow": "Topic deep dive",
+    "navigation": "Reading navigation",
+    "library": "Your library",
+    "print": "Print reading",
+    "actions": "Practical actions",
+    "avoid": "Avoid:"
   }
 }
