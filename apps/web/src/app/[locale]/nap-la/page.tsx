@@ -22,11 +22,12 @@ export default async function TopUpPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams?: Promise<{ pack?: string }>;
+  searchParams?: Promise<{ pack?: string; tab?: string }>;
 }) {
   const { locale: requestedLocale } = await params;
   const locale = requestedLocale === "en" ? "en" : "vi";
-  const requestedPack = (await searchParams)?.pack;
+  const query = await searchParams;
+  const requestedPack = query?.pack;
   const parsedPack = WalletTopUpPackIdSchema.safeParse(requestedPack);
   const initialPackId = parsedPack.success ? parsedPack.data : undefined;
 
@@ -54,7 +55,7 @@ export default async function TopUpPage({
       <div className="container">
         <PaidTopicSelector
           locale={locale}
-          initialTab="nap-la"
+          initialTab={query?.tab === "hoi-vien" ? "hoi-vien" : "nap-la"}
           initialPackId={initialPackId}
           supportEmail={customerContactConfig.email.value}
           userBalance={userBalance}

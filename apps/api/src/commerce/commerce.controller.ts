@@ -1,3 +1,4 @@
+import { createMembershipService, createWalletService, createDatabaseWalletRepository } from "@lasoviet/backend";
 import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
@@ -124,7 +125,7 @@ function customerWalletIntent(value: {
     if (value.amountLa < 0 || value.amountLa > LIFETIME_BASE_PRICE_LA) {
       throw new Error("WALLET_INTENT_PROJECTION_INVALID");
     }
-  } else if (value.amountLa !== product.priceLa) {
+  } else if (value.amountLa !== product.priceLa && value.amountLa !== Math.ceil(product.priceLa * 0.8)) {
     throw new Error("WALLET_INTENT_PROJECTION_INVALID");
   }
   return {
@@ -369,6 +370,34 @@ export class CommerceController {
     const actor = await this.actor(authorization);
     const value = await this.repository().readOrderHistory(actor);
     return { ok: true, value };
+  }
+
+  private membership() {
+    return createMembershipService(this.database, createWalletService(createDatabaseWalletRepository(this.database)));
+  }
+
+  @Get("membership")
+  async membershipStatus(@Headers("authorization") authorization: string | undefined) {
+    const result = await this.membership().read(await this.actor(authorization));
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
+  @Post("membership/intents")
+  async membershipIntent(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
+    if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length !== 2 || !("sku" in body) || typeof body.sku !== "string" || !("locale" in body) || (body.locale !== "vi" && body.locale !== "en")) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.membership().createIntent(await this.actor(authorization), { sku: body.sku, locale: body.locale });
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
+  @Post("membership/purchase")
+  async membershipPurchase(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
+    const input = walletUnlockRequest(body);
+    if (!input) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.membership().purchase(await this.actor(authorization), input);
+    if (!result.ok) walletError(result.code);
+    return result;
   }
 
   @Get("wallet/balance")

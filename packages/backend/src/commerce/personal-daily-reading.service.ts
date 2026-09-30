@@ -1,3 +1,5 @@
+import { readActiveMembership } from "./membership.service.js";
+import { createDatabaseZiweiQueryRepository } from "../ziwei/ziwei-query.repository.js";
 import { dailyReadingDate, readPurchasedDailyReading } from "./daily-wallet-unlock.service.js";
 import {
   NormalizedBirthProfileV1Schema,
@@ -23,6 +25,11 @@ export function createDatabaseDailyReadingAccess(database: Database) {
   return async (ownerId: string, chartId: string, now: Date): Promise<DailyReadingGrant | null> => {
     const purchased = await readPurchasedDailyReading(database, ownerId, chartId, dailyReadingDate(now), now);
     if (purchased) return { grantedAt: purchased.createdAt, expiresAt: purchased.expiresAt, chartVersionId: purchased.chartVersionId, content: purchased.content, purchaseId: purchased.id };
+    const membership = await readActiveMembership(database, ownerId, now);
+    if (membership) {
+      const chart = await createDatabaseZiweiQueryRepository(database).readAuthorizedChart({ kind: "account", userId: ownerId, requestId: "membership-daily-access", sessionId: "internal-membership-authorization" }, chartId, now);
+      if (chart) return { grantedAt: membership.startsAt, expiresAt: membership.expiresAt, chartVersionId: chart.chartVersionId };
+    }
     const candidates = await database.select({
       id: commerceEntitlements.id,
       reportId: reportReservations.reportId,

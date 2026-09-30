@@ -1016,3 +1016,51 @@ routes:
     locale_behavior: unlocalized
     intent: api.wallet.guarantee
     template: api-command
+
+  - <<: *private_defaults
+    id: api.backend.membership
+    path: /commerce/membership
+    locale_behavior: unlocalized
+    intent: api.backend.membership
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.backend.membership.intents
+    path: /commerce/membership/intents
+    locale_behavior: unlocalized
+    intent: api.backend.membership.intents
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.backend.membership.purchase
+    path: /commerce/membership/purchase
+    locale_behavior: unlocalized
+    intent: api.backend.membership.purchase
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.web.membership
+    path: /api/commerce/membership
+    locale_behavior: unlocalized
+    intent: api.web.membership
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.web.membership.intents
+    path: /api/commerce/membership/intents
+    locale_behavior: unlocalized
+    intent: api.web.membership.intents
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.web.membership.purchase
+    path: /api/commerce/membership/purchase
+    locale_behavior: unlocalized
+    intent: api.web.membership.purchase
+    template: private-api
+    owner: engineering

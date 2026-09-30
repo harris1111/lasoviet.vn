@@ -305,5 +305,19 @@
     "claim": "Yêu cầu hoàn Lá và khóa lại phần này",
     "restored": "Đã hoàn {amount} Lá. Phần đọc đã được khóa lại.",
     "related": "Thử đọc thêm {palace}"
+  },
+  "membership": {
+    "title": "Hội viên",
+    "activeUntil": "Hội viên có hiệu lực đến {date}.",
+    "inactive": "Hội viên chưa hoạt động.",
+    "manualRenewal": "Gia hạn thủ công cộng thêm thời gian còn lại. Không tự động gia hạn hay trừ Lá.",
+    "benefitsPending": "Nguyệt vận và bản cá nhân của công cụ: sắp có. Bản Toàn diện mua riêng. Ưu đãi 20% được so với giá sau khấu trừ, chọn giá thấp hơn và không cộng dồn.",
+    "signIn": "Đăng nhập để xem hội viên",
+    "renew": "Gia hạn {days} ngày · {price} Lá",
+    "purchase": "Đăng ký {days} ngày · {price} Lá",
+    "monthly": "Hội viên tháng",
+    "yearly": "Hội viên năm",
+    "confirmTitle": "Xác nhận hội viên",
+    "confirm": "Xác nhận trừ Lá"
   }
 }

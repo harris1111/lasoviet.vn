@@ -105,8 +105,8 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
   return (
-    (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
-    (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
+    (sku === "ZIWEI-NATAL-EXCERPT-P0" && (priceLa === 240 || priceLa === 192)) ||
+    (sku === "ZIWEI-IDENTITY-P0" && Number.isSafeInteger(priceLa) && priceLa >= 0 && priceLa <= 960)
   );
 }
 

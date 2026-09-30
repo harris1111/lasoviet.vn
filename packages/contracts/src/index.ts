@@ -865,3 +865,5 @@ export {
   type ReportChartStarV1,
   type ReportDecadalCycleV1,
 } from "./report-chart-snapshot-v1.js";
+
+export { MembershipExpiryEmailRequestSchema, type MembershipExpiryEmailRequest } from "./auth-email.js";

@@ -794,3 +794,7 @@ export type {
 } from "./commerce/time-limited-entitlement.service.js";
 
 export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";
+
+export * from "./commerce/membership.service.js";
+
+export * from "./notifications/membership-expiry.service.js";

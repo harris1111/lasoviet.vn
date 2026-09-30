@@ -1,3 +1,4 @@
+import { membershipPrice, readActiveMembership } from "./membership.service.js";
 import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
 import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { randomUUID } from "node:crypto";
@@ -291,10 +292,10 @@ async function price(
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
     const rollover = calculateRolloverCredit({ spends, now });
-    return { ok: true as const, amountLa: rollover.effectivePriceLa };
+    return { ok: true as const, amountLa: membershipPrice(product.priceLa, rollover.effectivePriceLa, !!await readActiveMembership(database, ownerId, now)) };
   }
 
-  return { ok: true as const, amountLa: product.priceLa };
+  return { ok: true as const, amountLa: membershipPrice(product.priceLa, undefined, !!await readActiveMembership(database, ownerId, now)) };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
@@ -303,7 +304,7 @@ function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
   if (intent.sku === "ZIWEI-IDENTITY-P0") {
     return intent.priceLa >= 0 && intent.priceLa <= 960;
   }
-  return intent.priceLa === product.priceLa;
+  return intent.priceLa === product.priceLa || intent.priceLa === membershipPrice(product.priceLa, undefined, true);
 }
 
 function hasUnlockOutboxLineage(

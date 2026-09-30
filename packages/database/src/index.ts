@@ -109,3 +109,5 @@ export {
   partFeedbacks,
   guaranteeClaims,
 } from "./schema/feedback-guarantee.js";
+
+export * from "./schema/membership.js";

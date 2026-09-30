@@ -1,3 +1,5 @@
+import { createMembershipService } from "./membership.service.js";
+import { createDatabaseDailyReadingAccess } from "./personal-daily-reading.service.js";
 import { createGuaranteeFeedbackService } from "./guarantee-feedback.service.js";
 import { createDailyWalletUnlockService, readPurchasedDailyReading } from "./daily-wallet-unlock.service.js";
 import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/personal-daily-reading-writer.js";
@@ -999,6 +1001,30 @@ describe("wallet unlock repository integration", () => {
         expect(item.laDelta).not.toBe(0);
       }
     }
+  });
+
+  it("grants membership daily access and immutable discounted report intents until exact expiry", async () => {
+    const owner = await ownerFixture("Membership reader");
+    let current = new Date(frozenNow);
+    const ports = walletPorts(owner.userId, { now: () => current });
+    const funded = await ports.repository.grant({ targetOwnerId: owner.userId, grant: grant(owner.userId, `member-${randomUUID()}`, 5000), topUpOrderId: null, trustedGrantToken: ports.authority.token });
+    if (!funded.ok) throw new Error("fund");
+    const membership = createMembershipService(database, createWalletService(ports.repository), { now: () => current, catalog: (sku) => { const product = findLaProduct(sku); return product ? { ...product, availability: "active" } : undefined; } });
+    const intent = await membership.createIntent(owner.actor, { sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi" });
+    if (!intent.ok) throw new Error("membership intent");
+    expect(await membership.purchase(owner.actor, { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID() })).toMatchObject({ ok: true });
+    expect(await createDatabaseDailyReadingAccess(database)(owner.userId, owner.chartId, current)).toMatchObject({ chartVersionId: owner.chartVersionId });
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-NATAL-EXCERPT-P0", locale: "vi" };
+    const discounted = await ports.service.createPurchaseIntent(owner.actor, request);
+    expect(discounted).toMatchObject({ ok: true, value: { amountLa: 192 } });
+    expect(await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-IDENTITY-P0" })).toMatchObject({ ok: true, value: { amountLa: 768 } });
+    current = new Date(frozenNow.getTime() + 30 * 86_400_000);
+    expect(await createDatabaseDailyReadingAccess(database)(owner.userId, owner.chartId, current)).toBeNull();
+    if (!discounted.ok) throw new Error("discount");
+    const before = await createWalletService(ports.repository).readBalance(owner.actor);
+    if (!before.ok) throw new Error("balance");
+    expect(await ports.service.unlock(owner.actor, { purchaseIntentId: discounted.value.id, expectedIntentVersion: 1, expectedWalletVersion: before.value.stateVersion, idempotencyKey: randomUUID() })).toMatchObject({ ok: false });
+    expect(await createWalletService(ports.repository).readBalance(owner.actor)).toEqual(before);
   });
 
   it("atomically buys a daily reading once, replays without generation, and allows the next Vietnam day", async () => {

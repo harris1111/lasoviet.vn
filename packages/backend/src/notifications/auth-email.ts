@@ -36,6 +36,7 @@ export type NotificationDeliveryStatus =
 
 export type NotificationDeliveryKind =
   | AuthEmailKind
+  | "membership_expiry"
   | "report_ready"
   | "report_failed"
   | "nurture_verified_signin"
@@ -105,6 +106,7 @@ export type AuthEmailDeliveryServiceOptions = {
   preferenceChecker?: {
     isNonTransactionalAllowed(recipient: string, userId?: string): Promise<boolean>;
   };
+  membershipReminderAllowed?: (request: Extract<PersistedEmailDeliveryRequest, { kind: "membership_expiry" }>, now: Date) => Promise<boolean>;
   now?: () => Date;
 };
 
@@ -115,6 +117,12 @@ const messages: Record<
   Record<NotificationDeliveryKind, EmailMessage & { to: string }>
 > = {
   vi: {
+    membership_expiry: {
+      to: "", subject: "Hội viên Lá Số Việt sắp hết hạn",
+      text: "Hội viên của bạn hết hạn lúc {expiresAt}. Bạn có thể chủ động gia hạn tại {actionUrl}. Không tự động gia hạn hoặc trừ Lá. Hủy nhận nhắc: {unsubscribeUrl}",
+      html: '<p>Hội viên của bạn hết hạn lúc {expiresAt}.</p><p><a href="{actionUrl}">Chủ động gia hạn</a></p><p>Không tự động gia hạn hoặc trừ Lá.</p><p><a href="{unsubscribeUrl}">Hủy nhận nhắc</a></p>',
+    },
+
     email_verification: {
       to: "",
       subject: "Xac minh email La So Viet",
@@ -159,6 +167,12 @@ const messages: Record<
     },
   },
   en: {
+    membership_expiry: {
+      to: "", subject: "Your Lá Số Việt membership expires soon",
+      text: "Your membership expires at {expiresAt}. Renew manually at {actionUrl}. We never renew or spend Lá automatically. Unsubscribe: {unsubscribeUrl}",
+      html: '<p>Your membership expires at {expiresAt}.</p><p><a href="{actionUrl}">Renew manually</a></p><p>We never renew or spend Lá automatically.</p><p><a href="{unsubscribeUrl}">Unsubscribe</a></p>',
+    },
+
     email_verification: {
       to: "",
       subject: "Verify your La So Viet email",
@@ -216,7 +230,10 @@ function renderMessage(request: PersistedEmailDeliveryRequest): EmailMessage {
   let html = template.html.replaceAll("{actionUrl}", request.actionUrl);
   let subject = template.subject;
 
-  if (request.kind === "nurture_verified_signin") {
+  if (request.kind === "membership_expiry") {
+    text = text.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+    html = html.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+  } else if (request.kind === "nurture_verified_signin") {
     text = text
       .replaceAll("{palaceTitle}", request.palaceTitle)
       .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
@@ -333,9 +350,15 @@ export function createAuthEmailDeliveryService(
         return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
       }
 
+      if (validatedRequest.kind === "membership_expiry" &&
+        (!options.preferenceChecker || !options.membershipReminderAllowed || !await options.membershipReminderAllowed(validatedRequest, now))) {
+        await options.store.markFailure(idempotencyKey, 0, "failed_permanent", "MEMBERSHIP_REMINDER_OBSOLETE", now);
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
       // Check unsubscribe / preferences for non-transactional messages
       if (
-        (validatedRequest.kind === "nurture_verified_signin" ||
+        (validatedRequest.kind === "membership_expiry" || validatedRequest.kind === "nurture_verified_signin" ||
           validatedRequest.kind === "han_month_reminder") &&
         options.preferenceChecker !== undefined
       ) {
@@ -453,6 +476,7 @@ export function createDatabaseAuthEmailDeliveryStore(
               eq(notificationDeliveries.status, "pending"),
               or(
                 eq(notificationDeliveries.kind, "report_ready"),
+                eq(notificationDeliveries.kind, "membership_expiry"),
                 eq(notificationDeliveries.kind, "report_failed"),
               ),
             ),
@@ -461,6 +485,7 @@ export function createDatabaseAuthEmailDeliveryStore(
               lt(notificationDeliveries.attemptCount, 3),
               or(
                 eq(notificationDeliveries.kind, "report_ready"),
+                eq(notificationDeliveries.kind, "membership_expiry"),
                 eq(notificationDeliveries.kind, "report_failed"),
               ),
             ),

@@ -305,5 +305,19 @@
     "claim": "Request a Lá refund and lock this part",
     "restored": "{amount} Lá restored. This reading is now locked.",
     "related": "Explore {palace}"
+  },
+  "membership": {
+    "title": "Membership",
+    "activeUntil": "Membership is active until {date}.",
+    "inactive": "Membership is not active.",
+    "manualRenewal": "Manual renewal adds time to your remaining period. We never renew or spend Lá automatically.",
+    "benefitsPending": "Monthly readings and personalized tools: coming soon. Comprehensive reports are purchased separately. The 20% price is compared with rollover credit; the lower price applies without stacking.",
+    "signIn": "Sign in to view membership",
+    "renew": "Renew {days} days · {price} Lá",
+    "purchase": "Join for {days} days · {price} Lá",
+    "monthly": "Monthly membership",
+    "yearly": "Annual membership",
+    "confirmTitle": "Confirm membership",
+    "confirm": "Confirm Lá payment"
   }
 }
