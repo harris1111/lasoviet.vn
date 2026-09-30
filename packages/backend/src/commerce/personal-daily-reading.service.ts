@@ -12,17 +12,17 @@ import { commerceEntitlements, reportReservations, type Database } from "@lasovi
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 import type { ZiweiQueryRepository } from "../ziwei/ziwei-query.repository.js";
 
-export type DailyReadingGrant = { grantedAt: Date; expiresAt: Date; chartVersionId: string; content?: PersonalDailyReadingV1 };
+export type DailyReadingGrant = { grantedAt: Date; expiresAt: Date; chartVersionId: string; content?: PersonalDailyReadingV1; purchaseId?: string };
 export type DailyReadingError = "DAILY_READING_FORBIDDEN" | "CHART_NOT_FOUND" | "DAILY_READING_UNAVAILABLE";
 export type DailyReadingService = {
-  read(actor: CurrentActor, chartId: string): Promise<Result<PersonalDailyReadingV1, DailyReadingError>>;
+  read(actor: CurrentActor, chartId: string): Promise<Result<PersonalDailyReadingV1, DailyReadingError> & { purchaseId?: string }>;
 };
 
 /** Reuses the report authority checks: ownership, paid order or allocated spend, and refund revocation. */
 export function createDatabaseDailyReadingAccess(database: Database) {
   return async (ownerId: string, chartId: string, now: Date): Promise<DailyReadingGrant | null> => {
     const purchased = await readPurchasedDailyReading(database, ownerId, chartId, dailyReadingDate(now), now);
-    if (purchased) return { grantedAt: purchased.createdAt, expiresAt: purchased.expiresAt, chartVersionId: purchased.chartVersionId, content: purchased.content };
+    if (purchased) return { grantedAt: purchased.createdAt, expiresAt: purchased.expiresAt, chartVersionId: purchased.chartVersionId, content: purchased.content, purchaseId: purchased.id };
     const candidates = await database.select({
       id: commerceEntitlements.id,
       reportId: reportReservations.reportId,
@@ -70,7 +70,7 @@ export function createPersonalDailyReadingService(options: {
         const stored = PersonalDailyReadingV1Schema.safeParse(grant.content);
         if (!stored.success || !stored.data.qualityGate.passed || stored.data.chartId !== chart.chartId ||
           stored.data.chartVersionId !== chart.chartVersionId || stored.data.asOfDate !== asOfDate) return failure("DAILY_READING_UNAVAILABLE");
-        return { ok: true, value: stored.data };
+        return { ok: true, value: stored.data, purchaseId: grant.purchaseId };
       }
       const profile = NormalizedBirthProfileV1Schema.safeParse({ ...chart.normalizedInput, originalInput: chart.originalInput });
       if (!profile.success) return failure("DAILY_READING_UNAVAILABLE");

@@ -13,7 +13,7 @@ export async function GET(_request: Request, context: { params: Promise<{ chartI
     if (!response.ok) return new NextResponse(null, { status: 403, headers });
     const reading = PersonalDailyReadingV1Schema.safeParse("value" in response ? response.value : undefined);
     if (!reading.success || reading.data.chartId !== chartId || !reading.data.qualityGate.passed) return new NextResponse(null, { status: 502, headers });
-    return NextResponse.json(reading.data, { headers });
+    return NextResponse.json(reading.data, { headers: { ...headers, "x-daily-purchased": "purchaseId" in response && typeof response.purchaseId === "string" ? "true" : "false" } });
   } catch (error) {
     if (error instanceof VerifiedAccountResolutionError) return new NextResponse(null, { status: 401, headers });
     if (error instanceof PrivateApiClientError) return new NextResponse(null, { status: error.status ?? 502, headers });

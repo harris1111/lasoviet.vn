@@ -5,7 +5,7 @@ import {
   type CurrentActor, type NormalizedBirthProfileV1, type PersonalDailyReadingV1,
 } from "@lasoviet/contracts";
 import {
-  authUsers, dailyReadingUnlocks, walletAccounts, walletPurchaseIntents,
+  authUsers, commerceEntitlements, dailyReadingUnlocks, walletAccounts, walletPurchaseIntents,
   walletSpendAllocations, walletTransactions, type Database,
 } from "@lasoviet/database";
 import type { WalletService } from "../wallet/wallet.service.js";
@@ -33,6 +33,7 @@ function projectIntent(row: typeof walletPurchaseIntents.$inferSelect) {
 export async function readPurchasedDailyReading(database: Database, ownerId: string, chartId: string, date: string, now: Date) {
   const [row] = await database.select({ reading: dailyReadingUnlocks, intent: walletPurchaseIntents })
     .from(dailyReadingUnlocks)
+    .innerJoin(commerceEntitlements, and(eq(commerceEntitlements.id, dailyReadingUnlocks.id), isNull(commerceEntitlements.revokedAt), eq(commerceEntitlements.ledgerSpendId, dailyReadingUnlocks.ledgerSpendId), eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId), eq(commerceEntitlements.sku, DAILY_SKU)))
     .innerJoin(walletTransactions, and(eq(walletTransactions.id, dailyReadingUnlocks.ledgerSpendId), eq(walletTransactions.kind, "spend"), isNull(walletTransactions.reversalOfTransactionId)))
     .innerJoin(walletAccounts, and(eq(walletAccounts.id, walletTransactions.walletId), eq(walletAccounts.ownerId, ownerId)))
     .innerJoin(walletPurchaseIntents, and(
@@ -134,7 +135,14 @@ export function createDailyWalletUnlockService(database: Database, wallet: Walle
           }));
           if (!reading.success || !reading.data.qualityGate.passed || reading.data.chartId !== chart.chartId ||
             reading.data.chartVersionId !== chart.chartVersionId || reading.data.asOfDate !== date) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          const [entitlement] = await transaction.insert(commerceEntitlements).values({
+            orderId: null, ownerId: actor.userId, chartId: chart.chartId, sku: DAILY_SKU,
+            ledgerSpendId: metadata.spendTransactionId, scope: { sections: [], dailyDates: [date] },
+            createdAt: current, expiresAt: endOfReadingDate(date),
+          }).returning();
+          if (!entitlement) throw new Error("DAILY_ENTITLEMENT_SAVE_FAILED");
           const [saved] = await transaction.insert(dailyReadingUnlocks).values({
+            id: entitlement.id,
             ownerId: actor.userId, chartId: chart.chartId, chartVersionId: chart.chartVersionId, readingDate: date,
             ledgerSpendId: metadata.spendTransactionId, content: reading.data, createdAt: current, expiresAt: endOfReadingDate(date),
           }).returning();

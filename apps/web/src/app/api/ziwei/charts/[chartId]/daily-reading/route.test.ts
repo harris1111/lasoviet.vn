@@ -28,12 +28,17 @@ describe("private personal daily reading proxy", () => {
     expect(request).not.toHaveBeenCalled();
   });
   it("returns only a validated reading and disables caching and indexing", async () => {
-    request.mockResolvedValue({ ok: true, value: reading });
+    request.mockResolvedValue({ ok: true, value: reading, purchaseId: "daily-unlock" });
     const response = await get();
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual(reading);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(response.headers.get("x-daily-purchased")).toBe("true");
+  });
+  it("does not offer a paid-item guarantee for the lifetime bonus", async () => {
+    request.mockResolvedValue({ ok: true, value: reading });
+    expect((await get()).headers.get("x-daily-purchased")).toBe("false");
   });
   it("never forwards locked content supplied alongside a failed authorization", async () => {
     request.mockResolvedValue({ ok: false, value: reading });

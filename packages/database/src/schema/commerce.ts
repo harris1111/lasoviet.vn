@@ -84,7 +84,7 @@ export const commerceEntitlements = pgTable("commerce_entitlements", {
 }, (table) => [
   uniqueIndex("commerce_entitlements_order_unique").on(table.orderId),
   uniqueIndex("commerce_entitlements_ledger_spend_unique").on(table.ledgerSpendId),
-  uniqueIndex("commerce_entitlements_chart_sku_unique").on(table.chartId, table.sku),
+  uniqueIndex("commerce_entitlements_chart_sku_unique").on(table.chartId, table.sku).where(sql`${table.sku} <> 'ZIWEI-TODAY-P0'`),
   check("commerce_entitlements_authority_xor", sql`(${table.orderId} IS NOT NULL AND ${table.ledgerSpendId} IS NULL) OR (${table.orderId} IS NULL AND ${table.ledgerSpendId} IS NOT NULL)`),
 ]);
 

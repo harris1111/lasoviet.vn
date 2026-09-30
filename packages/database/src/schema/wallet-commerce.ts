@@ -3,7 +3,7 @@ import { check, foreignKey, index, integer, jsonb, pgTable, text, timestamp, uni
 import type { PersonalDailyReadingV1 } from "@lasoviet/contracts";
 import { ziweiCharts, ziweiChartVersions } from "./birth-profile.js";
 import { authUsers } from "./auth.js";
-import { commerceOrders } from "./commerce.js";
+import { commerceEntitlements, commerceOrders } from "./commerce.js";
 
 export const walletAccounts = pgTable("wallet_accounts", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -136,7 +136,7 @@ export const walletCommandReceipts = pgTable("wallet_command_receipts", {
 
 // A daily unlock is an entitlement to one persisted chart/day reading, independent of natal reports.
 export const dailyReadingUnlocks = pgTable("daily_reading_unlocks", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: uuid("id").primaryKey().references(() => commerceEntitlements.id, { onDelete: "cascade" }),
   ownerId: text("owner_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
   chartId: text("chart_id").notNull().references(() => ziweiCharts.id, { onDelete: "cascade" }),
   chartVersionId: text("chart_version_id").notNull().references(() => ziweiChartVersions.id, { onDelete: "cascade" }),

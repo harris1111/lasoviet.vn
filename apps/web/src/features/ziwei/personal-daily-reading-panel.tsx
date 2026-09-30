@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { findLaProduct, PersonalDailyReadingV1Schema, type PersonalDailyReadingV1 } from "@lasoviet/contracts";
+import { PartFeedback } from "../reports/part-feedback";
 import { WalletUnlockDialog } from "../commerce/wallet-unlock-dialog";
 
 export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale }: { chartId: string; chartVersionId: string; locale: "vi" | "en" }) {
   const t = useTranslations("ziwei.dailyReading");
   const reports = useTranslations("reports");
+  const [purchased, setPurchased] = useState(false);
   const [reading, setReading] = useState<PersonalDailyReadingV1 | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -16,7 +18,10 @@ export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale }: {
     let active = true;
     if (locale !== "vi") return;
     fetch(`/api/ziwei/charts/${encodeURIComponent(chartId)}/daily-reading`, { cache: "no-store" })
-      .then(async (response) => response.ok ? PersonalDailyReadingV1Schema.safeParse(await response.json()) : null)
+      .then(async (response) => {
+        if (active) setPurchased(response.ok && response.headers.get("x-daily-purchased") === "true");
+        return response.ok ? PersonalDailyReadingV1Schema.safeParse(await response.json()) : null;
+      })
       .then((result) => { if (active) setReading(result?.success ? result.data : null); })
       .catch(() => { if (active) setReading(null); })
       .finally(() => { if (active) setLoading(false); });
@@ -32,6 +37,7 @@ export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale }: {
       {reading.reading.aspects.map((aspect) => <div key={aspect.key}><h3>{aspect.title}</h3><p>{aspect.guidance}</p></div>)}
       <h3>{t("actions")}</h3><ul>{reading.reading.actionPlan.recommendations.map((item) => <li key={item}>{item}</li>)}</ul>
       <h3>{t("cautions")}</h3><ul>{reading.reading.actionPlan.cautions.map((item) => <li key={item}>{item}</li>)}</ul>
+      <PartFeedback chartId={chartId} partId={`daily:${reading.asOfDate}`} paid={purchased} locale={locale} onClaimed={() => { setReading(null); setRevision((value) => value + 1); }} />
     </> : <>
       <p>{t("bonus")}</p>
       <p role="status">{loading && locale === "vi" ? t("loading") : t("locked")}</p>

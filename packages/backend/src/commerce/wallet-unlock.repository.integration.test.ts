@@ -1,3 +1,4 @@
+import { createGuaranteeFeedbackService } from "./guarantee-feedback.service.js";
 import { createDailyWalletUnlockService, readPurchasedDailyReading } from "./daily-wallet-unlock.service.js";
 import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/personal-daily-reading-writer.js";
 import { findLaProduct } from "@lasoviet/contracts";
@@ -15,6 +16,7 @@ import {
   calculationRuns,
   commerceEntitlements,
   dailyReadingUnlocks,
+  guaranteeClaims,
   commerceOrders,
   createDatabase,
   evidenceSets,
@@ -1049,11 +1051,16 @@ describe("wallet unlock repository integration", () => {
     const latest = readings.find((r) => r.readingDate === "2026-09-21")!;
     const balance = await ports.repository.readBalance(owner.actor);
     if (!balance.ok) throw new Error("DAILY_BALANCE_FAILED");
-    const restored = await ports.repository.restore({ actor: owner.actor, restoration: {
-      kind: "restoration", actorId: owner.userId, reasonCode: "test.daily.restore", requestId: "daily-restore", traceId: "daily-restore", idempotencyKey: "daily-restore",
-      originalSpendId: latest.ledgerSpendId, expectedWalletVersion: balance.value.stateVersion,
-    } });
-    expect(restored.ok).toBe(true);
+    const guarantee = createGuaranteeFeedbackService(database, { now: () => current });
+    const claim = { chartId: owner.chartId, partId: "daily:2026-09-21", rating: "inaccurate" as const, idempotencyKey: "daily-guarantee" };
+    expect(await guarantee.claimGuarantee(owner.actor, { ...claim, partId: "daily:2026-09-19" })).toEqual({ ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND" });
+    const [restored, replay] = await Promise.all([guarantee.claimGuarantee(owner.actor, claim), guarantee.claimGuarantee(owner.actor, claim)]);
+    expect(restored).toMatchObject({ ok: true, value: { amountLaRestored: 60, balance: { totalLa: 120 } } });
+    expect(replay).toEqual(restored);
+    expect(await guarantee.claimGuarantee(owner.actor, { ...claim, partId: "daily:2026-09-20", idempotencyKey: "daily-guarantee-second" })).toEqual({ ok: false, code: "GUARANTEE_ALREADY_CLAIMED" });
+    expect(await database.select().from(guaranteeClaims).where(eq(guaranteeClaims.accountId, owner.userId))).toHaveLength(1);
+    const [revoked] = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.id, latest.id));
+    expect(revoked?.revokedAt).toEqual(current);
     expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-21", current)).toBeNull();
   });
 

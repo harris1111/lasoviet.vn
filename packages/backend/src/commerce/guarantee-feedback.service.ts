@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { and, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import {
   GuaranteeClaimRequestV1Schema,
   GuaranteeClaimResultV1Schema,
@@ -389,7 +389,7 @@ export function createGuaranteeFeedbackService(
             isNull(commerceEntitlements.orderId),
             isNotNull(commerceEntitlements.ledgerSpendId),
           ),
-        );
+        ).orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
 
       if (entitlements.length === 0) {
         return { ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND" };
@@ -400,6 +400,9 @@ export function createGuaranteeFeedbackService(
       const matched = entitlements.find((candidate) => {
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
+        if (candidate.entitlement.sku === "ZIWEI-TODAY-P0") {
+          return scope.dailyDates?.some((date) => normalizedPartId === `daily:${date}`) ?? false;
+        }
         if (Array.isArray(scope?.palaces) && scope.palaces.some((palace: string) => palace.toLowerCase() === normalizedPartId)) return true;
         if (Array.isArray(scope?.sections)) {
           return scope.sections.some(

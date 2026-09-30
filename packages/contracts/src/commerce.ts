@@ -94,13 +94,14 @@ export const EntitlementScopeSchema = z
   .object({
     sections: z.array(ComprehensiveReportSectionIdSchema),
     palaces: z.array(z.string().trim().min(1)).optional(),
+    dailyDates: z.array(z.iso.date()).optional(),
   })
   .strict()
   .superRefine((val, ctx) => {
-    if (val.sections.length === 0 && (!val.palaces || val.palaces.length === 0)) {
+    if (val.sections.length === 0 && (!val.palaces || val.palaces.length === 0) && (!val.dailyDates || val.dailyDates.length === 0)) {
       ctx.addIssue({
         code: "custom",
-        message: "scope must contain at least one section or palace",
+        message: "scope must contain at least one section, palace, or daily date",
       });
     }
   });
