@@ -7,6 +7,7 @@ vi.mock("../../analytics/browser-analytics", () => ({
 
 import {
   claimOfferViewEvents,
+  claimUpgradeViewEvents,
   OfferViewTracker,
 } from "./offer-view-tracker";
 
@@ -59,5 +60,38 @@ describe("OfferViewTracker", () => {
     const newClaims = claimOfferViewEvents(newDescriptor, seen);
     expect(newClaims).toHaveLength(1);
     expect(newClaims[0]!.properties.offer_id).toBe("new-pack");
+  });
+
+  it("claims upgrade_view for eligible offers with upgrade credit and no forbidden fields", () => {
+    const descriptors = [
+      {
+        offerId: "ziwei-comprehensive",
+        sku: "ZIWEI-IDENTITY-P0",
+        upgradeCredit: {
+          sourceSku: "ZIWEI-NATAL-EXCERPT-P0",
+          targetSku: "ZIWEI-IDENTITY-P0",
+          creditExpiresAt: "2026-09-21T00:00:00Z",
+        },
+      },
+    ];
+    const seen = new Set<string>();
+    const claims = claimUpgradeViewEvents(descriptors, seen, new Date("2026-09-14T00:00:00Z").getTime());
+
+    expect(claims).toHaveLength(1);
+    expect(claims[0]).toEqual({
+      name: "upgrade_view",
+      properties: {
+        source_sku: "ZIWEI-NATAL-EXCERPT-P0",
+        target_sku: "ZIWEI-IDENTITY-P0",
+        days_remaining: 7,
+      },
+    });
+
+    expect(claims[0]!.properties).not.toHaveProperty("chartId");
+    expect(claims[0]!.properties).not.toHaveProperty("creditApplied");
+
+    // Proves repeated claims are skipped
+    const repeatClaims = claimUpgradeViewEvents(descriptors, seen);
+    expect(repeatClaims).toHaveLength(0);
   });
 });

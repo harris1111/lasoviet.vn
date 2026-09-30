@@ -86,6 +86,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@lasoviet/backend':
+        specifier: workspace:0.0.0
+        version: link:../../packages/backend
       '@lasoviet/config':
         specifier: workspace:0.0.0
         version: link:../../packages/config

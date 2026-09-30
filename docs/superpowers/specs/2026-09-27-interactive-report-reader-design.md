@@ -121,10 +121,11 @@ Constraints that keep this inside FD-107: deterministic, reproducible from the s
 
 ### 7b.3 All eight decadal cycles (FD-106b)
 
-Wave 1 already derives the full cycle list. Round 2 gives each cycle content:
+Wave 1 already derives the full 12-cycle engine run. Round 2 gives each cycle content:
 
 - Current cycle: unchanged depth, full reading.
-- Other seven: a 120 to 200 syllable teaser each, as new writer sections.
+- Other seven teasers: derive 12 engine cycles and identify current by age range. If current ordinal is 0..7, return ordinals 0..7 excluding current (7 teasers). If current ordinal is outside 0..7, select 8 consecutive engine cycles containing current, clamped at boundaries, and return all except current (7 teasers); no invented cycles.
+- Each teaser: a 120 to 200 syllable teaser each, as new writer sections.
 - The timeline lists every cycle with its teaser and a link: the current cycle links to its full reading, the others to the palace the cycle passes through.
 - A "Dải này nói gì về bạn?" box above the list explains how to read the timeline and states plainly that it does not rank cycles good or bad. Pattern borrowed from AiTuvi's "Biểu đồ của bạn nói gì", which is the clearest thing on their page.
 

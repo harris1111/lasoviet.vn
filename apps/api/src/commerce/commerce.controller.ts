@@ -1,11 +1,16 @@
+import { createMembershipService, createWalletService, createDatabaseWalletRepository } from "@lasoviet/backend";
+import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
+import { lunarPeriodPurchaseKey } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import {
+  acknowledgeTopUpPresence,
   createDatabaseCommerceRepository,
   createSePayGateway,
   createSePayWebhookService,
+  ensureWalletWelcomeGrant,
   walletTopUpPackTitle,
   type WalletTopUpOrder,
 } from "@lasoviet/backend";
@@ -20,6 +25,12 @@ import {
   WalletBalanceV1Schema,
   WalletHistoryV1Schema,
   WalletTopUpOrderCreateV1Schema,
+  type WalletTopUpContinuationViewV1,
+  GuaranteeClaimRequestV1Schema,
+  GuaranteeClaimResultV1Schema,
+  PartFeedbackCreateV1Schema,
+  PartFeedbackResultV1Schema,
+  type GuaranteeErrorCode,
   type CommerceSku,
   type CurrentActor,
 } from "@lasoviet/contracts";
@@ -118,7 +129,9 @@ function customerWalletIntent(value: {
     if (value.amountLa < 0 || value.amountLa > LIFETIME_BASE_PRICE_LA) {
       throw new Error("WALLET_INTENT_PROJECTION_INVALID");
     }
-  } else if (value.amountLa !== product.priceLa) {
+  } else if (value.sku === "ZIWEI-MONTHLY-P0" && value.amountLa === 0) {
+    // Included membership benefit, authorized at purchase and read time.
+  } else if (value.amountLa !== product.priceLa && value.amountLa !== Math.ceil(product.priceLa * 0.8)) {
     throw new Error("WALLET_INTENT_PROJECTION_INVALID");
   }
   return {
@@ -131,6 +144,28 @@ function customerWalletIntent(value: {
     stateVersion: value.stateVersion,
     createdAt: value.createdAt,
   };
+}
+
+function guaranteeError(code: GuaranteeErrorCode): never {
+  switch (code) {
+    case "GUARANTEE_ACCOUNT_REQUIRED":
+      throw new UnauthorizedException({ code });
+    case "GUARANTEE_ACCOUNT_INELIGIBLE":
+    case "GUARANTEE_NOT_OWNER":
+      throw new ForbiddenException({ code });
+    case "GUARANTEE_ALREADY_CLAIMED":
+    case "GUARANTEE_ALREADY_RESTORED":
+    case "GUARANTEE_IDEMPOTENCY_CONFLICT":
+      throw new ConflictException({ code });
+    case "GUARANTEE_ENTITLEMENT_NOT_FOUND":
+      throw new NotFoundException({ code });
+    case "GUARANTEE_PRICE_EXCEEDS_LIMIT":
+    case "GUARANTEE_RATING_INELIGIBLE":
+    case "GUARANTEE_WINDOW_EXPIRED":
+    case "GUARANTEE_INVALID_REQUEST":
+    default:
+      throw new BadRequestException({ code });
+  }
 }
 
 function walletError(code: string): never {
@@ -159,8 +194,31 @@ export class CommerceController {
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
+      dailyReadingWriter: writePersonalDailyReading,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
+      resolveMonthlyPeriodKey: lunarPeriodPurchaseKey,
     });
+  }
+
+  /**
+   * Grants the FD-105 60-Lá welcome bonus the first time a verified account
+   * touches the wallet. Idempotent (safe to call every request); failures
+   * (already granted, not yet eligible) are swallowed so the caller's own
+   * response is unaffected.
+   */
+  private async ensureWelcomeGrant(actor: CurrentActor): Promise<{ grantedAt: string; promotionalLa: number } | null> {
+    if (actor.kind !== "account") return null;
+    try {
+      const receipt = await ensureWalletWelcomeGrant(this.database, actor.userId, {
+        now: () => new Date(),
+        requestId: actor.requestId,
+        traceId: actor.requestId,
+      });
+      return receipt ? { grantedAt: receipt.completedAt, promotionalLa: 60 } : null;
+    } catch {
+      // Best-effort: the wallet read/unlock below must still complete.
+      return null;
+    }
   }
 
   private async actor(authorization: string | undefined): Promise<CurrentActor> {
@@ -232,7 +290,7 @@ export class CommerceController {
     };
   }
 
-  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null) {
+  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null, continuation?: WalletTopUpContinuationViewV1 | null) {
     const orderLocale = (order.locale === "en" ? "en" : "vi") as "vi" | "en";
     const supportUrl = orderLocale === "en"
       ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
@@ -251,6 +309,7 @@ export class CommerceController {
       creditApplied: 0,
       creditExpiresAt: null,
       creditedLa,
+      ...(continuation ? { continuation } : {}),
       supportUrl,
     };
   }
@@ -342,11 +401,41 @@ export class CommerceController {
     return { ok: true, value };
   }
 
+  private membership() {
+    return createMembershipService(this.database, createWalletService(createDatabaseWalletRepository(this.database)));
+  }
+
+  @Get("membership")
+  async membershipStatus(@Headers("authorization") authorization: string | undefined) {
+    const result = await this.membership().read(await this.actor(authorization));
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
+  @Post("membership/intents")
+  async membershipIntent(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
+    if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length !== 2 || !("sku" in body) || typeof body.sku !== "string" || !("locale" in body) || (body.locale !== "vi" && body.locale !== "en")) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.membership().createIntent(await this.actor(authorization), { sku: body.sku, locale: body.locale });
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
+  @Post("membership/purchase")
+  async membershipPurchase(@Headers("authorization") authorization: string | undefined, @Body() body: unknown) {
+    const input = walletUnlockRequest(body);
+    if (!input) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.membership().purchase(await this.actor(authorization), input);
+    if (!result.ok) walletError(result.code);
+    return result;
+  }
+
   @Get("wallet/balance")
   async walletBalance(@Headers("authorization") authorization: string | undefined) {
-    const result = await this.repository().readWalletBalance(await this.actor(authorization));
+    const actor = await this.actor(authorization);
+    const welcomeGrant = await this.ensureWelcomeGrant(actor);
+    const result = await this.repository().readWalletBalance(actor);
     if (!result.ok) walletError(result.error.code);
-    return { ok: true, value: WalletBalanceV1Schema.parse(result.value) };
+    return { ok: true, value: WalletBalanceV1Schema.parse(result.value), ...(welcomeGrant ? { welcomeGrant } : {}) };
   }
 
   @Get("wallet/history")
@@ -386,7 +475,9 @@ export class CommerceController {
   ) {
     const input = walletUnlockRequest(body);
     if (input === null) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
-    const result = await this.repository().unlockWalletPurchase(await this.actor(authorization), input);
+    const actor = await this.actor(authorization);
+    await this.ensureWelcomeGrant(actor);
+    const result = await this.repository().unlockWalletPurchase(actor, input);
     if (!result.ok) walletError(result.code);
     const intent = customerWalletIntent({
       id: result.value.intent.id,
@@ -407,6 +498,37 @@ export class CommerceController {
     };
   }
 
+  @Post("feedback/parts")
+  @HttpCode(HttpStatus.OK)
+  async submitFeedback(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = PartFeedbackCreateV1Schema.safeParse(body);
+    if (!parsed.success) throw new BadRequestException({ code: "FEEDBACK_INVALID" });
+    const actor = await this.actor(authorization);
+    const result = await this.repository().submitPartFeedback(actor, parsed.data);
+    if (!result.ok) {
+      if (result.code === "FEEDBACK_CHART_NOT_FOUND") throw new NotFoundException({ code: result.code });
+      throw new BadRequestException({ code: result.code });
+    }
+    return { ok: true, value: PartFeedbackResultV1Schema.parse(result.value) };
+  }
+
+  @Post("wallet/guarantee-claim")
+  @HttpCode(HttpStatus.OK)
+  async claimGuarantee(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = GuaranteeClaimRequestV1Schema.safeParse(body);
+    if (!parsed.success) throw new BadRequestException({ code: "GUARANTEE_INVALID_REQUEST" });
+    const actor = await this.actor(authorization);
+    const result = await this.repository().claimGuarantee(actor, parsed.data);
+    if (!result.ok) guaranteeError(result.code);
+    return { ok: true, value: GuaranteeClaimResultV1Schema.parse(result.value) };
+  }
+
   @Post("wallet/top-up-orders")
   @HttpCode(HttpStatus.OK)
   async createTopUpOrder(
@@ -420,7 +542,7 @@ export class CommerceController {
       throw new ServiceUnavailableException({ code: "TOP_UP_UNAVAILABLE" });
     }
     const repository = this.repository();
-    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale);
+    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale, parsed.data.continuation);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") throw new UnauthorizedException({ code: result.code });
       if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") throw new ForbiddenException({ code: result.code });
@@ -454,7 +576,7 @@ export class CommerceController {
         return {
           ok: true,
           value: {
-            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa),
+            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa, paidProjection.continuation),
             paymentInstructions: null,
             reportId: null,
           },
@@ -468,7 +590,7 @@ export class CommerceController {
     return {
       ok: true,
       value: {
-        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa),
+        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa, projection.continuation),
         paymentInstructions: this.buildPaymentInstructions(projection.order),
         reportId: null,
       },
@@ -479,6 +601,14 @@ export class CommerceController {
   async libraryV2(@Headers("authorization") authorization: string | undefined) {
     const value = await this.repository().readAccountLibraryV2(await this.actor(authorization));
     return { ok: true, value: AccountLibraryV2Schema.parse(value) };
+  }
+
+  @Post("orders/:orderId/presence")
+  @HttpCode(HttpStatus.OK)
+  async presence(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
+    const actor = await this.actor(authorization);
+    if (!await acknowledgeTopUpPresence(this.database, actor, orderId)) throw new NotFoundException({ code: "ORDER_NOT_FOUND" });
+    return { ok: true };
   }
 
   @Get("orders/:orderId")
@@ -492,7 +622,7 @@ export class CommerceController {
       return {
         ok: true,
         value: {
-          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa),
+          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa, topUp.continuation),
           paymentInstructions: this.sepayEnvironment === "disabled" || topUp.order.status !== "pending"
             ? null
             : this.buildPaymentInstructions(topUp.order),

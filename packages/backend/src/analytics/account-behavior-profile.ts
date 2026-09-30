@@ -116,7 +116,9 @@ export function computeBehaviorProfileUpdateFromEvent(
       update.topupPacksViewed = appendUniqueBounded(currentPacks, packId, 20);
       break;
     }
-    case "la_spent": {
+    case "la_spent":
+    case "unlock_confirmed":
+    case "welcome_grant": {
       if (
         typeof event.properties.balance_after === "number" &&
         Number.isInteger(event.properties.balance_after) &&
@@ -191,7 +193,9 @@ export function mergeBehaviorProfileWithEvents(
         packs = appendUniqueBounded(packs, packId, 20);
         break;
       }
-      case "la_spent": {
+      case "la_spent":
+    case "unlock_confirmed":
+    case "welcome_grant": {
         const bal = event.properties.balance_after;
         if (
           typeof bal === "number" &&
@@ -286,7 +290,9 @@ export function rebuildBehaviorProfileFromEvents(
         packs = appendUniqueBounded(packs, packId, 20);
         break;
       }
-      case "la_spent": {
+      case "la_spent":
+    case "unlock_confirmed":
+    case "welcome_grant": {
         const bal = event.properties.balance_after;
         if (
           typeof bal === "number" &&

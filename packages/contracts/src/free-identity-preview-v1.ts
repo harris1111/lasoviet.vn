@@ -46,6 +46,57 @@ function matchingFacts(
   );
 }
 
+
+export const LockedPartPreviewSchema = z.object({
+  id: z.string().trim().min(1),
+  title: z.string().trim().min(1),
+  tagline: z.string().trim().min(1).optional(),
+  clippedSentences: z.array(z.string().trim().min(1)),
+  counts: z.object({
+    points: z.number().int().nonnegative().optional(),
+    evidenceItems: z.number().int().nonnegative().optional(),
+    approximateWords: z.number().int().nonnegative().optional(),
+  }).strict().optional(),
+  lengthHint: z.number().int().positive().default(4),
+  isLocked: z.literal(true),
+  priceLa: z.number().int().positive().optional(),
+}).strict();
+
+export const InsightDetailSchema = z.object({
+  id: z.string().trim().min(1),
+  numeral: z.string().trim().min(1),
+  title: z.string().trim().min(1),
+  tagline: z.string().trim().min(1),
+  description: z.string().trim().min(1).optional(),
+  starsSummary: z.string().trim().min(1).optional(),
+  locationSummary: z.string().trim().min(1).optional(),
+  evidenceId: z.string().trim().min(1),
+  isLocked: z.boolean().default(false),
+  lockedPreview: LockedPartPreviewSchema.optional(),
+}).strict();
+
+export const PalaceTitleLineSchema = z.object({
+  palaceId: z.string().trim().min(1),
+  title: z.string().trim().min(1),
+  state: z.enum(["read", "preview", "unopened"]),
+  clippedOpening: z.string().trim().min(1).optional(),
+  lengthHint: z.number().int().positive().optional(),
+  priceLa: z.number().int().positive().optional(),
+}).strict();
+
+export const BanMenhPreviewSchema = z.object({
+  title: z.string().trim().min(1),
+  opening: z.string().trim().min(1).optional(),
+  isLocked: z.literal(true),
+  lengthHint: z.number().int().positive().default(4),
+  counts: z.object({
+    points: z.number().int().nonnegative().optional(),
+    evidenceItems: z.number().int().nonnegative().optional(),
+    approximateWords: z.number().int().nonnegative().optional(),
+  }).strict().optional(),
+  priceLa: z.number().int().positive().default(240),
+}).strict();
+
 export const FreeIdentityPreviewV1Schema = z.object({
   version: z.literal(1),
   chartId: z.string().trim().min(1),
@@ -67,6 +118,15 @@ export const FreeIdentityPreviewV1Schema = z.object({
     coveragePercent: z.literal(12),
     evidence: z.array(evidenceReferenceSchema).min(1),
   }).strict(),
+  audience: z.enum(["guest", "verified"]).optional(),
+  topConcern: z.enum(["career", "money", "love", "family", "wellbeing", "self_understanding"]).optional(),
+  magnetOffer: z.object({
+    title: z.string().trim().min(1),
+    subtitle: z.string().trim().min(1),
+  }).strict().optional(),
+  insightDetails: z.array(InsightDetailSchema).optional(),
+  palaceTitleLines: z.array(PalaceTitleLineSchema).optional(),
+  banMenhPreview: BanMenhPreviewSchema.optional(),
 }).strict().superRefine((preview, context) => {
   if (new Set(preview.insights.map((insight) => insight.id)).size !== 3) {
     context.addIssue({ code: "custom", path: ["insights"], message: "Insight IDs must be unique" });
@@ -120,6 +180,11 @@ export const PaidTopicSelectionViewV1Schema = z.object({
 export const PaidTopicSelectionRequestV1Schema = z.object({
   sku: z.enum(["ZIWEI-IDENTITY-P0", "ZIWEI-NATAL-EXCERPT-P0"]),
 }).strict();
+
+export type LockedPartPreview = z.infer<typeof LockedPartPreviewSchema>;
+export type InsightDetail = z.infer<typeof InsightDetailSchema>;
+export type PalaceTitleLine = z.infer<typeof PalaceTitleLineSchema>;
+export type BanMenhPreview = z.infer<typeof BanMenhPreviewSchema>;
 
 export type FreeIdentityPreviewV1 = z.infer<typeof FreeIdentityPreviewV1Schema>;
 export type PaidTopicSelectionViewV1 = z.infer<typeof PaidTopicSelectionViewV1Schema>;

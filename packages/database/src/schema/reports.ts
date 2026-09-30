@@ -34,6 +34,7 @@ export const reportReservations = pgTable("report_reservations", {
   lastErrorCode: text("last_error_code"),
   nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true, mode: "date" }),
   rewriteConsumedAt: timestamp("rewrite_consumed_at", { withTimezone: true, mode: "date" }),
+  lastReminderCheckAt: timestamp("last_reminder_check_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   asOfDate: date("as_of_date", { mode: "string" }),
@@ -59,6 +60,13 @@ export const reportReservations = pgTable("report_reservations", {
     sql`(${table.timingRuleVersion} IS NULL AND ${table.sensitivityRuleVersion} IS NULL) OR (btrim(${table.timingRuleVersion}) <> '' AND btrim(${table.sensitivityRuleVersion}) <> '')`,
   ),
 ]);
+
+// Additional purchases share the immutable reservation and generated content.
+export const reportEntitlementLinks = pgTable("report_entitlement_links", {
+  entitlementId: uuid("entitlement_id").primaryKey().references(() => commerceEntitlements.id),
+  reservationId: uuid("reservation_id").notNull().references(() => reportReservations.id),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, (table) => [index("report_entitlement_links_reservation_idx").on(table.reservationId)]);
 
 export const reportQueueJobs = pgTable("report_queue_jobs", {
   id: text("id").primaryKey(),

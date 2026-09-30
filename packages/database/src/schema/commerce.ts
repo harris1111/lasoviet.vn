@@ -75,12 +75,17 @@ export const commerceEntitlements = pgTable("commerce_entitlements", {
   chartId: text("chart_id").notNull(),
   sku: text("sku").notNull(),
   ownerId: text("owner_id").notNull(),
+  periodKey: text("period_key").notNull().default("lifetime"),
   scope: jsonb("scope").$type<EntitlementScope>().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true, mode: "date" }),
+  dailyBonusExpiresAt: timestamp("daily_bonus_expires_at", { withTimezone: true, mode: "date" }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true, mode: "date" }),
+  revocationReason: text("revocation_reason"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("commerce_entitlements_order_unique").on(table.orderId),
-  uniqueIndex("commerce_entitlements_ledger_spend_unique").on(table.ledgerSpendId),
-  uniqueIndex("commerce_entitlements_chart_sku_unique").on(table.chartId, table.sku),
+  uniqueIndex("commerce_entitlements_ledger_spend_sku_unique").on(table.ledgerSpendId, table.sku),
+  uniqueIndex("commerce_entitlements_chart_sku_period_unique").on(table.chartId, table.sku, table.periodKey).where(sql`${table.revokedAt} IS NULL AND ${table.sku} <> 'ZIWEI-TODAY-P0'`),
   check("commerce_entitlements_authority_xor", sql`(${table.orderId} IS NOT NULL AND ${table.ledgerSpendId} IS NULL) OR (${table.orderId} IS NULL AND ${table.ledgerSpendId} IS NOT NULL)`),
 ]);
 

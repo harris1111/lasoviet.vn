@@ -1,7 +1,17 @@
+import { periodKindForSku, isPeriodReportTuple, periodReportVersions } from "./period-report-config.js";
+import { ZiweiPeriodReadingContentV1Schema, ZiweiPeriodReadingFactsV1Schema, projectPeriodReadingPublicContent } from "@lasoviet/contracts";
+import { topicIdForSku, isTopicReportTuple, topicReportVersions } from "./topic-report-config.js";
+import { ZiweiTopicDeepDiveContentV1Schema, projectTopicDeepDivePublicContent } from "@lasoviet/contracts";
 import { buildReportChartSnapshotFromStored } from "./report-chart-snapshot.js";
 import { customerContactConfig } from "@lasoviet/config";
 import {
   EvidenceItemV1Schema,
+  isSinglePalaceSku,
+  ReportPalacesReadyViewV1Schema,
+  ZIWEI_PALACE_IDS,
+  type ZiweiComprehensiveReportContentV1,
+  type ZiweiComprehensiveReportContentV2,
+  type ZiweiComprehensiveReportContentV3,
   IdentityReportV1Schema,
   ReportPendingViewV1Schema,
   ReportReadyViewV1Schema,
@@ -43,6 +53,8 @@ import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
@@ -59,6 +71,7 @@ export type ReportQueryError = "REPORT_NOT_FOUND" | "REPORT_FORBIDDEN";
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const VALID_V4_1_PROMPT_CONFIG_TUPLES = [
+  { promptVersion: REPORT_PROMPT_VERSION_V4_2_BEGINNER, reportConfigVersion: REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER },
   {
     promptVersion: REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
     reportConfigVersion: REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
@@ -153,8 +166,48 @@ function forbidden(): Result<never, ReportQueryError> {
   };
 }
 
+function projectOwnedPalaces(
+  record: AuthorizedReportQueryRecord,
+  stored: ZiweiComprehensiveReportContentV1 | ZiweiComprehensiveReportContentV2 | ZiweiComprehensiveReportContentV3,
+  family: "v3" | "v4" | "v4_1",
+) {
+  const sections = new Set<ComprehensiveReportSectionId>();
+  const palaces = new Set<string>();
+  for (const entitlement of record.entitlements.filter((item) => item.active)) {
+    const parsedScope = EntitlementScopeSchema.safeParse(entitlement.scope);
+    if (!parsedScope.success) throw new ReportQueryDataError();
+    const scope = parsedScope.data;
+    scope.sections.forEach((section) => sections.add(section));
+    scope.palaces?.forEach((palace) => palaces.add(palace));
+  }
+  const tier = resolveEffectiveComprehensiveTier(sections, family);
+  if (palaces.size === 0 || tier === 2) return null;
+  const identity = tier === 1
+    ? family === "v4_1"
+      ? projectComprehensiveReportPublicContentV3(stored as ZiweiComprehensiveReportContentV3, TIER_1_ENTITLEMENT_SCOPE)
+      : family === "v4"
+        ? projectComprehensiveReportPublicContentV2(stored as ZiweiComprehensiveReportContentV2, TIER_1_ENTITLEMENT_SCOPE)
+        : projectComprehensiveReportPublicContent(stored as ZiweiComprehensiveReportContentV1, TIER_1_ENTITLEMENT_SCOPE)
+    : undefined;
+  return ReportPalacesReadyViewV1Schema.parse({
+    version: 1, state: "ready", contentVersion: "ziwei-palaces.v1", locale: "vi",
+    reportId: record.reservation.reportId, reportVersionId: record.reservation.reportVersionId,
+    sku: record.reservation.sku, fulfillmentStatus: record.reservation.status,
+    chartId: record.chartId,
+    content: {
+      palaceReadings: stored.palaceReadings.filter((palace) => palaces.has(palace.palaceId))
+        .map(({ palaceId, title, narrative }) => ({ palaceId, title, narrative })),
+      lockedPalaces: ZIWEI_PALACE_IDS.filter((palace) => !palaces.has(palace)),
+      ...(identity ? { identity } : {}),
+    },
+    chartSnapshot: buildReportChartSnapshotFromStored(record.chartNormalizedOutput, record.sourceSnapshot, record.reservation.chartVersionId),
+    lineage: { supersedesReportVersionId: record.version?.supersedesReportVersionId ?? null },
+  });
+}
+
 export function createReportQueryService(options: {
   repository: ReportQueryRepository;
+  now?: () => Date;
 }): ReportQueryService {
   return {
     async getReport(actor, reportId) {
@@ -180,14 +233,24 @@ export function createReportQueryService(options: {
         return notFound();
       }
 
+      const currentTime = (options.now ?? (() => new Date()))().getTime();
+      const activeEntitlements = record.entitlements.filter((entitlement) =>
+        entitlement.active && (!entitlement.expiresAt || entitlement.expiresAt.getTime() > currentTime),
+      );
+      const primaryEntitlement = record.entitlements.find((entitlement) => entitlement.id === record.reservation.entitlementId);
+      if (primaryEntitlement?.expiresAt && primaryEntitlement.expiresAt.getTime() <= currentTime) return notFound();
       const { reservation, version, evidenceItems } = record;
 
       const allowedSkus: readonly string[] = [
         "ZIWEI-IDENTITY-P0",
         "ZIWEI-NATAL-EXCERPT-P0",
+        "ZIWEI-RELATIONSHIP-P0",
+        "ZIWEI-CAREER-P0",
+        "ZIWEI-MONTHLY-P0",
+        "ZIWEI-YEAR-2026-P0",
       ];
       if (
-        !allowedSkus.includes(reservation.sku) ||
+        (!allowedSkus.includes(reservation.sku) && !isSinglePalaceSku(reservation.sku)) ||
         (reservation.locale !== "vi" && reservation.locale !== "en") ||
         (reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" && reservation.locale !== "vi")
       ) {
@@ -296,6 +359,43 @@ export function createReportQueryService(options: {
         throw new ReportQueryDataError();
       }
 
+      const periodKind = periodKindForSku(reservation.sku);
+      if (periodKind) {
+        const tuple = periodReportVersions();
+        const content = ZiweiPeriodReadingContentV1Schema.safeParse(version.structuredContent);
+        const facts = ZiweiPeriodReadingFactsV1Schema.safeParse((record.sourceSnapshot as {periodReading?: unknown} | null)?.periodReading);
+        const entitlement = record.entitlements.find(item => item.active && item.id === reservation.entitlementId && item.sku === reservation.sku && EntitlementScopeSchema.safeParse(item.scope).data?.sections.includes("periodReading"));
+        if (!entitlement || !isPeriodReportTuple(version) || version.templateVersion !== tuple.templateVersion || version.renderVersion !== tuple.renderVersion ||
+            !content.success || !facts.success || content.data.kind !== periodKind || facts.data.kind !== periodKind ||
+            content.data.periodKey !== entitlement.periodKey || content.data.periodKey !== facts.data.periodKey ||
+            content.data.targetYear !== facts.data.targetYear || facts.data.chartVersionId !== reservation.chartVersionId || facts.data.chartId !== record.chartId ||
+            (periodKind === "annual" && content.data.targetYear !== 2026) || content.data.periods.length !== facts.data.periods.length ||
+            new Set(content.data.periods.map(item => item.periodId)).size !== facts.data.periods.length || content.data.periods.some(item => !facts.data.periods.some(period => period.id === item.periodId))) throw new ReportQueryDataError();
+        const ready = ReportReadyViewV1Schema.safeParse({version: 1, state: "ready", contentVersion: tuple.contentVersion,
+          reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, locale: "vi", sku: reservation.sku,
+          fulfillmentStatus: reservationFulfillmentStatus, chartId: record.chartId, content: projectPeriodReadingPublicContent(content.data),
+          lineage: {supersedesReportVersionId: version.supersedesReportVersionId ?? null}});
+        if (!ready.success) throw new ReportQueryDataError();
+        return {ok: true, value: ready.data};
+      }
+
+      const topicId = topicIdForSku(reservation.sku);
+      if (topicId) {
+        const tuple = topicReportVersions();
+        const content = ZiweiTopicDeepDiveContentV1Schema.safeParse(version.structuredContent);
+        const authorized = record.entitlements.some(entitlement => entitlement.active && entitlement.sku === reservation.sku && EntitlementScopeSchema.safeParse(entitlement.scope).data?.sections.includes("topicDeepDive"));
+        if (!authorized || !isTopicReportTuple(version) || version.templateVersion !== tuple.templateVersion || version.renderVersion !== tuple.renderVersion || !content.success || content.data.topicId !== topicId) throw new ReportQueryDataError();
+        const ready = ReportReadyViewV1Schema.safeParse({
+          version: 1, state: "ready", contentVersion: tuple.contentVersion,
+          reportId: reservation.reportId, reportVersionId: reservation.reportVersionId,
+          locale: "vi", sku: reservation.sku, fulfillmentStatus: reservationFulfillmentStatus, chartId: record.chartId,
+          content: projectTopicDeepDivePublicContent(content.data),
+          lineage: { supersedesReportVersionId: version.supersedesReportVersionId ?? null },
+        });
+        if (!ready.success) throw new ReportQueryDataError();
+        return { ok: true, value: ready.data };
+      }
+
       const family = resolveIdentityReportVersionFamily(
         version.promptVersion,
         version.knowledgeVersionId,
@@ -326,7 +426,9 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        const partial = projectOwnedPalaces({ ...record, entitlements: activeEntitlements }, parsedV4_1.data, "v4_1");
+        if (partial) return { ok: true, value: partial };
+
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
         }
@@ -360,6 +462,7 @@ export function createReportQueryService(options: {
             : TIER_1_ENTITLEMENT_SCOPE,
         );
         const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
           contentVersion: "ziwei-comprehensive.v3",
@@ -369,6 +472,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           chartSnapshot: buildReportChartSnapshotFromStored(
             record.chartNormalizedOutput,
             record.sourceSnapshot,
@@ -395,7 +499,9 @@ export function createReportQueryService(options: {
           throw new ReportQueryDataError();
         }
 
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        const partial = projectOwnedPalaces({ ...record, entitlements: activeEntitlements }, parsedV4.data, "v4");
+        if (partial) return { ok: true, value: partial };
+
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
@@ -428,6 +534,7 @@ export function createReportQueryService(options: {
         );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
           contentVersion: "ziwei-comprehensive.v2",
@@ -437,6 +544,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           chartSnapshot: buildReportChartSnapshotFromStored(
             record.chartNormalizedOutput,
             record.sourceSnapshot,
@@ -465,7 +573,9 @@ export function createReportQueryService(options: {
         }
 
         // Calculate effective scope as union of all non-refunded entitlements for this owner and chart
-        const activeEntitlements = record.entitlements.filter((entitlement) => entitlement.active);
+        const partial = projectOwnedPalaces({ ...record, entitlements: activeEntitlements }, parsedV3.data, "v3");
+        if (partial) return { ok: true, value: partial };
+
 
         if (activeEntitlements.length === 0) {
           throw new ReportQueryDataError();
@@ -494,6 +604,7 @@ export function createReportQueryService(options: {
         );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
           contentVersion: "ziwei-comprehensive.v1",
@@ -503,6 +614,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },
@@ -565,6 +677,8 @@ export function createReportQueryService(options: {
           : CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN;
 
       const readyParse = ReportReadyViewV1Schema.safeParse({
+        chartId: record.chartId,
+        chartVersionId: version.chartVersionId,
         version: 1,
         state: "ready",
         contentVersion: "identity.v1",

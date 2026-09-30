@@ -1,4 +1,8 @@
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { COMBO_SKU, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
+import { readActiveMembership } from "../commerce/membership.service.js";
+import { findLaProduct } from "@lasoviet/contracts";
+import { reportReservationAuthority } from "./natal-report-authority.js";
+import { and, desc, eq, gt, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 
 import type { EntitlementScope } from "@lasoviet/contracts";
 import {
@@ -25,7 +29,11 @@ export type AuthorizedReportEntitlement = {
   chartId: string;
   sku: string;
   scope: EntitlementScope;
+  periodKey?: string;
   active: true;
+  expiresAt?: Date | null;
+  dailyBonusExpiresAt?: Date | null;
+  grantedAt?: Date;
   source: "order" | "ledger_spend";
 };
 
@@ -34,6 +42,7 @@ type AuthorizedReportQueryCommon = {
   version: typeof reportVersions.$inferSelect | null;
   evidenceItems: Array<typeof evidenceItems.$inferSelect>;
   entitlements: AuthorizedReportEntitlement[];
+  chartId: string;
   // FD-104: raw inputs for the display-only chart snapshot. Optional so existing fixtures stay valid.
   chartNormalizedOutput?: unknown;
   sourceSnapshot?: unknown;
@@ -57,10 +66,11 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 }
 
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
-  return (
-    (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
-    (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
-  );
+  if (sku === COMBO_SKU) return isSupportedComboPrice(priceLa);
+  const product = findLaProduct(sku);
+  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
+  return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }
 
 export type ReportQueryRepository = {
@@ -72,7 +82,10 @@ export type ReportQueryRepository = {
 
 export function createDatabaseReportQueryRepository(
   database: Database,
+  now: () => Date = () => new Date(),
 ): ReportQueryRepository {
+  const activeExpiry = () => or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, now()));
+
   async function isActiveSpend(spendId: string, expectedPriceLa: number) {
     const [restoration] = await database
       .select({ id: walletTransactions.id })
@@ -107,8 +120,11 @@ export function createDatabaseReportQueryRepository(
   }) {
     const predicates = [
       eq(commerceEntitlements.ownerId, input.ownerId),
+      activeExpiry(),
       isNull(commerceEntitlements.orderId),
       isNotNull(commerceEntitlements.ledgerSpendId),
+      isNull(commerceEntitlements.revokedAt),
+      sql`not exists (select 1 from wallet_transactions as restoration where restoration.kind = 'restoration' and restoration.reversal_of_transaction_id = ${walletTransactions.id})`,
     ];
     if (input.entitlementId) {
       predicates.push(eq(commerceEntitlements.id, input.entitlementId));
@@ -133,7 +149,7 @@ export function createDatabaseReportQueryRepository(
       .from(commerceEntitlements)
       .innerJoin(
         reportReservations,
-        eq(reportReservations.entitlementId, commerceEntitlements.id),
+        reportReservationAuthority(database),
       )
       .innerJoin(
         walletTransactions,
@@ -156,6 +172,7 @@ export function createDatabaseReportQueryRepository(
           eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
           eq(walletPurchaseIntents.ownerId, input.ownerId),
           eq(walletPurchaseIntents.status, "completed"),
+          or(eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey), eq(walletPurchaseIntents.sku, COMBO_SKU)),
         ),
       )
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
@@ -193,6 +210,7 @@ export function createDatabaseReportQueryRepository(
       .orderBy(desc(reportReservations.createdAt), desc(reportReservations.id))
       .limit(1);
 
+    const comboAuthority = !!record && record.intent.sku === COMBO_SKU && await hasCompleteComboAuthority(database, record);
     if (
       !record ||
       !hasExclusiveAuthority(record.entitlement) ||
@@ -201,13 +219,14 @@ export function createDatabaseReportQueryRepository(
       record.intent.completedAt === null ||
       record.intent.chartId !== record.entitlement.chartId ||
       record.intent.chartVersionId !== record.reservation.chartVersionId ||
-      record.intent.sku !== record.entitlement.sku ||
-      record.intent.sku !== record.reservation.sku ||
+      (!comboAuthority && record.intent.sku !== record.entitlement.sku) ||
+      (!comboAuthority && record.reservation.entitlementId === record.entitlement.id && record.intent.sku !== record.reservation.sku) ||
       record.intent.locale !== record.reservation.locale ||
       !isSupportedWalletPrice(record.intent.sku, record.intent.priceLa)
     ) {
       return null;
     }
+    if (record.intent.sku === "ZIWEI-MONTHLY-P0" && record.intent.priceLa === 0 && !await readActiveMembership(database, input.ownerId, now())) return null;
     if (!(await isActiveSpend(record.spend.id, record.intent.priceLa))) {
       return null;
     }
@@ -222,7 +241,7 @@ export function createDatabaseReportQueryRepository(
       (
         version.reportId !== record.reservation.reportId ||
         version.reportVersionId !== record.reservation.reportVersionId ||
-        version.entitlementId !== record.entitlement.id ||
+        version.entitlementId !== record.reservation.entitlementId ||
         version.chartVersionId !== record.reservation.chartVersionId ||
         version.evidenceVersionId !== record.reservation.evidenceVersionId ||
         version.knowledgeVersionId !== record.reservation.knowledgeVersionId ||
@@ -238,7 +257,7 @@ export function createDatabaseReportQueryRepository(
     return { ...record, version: version ?? null };
   }
 
-  async function loadActiveChartEntitlements(ownerId: string, chartId: string) {
+  async function loadActiveChartEntitlements(ownerId: string, chartId: string, chartVersionId: string, locale: string) {
     const orderEntitlements = await database
       .select({
         entitlement: commerceEntitlements,
@@ -260,9 +279,9 @@ export function createDatabaseReportQueryRepository(
       .innerJoin(
         reportReservations,
         and(
-          eq(reportReservations.entitlementId, commerceEntitlements.id),
+          reportReservationAuthority(database),
           eq(reportReservations.chartVersionId, commerceOrders.chartVersionId),
-          eq(reportReservations.sku, commerceEntitlements.sku),
+          or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceEntitlements.sku)),
           eq(reportReservations.locale, commerceOrders.locale),
         ),
       )
@@ -288,9 +307,13 @@ export function createDatabaseReportQueryRepository(
       .where(
         and(
           eq(commerceEntitlements.ownerId, ownerId),
+          activeExpiry(),
           eq(commerceEntitlements.chartId, chartId),
+          eq(reportReservations.chartVersionId, chartVersionId),
+          eq(reportReservations.locale, locale),
           isNotNull(commerceEntitlements.orderId),
           isNull(commerceEntitlements.ledgerSpendId),
+          isNull(commerceEntitlements.revokedAt),
         ),
       );
 
@@ -300,9 +323,11 @@ export function createDatabaseReportQueryRepository(
       .where(
         and(
           eq(commerceEntitlements.ownerId, ownerId),
+          activeExpiry(),
           eq(commerceEntitlements.chartId, chartId),
           isNull(commerceEntitlements.orderId),
           isNotNull(commerceEntitlements.ledgerSpendId),
+          isNull(commerceEntitlements.revokedAt),
         ),
       );
     const walletEntitlements = (
@@ -312,12 +337,16 @@ export function createDatabaseReportQueryRepository(
         ),
       )
     )
-      .filter((record): record is NonNullable<typeof record> => record !== null)
+      .filter((record): record is NonNullable<typeof record> => record !== null && record.reservation.chartVersionId === chartVersionId && record.reservation.locale === locale)
       .map((record) => ({
         id: record.entitlement.id,
         chartId: record.entitlement.chartId,
         sku: record.entitlement.sku,
         scope: record.entitlement.scope,
+        expiresAt: record.entitlement.expiresAt,
+        dailyBonusExpiresAt: record.entitlement.dailyBonusExpiresAt,
+        grantedAt: record.entitlement.createdAt,
+        periodKey: record.entitlement.periodKey,
         active: true as const,
         source: "ledger_spend" as const,
       }));
@@ -329,7 +358,7 @@ export function createDatabaseReportQueryRepository(
           (
             version.reportId === reservation.reportId &&
             version.reportVersionId === reservation.reportVersionId &&
-            version.entitlementId === entitlement.id &&
+            version.entitlementId === reservation.entitlementId &&
             version.chartVersionId === reservation.chartVersionId &&
             version.evidenceVersionId === reservation.evidenceVersionId &&
             version.knowledgeVersionId === reservation.knowledgeVersionId &&
@@ -344,6 +373,10 @@ export function createDatabaseReportQueryRepository(
           chartId: entitlement.chartId,
           sku: entitlement.sku,
           scope: entitlement.scope,
+          expiresAt: entitlement.expiresAt,
+          dailyBonusExpiresAt: entitlement.dailyBonusExpiresAt,
+          grantedAt: entitlement.createdAt,
+          periodKey: entitlement.periodKey,
           active: true as const,
           source: "order" as const,
         })),
@@ -371,8 +404,10 @@ export function createDatabaseReportQueryRepository(
         .innerJoin(
           commerceEntitlements,
           and(
-            eq(commerceEntitlements.id, reportReservations.entitlementId),
+            reportReservationAuthority(database),
             eq(commerceEntitlements.ownerId, ownerId),
+          activeExpiry(),
+            isNull(commerceEntitlements.revokedAt),
           ),
         )
         .innerJoin(
@@ -381,6 +416,7 @@ export function createDatabaseReportQueryRepository(
             eq(commerceOrders.id, commerceEntitlements.orderId),
             eq(commerceOrders.ownerId, ownerId),
             eq(commerceOrders.chartId, commerceEntitlements.chartId),
+            eq(commerceOrders.status, "paid"),
           ),
         )
         .innerJoin(
@@ -413,9 +449,9 @@ export function createDatabaseReportQueryRepository(
           and(
             eq(reportReservations.reportId, reportId),
             eq(reportReservations.chartVersionId, commerceOrders.chartVersionId),
-            eq(reportReservations.sku, commerceEntitlements.sku),
+            or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceEntitlements.sku)),
             eq(commerceOrders.sku, commerceEntitlements.sku),
-            eq(reportReservations.sku, commerceOrders.sku),
+            or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceOrders.sku)),
             eq(reportReservations.locale, commerceOrders.locale),
           ),
         )
@@ -432,7 +468,7 @@ export function createDatabaseReportQueryRepository(
         record.order.kind !== "content_purchase" ||
         record.entitlement.orderId !== record.order.id ||
         record.order.sku !== record.entitlement.sku ||
-        record.entitlement.sku !== record.reservation.sku
+        (record.reservation.entitlementId === record.entitlement.id && record.entitlement.sku !== record.reservation.sku)
       ) {
         return record === undefined ? readWalletAuthorizedReport(ownerId, reportId) : null;
       }
@@ -451,7 +487,7 @@ export function createDatabaseReportQueryRepository(
         if (
           version.reportId !== reservationRecord.reportId ||
           version.reportVersionId !== reservationRecord.reportVersionId ||
-          version.entitlementId !== record.entitlement.id ||
+          version.entitlementId !== record.reservation.entitlementId ||
           version.chartVersionId !== record.order.chartVersionId ||
           version.evidenceVersionId !== reservationRecord.evidenceVersionId ||
           version.knowledgeVersionId !== reservationRecord.knowledgeVersionId ||
@@ -459,8 +495,7 @@ export function createDatabaseReportQueryRepository(
           version.reportConfigVersion !== reservationRecord.reportConfigVersion ||
           version.locale !== reservationRecord.locale ||
           version.sku !== reservationRecord.sku ||
-          version.sku !== record.order.sku ||
-          version.sku !== record.entitlement.sku
+          (reservationRecord.entitlementId === record.entitlement.id && version.sku !== record.order.sku)
         ) {
           return null;
         }
@@ -496,7 +531,8 @@ export function createDatabaseReportQueryRepository(
           version,
           evidenceItems: evidenceList,
           source: "order",
-          entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+          chartId: record.entitlement.chartId,
+          entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
           ...(await loadChartSnapshotInputs(version)),
         };
       }
@@ -522,7 +558,8 @@ export function createDatabaseReportQueryRepository(
         version: null,
         evidenceItems: [],
         source: "order",
-        entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+        chartId: record.entitlement.chartId,
+        entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
       };
     },
   };
@@ -559,8 +596,9 @@ export function createDatabaseReportQueryRepository(
       reservation: record.reservation,
       version: record.version,
       evidenceItems: items,
-      entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+      entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
       wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id },
+      chartId: record.entitlement.chartId,
       ...(await loadChartSnapshotInputs(record.version)),
     };
   }

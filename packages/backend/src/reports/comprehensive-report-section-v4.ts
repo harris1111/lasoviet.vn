@@ -11,6 +11,7 @@ import {
 } from "@lasoviet/contracts";
 import {
   REPORT_CONFIG_VERSION_V4,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
@@ -21,6 +22,12 @@ const narrativeSchema = z.object({
   narrative: z.string().trim().min(1).max(5_000),
   evidenceKeys: z.array(z.string().trim().min(1)).min(1),
 }).strict();
+
+export const decadalTeasersSchema = z.array(z.object({
+  ordinal: z.number().int().min(0).max(11),
+  narrative: z.string().trim().min(1).max(2_000),
+  evidenceKeys: z.array(z.string().trim().min(1)).min(1),
+}).strict()).max(7);
 
 const keyConfigurationsSchema = z.array(narrativeSchema).min(1).max(12);
 const palaceValueSchema = narrativeSchema.extend({
@@ -49,6 +56,8 @@ export const COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1 = [
   "practicalDirection",
 ] as const;
 
+export const COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2 = [...COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1.slice(0, -1), "decadalTeasers", "practicalDirection"] as const;
+
 export type ComprehensiveReportSectionKeyV4 =
   | "overview"
   | "coreAxis"
@@ -62,9 +71,10 @@ export type ComprehensiveReportSectionKeyV4 =
 export type ComprehensiveReportSectionKeyV4_1 =
   | ComprehensiveReportSectionKeyV4
   | "birthTimeSensitivity";
-export type ComprehensiveReportSectionKey = ComprehensiveReportSectionKeyV4_1;
+export type ComprehensiveReportSectionKey = ComprehensiveReportSectionKeyV4_1 | "decadalTeasers";
 
 export type ComprehensiveReportAcceptedSection =
+  | { key: "decadalTeasers"; value: z.infer<typeof decadalTeasersSchema> }
   | { key: "overview" | "coreAxis" | "strengthsAndTensions"; value: z.infer<typeof narrativeSchema> }
   | { key: "keyConfigurations"; value: z.infer<typeof keyConfigurationsSchema> }
   | { key: `palace:${ZiweiPalaceId}`; value: z.infer<typeof palaceValueSchema> }
@@ -88,6 +98,7 @@ function fail(): never {
 export function resolveComprehensiveReportSectionKeys(
   reportConfigVersion: string,
 ): readonly ComprehensiveReportSectionKey[] {
+  if (reportConfigVersion === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER) return COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2;
   if (
     reportConfigVersion === REPORT_CONFIG_VERSION_V4 ||
     reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
@@ -145,6 +156,11 @@ export function parseComprehensiveReportAcceptedSection(
   if (isThematicKey(key)) {
     const parsed = thematicValueSchema.safeParse(value);
     if (!parsed.success || parsed.data.id !== key.slice("thematic:".length)) fail();
+    return { key, value: parsed.data };
+  }
+  if (key === "decadalTeasers") {
+    const parsed = decadalTeasersSchema.safeParse(value);
+    if (!parsed.success) fail();
     return { key, value: parsed.data };
   }
   if (key === "currentDecadal") {

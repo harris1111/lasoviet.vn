@@ -26,9 +26,29 @@ export const WalletTopUpPackIdSchema = z.enum([
 ]);
 export type WalletTopUpPackId = z.infer<typeof WalletTopUpPackIdSchema>;
 
+export const WalletTopUpContinuationRequestV1Schema = z.object({
+  purchaseIntentId: z.string().uuid(),
+  expectedIntentVersion: z.number().int().positive(),
+  confirmedPriceLa: amount,
+  returnTab: z.enum(["chart", "overview", "palaces", "topics", "nam-nay", "evidence"]).default("topics"),
+  returnOpen: z.string().regex(/^[a-zA-Z0-9._-]{1,128}$/).optional(),
+}).strict();
+export type WalletTopUpContinuationRequestV1 = z.infer<typeof WalletTopUpContinuationRequestV1Schema>;
+
+export const WalletTopUpContinuationViewV1Schema = z.object({
+  status: z.enum(["pending", "completed", "blocked"]),
+  unlockedSku: z.string().min(1).optional(),
+  returnPath: z.string().regex(/^\/(?:en\/)?la-so\/[^?#]+(?:\?[^#]*)?$/),
+  reportId: id.nullable(),
+  remainingLa: amount.nullable(),
+  errorCode: z.string().nullable(),
+}).strict();
+export type WalletTopUpContinuationViewV1 = z.infer<typeof WalletTopUpContinuationViewV1Schema>;
+
 export const WalletTopUpOrderCreateV1Schema = z.object({
   packId: WalletTopUpPackIdSchema,
   locale: z.enum(["vi", "en"]),
+  continuation: WalletTopUpContinuationRequestV1Schema.optional(),
 }).strict();
 export type WalletTopUpOrderCreateV1 = z.infer<typeof WalletTopUpOrderCreateV1Schema>;
 
@@ -124,7 +144,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-NATAL-EXCERPT-P0"),
     chartVersionId: id,
     locale: z.literal("vi"),
-    amountLa: z.literal(240),
+    amountLa: z.union([z.literal(240), z.literal(192)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -144,7 +164,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-RELATIONSHIP-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(480),
+    amountLa: z.union([z.literal(480), z.literal(384)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -154,7 +174,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-CAREER-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(480),
+    amountLa: z.union([z.literal(480), z.literal(384)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -164,7 +184,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-LIFE-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -174,7 +194,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-SIBLINGS-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -184,7 +204,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-SPOUSE-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -194,7 +214,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-CHILDREN-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -204,7 +224,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-WEALTH-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -214,7 +234,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-HEALTH-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -224,7 +244,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-TRAVEL-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -234,7 +254,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-FRIENDS-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -244,7 +264,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-CAREER-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -254,7 +274,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-PROPERTY-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -264,7 +284,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-FORTUNE-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -274,7 +294,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-PALACE-PARENTS-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(120),
+    amountLa: z.union([z.literal(120), z.literal(96)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -294,7 +314,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-MONTHLY-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(300),
+    amountLa: z.union([z.literal(300), z.literal(240), z.literal(0)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -304,7 +324,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-YEAR-2026-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(480),
+    amountLa: z.union([z.literal(480), z.literal(384)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -314,7 +334,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-COMBO-2026-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.literal(1300),
+    amountLa: z.union([z.literal(1300), z.literal(1040)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -382,7 +402,9 @@ export const WalletContentPriceV1Schema = z
           message: "identity price must be between 0 and 960 Lá",
         });
       }
-    } else if (value.amountLa !== item.priceLa) {
+    } else if (value.sku === "ZIWEI-MONTHLY-P0" && value.amountLa === 0) {
+      // Included membership reading; live membership is checked by server authorization.
+    } else if (value.amountLa !== item.priceLa && !(value.sku.startsWith("ZIWEI-") && value.sku !== "ZIWEI-TODAY-P0" && value.amountLa === Math.ceil(item.priceLa * 0.8))) {
       context.addIssue({
         code: "custom",
         path: ["amountLa"],

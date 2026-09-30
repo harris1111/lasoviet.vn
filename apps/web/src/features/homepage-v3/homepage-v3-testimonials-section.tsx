@@ -43,7 +43,6 @@ function useMedia(query: string, serverValue: boolean): boolean {
   );
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => serverValue);
 }
-
 function subscribeVisibility(notify: () => void) {
   document.addEventListener("visibilitychange", notify);
   return () => document.removeEventListener("visibilitychange", notify);
@@ -342,4 +341,3 @@ export function HomepageV3Testimonials({ avatars }: {
     </div>
   );
 }
-

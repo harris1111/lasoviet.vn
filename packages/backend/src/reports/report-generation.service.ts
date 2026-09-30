@@ -1,3 +1,9 @@
+import { periodKindForSku, isPeriodReportTuple, periodReportVersions } from "./period-report-config.js";
+import { writePeriodReading } from "./period-reading-writer.js";
+import { renderPeriodReportHtml } from "./period-report-html.js";
+import { topicIdForSku, isTopicReportTuple, topicReportVersions } from "./topic-report-config.js";
+import { writeZiweiTopicDeepDiveV4 } from "./topic-deep-dive-writer-v4.js";
+import { renderTopicReportHtml } from "./topic-report-html.js";
 import type { AiCostRequestContext, IdentityReportV1, ReportGenerateJobEnvelope } from "@lasoviet/contracts";
 import { createHash } from "node:crypto";
 import {
@@ -23,6 +29,10 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   REPORT_TEMPLATE_VERSION_V3,
   v4SectionedReportVersions,
+  v4_2BeginnerReportVersions,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER,
   v4_1_1KeyConfigSensitivityReportVersions,
   v4_1_2SensitivityReportVersions,
   v4_1_1SensitivityReportVersions,
@@ -224,6 +234,8 @@ export function createReportGenerationService(
     promptVersion: string;
     reportConfigVersion: string;
   }) {
+    const beginner = v4_2BeginnerReportVersions();
+    if (payload.knowledgeVersionId === beginner.knowledgeVersion && payload.promptVersion === beginner.promptVersion && payload.reportConfigVersion === beginner.reportConfigVersion) return beginner;
     const v4 = v4SectionedReportVersions();
     if (
       payload.knowledgeVersionId === v4.knowledgeVersion &&
@@ -267,7 +279,8 @@ export function createReportGenerationService(
     return null;
   }
 
-  function qualityInputs(section: ComprehensiveReportAcceptedSection) {
+  function qualityInputs(section: ComprehensiveReportAcceptedSection, qualityVersion: string) {
+    const beginner = qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER;
     const kind = section.key.startsWith("palace:")
       ? "palace"
       : section.key.startsWith("thematic:")
@@ -283,14 +296,16 @@ export function createReportGenerationService(
           key: section.key,
           itemKey: `${section.key}.stableFactors`,
           kind,
-          text: `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
+          text: beginner ? section.value.stableFactors.narrative : `${section.value.stableFactors.title} ${section.value.stableFactors.narrative}`,
+          ...(beginner ? { title: section.value.stableFactors.title } : {}),
           evidenceKeys: section.value.stableFactors.evidenceKeys,
         },
         {
           key: section.key,
           itemKey: `${section.key}.sensitiveFactors`,
           kind,
-          text: `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
+          text: beginner ? section.value.sensitiveFactors.narrative : `${section.value.sensitiveFactors.title} ${section.value.sensitiveFactors.narrative}`,
+          ...(beginner ? { title: section.value.sensitiveFactors.title } : {}),
           evidenceKeys: section.value.sensitiveFactors.evidenceKeys,
         },
       ] as unknown as Array<Parameters<typeof validateComprehensiveReportSectionQualityV4>[0] & { itemKey: string }>;
@@ -302,7 +317,8 @@ export function createReportGenerationService(
       kind,
       text: typeof entry === "object" && "recommendation" in entry
         ? `${entry.recommendation} ${entry.rationale} ${entry.avoid}`
-        : `${entry.title} ${entry.narrative}`,
+        : beginner ? entry.narrative : `${entry.title} ${entry.narrative}`,
+      ...(beginner && entry.title ? { title: entry.title } : {}),
       evidenceKeys: entry.evidenceKeys ?? [],
       ...(section.key.startsWith("palace:") ? { palaceId: section.key.slice("palace:".length) } : {}),
     } as Parameters<typeof validateComprehensiveReportSectionQualityV4>[0] & { itemKey: string }));
@@ -314,7 +330,7 @@ export function createReportGenerationService(
     reportConfigVersion: string = REPORT_CONFIG_VERSION_V4_1_SECTIONED,
     qualityVersion: string = REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
   ): readonly ReportSectionQualityFinding[] {
-    return qualityInputs(section).flatMap((quality) => {
+    return qualityInputs(section, qualityVersion).flatMap((quality) => {
       const result = validateComprehensiveReportSectionQualityV4(quality, facts!, reportConfigVersion, qualityVersion);
       return result.ok
         ? []
@@ -344,6 +360,7 @@ export function createReportGenerationService(
       ![
         REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
         REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+        REPORT_PROMPT_VERSION_V4_2_BEGINNER,
       ].includes(promptVersion as typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) ||
       candidate.key !== "keyConfigurations" ||
       rewritten.key !== "keyConfigurations"
@@ -422,7 +439,7 @@ export function createReportGenerationService(
     const selection = resolveSectionedSelection(payload);
     if (!selection) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
     const warningOnlyReview =
-      selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
+      (selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY || selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER);
     const sectionKeys = resolveComprehensiveReportSectionKeys(selection.reportConfigVersion);
     const quality = selection.family === "v4"
       ? ziweiComprehensiveReportQualityV1
@@ -465,7 +482,7 @@ export function createReportGenerationService(
       }
       return sections;
     };
-    const groupedActiveTuple =
+    const groupedActiveTuple = (selection.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER && selection.reportConfigVersion === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER && selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER) ||
       selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
       selection.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY &&
       selection.qualityVersion === REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY;
@@ -476,7 +493,7 @@ export function createReportGenerationService(
       const groups = [
         { groupId: "G1" as const, keys: ["overview", "coreAxis", "keyConfigurations", ...palaceKeys.slice(0, 6)] as ComprehensiveReportSectionKey[] },
         { groupId: "G2" as const, keys: [...palaceKeys.slice(6), ...thematicKeys] as ComprehensiveReportSectionKey[] },
-        { groupId: "G3" as const, keys: ["strengthsAndTensions", "currentDecadal", "annualSnapshot", "birthTimeSensitivity", "practicalDirection"] as ComprehensiveReportSectionKey[] },
+        { groupId: "G3" as const, keys: ["strengthsAndTensions", "currentDecadal", ...(selection.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER ? ["decadalTeasers"] : []), "annualSnapshot", "birthTimeSensitivity", "practicalDirection"] as ComprehensiveReportSectionKey[] },
       ];
       let digest: ReturnType<typeof buildComprehensiveReportSectionDigest> | undefined;
       for (const group of groups) {
@@ -710,7 +727,7 @@ export function createReportGenerationService(
               rewrite: {
                 priorSection: candidate.candidateSection,
                 findings: selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
-                  selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+                  (selection.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY || selection.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER)
                   ? candidate.findings
                   : candidate.findings.map((finding) =>
                       `${finding.itemKey} ${finding.code}: ${finding.note}`.slice(0, 300),
@@ -1341,6 +1358,111 @@ export function createReportGenerationService(
       return failAttempt("REPORT_EVIDENCE_INVALID", false);
     }
     const source = sourceResult.value;
+
+    // Product dispatch precedes every natal/comprehensive writer. Topic reads
+    // always commit their own immutable content under the paid SKU and tuple.
+    const periodKind = periodKindForSku(payload.sku);
+    if (periodKind) {
+      const facts = source.periodReadingFacts;
+      if (!isPeriodReportTuple(payload) || job.name !== "report.generate.v2" || !facts ||
+          facts.kind !== periodKind || facts.chartVersionId !== payload.chartVersionId ||
+          facts.asOfDate !== ("asOfDate" in payload ? payload.asOfDate : null) || facts.periodKey !== source.paidPeriodKey ||
+          (periodKind === "annual" && (facts.targetYear !== 2026 || facts.periodKey !== "2026"))) {
+        return failAttempt("REPORT_EVIDENCE_INVALID", false);
+      }
+      let blocked: Awaited<ReturnType<typeof lifecycleFence>> = null;
+      let budgetRejected = false;
+      const provider: typeof dependencies.provider = {
+        async generateStructured(request) {
+          if (request.purpose === "rewrite") {
+            const budget = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
+            if (!budget.ok || !budget.value.consumed) {
+              budgetRejected = true;
+              return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+            }
+          }
+          blocked = await lifecycleFence(input);
+          if (blocked) return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+          if (guardState(input) !== "active") {
+            budgetRejected = true;
+            return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+          }
+          return dependencies.provider.generateStructured(request);
+        },
+      };
+      let draft: Awaited<ReturnType<typeof writePeriodReading>>;
+      try { draft = await writePeriodReading({facts, provider, knowledgePacks: source.knowledgePacks,
+        costContext: {...baseCostContext, idempotencyKey: `${payload.reportVersionId}:period`}}); }
+      catch { return failAttempt("AI_TIMEOUT", true); }
+      if (blocked) return blocked;
+      if (budgetRejected || guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      if (!draft.ok) {
+        if (draft.error.code === "PERIOD_QUALITY_REJECTED") return failAttempt("AI_OUTPUT_INVALID", false);
+        const error = mapProviderError(draft.error); return failAttempt(error.code, error.retryable);
+      }
+      const beforeCommit = await lifecycleFence(input);
+      if (beforeCommit) return beforeCommit;
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      const versions = periodReportVersions();
+      const committed = await dependencies.versionRepository.commitImmutableVersion({
+        reportId: payload.reportId, reportVersionId: payload.reportVersionId, entitlementId: payload.entitlementId,
+        chartVersionId: payload.chartVersionId, evidenceVersionId: payload.evidenceVersionId,
+        knowledgeVersionId: payload.knowledgeVersionId, promptVersion: payload.promptVersion,
+        reportConfigVersion: payload.reportConfigVersion, templateVersion: versions.templateVersion,
+        renderVersion: versions.renderVersion, locale: payload.locale, sku: payload.sku,
+        providerId: draft.value.providerId, modelId: draft.value.modelId,
+        structuredContent: draft.value.content as unknown as IdentityReportV1, htmlContent: renderPeriodReportHtml(draft.value.content),
+        jobId, workerId, attemptNumber, traceId: job.traceId,
+        supersedesReportVersionId: supersedesReportVersionId(payload),
+      });
+      return committed.ok ? {ok: true, value: committed.value} : failAttempt("REPORT_VERSION_CONFLICT", false);
+    }
+
+    const topicId = topicIdForSku(payload.sku);
+    if (topicId) {
+      if (!isTopicReportTuple(payload) || job.name !== "report.generate.v2" || !source.comprehensiveFactsV4 || !source.knowledgePacks) {
+        return failAttempt("AI_OUTPUT_INVALID", false);
+      }
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      const beforeWrite = await lifecycleFence(input);
+      if (beforeWrite) return beforeWrite;
+      const write = async (rewrite?: Parameters<typeof writeZiweiTopicDeepDiveV4>[0]["rewrite"]) => writeZiweiTopicDeepDiveV4({
+        topicId, facts: source.comprehensiveFactsV4!, knowledgePacks: source.knowledgePacks!,
+        provider: dependencies.provider, readingContext: source.readingContext, rewrite,
+        costContext: { ...baseCostContext, idempotencyKey: `${payload.reportVersionId}:topic:${rewrite ? "rewrite" : "report"}`, purpose: rewrite ? "rewrite" : "report" },
+      });
+      let draft: Awaited<ReturnType<typeof write>>;
+      try { draft = await write(); } catch { return failAttempt("AI_TIMEOUT", true); }
+      if (!draft.ok) { const error = mapProviderError(draft.error); return failAttempt(error.code, error.retryable); }
+      if (draft.value.content.topicId !== topicId) return failAttempt("AI_OUTPUT_INVALID", false);
+      if (!draft.value.quality.ok) {
+        const budget = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
+        if (!budget.ok || !budget.value.consumed) return failAttempt("AI_OUTPUT_INVALID", false);
+        if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+        const beforeRewrite = await lifecycleFence(input);
+        if (beforeRewrite) return beforeRewrite;
+        try { draft = await write({ priorContent: draft.value.content, findings: draft.value.quality.findings }); }
+        catch { return failAttempt("AI_TIMEOUT", true); }
+        if (!draft.ok) { const error = mapProviderError(draft.error); return failAttempt(error.code, error.retryable); }
+      }
+      if (!draft.value.quality.ok || draft.value.content.topicId !== topicId) return failAttempt("AI_OUTPUT_INVALID", false);
+      const beforeCommit = await lifecycleFence(input);
+      if (beforeCommit) return beforeCommit;
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
+      const versions = topicReportVersions();
+      const committed = await dependencies.versionRepository.commitImmutableVersion({
+        reportId: payload.reportId, reportVersionId: payload.reportVersionId, entitlementId: payload.entitlementId,
+        chartVersionId: payload.chartVersionId, evidenceVersionId: payload.evidenceVersionId,
+        knowledgeVersionId: payload.knowledgeVersionId, promptVersion: payload.promptVersion,
+        reportConfigVersion: payload.reportConfigVersion, templateVersion: versions.templateVersion,
+        renderVersion: versions.renderVersion, locale: payload.locale, sku: payload.sku,
+        providerId: draft.value.providerId, modelId: draft.value.modelId,
+        structuredContent: draft.value.content as unknown as IdentityReportV1, htmlContent: renderTopicReportHtml(draft.value.content),
+        jobId, workerId, attemptNumber, traceId: job.traceId,
+        supersedesReportVersionId: supersedesReportVersionId(payload),
+      });
+      return committed.ok ? { ok: true, value: committed.value } : failAttempt("REPORT_VERSION_CONFLICT", false);
+    }
 
     if (family === "v4" || family === "v4_1") {
       if (!source.comprehensiveFactsV4 || !source.knowledgePacks) {

@@ -3283,6 +3283,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
   }
 
   function createSectionedService(options: {
+    facts?: typeof sectionedFacts;
     initial?: readonly any[];
     onSection?: (key: Key, request: any) => any;
     onGroup?: (groupId: string, request: any, attempt: number) => any;
@@ -3367,7 +3368,7 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       sourceRepository: {
         loadSource: vi.fn().mockResolvedValue({
           ok: true,
-          value: { ...sectionedSource, readingContext: options.readingContext ?? null },
+          value: { ...sectionedSource, comprehensiveFactsV4: options.facts ?? sectionedFacts, readingContext: options.readingContext ?? null },
         }),
         validateLifecycle: lifecycle,
       } as any,
@@ -3537,6 +3538,40 @@ describe("createReportGenerationService V4.1 sectioned orchestration", () => {
       renderVersion: "identity-report-pdf.v2",
       supersedesReportVersionId: null,
     });
+  });
+
+  it("runs the beginner tuple through all groups and persists its quality lineage", async () => {
+    const facts = structuredClone(sectionedFacts);
+    facts.evidence.items.push({ key: "e-other-star", sourceKeys: ["ziwei.star.tianji"] });
+    facts.evidenceKeys.push("e-other-star");
+    const fixture = createSectionedService({
+      facts,
+      onGroup: (_groupId, request) => ({ ok: true, value: {
+        providerId: "section-provider", modelId: "section-model",
+        value: { sections: JSON.parse(request.user).sectionKeys.map((key: Key | "decadalTeasers") => {
+          if (key === "decadalTeasers") return { key, value: [] };
+          const section = structuredClone(sectionFor(key));
+          if (key.startsWith("palace:")) (section.value as any).evidenceKeys.push("e-other-star");
+          if (key === "overview") {
+            const words = (section.value as any).narrative.split(/\s+/u);
+            const chunk = Math.ceil(words.length / 5);
+            (section.value as any).narrative = Array.from({ length: 5 }, (_, index) => words.slice(index * chunk, (index + 1) * chunk).join(" ")).join("\n\n");
+          }
+          return section;
+        }) },
+      } }),
+      onCritic: () => ({ ok: true, value: { value: { warnings: [] }, providerId: "critic-provider", modelId: "critic-model" } }),
+    });
+    const job = sectionedJob({ knowledgeVersionId: REPORT_KNOWLEDGE_VERSION_V4,
+      promptVersion: "ziwei.comprehensive.prompt.v4.2-beginner", reportConfigVersion: "ziwei.comprehensive.report.v4.2-sectioned-beginner" });
+    const result = await fixture.service.generateReport({ job, attemptNumber: 1, workerId: "worker-1" });
+    expectSectionedSuccess(result, fixture);
+    const groups = fixture.provider.generateStructured.mock.calls.map(([request]: [any]) => request).filter((request: any) => request.schemaName.startsWith("ziwei_comprehensive_report_section_group_"));
+    expect(groups).toHaveLength(3);
+    expect(groups[2].maxOutputTokens).toBe(20_000);
+    expect(JSON.parse(groups[2].user).sectionKeys).toContain("decadalTeasers");
+    expect(fixture.repository.claimGroup.mock.calls.every(([input]: [any]) => input.members.every((member: any) => member.qualityConfigVersion === "ziwei.comprehensive.quality.v2.4-beginner"))).toBe(true);
+    expect(fixture.versionRepository.commitImmutableVersion).toHaveBeenCalledTimes(1);
   });
 
   it("routes the additive V4.1.2 prompt tuple with the V2.3 quality lineage", async () => {

@@ -195,3 +195,19 @@ describe("ReportReader", () => {
     )).toThrow("V4_1_REPORT_READER_INVALID");
   });
 });
+
+
+describe("single-palace reader", () => {
+  it("renders only purchased palace text and exposes no full-report download", () => {
+    const html = renderToStaticMarkup(<ReportReader locale="vi" report={{
+      version: 1, state: "ready", contentVersion: "ziwei-palaces.v1", reportId: "palace-report",
+      reportVersionId: "palace-version", locale: "vi", sku: "ZIWEI-PALACE-LIFE-P0",
+      fulfillmentStatus: "complete", lineage: { supersedesReportVersionId: null },
+      content: { palaceReadings: [{ palaceId: "ziwei.palace.life", title: "Cung Mệnh", narrative: "Owned palace interpretation" }], lockedPalaces: ["ziwei.palace.spouse"] },
+    }} />);
+    expect(html).toContain("Owned palace interpretation");
+    expect(html).not.toContain("Cung Phu Thê");
+    expect(html).not.toContain("Tải PDF");
+    expect(html).not.toContain("ziwei.palace.spouse");
+  });
+});

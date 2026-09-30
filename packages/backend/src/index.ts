@@ -25,6 +25,27 @@ export { createSmtpEmailAdapter } from "./notifications/smtp-email-adapter.js";
 export type { SmtpEmailSettings } from "./notifications/smtp-email-adapter.js";
 
 export {
+  createDatabaseNotificationPreferenceStore,
+  fingerprintEmail,
+  generateUnsubscribeToken,
+  verifyUnsubscribeToken,
+} from "./notifications/notification-preference.js";
+export type { NotificationPreferenceStore } from "./notifications/notification-preference.js";
+
+export {
+  PALACE_TITLES_EN,
+  PALACE_TITLES_VI,
+  createVerifiedSignInNurtureService,
+} from "./notifications/nurture-signin.service.js";
+export type {
+  NurtureScanResult,
+  VerifiedSignInNurtureService,
+  VerifiedSignInNurtureServiceOptions,
+} from "./notifications/nurture-signin.service.js";
+
+export { computeEngineHanMonths, type ComputedHanMonth } from "./notifications/han-month-reminder.js";
+
+export {
   createDatabaseConsentRepository,
 } from "./consent/consent.repository.js";
 export type {
@@ -331,6 +352,9 @@ export {
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
@@ -351,6 +375,7 @@ export {
   v4_1_1SensitivityReportVersions,
   v4_1_1KeyConfigSensitivityReportVersions,
   v4_1_2SensitivityReportVersions,
+  v4_2BeginnerReportVersions,
   resolveReportRuntimePolicy,
   deriveReportTimingLineage,
   CURRENT_REPORT_KNOWLEDGE_VERSION,
@@ -396,6 +421,8 @@ export type {
 } from "./reports/identity-report-version-family.js";
 export {
   COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2,
+  resolveComprehensiveReportSectionKeys,
 } from "./reports/comprehensive-report-section-v4.js";
 export { identityReportOutline } from "./reports/identity-report-outline.js";
 export { buildFrozenIdentityReportFacts } from "./reports/frozen-identity-report-facts.js";
@@ -545,11 +572,23 @@ export type {
 } from "./wallet/wallet.repository.js";
 export { createWalletService } from "./wallet/wallet.service.js";
 export {
+  ensureWalletWelcomeGrant,
+  WALLET_WELCOME_GRANT_PROMOTIONAL_LA,
+} from "./wallet/wallet-welcome-grant.js";
+export {
   isWalletTopUpOrder,
   walletTopUpCreditedLa,
   walletTopUpPackTitle,
   type WalletTopUpOrder,
 } from "./commerce/wallet-topup.js";
+export {
+  createGuaranteeFeedbackService,
+  resolveRelatedPalaceSuggestion,
+} from "./commerce/guarantee-feedback.service.js";
+export type {
+  GuaranteeFeedbackService,
+  GuaranteeFeedbackServiceOptions,
+} from "./commerce/guarantee-feedback.service.js";
 export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
 export type {
   WalletUnlockService,
@@ -737,3 +776,45 @@ export {
 export type {
   AdminBusinessMetricsRepository,
 } from "./admin-business-metrics/business-metrics.repository.js";
+
+export {
+  TimeLimitedEntitlementService,
+} from "./commerce/time-limited-entitlement.service.js";
+export type {
+  CreateLifetimeBonusEntitlementInput,
+  AssertDailyReadingAccessResult,
+} from "./commerce/time-limited-entitlement.service.js";
+
+export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";
+
+export { acknowledgeTopUpPresence, createDelayedUnlockCompletionService, DELAYED_UNLOCK_WAIT_MS } from "./notifications/delayed-unlock-completion.js";
+export * from "./commerce/membership.service.js";
+
+export * from "./notifications/membership-expiry.service.js";
+export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
+export {
+  DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG,
+  TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES,
+  validateZiweiTopicDeepDiveQualityV4,
+} from "./reports/topic-deep-dive-quality-v4.js";
+export type {
+  TopicDeepDiveQualityConfig,
+  TopicDeepDiveQualityFinding,
+  TopicDeepDiveQualityFindingCode,
+  TopicDeepDiveQualityResult,
+} from "./reports/topic-deep-dive-quality-v4.js";
+
+export {
+  REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1,
+  writeZiweiTopicDeepDiveV4,
+  generateZiweiTopicDeepDiveWithQualityLoopV4,
+} from "./reports/topic-deep-dive-writer-v4.js";
+export type {
+  ZiweiTopicDeepDiveWriterInput,
+  ZiweiTopicDeepDiveWriterResult,
+  ZiweiTopicDeepDiveWriterRewrite,
+} from "./reports/topic-deep-dive-writer-v4.js";
+
+export { createHanMonthReminderService, dueComputedHanPeriod, type LunarReminderDay } from "./notifications/han-month-reminder.service.js";

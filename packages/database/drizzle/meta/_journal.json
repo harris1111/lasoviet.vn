@@ -323,6 +323,69 @@
       "when": 1790813460000,
       "tag": "0045_wallet_catalog_rollover_pricing",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1790813520000,
+      "tag": "0046_fd105_notification_delivery_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790813580000,
+      "tag": "0047_part_feedback_and_guarantee_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790813640000,
+      "tag": "0048_daily_entitlement_expiry",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790813700000,
+      "tag": "0049_shared_natal_report_entitlements",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790813760000,
+      "tag": "0050_wallet_topup_continuations",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1790813820000,
+      "tag": "0051_membership_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1790813880000,
+      "tag": "0052_period_reading_purchase_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1790813940000,
+      "tag": "0053_delayed_unlock_presence",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1790814000000,
+      "tag": "0054_combo_entitlement_authority",
+      "breakpoints": true
     }
   ]
 }

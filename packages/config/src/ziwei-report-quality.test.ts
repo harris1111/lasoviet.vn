@@ -240,3 +240,34 @@ describe("ziwei comprehensive report quality config", () => {
     ).toBe(600);
   });
 });
+
+describe("quality v2.4 beginner", () => {
+  const config = resolveZiweiReportQualityConfig(
+    "ziwei.comprehensive.report.v4.2-sectioned-beginner",
+    "ziwei.comprehensive.quality.v2.4-beginner",
+  );
+
+  it("keeps the v2.3 section lengths", () => {
+    expect(config.sections.overview).toMatchObject({ minimumSyllables: 600, targetMinimumSyllables: 700, targetMaximumSyllables: 900 });
+    expect(config.sections.palace).toMatchObject({ minimumSyllables: 450, targetMinimumSyllables: 550, targetMaximumSyllables: 750 });
+  });
+
+  it("adds a short per-cycle length for decadal teasers", () => {
+    expect(
+      resolveZiweiReportQualitySectionThreshold(
+        "ziwei.comprehensive.report.v4.2-sectioned-beginner",
+        "ziwei.comprehensive.quality.v2.4-beginner",
+        "decadalTeasers",
+      ),
+    ).toMatchObject({ minimumSyllables: 100, targetMinimumSyllables: 120, targetMaximumSyllables: 200 });
+  });
+
+  it("carries the beginner-first gate settings", () => {
+    if (config.version !== "ziwei.comprehensive.quality.v2.4-beginner") throw new Error("wrong version");
+    expect(config.maxDistinctStarNamesPer80Syllables).toBe(1.5);
+    expect(config.overviewMinimumParagraphs).toBe(5);
+    expect(config.bannedPhrases).toContain("mặt sau");
+    expect(config.bannedOpeners).toContain("chỗ dễ va chạm");
+    expect(config.bannedPhrases).not.toContain("chỗ dễ va chạm");
+  });
+});

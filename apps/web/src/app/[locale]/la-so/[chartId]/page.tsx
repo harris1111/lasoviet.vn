@@ -1,3 +1,5 @@
+import { loadTopUpCompletion, TopUpCompletionNotice } from "../../../../features/commerce/topup-completion";
+import { PersonalDailyReadingPanel } from "../../../../features/ziwei/personal-daily-reading-panel";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -12,6 +14,7 @@ import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-ch
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import { ZiweiResultTabs } from "../../../../features/ziwei/ziwei-result-tabs";
 import { projectFreeIdentityPreview } from "../../../../features/ziwei/ziwei-free-preview-projection";
+import { Guest24hDeletionBanner } from "../../../../features/ziwei/guest-24h-deletion-banner";
 import {
   parseResultTabState,
   buildCanonicalTabUrl,
@@ -54,12 +57,15 @@ export default async function ZiweiChartResultPage({
   if (!chartResult.ok || !previewResult.ok) notFound();
 
   // 2. Canonicalize query params ONLY AFTER authorized chart loaders pass
-  const tabState = parseResultTabState(rawSearchParams);
+  const { topupOrder, ...tabSearchParams } = rawSearchParams ?? {};
+  const tabState = parseResultTabState(tabSearchParams);
   const currentChartPath = localizedChartPath(locale, chartId);
-  const canonicalChartUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+  const completion = await loadTopUpCompletion(actor, topupOrder, currentChartPath);
+  const canonicalTabUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+  const canonicalChartUrl = completion && typeof topupOrder === "string" ? `${canonicalTabUrl}${canonicalTabUrl.includes("?") ? "&" : "?"}topupOrder=${encodeURIComponent(topupOrder)}` : canonicalTabUrl;
 
   // If incoming query parameters differ from canonical URL, safely redirect to canonical URL
-  if (hasNonCanonicalQueryParams(rawSearchParams, tabState)) {
+  if (hasNonCanonicalQueryParams(tabSearchParams, tabState) || (topupOrder !== undefined && !completion)) {
     redirect(canonicalChartUrl);
   }
 
@@ -68,6 +74,7 @@ export default async function ZiweiChartResultPage({
   if (!safePreview) notFound();
 
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
+  const isGuest = actor.kind === "anonymous" || actor.emailVerified === false;
 
   const displayName = chartResult.value.birthSummary.displayName;
   const heroTitle = displayName
@@ -91,6 +98,7 @@ export default async function ZiweiChartResultPage({
           <p>{heroCopy}</p>
         </section>
 
+        {completion && <TopUpCompletionNotice continuation={completion} locale={locale} chartId={chartId} />}
         {/* 5-layer result tabs shell */}
         <ZiweiResultTabs
           basePath={currentChartPath}
@@ -104,6 +112,8 @@ export default async function ZiweiChartResultPage({
           loadEvidence={loadZiweiEvidence}
           preview={safePreview}
         />
+
+        {actor.kind === "account" && <PersonalDailyReadingPanel chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale} />}
 
         <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
           <div className="result-paid-report-head">

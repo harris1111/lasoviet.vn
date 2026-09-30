@@ -1,5 +1,7 @@
 "use client";
 
+import { TopUpPresence } from "./topup-presence";
+
 import { SupportCard } from "../../components/ui/support-card";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 
@@ -48,6 +50,7 @@ function needsPolling(status: CheckoutStatus): boolean {
 }
 
 function reportPath(status: CheckoutStatus): string | null {
+  if (status.order.kind === "wallet_topup" && status.order.status === "paid" && status.order.continuation?.status === "completed") return status.order.continuation.returnPath;
   if (status.order.status !== "paid" || status.reportId === null) return null;
   const prefix = status.order.locale === "en" ? "/en" : "";
   return `${prefix}/bao-cao/${encodeURIComponent(status.reportId)}`;
@@ -485,7 +488,9 @@ export function VietQrCheckout({
     </section>
   ) : null;
 
-  const pollingErrorBlock = hasPollingError ? (
+  const pollingErrorBlock = <>
+    {status.order.kind === "wallet_topup" && status.order.continuation && <TopUpPresence orderId={status.order.id} />}
+    {hasPollingError ? (
     <div
       className="vietqr-polling-error"
       data-testid="checkout-polling-error"
@@ -501,7 +506,7 @@ export function VietQrCheckout({
         {retryActionLabel}
       </button>
     </div>
-  ) : null;
+  ) : null}</>;
 
   const footerSupportBlock = (
     <footer className="checkout-footer-support">
@@ -555,9 +560,12 @@ export function VietQrCheckout({
             <p className="vietqr-status">{labels.status.paid}</p>
             <h2>{creditedTitle}</h2>
             <p className="vietqr-recovery-description">{creditedDesc}</p>
+            {status.order.continuation?.status === "blocked" && <p role="alert">{isVi
+              ? "Lá đã vào ví. Lựa chọn trước đó đã thay đổi; hãy xem lại giá trước khi mở."
+              : "Your Lá is in your wallet. The previous selection has changed; review the price before unlocking."}</p>}
             <div className="vietqr-recovery-actions">
-              <Link href={libraryPath} className="button button-primary">
-                {backToLibraryLabel}
+              <Link href={status.order.continuation?.returnPath ?? libraryPath} className="button button-primary">
+                {status.order.continuation ? (isVi ? "Trở lại phần đã chọn" : "Return to your selection") : backToLibraryLabel}
               </Link>
             </div>
           </div>

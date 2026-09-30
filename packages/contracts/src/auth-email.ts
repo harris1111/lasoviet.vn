@@ -58,7 +58,111 @@ export const ReportFailedEmailRequestV1Schema = z
   .strict();
 export type ReportFailedEmailRequestV1 = z.infer<typeof ReportFailedEmailRequestV1Schema>;
 
+
+export const NurtureVerifiedSignInEmailRequestSchema = z
+  .object({
+    version: z.literal(1),
+    kind: z.literal("nurture_verified_signin"),
+    idempotencyKey: nonEmpty,
+    recipient: z.email().transform((value) => value.trim().toLowerCase()),
+    locale: z.enum(["vi", "en"]),
+    actionUrl: z.url(),
+    unsubscribeUrl: z.url(),
+    requestId: nonEmpty,
+    userId: nonEmpty,
+    chartId: nonEmpty,
+    palaceId: nonEmpty,
+    palaceTitle: nonEmpty,
+  })
+  .strict();
+export type NurtureVerifiedSignInEmailRequest = z.infer<
+  typeof NurtureVerifiedSignInEmailRequestSchema
+>;
+
+export const HanMonthReminderEmailRequestSchema = z
+  .object({
+    version: z.literal(1),
+    kind: z.literal("han_month_reminder"),
+    idempotencyKey: nonEmpty,
+    recipient: z.email().transform((value) => value.trim().toLowerCase()),
+    locale: z.enum(["vi", "en"]),
+    actionUrl: z.url(),
+    unsubscribeUrl: z.url(),
+    requestId: nonEmpty,
+    userId: nonEmpty,
+    chartId: nonEmpty,
+    targetYear: z.number().int(),
+    monthIndex: z.number().int().min(1).max(12),
+    primaryFocus: nonEmpty,
+    prepText: nonEmpty,
+    marker: z.literal("warn"),
+    reportId: nonEmpty.optional(),
+    chartVersionId: nonEmpty.optional(),
+    periodId: nonEmpty.optional(),
+    periodLabel: nonEmpty.optional(),
+    isLeapMonth: z.boolean().optional(),
+    periodPart: z.enum(["normal", "first", "second"]).optional(),
+    dayRange: z.tuple([z.number().int().min(1).max(30), z.number().int().min(1).max(30)]).optional(),
+  })
+  .strict();
+export type HanMonthReminderEmailRequest = z.infer<
+  typeof HanMonthReminderEmailRequestSchema
+>;
+
+export const DelayedUnlockCompletedEmailRequestSchema = z
+  .object({
+    version: z.literal(1),
+    kind: z.literal("delayed_unlock_completed"),
+    idempotencyKey: nonEmpty,
+    recipient: z.email().transform((value) => value.trim().toLowerCase()),
+    locale: z.enum(["vi", "en"]),
+    actionUrl: z.url(),
+    requestId: nonEmpty,
+    userId: nonEmpty,
+    orderId: nonEmpty,
+    sku: nonEmpty,
+    itemName: nonEmpty,
+  })
+  .strict();
+export type DelayedUnlockCompletedEmailRequest = z.infer<
+  typeof DelayedUnlockCompletedEmailRequestSchema
+>;
+
+export const NotificationPreferencesV1Schema = z
+  .object({
+    nurtureEmailsAllowed: z.boolean(),
+    hanRemindersAllowed: z.boolean(),
+    unsubscribedAll: z.boolean(),
+  })
+  .strict();
+export type NotificationPreferencesV1 = z.infer<
+  typeof NotificationPreferencesV1Schema
+>;
+
+export const UnsubscribeTokenClaimsSchema = z
+  .object({
+    userId: nonEmpty,
+    email: z.email().transform((value) => value.trim().toLowerCase()),
+    timestamp: z.number().int().positive(),
+  })
+  .strict();
+export type UnsubscribeTokenClaims = z.infer<
+  typeof UnsubscribeTokenClaimsSchema
+>;
+
+export const MembershipExpiryEmailRequestSchema = z.object({
+  version: z.literal(1), kind: z.literal("membership_expiry"),
+  idempotencyKey: nonEmpty, recipient: z.email().transform((value) => value.trim().toLowerCase()),
+  locale: z.enum(["vi", "en"]), actionUrl: z.url(), unsubscribeUrl: z.url(), requestId: nonEmpty,
+  userId: nonEmpty, subscriptionId: z.uuid(), expiresAt: z.iso.datetime(),
+}).strict();
+export type MembershipExpiryEmailRequest = z.infer<typeof MembershipExpiryEmailRequestSchema>;
+
 export const PersistedEmailDeliveryRequestSchema = z.discriminatedUnion("kind", [
+  MembershipExpiryEmailRequestSchema,
+  NurtureVerifiedSignInEmailRequestSchema,
+  HanMonthReminderEmailRequestSchema,
+  DelayedUnlockCompletedEmailRequestSchema,
   AuthEmailRequestSchema.extend({ kind: z.literal("email_verification") }),
   AuthEmailRequestSchema.extend({ kind: z.literal("password_reset") }),
   ReportReadyEmailRequestSchema,
@@ -71,7 +175,7 @@ export type PersistedEmailDeliveryRequest = z.infer<
 export function canonicalizeEmailDeliveryRequest(
   request: PersistedEmailDeliveryRequest,
 ): string {
-  return JSON.stringify({
+  const base = {
     version: request.version,
     kind: request.kind,
     idempotencyKey: request.idempotencyKey.trim(),
@@ -79,17 +183,63 @@ export function canonicalizeEmailDeliveryRequest(
     locale: request.locale,
     actionUrl: request.actionUrl,
     requestId: request.requestId.trim(),
-    ...(
-      request.kind === "report_failed"
-        ? {
-            reportId: request.reportId.trim(),
-            reportVersionId: request.reportVersionId.trim(),
-            failureStage: request.failureStage,
-            supportCaseId: request.supportCaseId.trim(),
-          }
-        : {}
-    ),
-  });
+  };
+
+  if (request.kind === "membership_expiry") return JSON.stringify({ ...base, userId: request.userId, subscriptionId: request.subscriptionId, expiresAt: request.expiresAt, unsubscribeUrl: request.unsubscribeUrl });
+
+  if (request.kind === "report_failed") {
+    return JSON.stringify({
+      ...base,
+      reportId: request.reportId.trim(),
+      reportVersionId: request.reportVersionId.trim(),
+      failureStage: request.failureStage,
+      supportCaseId: request.supportCaseId.trim(),
+    });
+  }
+
+  if (request.kind === "nurture_verified_signin") {
+    return JSON.stringify({
+      ...base,
+      unsubscribeUrl: request.unsubscribeUrl,
+      userId: request.userId.trim(),
+      chartId: request.chartId.trim(),
+      palaceId: request.palaceId.trim(),
+      palaceTitle: request.palaceTitle.trim(),
+    });
+  }
+
+  if (request.kind === "han_month_reminder") {
+    return JSON.stringify({
+      ...base,
+      unsubscribeUrl: request.unsubscribeUrl,
+      userId: request.userId.trim(),
+      chartId: request.chartId.trim(),
+      targetYear: request.targetYear,
+      monthIndex: request.monthIndex,
+      primaryFocus: request.primaryFocus.trim(),
+      prepText: request.prepText.trim(),
+      marker: request.marker,
+      reportId: request.reportId,
+      chartVersionId: request.chartVersionId,
+      periodId: request.periodId,
+      periodLabel: request.periodLabel,
+      isLeapMonth: request.isLeapMonth,
+      periodPart: request.periodPart,
+      dayRange: request.dayRange,
+    });
+  }
+
+  if (request.kind === "delayed_unlock_completed") {
+    return JSON.stringify({
+      ...base,
+      userId: request.userId.trim(),
+      orderId: request.orderId.trim(),
+      sku: request.sku.trim(),
+      itemName: request.itemName.trim(),
+    });
+  }
+
+  return JSON.stringify(base);
 }
 
 export const AuthEmailDeliveryOutcomeSchema = z

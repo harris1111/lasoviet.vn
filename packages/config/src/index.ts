@@ -72,9 +72,11 @@ export {
   validateZiweiReportQualityConfig,
   ziweiComprehensiveReportQualityV1,
   ziweiComprehensiveReportQualityV2Sensitivity,
+  ziweiComprehensiveReportQualityV2_4Beginner,
 } from "./ziwei-report-quality.js";
 export type {
   ZiweiReportQualityConfig,
+  ZiweiReportQualityConfigV2_4Beginner,
   ZiweiReportQualitySectionKind,
   ZiweiReportQualitySectionThreshold,
 } from "./ziwei-report-quality.js";

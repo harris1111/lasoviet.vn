@@ -11,6 +11,9 @@ import {
 import {
   AuthEmailRequestSchema,
   PersistedEmailDeliveryRequestSchema,
+  type HanMonthReminderEmailRequest,
+  type NurtureVerifiedSignInEmailRequest,
+  type DelayedUnlockCompletedEmailRequest,
   type AuthEmailKind,
   type AuthEmailRequest,
   type PersistedEmailDeliveryRequest,
@@ -34,7 +37,14 @@ export type NotificationDeliveryStatus =
   | "failed_permanent"
   | "delivery_unknown";
 
-export type NotificationDeliveryKind = AuthEmailKind | "report_ready" | "report_failed";
+export type NotificationDeliveryKind =
+  | AuthEmailKind
+  | "membership_expiry"
+  | "report_ready"
+  | "report_failed"
+  | "nurture_verified_signin"
+  | "han_month_reminder"
+  | "delayed_unlock_completed";
 
 export type AuthEmailDeliveryRecord = {
   id: string;
@@ -96,6 +106,13 @@ export type AuthEmailDeliveryServiceOptions = {
   store: AuthEmailDeliveryStore;
   provider: EmailProvider;
   recipientFingerprintSecret: string;
+  preferenceChecker?: {
+    isNonTransactionalAllowed(recipient: string, userId?: string, kind?: "nurture" | "han"): Promise<boolean>;
+  };
+  hanReminderEligibility?: (request: HanMonthReminderEmailRequest) => Promise<boolean>;
+  nurtureEligibility?: (request: NurtureVerifiedSignInEmailRequest) => Promise<boolean>;
+  delayedUnlockEligibility?: (request: DelayedUnlockCompletedEmailRequest) => Promise<boolean>;
+  membershipReminderAllowed?: (request: Extract<PersistedEmailDeliveryRequest, { kind: "membership_expiry" }>, now: Date) => Promise<boolean>;
   now?: () => Date;
 };
 
@@ -106,6 +123,12 @@ const messages: Record<
   Record<NotificationDeliveryKind, EmailMessage & { to: string }>
 > = {
   vi: {
+    membership_expiry: {
+      to: "", subject: "Hội viên Lá Số Việt sắp hết hạn",
+      text: "Hội viên của bạn hết hạn lúc {expiresAt}. Bạn có thể chủ động gia hạn tại {actionUrl}. Không tự động gia hạn hoặc trừ Lá. Hủy nhận nhắc: {unsubscribeUrl}",
+      html: '<p>Hội viên của bạn hết hạn lúc {expiresAt}.</p><p><a href="{actionUrl}">Chủ động gia hạn</a></p><p>Không tự động gia hạn hoặc trừ Lá.</p><p><a href="{unsubscribeUrl}">Hủy nhận nhắc</a></p>',
+    },
+
     email_verification: {
       to: "",
       subject: "Xac minh email La So Viet",
@@ -130,8 +153,32 @@ const messages: Record<
       text: "Bao cao cua ban can duoc ho tro. Mo lien ket de xem trang ho tro: {actionUrl}",
       html: "<p>Bao cao cua ban can duoc ho tro.</p><p><a href=\"{actionUrl}\">Mo trang ho tro</a></p>",
     },
+    nurture_verified_signin: {
+      to: "",
+      subject: "Kham pha them ve {palaceTitle} tren la so Tu Vi cua ban",
+      text: "La so cua ban da duoc luu tren La So Viet. Mo lien ket de kham pha them ve {palaceTitle}: {actionUrl}\n\nDe huy nhan thong bao nay, mo lien ket: {unsubscribeUrl}",
+      html: "<p>La so cua ban da duoc luu tren La So Viet.</p><p>Mo lien ket de kham pha them ve <strong>{palaceTitle}</strong>:</p><p><a href=\"{actionUrl}\">Xem {palaceTitle}</a></p><p style=\"font-size:12px;color:#666;\">De huy nhan thong bao: <a href=\"{unsubscribeUrl}\">Huy dang ky</a></p>",
+    },
+    han_month_reminder: {
+      to: "",
+      subject: "Luu y van han thang {monthIndex} tren la so Tu Vi cua ban",
+      text: "Thang {monthIndex} tren la so cua ban can dac biet chu y ve {primaryFocus}. {prepText}\n\nMo lien ket de xem chi tiet: {actionUrl}\n\nDe huy nhan thong bao nay, mo lien ket: {unsubscribeUrl}",
+      html: "<p>Thang {monthIndex} tren la so cua ban can dac biet chu y ve <strong>{primaryFocus}</strong>.</p><p>{prepText}</p><p><a href=\"{actionUrl}\">Xem chi tiet van han</a></p><p style=\"font-size:12px;color:#666;\">De huy nhan thong bao: <a href=\"{unsubscribeUrl}\">Huy dang ky</a></p>",
+    },
+    delayed_unlock_completed: {
+      to: "",
+      subject: "Phan ban chon da duoc mo tren La So Viet",
+      text: "Giao dich nap La thanh cong va {itemName} da duoc mo. Mo lien ket de xem ngay: {actionUrl}",
+      html: "<p>Giao dich nap La thanh cong va <strong>{itemName}</strong> da duoc mo.</p><p><a href=\"{actionUrl}\">Xem ngay</a></p>",
+    },
   },
   en: {
+    membership_expiry: {
+      to: "", subject: "Your Lá Số Việt membership expires soon",
+      text: "Your membership expires at {expiresAt}. Renew manually at {actionUrl}. We never renew or spend Lá automatically. Unsubscribe: {unsubscribeUrl}",
+      html: '<p>Your membership expires at {expiresAt}.</p><p><a href="{actionUrl}">Renew manually</a></p><p>We never renew or spend Lá automatically.</p><p><a href="{unsubscribeUrl}">Unsubscribe</a></p>',
+    },
+
     email_verification: {
       to: "",
       subject: "Verify your La So Viet email",
@@ -156,6 +203,24 @@ const messages: Record<
       text: "Your report needs support. Open this link to view the support page: {actionUrl}",
       html: "<p>Your report needs support.</p><p><a href=\"{actionUrl}\">Open support</a></p>",
     },
+    nurture_verified_signin: {
+      to: "",
+      subject: "Explore more about {palaceTitle} on your Zi Wei chart",
+      text: "Your chart is saved on La So Viet. Open this link to explore more about {palaceTitle}: {actionUrl}\n\nTo unsubscribe from these emails, open: {unsubscribeUrl}",
+      html: "<p>Your chart is saved on La So Viet.</p><p>Open this link to explore more about <strong>{palaceTitle}</strong>:</p><p><a href=\"{actionUrl}\">View {palaceTitle}</a></p><p style=\"font-size:12px;color:#666;\">To stop receiving these emails: <a href=\"{unsubscribeUrl}\">Unsubscribe</a></p>",
+    },
+    han_month_reminder: {
+      to: "",
+      subject: "Monthly guidance for month {monthIndex} on your Zi Wei chart",
+      text: "Month {monthIndex} calls for focus on {primaryFocus}. {prepText}\n\nOpen this link for details: {actionUrl}\n\nTo unsubscribe from these emails, open: {unsubscribeUrl}",
+      html: "<p>Month {monthIndex} calls for focus on <strong>{primaryFocus}</strong>.</p><p>{prepText}</p><p><a href=\"{actionUrl}\">View monthly guidance</a></p><p style=\"font-size:12px;color:#666;\">To stop receiving these emails: <a href=\"{unsubscribeUrl}\">Unsubscribe</a></p>",
+    },
+    delayed_unlock_completed: {
+      to: "",
+      subject: "Your selected item is unlocked on La So Viet",
+      text: "Your La top-up was successful and {itemName} has been unlocked. Open this link to view: {actionUrl}",
+      html: "<p>Your La top-up was successful and <strong>{itemName}</strong> has been unlocked.</p><p><a href=\"{actionUrl}\">View now</a></p>",
+    },
   },
 };
 
@@ -165,13 +230,50 @@ function fingerprint(recipient: string, secret: string): string {
     .digest("hex");
 }
 
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
 function renderMessage(request: PersistedEmailDeliveryRequest): EmailMessage {
   const template = messages[request.locale][request.kind];
+  let text = template.text.replaceAll("{actionUrl}", request.actionUrl);
+  let html = template.html.replaceAll("{actionUrl}", escapeHtml(request.actionUrl));
+  let subject = template.subject;
+
+  if (request.kind === "membership_expiry") {
+    text = text.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+    html = html.replaceAll("{expiresAt}", escapeHtml(request.expiresAt)).replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
+  } else if (request.kind === "nurture_verified_signin") {
+    text = text
+      .replaceAll("{palaceTitle}", request.palaceTitle)
+      .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+    html = html
+      .replaceAll("{palaceTitle}", escapeHtml(request.palaceTitle))
+      .replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
+    subject = subject.replaceAll("{palaceTitle}", request.palaceTitle);
+  } else if (request.kind === "han_month_reminder") {
+    text = text
+      .replaceAll("{monthIndex}", request.periodLabel ?? String(request.monthIndex))
+      .replaceAll("{primaryFocus}", request.primaryFocus)
+      .replaceAll("{prepText}", request.prepText)
+      .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+    html = html
+      .replaceAll("{monthIndex}", escapeHtml(request.periodLabel ?? String(request.monthIndex)))
+      .replaceAll("{primaryFocus}", escapeHtml(request.primaryFocus))
+      .replaceAll("{prepText}", escapeHtml(request.prepText))
+      .replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
+    subject = subject.replaceAll("{monthIndex}", request.periodLabel ?? String(request.monthIndex));
+  } else if (request.kind === "delayed_unlock_completed") {
+    text = text.replaceAll("{itemName}", request.itemName);
+    html = html.replaceAll("{itemName}", escapeHtml(request.itemName));
+    subject = subject.replaceAll("{itemName}", request.itemName);
+  }
+
   return {
     to: request.recipient,
-    subject: template.subject,
-    text: template.text.replaceAll("{actionUrl}", request.actionUrl),
-    html: template.html.replaceAll("{actionUrl}", request.actionUrl),
+    subject,
+    text,
+    html,
   };
 }
 
@@ -211,6 +313,12 @@ function statusForProviderResult(
     : "failed_permanent";
 }
 
+export const DISABLED_NOTIFICATION_KINDS: ReadonlySet<string> = new Set([
+  "nurture_verified_signin",
+  "han_month_reminder",
+  "delayed_unlock_completed",
+]);
+
 export function createAuthEmailDeliveryService(
   options: AuthEmailDeliveryServiceOptions,
 ) {
@@ -241,12 +349,67 @@ export function createAuthEmailDeliveryService(
         return outcome(record);
       }
 
+      if (DISABLED_NOTIFICATION_KINDS.has(validatedRequest.kind) && !(validatedRequest.kind === "delayed_unlock_completed" && options.delayedUnlockEligibility) && !(validatedRequest.kind === "nurture_verified_signin" && options.nurtureEligibility) && !(validatedRequest.kind === "han_month_reminder" && options.hanReminderEligibility)) {
+        await options.store.markFailure(
+          idempotencyKey,
+          0,
+          "failed_permanent",
+          "DISPATCH_DISABLED",
+          now,
+        );
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "membership_expiry" &&
+        (!options.preferenceChecker || !options.membershipReminderAllowed || !await options.membershipReminderAllowed(validatedRequest, now))) {
+        await options.store.markFailure(idempotencyKey, 0, "failed_permanent", "MEMBERSHIP_REMINDER_OBSOLETE", now);
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      // Check unsubscribe / preferences for non-transactional messages
+      if (
+        (validatedRequest.kind === "membership_expiry" || validatedRequest.kind === "nurture_verified_signin" ||
+          validatedRequest.kind === "han_month_reminder")
+      ) {
+        const allowed = await options.preferenceChecker?.isNonTransactionalAllowed(
+          validatedRequest.recipient,
+          validatedRequest.userId,
+          validatedRequest.kind === "han_month_reminder" ? "han" : "nurture",
+        );
+        if (!allowed) {
+          await options.store.markFailure(
+            idempotencyKey,
+            0,
+            "failed_permanent",
+            "RECIPIENT_UNSUBSCRIBED",
+            now,
+          );
+          return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+        }
+      }
+
       const claim = await options.store.claim(
         idempotencyKey,
         now,
         new Date(now.getTime() + LEASE_MS),
       );
       if (claim === null) {
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "delayed_unlock_completed" &&
+        !await options.delayedUnlockEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "UNLOCK_NOTICE_NO_LONGER_ELIGIBLE", nowValue());
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "nurture_verified_signin" && !await options.nurtureEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "NURTURE_NO_LONGER_ELIGIBLE", nowValue());
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "han_month_reminder" && !await options.hanReminderEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "HAN_REMINDER_NO_LONGER_ELIGIBLE", nowValue());
         return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
       }
 
@@ -339,12 +502,24 @@ export function createDatabaseAuthEmailDeliveryStore(
               eq(notificationDeliveries.status, "pending"),
               or(
                 eq(notificationDeliveries.kind, "report_ready"),
+                eq(notificationDeliveries.kind, "membership_expiry"),
                 eq(notificationDeliveries.kind, "report_failed"),
+                eq(notificationDeliveries.kind, "delayed_unlock_completed"),
+                eq(notificationDeliveries.kind, "nurture_verified_signin"),
+                eq(notificationDeliveries.kind, "han_month_reminder"),
               ),
             ),
             and(
               eq(notificationDeliveries.status, "failed_retryable"),
               lt(notificationDeliveries.attemptCount, 3),
+              or(
+                eq(notificationDeliveries.kind, "report_ready"),
+                eq(notificationDeliveries.kind, "membership_expiry"),
+                eq(notificationDeliveries.kind, "report_failed"),
+                eq(notificationDeliveries.kind, "delayed_unlock_completed"),
+                eq(notificationDeliveries.kind, "nurture_verified_signin"),
+                eq(notificationDeliveries.kind, "han_month_reminder"),
+              ),
             ),
           ),
         )
@@ -448,8 +623,13 @@ export function createDatabaseAuthEmailDeliveryStore(
         .where(
           and(
             eq(notificationDeliveries.idempotencyKey, idempotencyKey),
-            eq(notificationDeliveries.status, "sending"),
-            eq(notificationDeliveries.attemptCount, attemptCount),
+            or(
+              eq(notificationDeliveries.status, "sending"),
+              eq(notificationDeliveries.status, "pending"),
+            ),
+            attemptCount === 0
+              ? sql`true`
+              : eq(notificationDeliveries.attemptCount, attemptCount),
           ),
         );
     },

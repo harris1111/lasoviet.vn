@@ -1,11 +1,22 @@
+import { COMBO_SKU, COMBO_COMPONENT_SKUS, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
+import { reserveComboReports } from "./combo-report-reservation.js";
+import { membershipPrice, readActiveMembership } from "./membership.service.js";
+import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
+import { calculateBonusExpiry } from "@lasoviet/contracts";
+import { periodKindForSku, periodReportVersions, purchasePeriodKey as resolvePurchasePeriodKey } from "../reports/period-report-config.js";
+import { topicIdForSku, topicReportVersions } from "../reports/topic-report-config.js";
 import { randomUUID } from "node:crypto";
 
-import { and, desc, eq, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
+import { reportReservationAuthority } from "../reports/natal-report-authority.js";
+import { reservePaidReport } from "../reports/natal-report-reservation.js";
+import { and, desc, eq, gt, inArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import {
   calculateRolloverCredit,
   findLaProduct,
   getLaPrice,
   isQualifyingRolloverSku,
+  isSinglePalaceSku,
   resolveEntitlementScopeForSku,
   type CurrentActor,
   type QualifyingSpend,
@@ -21,7 +32,6 @@ import {
   birthProfileReadingContexts,
   birthProfiles,
   commerceEntitlements,
-  enqueueOutbox,
   evidenceSets,
   reportReservations,
   outbox,
@@ -49,7 +59,10 @@ import {
 const supportedLocale = (value: string): value is "vi" | "en" => value === "vi" || value === "en";
 const nonEmptyId = (value: string) => value.trim().length > 0;
 
+type ComboAnnualContinuation = {entitlementId: string; reservationId: string; reportId: string; reportVersionId: string; outboxId: string};
+
 type UnlockContinuation = {
+  annual?: ComboAnnualContinuation;
   entitlementId: string;
   reservationId: string;
   reportId: string;
@@ -65,12 +78,15 @@ const continuationCodec: WalletResultCodec<UnlockContinuation> = {
     const candidate = value as Partial<UnlockContinuation>;
     if (
       !Object.keys(candidate).every((key) => [
-        "entitlementId", "reservationId", "reportId", "reportVersionId", "outboxId", "intentId", "intentStateVersion",
+        "entitlementId", "reservationId", "reportId", "reportVersionId", "outboxId", "intentId", "intentStateVersion", "annual",
       ].includes(key)) ||
       ![candidate.entitlementId, candidate.reservationId, candidate.reportId, candidate.reportVersionId, candidate.outboxId, candidate.intentId]
         .every((id) => typeof id === "string" && id.trim().length > 0) ||
       !Number.isInteger(candidate.intentStateVersion) || candidate.intentStateVersion! < 1
     ) return { success: false };
+    if (candidate.annual !== undefined && (!candidate.annual || typeof candidate.annual !== "object" ||
+      Object.keys(candidate.annual).sort().join(",") !== "entitlementId,outboxId,reportId,reportVersionId,reservationId" ||
+      !Object.values(candidate.annual).every(value => typeof value === "string" && value.trim().length > 0))) return {success: false};
     return { success: true, data: candidate as UnlockContinuation };
   },
 };
@@ -108,7 +124,7 @@ export type WalletUnlockOutcome = {
   reportId: string;
 };
 
-type WalletResult<T> =
+export type WalletResult<T> =
   | { ok: true; value: T; reused?: boolean }
   | { ok: false; code: WalletUnlockServiceError };
 
@@ -264,17 +280,34 @@ async function price(
   chartId: string,
   sku: string,
   now: Date,
+  periodKey: string,
 ): Promise<PriceResult> {
   const product = findLaProduct(sku);
   if (!product || product.availability !== "active") return { ok: false, code: "WALLET_INTENT_INVALID" };
 
+  const member = await readActiveMembership(database, ownerId, now);
+  if (sku === "ZIWEI-MONTHLY-P0" && !member) {
+    // An expired membership grant must not prevent an explicit standalone purchase for the same month.
+    const freeSpends = database.select({ id: walletTransactions.id }).from(walletTransactions)
+      .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
+      .where(and(eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.priceLa, 0)));
+    await database.update(commerceEntitlements).set({ revokedAt: now, revocationReason: "membership_expired" }).where(and(
+      eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId), eq(commerceEntitlements.sku, sku),
+      eq(commerceEntitlements.periodKey, periodKey), isNull(commerceEntitlements.revokedAt), inArray(commerceEntitlements.ledgerSpendId, freeSpends),
+    ));
+  }
   const [sameSku] = await database.select({ id: commerceEntitlements.id })
     .from(commerceEntitlements)
     .leftJoin(walletTransactions, eq(walletTransactions.id, commerceEntitlements.ledgerSpendId))
     .where(and(
       eq(commerceEntitlements.ownerId, ownerId),
       eq(commerceEntitlements.chartId, chartId),
-      eq(commerceEntitlements.sku, sku),
+      or(eq(commerceEntitlements.sku, sku),
+        ...(sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)
+          ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
+      eq(commerceEntitlements.periodKey, periodKey),
+      isNull(commerceEntitlements.revokedAt),
+      or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, now)),
       or(
         isNotNull(commerceEntitlements.orderId),
         and(
@@ -286,13 +319,24 @@ async function price(
     .limit(1);
   if (sameSku !== undefined) return { ok: false, code: "WALLET_ENTITLEMENT_EXISTS" };
 
+  if (sku === "ZIWEI-MONTHLY-P0" && member) return { ok: true, amountLa: 0 };
+
+  if (sku === COMBO_SKU) {
+    const [ownedComponent] = await database.select({id: commerceEntitlements.id}).from(commerceEntitlements)
+      .leftJoin(walletTransactions, eq(walletTransactions.id, commerceEntitlements.ledgerSpendId))
+      .where(and(eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId),
+        inArray(commerceEntitlements.sku, [...COMBO_COMPONENT_SKUS]), isNull(commerceEntitlements.revokedAt),
+        or(isNotNull(commerceEntitlements.orderId), and(eq(walletTransactions.kind, "spend"), activeSpendCondition(database))))).limit(1);
+    if (ownedComponent) return {ok: false, code: "WALLET_ENTITLEMENT_EXISTS"};
+  }
+
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
     const rollover = calculateRolloverCredit({ spends, now });
-    return { ok: true as const, amountLa: rollover.effectivePriceLa };
+    return { ok: true as const, amountLa: membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member) };
   }
 
-  return { ok: true as const, amountLa: product.priceLa };
+  return { ok: true as const, amountLa: membershipPrice(product.priceLa, undefined, !!member) };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
@@ -301,13 +345,13 @@ function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
   if (intent.sku === "ZIWEI-IDENTITY-P0") {
     return intent.priceLa >= 0 && intent.priceLa <= 960;
   }
-  return intent.priceLa === product.priceLa;
+  if (intent.sku === "ZIWEI-MONTHLY-P0" && intent.priceLa === 0) return true;
+  return intent.priceLa === product.priceLa || intent.priceLa === membershipPrice(product.priceLa, undefined, true);
 }
 
 function hasUnlockOutboxLineage(
   payload: unknown,
   reservation: typeof reportReservations.$inferSelect,
-  entitlement: typeof commerceEntitlements.$inferSelect,
 ) {
   if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return false;
   const value = payload as Record<string, unknown>;
@@ -315,7 +359,7 @@ function hasUnlockOutboxLineage(
   if (
     !exact("reportId", reservation.reportId) ||
     !exact("reportVersionId", reservation.reportVersionId) ||
-    !exact("entitlementId", entitlement.id) ||
+    !exact("entitlementId", reservation.entitlementId) ||
     !exact("chartVersionId", reservation.chartVersionId) ||
     !exact("evidenceVersionId", reservation.evidenceVersionId) ||
     !exact("knowledgeVersionId", reservation.knowledgeVersionId) ||
@@ -344,7 +388,9 @@ async function verifyLineageAndRespond(
   balance: WalletBalanceV1,
   continuation: UnlockContinuation,
 ): Promise<WalletResult<{ intent: WalletPurchaseIntentV1; balance: WalletBalanceV1; reportId: string }>> {
+  const sourceEntitlement = alias(commerceEntitlements, "source_entitlement");
   const [lineage] = await db.select({
+    origin: sourceEntitlement,
     spend: walletTransactions,
     wallet: walletAccounts,
     intent: walletPurchaseIntents,
@@ -356,7 +402,8 @@ async function verifyLineageAndRespond(
     .innerJoin(walletAccounts, eq(walletAccounts.id, walletTransactions.walletId))
     .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
     .innerJoin(commerceEntitlements, eq(commerceEntitlements.ledgerSpendId, walletTransactions.id))
-    .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+    .innerJoin(reportReservations, reportReservationAuthority(db))
+    .innerJoin(sourceEntitlement, eq(sourceEntitlement.id, reportReservations.entitlementId))
     .innerJoin(evidenceSets, eq(evidenceSets.id, reportReservations.evidenceVersionId))
     .innerJoin(outbox, eq(outbox.id, continuation.outboxId))
     .where(and(
@@ -383,23 +430,37 @@ async function verifyLineageAndRespond(
     !validIntentTerms(lineage.intent) ||
     lineage.entitlement.ledgerSpendId !== lineage.spend.id ||
     lineage.entitlement.chartId !== lineage.intent.chartId ||
-    lineage.entitlement.sku !== lineage.intent.sku ||
-    lineage.reservation.entitlementId !== lineage.entitlement.id ||
+    (lineage.intent.sku !== COMBO_SKU && lineage.entitlement.sku !== lineage.intent.sku) ||
+    (lineage.intent.sku !== COMBO_SKU && lineage.intent.periodKey !== lineage.entitlement.periodKey) ||
     lineage.reservation.chartVersionId !== lineage.intent.chartVersionId ||
     lineage.reservation.evidenceVersionId !== lineage.evidence.id ||
     lineage.evidence.chartVersionId !== lineage.intent.chartVersionId ||
     lineage.evidence.capabilityId !== "ziwei.identity.p0" ||
-    lineage.reservation.sku !== lineage.intent.sku ||
+    (lineage.intent.sku !== COMBO_SKU && lineage.reservation.entitlementId === lineage.entitlement.id && lineage.reservation.sku !== lineage.intent.sku) ||
     lineage.reservation.locale !== lineage.intent.locale ||
-    lineage.event.aggregateType !== "report" ||
-    lineage.event.aggregateId !== lineage.reservation.reportId ||
+    !((lineage.event.aggregateType === "report" && lineage.event.aggregateId === lineage.reservation.reportId) ||
+      (lineage.event.aggregateType === "order" && lineage.event.aggregateId === lineage.origin.orderId)) ||
+    lineage.origin.ownerId !== ownerId || lineage.origin.chartId !== lineage.intent.chartId ||
+    lineage.origin.sku !== lineage.reservation.sku ||
     lineage.event.eventType !== (lineage.reservation.asOfDate === null
       ? "report.generation.requested.v1"
       : "report.generation.requested.v2") ||
-    !hasUnlockOutboxLineage(lineage.event.payload, lineage.reservation, lineage.entitlement)
+    !hasUnlockOutboxLineage(lineage.event.payload, lineage.reservation)
   ) {
     return failed("WALLET_RECONCILIATION_FAILED");
   }
+
+  if (lineage.intent.sku === COMBO_SKU) {
+    if (lineage.entitlement.sku !== "ZIWEI-IDENTITY-P0" || !continuation.annual || continuation.annual.entitlementId === lineage.entitlement.id || !await hasCompleteComboAuthority(db, {intent: lineage.intent, entitlement: lineage.entitlement})) return failed("WALLET_RECONCILIATION_FAILED");
+    const child = continuation.annual;
+    const [annual] = await db.select({entitlement: commerceEntitlements, reservation: reportReservations, event: outbox})
+      .from(commerceEntitlements).innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .innerJoin(outbox, eq(outbox.id, child.outboxId)).where(and(eq(commerceEntitlements.id, child.entitlementId),
+        eq(commerceEntitlements.ledgerSpendId, transactionId), eq(commerceEntitlements.sku, "ZIWEI-YEAR-2026-P0"),
+        eq(reportReservations.id, child.reservationId), eq(reportReservations.reportId, child.reportId), eq(reportReservations.reportVersionId, child.reportVersionId))).limit(1);
+    if (!annual || annual.event.aggregateType !== "report" || annual.event.aggregateId !== child.reportId ||
+        annual.event.eventType !== "report.generation.requested.v2" || !hasUnlockOutboxLineage(annual.event.payload, annual.reservation)) return failed("WALLET_RECONCILIATION_FAILED");
+  } else if (continuation.annual) return failed("WALLET_RECONCILIATION_FAILED");
 
   return {
     ok: true as const,
@@ -414,36 +475,46 @@ async function verifyLineageAndRespond(
 export function createWalletUnlockService(
   database: Database,
   wallet: WalletService,
-  options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver } = {},
+  options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver; dailyReadingWriter?: DailyReadingWriter; resolveMonthlyPeriodKey?: (asOfDate: string) => string } = {},
 ) {
   const now = options.now ?? (() => new Date());
+  const purchasePeriodKey = (sku: string, time: Date) => resolvePurchasePeriodKey(sku, time, options.resolveMonthlyPeriodKey);
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
+  const daily = createDailyWalletUnlockService(database, wallet, { now, writer: options.dailyReadingWriter });
 
   return {
     async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest): Promise<WalletResult<WalletPurchaseIntentV1>> {
+      if (request.sku === DAILY_SKU) return daily.createPurchaseIntent(actor, request);
       if (!await verifiedAccount(database, actor)) return failed(actor.kind === "account" ? "WALLET_ACCOUNT_INELIGIBLE" : "WALLET_ACCOUNT_REQUIRED");
       if (actor.kind !== "account") return failed("WALLET_ACCOUNT_REQUIRED");
       const ownerId = actor.userId;
       const product = findLaProduct(request.sku);
       if (
         !product ||
+        (request.sku === "ZIWEI-MONTHLY-P0" && !options.resolveMonthlyPeriodKey) ||
         product.availability !== "active" ||
         !supportedLocale(request.locale) ||
         !product.locales.includes(request.locale) ||
+        ((topicIdForSku(request.sku) !== null || periodKindForSku(request.sku) !== null || request.sku === COMBO_SKU) && request.locale !== "vi") ||
         !nonEmptyId(request.chartId) ||
         !nonEmptyId(request.chartVersionId)
       ) {
         return failed("WALLET_INTENT_INVALID");
       }
+      if (isSinglePalaceSku(request.sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(request.locale).family)) {
+        return failed("WALLET_INTENT_INVALID");
+      }
+      const quoteNow = now();
       const sku = request.sku;
       const locale = request.locale;
+      if ((sku === "ZIWEI-YEAR-2026-P0" || sku === COMBO_SKU) && deriveReportTimingLineage(quoteNow).targetYear !== 2026) return failed("WALLET_INTENT_INVALID");
 
       return database.transaction(async (transaction) => {
         if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`wallet-intent:${ownerId}:${request.chartId}:${sku}`}))`);
         if (await ownedChart(transaction, ownerId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
         if (await evidenceFor(transaction, request.chartVersionId) === undefined) return failed("WALLET_EVIDENCE_MISSING");
-        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, now());
+        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow));
         if (!selectedPrice.ok) return selectedPrice;
         const [pending] = await transaction.select().from(walletPurchaseIntents)
           .where(and(
@@ -458,7 +529,8 @@ export function createWalletUnlockService(
           if (
             pending.chartVersionId === request.chartVersionId &&
             pending.locale === locale &&
-            pending.priceLa === selectedPrice.amountLa
+            pending.priceLa === selectedPrice.amountLa &&
+            pending.periodKey === purchasePeriodKey(sku, quoteNow)
           ) {
             return { ok: true as const, value: projectIntent(pending), reused: true };
           }
@@ -482,7 +554,8 @@ export function createWalletUnlockService(
           sku,
           locale,
           priceLa: selectedPrice.amountLa,
-          createdAt: now(),
+          periodKey: purchasePeriodKey(sku, quoteNow),
+          createdAt: quoteNow,
         }).returning();
         if (created === undefined) throw new Error("WALLET_INTENT_CREATE_FAILED");
         return { ok: true as const, value: projectIntent(created), reused: false };
@@ -502,6 +575,9 @@ export function createWalletUnlockService(
       if (intent === undefined) {
         return failed("WALLET_INTENT_VERSION_CONFLICT");
       }
+      if (isSinglePalaceSku(intent.sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(intent.locale).family)) return failed("WALLET_INTENT_INVALID");
+
+      if (intent.sku === DAILY_SKU) return daily.unlock(actor, request);
 
       if (intent.status === "completed") {
         const [receipt] = await database.select({
@@ -553,10 +629,19 @@ export function createWalletUnlockService(
         return failed("WALLET_INTENT_VERSION_CONFLICT");
       }
 
-      // Dedicated zero-cost unlock path when effective price is 0 (100% rollover credit)
+      // Zero-cost audit path for complete rollover credit or included monthly membership access.
       if (intent.priceLa === 0) {
-        return database.transaction(async (transaction) => {
+        const zeroResult = await database.transaction<WalletResult<WalletUnlockOutcome>>(async (transaction) => {
           const currentNow = now();
+          // Match paid wallet commands: account, wallet, intent, then chart locks.
+          if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
+          const [walletAccount] = await transaction.select().from(walletAccounts)
+            .where(eq(walletAccounts.ownerId, actor.userId))
+            .limit(1)
+            .for("update");
+          if (walletAccount === undefined || walletAccount.stateVersion !== request.expectedWalletVersion) {
+            return failed("WALLET_VERSION_CONFLICT");
+          }
           const [initialIntent] = await transaction.select().from(walletPurchaseIntents)
             .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
             .limit(1)
@@ -584,9 +669,11 @@ export function createWalletUnlockService(
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || lockedIntent.sku === COMBO_SKU) && lockedIntent.locale !== "vi")) {
             return failed("WALLET_INTENT_INVALID");
           }
+          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow)) return failed("WALLET_INTENT_VERSION_CONFLICT");
+          if ((lockedIntent.sku === "ZIWEI-YEAR-2026-P0" || lockedIntent.sku === COMBO_SKU) && deriveReportTimingLineage(currentNow).targetYear !== 2026) return failed("WALLET_INTENT_INVALID");
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
@@ -595,17 +682,9 @@ export function createWalletUnlockService(
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return failed("WALLET_INTENT_INVALID");
 
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow);
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
-          }
-
-          const [walletAccount] = await transaction.select().from(walletAccounts)
-            .where(eq(walletAccounts.ownerId, actor.userId))
-            .limit(1)
-            .for("update");
-          if (walletAccount === undefined || walletAccount.stateVersion !== request.expectedWalletVersion) {
-            return failed("WALLET_VERSION_CONFLICT");
           }
 
           const continuationOperation = `wallet.report.unlock.v1.intent-v${request.expectedIntentVersion}`;
@@ -632,7 +711,7 @@ export function createWalletUnlockService(
           }).returning();
           if (zeroTx === undefined) throw new Error("WALLET_TRANSACTION_CREATE_FAILED");
 
-          const reportVersions = reportVersionResolver(locale);
+          const reportVersions = periodKindForSku(sku) ? periodReportVersions() : topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
           const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
             .from(ziweiCharts)
             .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))
@@ -643,69 +722,20 @@ export function createWalletUnlockService(
             orderId: null,
             ledgerSpendId: zeroTx.id,
             chartId: lockedIntent.chartId,
+            periodKey: lockedIntent.periodKey,
             sku,
             ownerId: actor.userId,
             scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
+            dailyBonusExpiresAt: sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
 
-          const timing = reportVersions.family === "v4" || reportVersions.family === "v4_1"
-            ? deriveReportTimingLineage(currentNow, { timingRuleVersion: reportVersions.timingRuleVersion })
-            : null;
-
-          const [reservation] = await transaction.insert(reportReservations).values({
-            reportId: randomUUID(),
-            reportVersionId: randomUUID(),
-            entitlementId: entitlement.id,
-            chartVersionId: lockedIntent.chartVersionId,
-            evidenceVersionId: evidence.id,
-            knowledgeVersionId: reportVersions.knowledgeVersion,
-            promptVersion: reportVersions.promptVersion,
-            reportConfigVersion: reportVersions.reportConfigVersion,
-            locale,
-            sku,
-            asOfDate: timing?.asOfDate,
-            targetYear: timing?.targetYear,
-            timingRuleVersion: timing?.timingRuleVersion,
-            sensitivityRuleVersion: timing?.sensitivityRuleVersion,
-            readingContextRevisionId: readingContext?.revisionId ?? null,
-            createdAt: currentNow,
-            updatedAt: currentNow,
-          }).returning();
-          if (reservation === undefined) throw new Error("WALLET_RESERVATION_CREATE_FAILED");
-
-          const event = await enqueueOutbox(transaction, {
-            schemaVersion: 1,
-            type: timing === null ? "report.generation.requested.v1" : "report.generation.requested.v2",
-            eventId: randomUUID(),
-            occurredAt: currentNow.toISOString(),
-            traceId: actor.requestId,
-            actorId: actor.userId,
-            aggregateType: "report",
-            aggregateId: reservation.reportId,
-            idempotencyKey: "report-request:" + reservation.reportVersionId,
-            payload: {
-              reportId: reservation.reportId,
-              reportVersionId: reservation.reportVersionId,
-              entitlementId: entitlement.id,
-              chartVersionId: reservation.chartVersionId,
-              evidenceVersionId: reservation.evidenceVersionId,
-              knowledgeVersionId: reservation.knowledgeVersionId,
-              promptVersion: reservation.promptVersion,
-              reportConfigVersion: reservation.reportConfigVersion,
-              locale,
-              sku,
-              ...(timing === null ? {} : {
-                asOfDate: timing.asOfDate,
-                targetYear: timing.targetYear,
-                timingRuleVersion: timing.timingRuleVersion,
-                sensitivityRuleVersion: timing.sensitivityRuleVersion,
-                readingContextRevisionId: reservation.readingContextRevisionId,
-              }),
-            },
+          const { reservation, event } = await reservePaidReport(transaction, {
+            entitlement, chartVersionId: lockedIntent.chartVersionId, evidenceVersionId: evidence.id,
+            locale, versions: reportVersions, readingContextRevisionId: readingContext?.revisionId ?? null,
+            now: currentNow, traceId: actor.requestId,
           });
-          if (event === undefined) throw new Error("WALLET_OUTBOX_CREATE_FAILED");
 
           const [completed] = await transaction.update(walletPurchaseIntents).set({
             status: "completed",
@@ -777,6 +807,13 @@ export function createWalletUnlockService(
             continuation,
           );
         });
+        if (!zeroResult.ok && zeroResult.code === "WALLET_INTENT_VERSION_CONFLICT") {
+          const [completed] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, intent.id)).limit(1);
+          // A simultaneous identical zero-price command may have completed while this transaction waited.
+          // Re-enter only the completed-intent receipt path, which checks the immutable fingerprint.
+          if (completed?.status === "completed") return createWalletUnlockService(database, wallet, options).unlock(actor, request);
+        }
+        return zeroResult;
       }
 
       const result = await wallet.spend<UnlockContinuation>({
@@ -815,9 +852,11 @@ export function createWalletUnlockService(
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || lockedIntent.sku === COMBO_SKU) && lockedIntent.locale !== "vi")) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
+          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow)) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          if ((lockedIntent.sku === "ZIWEI-YEAR-2026-P0" || lockedIntent.sku === COMBO_SKU) && deriveReportTimingLineage(currentNow).targetYear !== 2026) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
@@ -825,80 +864,48 @@ export function createWalletUnlockService(
           }
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow);
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
-          const reportVersions = reportVersionResolver(locale);
+          const reportVersions = periodKindForSku(sku) ? periodReportVersions() : topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
           const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
             .from(ziweiCharts)
             .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))
             .where(eq(ziweiCharts.id, lockedIntent.chartId))
             .limit(1);
-          const [entitlement] = await transaction.insert(commerceEntitlements).values({
+          let entitlement: typeof commerceEntitlements.$inferSelect;
+          let reservation: typeof reportReservations.$inferSelect;
+          let event: typeof outbox.$inferSelect;
+          let annual: ComboAnnualContinuation | undefined;
+          if (sku === COMBO_SKU) {
+            const pair = await reserveComboReports(transaction, {spendId: metadata.spendTransactionId, ownerId: actor.userId,
+              chartId: lockedIntent.chartId, chartVersionId: lockedIntent.chartVersionId, evidenceVersionId: evidence.id,
+              readingContextRevisionId: readingContext?.revisionId ?? null, natalVersions: reportVersionResolver(locale), now: currentNow, traceId: actor.requestId});
+            entitlement = pair.lifetime; reservation = pair.natal.reservation; event = pair.natal.event;
+            annual = {entitlementId: pair.annual.id, reservationId: pair.period.reservation.id, reportId: pair.period.reservation.reportId,
+              reportVersionId: pair.period.reservation.reportVersionId, outboxId: pair.period.event.id};
+          } else {
+            const [createdEntitlement] = await transaction.insert(commerceEntitlements).values({
             orderId: null,
             ledgerSpendId: metadata.spendTransactionId,
             chartId: lockedIntent.chartId,
+            periodKey: lockedIntent.periodKey,
             sku,
             ownerId: actor.userId,
             scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
+            dailyBonusExpiresAt: sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           }).returning();
-          if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
-          const timing = reportVersions.family === "v4" || reportVersions.family === "v4_1"
-            ? deriveReportTimingLineage(currentNow, { timingRuleVersion: reportVersions.timingRuleVersion })
-            : null;
-          const [reservation] = await transaction.insert(reportReservations).values({
-            reportId: randomUUID(),
-            reportVersionId: randomUUID(),
-            entitlementId: entitlement.id,
-            chartVersionId: lockedIntent.chartVersionId,
-            evidenceVersionId: evidence.id,
-            knowledgeVersionId: reportVersions.knowledgeVersion,
-            promptVersion: reportVersions.promptVersion,
-            reportConfigVersion: reportVersions.reportConfigVersion,
-            locale,
-            sku,
-            asOfDate: timing?.asOfDate,
-            targetYear: timing?.targetYear,
-            timingRuleVersion: timing?.timingRuleVersion,
-            sensitivityRuleVersion: timing?.sensitivityRuleVersion,
-            readingContextRevisionId: readingContext?.revisionId ?? null,
-            createdAt: currentNow,
-            updatedAt: currentNow,
-          }).returning();
-          if (reservation === undefined) throw new Error("WALLET_RESERVATION_CREATE_FAILED");
-          const event = await enqueueOutbox(transaction, {
-            schemaVersion: 1,
-            type: timing === null ? "report.generation.requested.v1" : "report.generation.requested.v2",
-            eventId: randomUUID(),
-            occurredAt: currentNow.toISOString(),
-            traceId: actor.requestId,
-            actorId: actor.userId,
-            aggregateType: "report",
-            aggregateId: reservation.reportId,
-            idempotencyKey: "report-request:" + reservation.reportVersionId,
-            payload: {
-              reportId: reservation.reportId,
-              reportVersionId: reservation.reportVersionId,
-              entitlementId: entitlement.id,
-              chartVersionId: reservation.chartVersionId,
-              evidenceVersionId: reservation.evidenceVersionId,
-              knowledgeVersionId: reservation.knowledgeVersionId,
-              promptVersion: reservation.promptVersion,
-              reportConfigVersion: reservation.reportConfigVersion,
-              locale,
-              sku,
-              ...(timing === null ? {} : {
-                asOfDate: timing.asOfDate,
-                targetYear: timing.targetYear,
-                timingRuleVersion: timing.timingRuleVersion,
-                sensitivityRuleVersion: timing.sensitivityRuleVersion,
-                readingContextRevisionId: reservation.readingContextRevisionId,
-              }),
-            },
+          if (createdEntitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
+            entitlement = createdEntitlement;
+            const reserved = await reservePaidReport(transaction, {
+            entitlement, chartVersionId: lockedIntent.chartVersionId, evidenceVersionId: evidence.id,
+            locale, versions: reportVersions, readingContextRevisionId: readingContext?.revisionId ?? null,
+            now: currentNow, traceId: actor.requestId,
           });
-          if (event === undefined) throw new Error("WALLET_OUTBOX_CREATE_FAILED");
+            reservation = reserved.reservation; event = reserved.event;
+          }
           const [completed] = await transaction.update(walletPurchaseIntents).set({
             status: "completed",
             stateVersion: lockedIntent.stateVersion + 1,
@@ -909,7 +916,9 @@ export function createWalletUnlockService(
             eq(walletPurchaseIntents.stateVersion, lockedIntent.stateVersion),
           )).returning();
           if (completed === undefined) throw new Error("WALLET_INTENT_COMPLETE_FAILED");
+          if (sku === COMBO_SKU && !await hasCompleteComboAuthority(transaction, {intent: completed, entitlement})) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           return {
+            ...(annual ? {annual} : {}),
             entitlementId: entitlement.id,
             reservationId: reservation.id,
             reportId: reservation.reportId,

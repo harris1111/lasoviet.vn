@@ -1,3 +1,4 @@
+import { teaserCyclesFor } from "./comprehensive-report-decadal-teasers.js";
 import {
   ZIWEI_PALACE_IDS,
   ZIWEI_THEMATIC_SYNTHESIS_IDS,
@@ -21,6 +22,7 @@ import {
 } from "./comprehensive-report-section-v4.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
 } from "./identity-report-config.js";
 import { normalizeComprehensiveReportModelProse } from "./comprehensive-report-writer.js";
@@ -184,6 +186,7 @@ export function assembleComprehensiveReportV4_1(
   facts: ComprehensiveZiweiFactsV4,
   reportConfigVersion:
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+    | typeof REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER
     | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY =
       REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
 ): ZiweiComprehensiveReportContentV3 {
@@ -194,11 +197,18 @@ export function assembleComprehensiveReportV4_1(
   const sensitivity = sections.find((section) => section.key === "birthTimeSensitivity");
   if (!sensitivity || sensitivity.key !== "birthTimeSensitivity") fail();
   const base = assembleComprehensiveReportV4(
-    sections.filter((section) => section.key !== "birthTimeSensitivity"),
+    sections.filter((section) => section.key !== "birthTimeSensitivity" && section.key !== "decadalTeasers"),
     facts,
   );
+  const teaser = sections.find((section) => section.key === "decadalTeasers");
+  const cycles = teaser ? teaserCyclesFor(facts) : [];
+  if (teaser && (teaser.value.length !== cycles.length || teaser.value.some((item, index) => item.ordinal !== cycles[index]!.ordinal))) fail();
+  const decadalTeasers = teaser?.value.map((item, index) => ({
+    ...cycles[index]!, narrative: normalizeComprehensiveReportModelProse(item.narrative), evidenceKeys: [...item.evidenceKeys],
+  }));
   const report = {
     ...base,
+    ...(decadalTeasers?.length ? { decadalTeasers } : {}),
     birthTimeSensitivity: {
       title: normalizeComprehensiveReportModelProse(sensitivity.value.title),
       stableFactors: {

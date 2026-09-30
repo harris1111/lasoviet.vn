@@ -1,4 +1,5 @@
-import { calculateIztroReportSnapshot } from "@lasoviet/engine-adapters";
+import { createMembershipExpiryReminderService, membershipReminderAllowed } from "@lasoviet/backend";
+import { calculateIztroReportSnapshot, lunarReminderDay } from "@lasoviet/engine-adapters";
 import { Module } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { loadEnvironment } from "@lasoviet/config";
@@ -9,6 +10,10 @@ import {
   createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
+  createDelayedUnlockCompletionService,
+  createVerifiedSignInNurtureService,
+  createHanMonthReminderService,
+  createDatabaseNotificationPreferenceStore,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAiCostService,
@@ -56,7 +61,12 @@ export class WorkerModule {}
 
 export function createMaintenanceRunner() {
   const environment = loadEnvironment(process.env);
-  if (!environment.ok || environment.value.databaseUrl === undefined) {
+  if (
+    !environment.ok ||
+    environment.value.databaseUrl === undefined ||
+    environment.value.internalActorSecret === undefined ||
+    environment.value.internalActorSecret.trim() === ""
+  ) {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
@@ -70,10 +80,22 @@ export function createMaintenanceRunner() {
         tlsRequired: environment.value.smtp.tlsRequired,
       })
     : { async send() { return { ok: false as const, code: "SMTP_CONFIG_INVALID" as const }; } };
+  const preferenceStore = createDatabaseNotificationPreferenceStore(
+    database,
+    environment.value.internalActorSecret ?? "",
+  );
+  const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
+  const hanReminder = createHanMonthReminderService(database, { preferenceStore, tokenSecret: environment.value.internalActorSecret, resolveLunarDay: lunarReminderDay });
+  const delayedUnlock = createDelayedUnlockCompletionService(database);
   const email = createAuthEmailDeliveryService({
     store: createDatabaseAuthEmailDeliveryStore(database),
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
+    preferenceChecker: preferenceStore,
+    delayedUnlockEligibility: delayedUnlock.isEligible,
+    nurtureEligibility: nurture.isEligible,
+    hanReminderEligibility: hanReminder.isEligible,
+    membershipReminderAllowed: (request, now) => membershipReminderAllowed(database, request, now),
   });
   const telegramAlert = createTelegramAlertProvider({
     botToken: environment.value.telegram?.botToken,
@@ -86,7 +108,6 @@ export function createMaintenanceRunner() {
       repository: createDatabaseAdminAccessRepository(database),
     }),
   });
-
   return createPhaseOneMaintenanceRunner({
     accountDeletion: createAccountDeletionService({
       repository: createDatabaseDeletionRepository(database),
@@ -97,7 +118,13 @@ export function createMaintenanceRunner() {
           repository: createDatabaseAnonymousRetentionRepository(database),
         }).purgeExpired(new Date(), limit),
     },
-    retryAuthEmail: (limit) => email.retryDue(limit),
+    retryAuthEmail: async (limit) => {
+      await nurture.scanAndEnqueue(limit);
+      await hanReminder.scanAndEnqueue(limit);
+      await delayedUnlock.scan((request) => email.send(request), limit);
+      await createMembershipExpiryReminderService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret ?? "" }).scanAndEnqueue(limit);
+      return email.retryDue(limit);
+    },
     reconciliation,
     analyticsRetention: createAnalyticsRetentionService({
       repository: createDatabaseAnalyticsRepository(database),

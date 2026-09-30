@@ -31,6 +31,7 @@ import {
 
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createDatabaseReportGenerationSourceRepository } from "./report-generation.repository.js";
+import { createDatabaseDailyReadingAccess } from "../commerce/personal-daily-reading.service.js";
 import { createDatabaseReportQueryRepository } from "./report-query.repository.js";
 
 describe("report query repository wallet authority", () => {
@@ -682,4 +683,38 @@ describe("report query repository wallet authority", () => {
     });
     expect(await repository.readAuthorizedReport(owner.userId, wallet.reportId)).toBeNull();
   });
+  it("persists the bonus, expires it on day 8, and revokes daily access after restoration", async () => {
+    const owner = await ownerFixture();
+    const wallet = await addWallet(owner);
+    const grantedAt = new Date("2026-09-20T17:30:00Z");
+    const expiresAt = new Date("2026-09-27T17:30:00Z");
+    await database.update(commerceEntitlements).set({ createdAt: grantedAt, dailyBonusExpiresAt: expiresAt })
+      .where(eq(commerceEntitlements.id, wallet.entitlementId));
+    const read = createDatabaseDailyReadingAccess(database);
+    expect(await read(owner.userId, owner.chartId, new Date("2026-09-27T17:29:59.999Z")))
+      .toMatchObject({ expiresAt, grantedAt, chartVersionId: owner.chartVersionId });
+    expect(await read(owner.userId, owner.chartId, expiresAt)).toBeNull();
+    expect(await read("another-owner", owner.chartId, grantedAt)).toBeNull();
+    await restoreWallet(owner, wallet.spendId);
+    expect(await read(owner.userId, owner.chartId, grantedAt)).toBeNull();
+  });
+
+  it("denies expired order and wallet report entitlements at the exact boundary", async () => {
+    const owner = await ownerFixture();
+    const order = await addOrder(owner);
+    const wallet = await addWallet(owner);
+    const createdAt = new Date("2026-09-20T00:00:00Z");
+    const expiresAt = new Date("2026-09-27T00:00:00Z");
+    for (const entitlementId of [order.entitlementId, wallet.entitlementId]) {
+      await database.update(commerceEntitlements).set({ createdAt, expiresAt })
+        .where(eq(commerceEntitlements.id, entitlementId));
+    }
+    const before = createDatabaseReportQueryRepository(database, () => new Date(expiresAt.getTime() - 1));
+    expect(await before.readAuthorizedReport(owner.userId, order.reportId)).not.toBeNull();
+    expect(await before.readAuthorizedReport(owner.userId, wallet.reportId)).not.toBeNull();
+    const after = createDatabaseReportQueryRepository(database, () => expiresAt);
+    expect(await after.readAuthorizedReport(owner.userId, order.reportId)).toBeNull();
+    expect(await after.readAuthorizedReport(owner.userId, wallet.reportId)).toBeNull();
+  });
+
 });

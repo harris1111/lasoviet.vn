@@ -219,4 +219,46 @@ describe("route registry", () => {
       purchasable: false,
     });
   });
+  it("registers notification.unsubscribe as public, live_noindex, and excluded from sitemaps", () => {
+    const unsubRoute = routeRegistry.find((route) => route.id === "notification.unsubscribe");
+    expect(unsubRoute).toBeDefined();
+    expect(unsubRoute).toMatchObject({
+      id: "notification.unsubscribe",
+      path: "/thong-bao/huy-dang-ky",
+      intent: "notification.unsubscribe",
+      template: "notification-unsubscribe",
+      status: "live_noindex",
+      robots: "noindex,nofollow",
+      indexing: "noindex_nofollow",
+      sitemap: false,
+      private: false,
+      purchasable: false,
+    });
+  });
+});
+
+it("keeps the authenticated daily reading API private and out of search indexes", () => {
+  expect(routeRegistry.find((route) => route.id === "api.ziwei.personal-daily-reading")).toMatchObject({
+    path: "/ziwei/charts/{chartId}/daily-reading", status: "live_noindex", private: true,
+    robots: "noindex,nofollow", sitemap: false, purchasable: false,
+  });
+});
+
+it("excludes the browser daily reading proxy from robots and sitemaps", () => {
+  expect(routeRegistry.find((route) => route.id === "api.web.personal-daily-reading")).toMatchObject({
+    status: "live_noindex", private: true, robots: "noindex,nofollow", sitemap: false, purchasable: false,
+  });
+});
+
+ it("keeps checkout status and presence API private and outside sitemaps", () => {
+   expect(routeRegistry.find((route) => route.id === "api.backend.commerce.presence")).toMatchObject({ path: "/commerce/orders/[orderId]/presence", status: "live_noindex", private: true, sitemap: false, robots: "noindex,nofollow" });
+   expect(routeRegistry.find((route) => route.id === "commerce.order-status-api")).toMatchObject({ path: "/api/commerce/orders/[orderId]/status", status: "live_noindex", private: true, sitemap: false, robots: "noindex,nofollow", localeOwners: ["vi"] });
+ });
+it("keeps membership status and commands private, unlocalized, noindex and outside sitemaps", () => {
+  for (const layer of ["backend", "web"]) {
+    for (const command of ["", ".intents", ".purchase"]) {
+      const route = routeRegistry.find((entry) => entry.id === `api.${layer}.membership${command}`);
+      expect(route).toMatchObject({ status: "live_noindex", private: true, localeBehavior: "unlocalized", robots: "noindex,nofollow", sitemap: false });
+    }
+  }
 });

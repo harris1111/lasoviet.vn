@@ -5,7 +5,7 @@
   "paymentDeferred": "SePay will open in the next step.",
   "preview": {
     "eyebrow": "Free preview",
-    "title": "Three points to reflect on",
+    "title": "Your Zi Wei Chart, and 2 Key Insights Personal to You",
     "strength": "Strength",
     "tension": "Tension to observe",
     "coverage": "This preview covers {percent}% of the {offer}."
@@ -74,7 +74,7 @@
     "unlockDialogShortBalanceTitle": "Not enough Lá",
     "unlockDialogShortBalanceBody": "You need {gap} more Lá. Your current balance is {balance} Lá.",
     "unlockDialogTopupAction": "Top up {pack} — {vnd}",
-    "unlockDialogTopupNote": "After topping up, come back to this page and unlock again — your selection is kept.",
+    "unlockDialogTopupNote": "After payment is confirmed, you will return to the selected section. If the selection or price has changed, your top-up remains in your wallet for you to confirm again.",
     "unlockDialogGenericError": "Something went wrong. Please try again.",
     "laInstantNotice": "Lá is credited immediately upon transfer confirmation.",
     "topupNotice": "Pay via VietQR bank transfer. Lá is credited automatically within seconds. Credits never expire.",
@@ -90,7 +90,18 @@
     "benefitSupport": "Fast error support",
     "benefitSupportDesc": "Message via Messenger or email if payment encounters issues.",
     "supportHeading": "Have questions before buying?",
-    "supportDesc": "Lá Số Việt replies via Messenger or email during business hours."
+    "supportDesc": "Lá Số Việt replies via Messenger or email during business hours.",
+    "unlockAfterTopupConsent": "Top up to automatically unlock {item} for {price} Lá after payment is confirmed.",
+    "unlockCompletedBalance": "Your selected part is unlocked. Your wallet has {balance} Lá remaining.",
+    "unlockReadPart": "Read your unlocked part",
+    "unlockResidualSuggestion": "You can use your remaining Lá to choose your next reading.",
+    "unlockReviewSelection": "Choose your next reading",
+    "unlockContinuationBlocked": "Your Lá is in your wallet. The previous selection has changed; review the price before unlocking.",
+    "residualPalaceToday": "Your remaining Lá covers another palace and Today ({cost} Lá).",
+    "residualToday": "Your remaining Lá covers Today ({cost} Lá).",
+    "residualTwoDays": "Save Lá for two Today readings after your included days end ({cost} Lá).",
+    "residualTopicPalace": "Your remaining Lá covers a second topic and one palace ({cost} Lá).",
+    "residualReserved": "Some suggested readings are not on sale yet. Keep your Lá in your wallet and explore available readings."
   },
   "checkout": {
     "eyebrow": "Payment",
@@ -287,6 +298,75 @@
     "timeline_how_body": "Zi Wei divides a life into ten year cycles, each passing through a different palace. Whatever that palace governs comes to the front during those ten years. The strip does not rank cycles as good or bad. It shows where the weight of each stretch of life falls, so you can prepare instead of being surprised.",
     "timeline_living": "Living now",
     "timeline_read_full": "Read this cycle in full",
-    "timeline_read_palace": "Read the {palace} palace"
+    "timeline_read_palace": "Read the {palace} palace",
+    "open_chart": "View chart",
+    "close_chart": "Close chart",
+    "chart_navigation": "Chart navigation",
+    "chart_navigation_help": "Choose a palace to read its chapter. Use arrow keys to move and Enter to open.",
+    "read_progress": "Reading progress"
+  },
+  "readerUpgrade": {
+    "title": "Continue with your complete lifetime reading",
+    "description": "Explore the twelve palaces, major chart patterns, life themes and the current decadal and annual context.",
+    "price": "Your upgrade: {amount} Lá",
+    "credit": "Your current discount: {amount} Lá against the 960 Lá list price.",
+    "terms": "Eligible palace and Natal Excerpt purchases on this chart count toward rollover for 7 days from the first purchase. The final price and balance are checked again before you confirm.",
+    "loading": "Checking your upgrade price…",
+    "unavailable": "Open the confirmation to check your current price and balance.",
+    "unlock": "Review upgrade",
+    "topup": "Top up Lá",
+    "palaces": "Twelve palace readings",
+    "patterns": "Major patterns and life themes",
+    "timing": "Current decade and year",
+    "scope": "Only titles and placeholders are shown until you unlock."
+  },
+  "topicReader": {
+    "eyebrow": "Topic deep dive",
+    "navigation": "Reading navigation",
+    "library": "Your library",
+    "print": "Print reading",
+    "actions": "Practical actions",
+    "avoid": "Avoid:"
+  },
+  "feedback": {
+    "question": "Does this part reflect your experience?",
+    "accurate": "Accurate",
+    "partially_accurate": "Partly",
+    "inaccurate": "Not accurate",
+    "thanks": "Thank you for your feedback.",
+    "saving": "Saving…",
+    "error": "Unable to process this. Please try again.",
+    "signIn": "Sign in with a verified account to request a Lá refund.",
+    "alreadyClaimed": "This account has already used its one-time Lá guarantee.",
+    "expired": "The 24-hour Lá guarantee window has ended.",
+    "priceLimit": "The Lá guarantee applies to parts costing less than 500 Lá.",
+    "conditions": "One claim per account, for a part purchased for less than 500 Lá within 24 hours. The refunded part will be locked again.",
+    "claim": "Request a Lá refund and lock this part",
+    "restored": "{amount} Lá restored. This reading is now locked.",
+    "related": "Explore {palace}"
+  },
+  "membership": {
+    "title": "Membership",
+    "activeUntil": "Membership is active until {date}.",
+    "inactive": "Membership is not active.",
+    "manualRenewal": "Manual renewal adds time to your remaining period. We never renew or spend Lá automatically.",
+    "benefitsMonthlyEnabled": "Monthly readings are included while your membership is active. Personalized tools: coming soon. Comprehensive reports are purchased separately. The lower of the 20% price or rollover price applies without stacking.",
+    "benefitsPending": "Monthly readings and personalized tools: coming soon. Comprehensive reports are purchased separately. The 20% price is compared with rollover credit; the lower price applies without stacking.",
+    "signIn": "Sign in to view membership",
+    "renew": "Renew {days} days · {price} Lá",
+    "purchase": "Join for {days} days · {price} Lá",
+    "monthly": "Monthly membership",
+    "yearly": "Annual membership",
+    "confirmTitle": "Confirm membership",
+    "confirm": "Confirm Lá payment",
+    "confirmAfterTopup": "After topping up, return to Membership to confirm your purchase or renewal.",
+    "loading": "Loading membership status…",
+    "error": "Membership status could not be loaded. Please try again."
+  },
+  "periodReader": {
+    "calendar": "Lunar calendar reading",
+    "overview": "Overview",
+    "periods": "Reading periods",
+    "cautions": "Things to consider"
   }
 }

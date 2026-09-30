@@ -232,3 +232,29 @@ describe("GET /api/commerce/orders/[orderId]/status", () => {
     expect(data).toEqual(paidStatus);
   });
 });
+
+ describe("owned checkout presence command", () => {
+   beforeEach(() => vi.resetAllMocks());
+   const orderId = "00000000-0000-4000-8000-000000000001";
+   it("rejects cross-origin commands before resolving authentication", async () => {
+     const { POST } = await import("./route.js");
+     const result = await POST(new Request("https://lasoviet.net/api/commerce/orders/x/status", { method: "POST", headers: { origin: "https://evil.test" } }), { params: Promise.resolve({ orderId }) });
+     expect(result.status).toBe(403);
+     expect(resolveVerifiedAccountActor).not.toHaveBeenCalled();
+   });
+   it("uses the verified owner and server clock through the private command", async () => {
+     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+     const requestMock = vi.fn().mockResolvedValue({ ok: true });
+     vi.mocked(privateApiClient).mockReturnValue({ request: requestMock });
+     const { POST } = await import("./route.js");
+     const result = await POST(new Request("https://lasoviet.net/api/commerce/orders/x/status", { method: "POST", headers: { origin: "https://lasoviet.net" } }), { params: Promise.resolve({ orderId }) });
+     expect(result.status).toBe(204);
+     expect(requestMock).toHaveBeenCalledWith(`/commerce/orders/${orderId}/presence`, { method: "POST" });
+     expect(result.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+   });
+   it("does not disclose unowned orders or unverified accounts", async () => {
+     vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
+     const { POST } = await import("./route.js");
+     expect((await POST(new Request("https://lasoviet.net/api/commerce/orders/x/status", { method: "POST" }), { params: Promise.resolve({ orderId }) })).status).toBe(404);
+   });
+ });

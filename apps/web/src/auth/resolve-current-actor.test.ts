@@ -103,6 +103,7 @@ describe("current actor resolver", () => {
       userId: "account-1",
       sessionId: "session-1",
       requestId: "admin-request-id",
+      emailVerified: true,
     });
   });
 
@@ -119,6 +120,7 @@ describe("current actor resolver", () => {
       userId: "account-1",
       sessionId: "session-1",
       requestId: "server-request-id",
+      emailVerified: false,
     });
     expect(subject.signInAnonymous).not.toHaveBeenCalled();
     expect(subject.findLiveAnonymousActor).not.toHaveBeenCalled();

@@ -1,3 +1,5 @@
+import { buildVoiceBlockV4_2 } from "./comprehensive-report-voice-v4-2.js";
+import { teaserCyclesFor } from "./comprehensive-report-decadal-teasers.js";
 import {
   type AiCostRequestContext,
   ZIWEI_PALACE_IDS,
@@ -17,6 +19,7 @@ import {
   resolveZiweiReportQualitySectionThreshold,
   ziweiComprehensiveReportQualityV1,
   ziweiComprehensiveReportQualityV2Sensitivity,
+  ziweiComprehensiveReportQualityV2_4Beginner,
 } from "@lasoviet/config";
 
 import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
@@ -24,6 +27,7 @@ import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.j
 import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.js";
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
+  decadalTeasersSchema,
   parseComprehensiveReportAcceptedSection,
   resolveComprehensiveReportSectionKeys,
   type ComprehensiveReportAcceptedSection,
@@ -37,6 +41,9 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_0_1,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
@@ -78,11 +85,13 @@ export type ComprehensiveReportSectionWriterV4Input = {
     | typeof REPORT_PROMPT_VERSION_V4_0_1
     | typeof REPORT_PROMPT_VERSION_V4_1_SENSITIVITY
     | typeof REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY
-    | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
+    | typeof REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+    | typeof REPORT_PROMPT_VERSION_V4_2_BEGINNER;
   reportConfigVersion?:
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
     | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
-    | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+    | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+    | typeof REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER;
   costContext?: AiCostRequestContext;
   readingContext?: ReadingContextV1 | null;
 };
@@ -120,7 +129,7 @@ export type ComprehensiveReportGroupedSectionWriterV4Result =
   | { ok: false; error: AiProviderError | { code: "AI_OUTPUT_INVALID"; retryable: false } };
 
 type SectionScope = {
-  kind: keyof typeof ziweiComprehensiveReportQualityV2Sensitivity.sections;
+  kind: keyof typeof ziweiComprehensiveReportQualityV2_4Beginner.sections;
   palaceIds: readonly ZiweiPalaceId[];
   packIds: readonly string[];
   includePatterns: boolean;
@@ -166,6 +175,8 @@ function scopeFor(key: ComprehensiveReportSectionKey, facts: ComprehensiveZiweiF
       return { kind: "keyConfigurations", palaceIds: [], packIds: ["patterns_transformations"], includePatterns: true, includeTransformations: true, includeAllNatalConfigurations: true, includeDecadal: false, includeAnnual: false };
     case "strengthsAndTensions":
       return { kind: "strengthsAndTensions", palaceIds: lifeAndBody, packIds: ["core_temperament", "patterns_transformations", "final_synthesis"], includePatterns: true, includeTransformations: true, includeAllNatalConfigurations: false, includeDecadal: false, includeAnnual: false };
+    case "decadalTeasers":
+      return { kind: "decadalTeasers", palaceIds: [...new Set(teaserCyclesFor(facts).map((c) => c.palaceId))], packIds: [], includePatterns: false, includeTransformations: true, includeAllNatalConfigurations: false, includeDecadal: true, includeAnnual: false };
     case "currentDecadal":
       return {
         kind: "currentDecadal",
@@ -189,6 +200,7 @@ function scopeFor(key: ComprehensiveReportSectionKey, facts: ComprehensiveZiweiF
 function schemaFor(key: ComprehensiveReportSectionKey): z.ZodType {
   let value: z.ZodType;
   if (key === "overview" || key === "coreAxis" || key === "strengthsAndTensions") value = narrativeSchema;
+  else if (key === "decadalTeasers") value = decadalTeasersSchema;
   else if (key === "keyConfigurations") value = keyConfigurationsSchema;
   else if (isPalaceKey(key)) value = palaceValueSchema;
   else if (isThematicKey(key)) value = thematicValueSchema;
@@ -216,14 +228,14 @@ function boundedFindings(
 function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4Input) {
   if (
     !isKeyConfigurationContractPrompt(input.promptVersion) ||
-    input.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY ||
+    (input.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY && input.reportConfigVersion !== REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER) ||
     input.sectionKey !== "keyConfigurations"
   ) {
     return null;
   }
   const threshold = resolveZiweiReportQualitySectionThreshold(
     input.reportConfigVersion,
-    input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+    input.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER : input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
       ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
       : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
     "keyConfigurations",
@@ -238,7 +250,7 @@ function keyConfigurationRequirements(input: ComprehensiveReportSectionWriterV4I
 
 function isKeyConfigurationContractPrompt(promptVersion: ComprehensiveReportSectionWriterV4Input["promptVersion"]): boolean {
   return promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
-    promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY;
+    promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY || promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER;
 }
 
 function rewritePayload(input: ComprehensiveReportSectionWriterV4Input) {
@@ -442,6 +454,7 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
 
   return {
     sectionKey: input.sectionKey,
+    ...(input.sectionKey === "decadalTeasers" ? { teaserCycles: teaserCyclesFor(input.facts) } : {}),
     facts: {
       natal: { palaces, transformations, patterns },
       ...(scope.includeDecadal ? { decadal: input.facts.timing.decadal } : {}),
@@ -488,28 +501,40 @@ Phần không phải cung phải dùng ít nhất hai fact khác nhau có eviden
 Chỉ dùng nhãn brightnessLabelsVi cho độ sáng sao; không dùng chữ Hán, chữ Nôm hoặc mô tả độ sáng bằng tiếng Anh.
 readingContext chỉ dùng mã enum lifeStage và topConcern để chọn ví dụ đời sống gần gũi hoặc nhấn mạnh chủ đề. Tuyệt đối không nói hay ngụ ý lá số đã tiết lộ hoàn cảnh hoặc mối quan tâm này, và không tạo bất kỳ khẳng định Tử Vi nào liên kết sao với readingContext. Khi readingContext là null, dùng ví dụ trung tính, cân bằng.`;
 
+function sectionSystemPrompt(promptVersion: string): string {
+  if (promptVersion !== REPORT_PROMPT_VERSION_V4_2_BEGINNER) return SECTION_SYSTEM_PROMPT;
+  const config = ziweiComprehensiveReportQualityV2_4Beginner;
+  const shared = SECTION_SYSTEM_PROMPT.split("\n").filter((line) => !line.startsWith("Phần không phải cung") && !line.startsWith("Chỉ dùng nhãn brightnessLabelsVi")).join("\n");
+  return `${shared}
+Mỗi phần phải có ít nhất ${config.minimumEvidenceAnchors} fact khác nhau trong evidenceKeys; phần cung có ít nhất ${config.minimumPalaceStars} sao thực có trong cung trong evidenceKeys. Trong bài nêu tên ít nhất ${config.minimumNamedAnchorsInProse} căn cứ đã dẫn; hoặc nói đúng trạng thái không có chính tinh.
+${buildVoiceBlockV4_2(config)}`;
+}
+
 function acceptanceContract(
   input: ComprehensiveReportSectionWriterV4Input,
   sectionKind: SectionScope["kind"],
 ) {
-  if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY) return null;
+  const beginner = input.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER;
+  if (input.promptVersion !== REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY && !beginner) return null;
   const quality = resolveZiweiReportQualityConfig(
-    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+    beginner ? REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER : REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    beginner ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
   );
   const threshold = resolveZiweiReportQualitySectionThreshold(
-    REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
-    REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
+    beginner ? REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER : REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+    beginner ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER : REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
     sectionKind,
   );
   return {
     scope: "section-and-item-addressed",
+    ...("bannedPhrases" in quality ? { beginnerFirst: { bannedPhrases: quality.bannedPhrases, bannedOpeners: quality.bannedOpeners, maxDistinctStarNamesPer80Syllables: quality.maxDistinctStarNamesPer80Syllables, noSubheadings: true, translateStarOnArrival: true, anchorsCountedInEvidenceRefs: true, minimumNamedAnchorsInProse: quality.minimumNamedAnchorsInProse } } : {}),
+    ...(input.sectionKey === "decadalTeasers" ? { decadalTeasers: { oneItemPerTeaserCycleInOrder: true, ordinalsMustMatchTeaserCycles: true, emptyCyclesRequireEmptyArray: true } } : {}),
     suppliedFindings: "Correct every supplied finding for its exact section or itemKey.",
     sectionLength: {
       appliesPerItem:
         input.sectionKey === "keyConfigurations" ||
         input.sectionKey === "practicalDirection" ||
-        input.sectionKey === "birthTimeSensitivity",
+        input.sectionKey === "birthTimeSensitivity" || input.sectionKey === "decadalTeasers",
       minimumSyllables: threshold.minimumSyllables,
       targetMinimumSyllables: threshold.targetMinimumSyllables,
       targetMaximumSyllables: threshold.targetMaximumSyllables,
@@ -556,7 +581,7 @@ function acceptanceContract(
 function appliesLengthPerItem(sectionKey: ComprehensiveReportSectionKey): boolean {
   return sectionKey === "keyConfigurations" ||
     sectionKey === "practicalDirection" ||
-    sectionKey === "birthTimeSensitivity";
+    sectionKey === "birthTimeSensitivity" || sectionKey === "decadalTeasers";
 }
 
 function measuredSectionLengths(section: ComprehensiveReportAcceptedSection): Array<{
@@ -585,7 +610,7 @@ function measuredSectionLengths(section: ComprehensiveReportAcceptedSection): Ar
       syllables: countVietnameseSyllables(
         "recommendation" in item
           ? `${item.recommendation} ${item.rationale} ${item.avoid}`
-          : `${item.title} ${item.narrative}`,
+          : "title" in item ? `${item.title} ${item.narrative}` : item.narrative,
       ),
     }));
   }
@@ -646,7 +671,8 @@ export async function writeComprehensiveReportSectionV4(
     reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
   const isV4_1_2 = input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
     reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
-  if (!isV4 && !isV4_1 && !isV4_1_1 && !isV4_1_2) {
+  const isV4_2 = input.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER && reportConfigVersion === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER;
+  if (!isV4 && !isV4_1 && !isV4_1_1 && !isV4_1_2 && !isV4_2) {
     throw new Error("COMPREHENSIVE_REPORT_SECTION_PROMPT_UNSUPPORTED");
   }
   if (!resolveComprehensiveReportSectionKeys(reportConfigVersion).includes(input.sectionKey)) {
@@ -670,7 +696,7 @@ export async function writeComprehensiveReportSectionV4(
     ].maxOutputTokens
     : resolveZiweiReportQualitySectionThreshold(
       reportConfigVersion,
-      reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
+      isV4_2 ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER : reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
         ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY
         : input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
           ? REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY
@@ -681,7 +707,7 @@ export async function writeComprehensiveReportSectionV4(
     schema: schemaFor(input.sectionKey),
     schemaName: `ziwei_comprehensive_report_section_${input.sectionKey.replace(/[^a-z0-9]+/giu, "_")}`,
     system: contract
-      ? `${SECTION_SYSTEM_PROMPT}
+      ? `${sectionSystemPrompt(input.promptVersion)}
 Acceptance contract JSON dưới đây là quy tắc bắt buộc cho response này:
 ${JSON.stringify(contract)}
 Acceptance contract: every supplied finding must be corrected at its exact section/item address; meet the configured per-section or per-item syllable range; avoid every configured discouraged, death, and certainty term, except Phu Thê and Tử Tức when they are explicit palace-name references in chart-structure context; emit no Han/Nom ideograph or English brightness descriptor; preserve evidence-backed chart facts and required evidence keys; introduce no new quality violation.
@@ -689,10 +715,10 @@ ${v4_1_2LengthInstruction(input, contract)}
 ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.` : ""}`
       : requirements
-      ? `${SECTION_SYSTEM_PROMPT}
+      ? `${sectionSystemPrompt(input.promptVersion)}
 Với keyConfigurations, áp dụng keyConfigurationRequirements cho TỪNG phần tử riêng biệt: tối thiểu ${requirements.minimumSyllables} âm tiết, mục tiêu ${requirements.targetMinimumSyllables}-${requirements.targetMaximumSyllables} âm tiết.
 Khi rewrite, phải giữ nguyên số lượng, thứ tự và evidenceKeys của từng keyConfigurations[i], sửa đầy đủ mọi finding theo đúng itemKey, không bịa facts hoặc evidence.`
-      : SECTION_SYSTEM_PROMPT,
+      : sectionSystemPrompt(input.promptVersion),
     user: JSON.stringify({
       ...scopedPayload(input, scope),
       ...(contract ? { acceptanceContract: contract } : {}),
@@ -720,8 +746,8 @@ function groupedOutputSchema(sectionKeys: readonly ComprehensiveReportSectionKey
 }
 
 function isActiveGroupedTuple(input: ComprehensiveReportGroupedSectionWriterV4Input): boolean {
-  return input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY &&
-    input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  return (input.promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY && input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY) ||
+    (input.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER && input.reportConfigVersion === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER);
 }
 
 export async function writeComprehensiveReportSectionGroupV4(
@@ -733,7 +759,7 @@ export async function writeComprehensiveReportSectionGroupV4(
   if (input.sectionKeys.length === 0 || new Set(input.sectionKeys).size !== input.sectionKeys.length) {
     throw new Error("COMPREHENSIVE_REPORT_GROUP_SECTION_KEYS_INVALID");
   }
-  const reportConfigVersion = REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+  const reportConfigVersion = input.reportConfigVersion ?? REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
   const scopePayloads = input.sectionKeys.map((sectionKey) => scopedPayload(
     {
       ...input,
@@ -768,7 +794,7 @@ ${requirements ? `Với keyConfigurations, áp dụng keyConfigurationRequiremen
   const result = await input.provider.generateStructured({
     schema: groupSchema,
     schemaName: `ziwei_comprehensive_report_section_group_${input.groupId.toLowerCase()}`,
-    system: `${SECTION_SYSTEM_PROMPT}
+    system: `${sectionSystemPrompt(input.promptVersion)}
 Đây là grouped generation cho đúng các section trong thứ tự được cung cấp. Chỉ trả JSON hợp lệ dạng {"sections":[{"key":string,"value":object}]}.
 Phải trả đủ đúng một entry cho mỗi sectionKey, giữ nguyên thứ tự, không thêm, thiếu, trùng, đổi key hoặc cắt ngắn bất kỳ section nào. Mỗi value phải giữ nguyên schema output của section tương ứng; mọi section sẽ được parse và validate độc lập.
 ${JSON.stringify(input.sectionKeys)}
@@ -783,7 +809,7 @@ ${acceptanceInstructions}`,
     use: "production_report_generation",
     purpose: "report",
     // Caps are per provider request and include the JSON envelope/array overhead.
-    maxOutputTokens: COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS[input.groupId],
+    maxOutputTokens: input.promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER && input.groupId === "G3" ? 20_000 : COMPREHENSIVE_REPORT_GROUP_OUTPUT_CAPS[input.groupId],
     costContext: input.costContext,
   });
   if (!result.ok) return result;

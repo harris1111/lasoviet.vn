@@ -1,3 +1,5 @@
+import { MembershipPanel } from "../commerce/membership-panel";
+import type { WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type {
@@ -13,6 +15,7 @@ import type { WalletUnlockDialogSku } from "../commerce/wallet-unlock-dialog";
 import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
 import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
+import { TopupTracker } from "../commerce/topup-tracker";
 import { SupportCard } from "../../components/ui/support-card";
 import { formatDisplayDate, type ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
 import {
@@ -71,6 +74,8 @@ export type PaidTopicSelectorProps = {
   initialTab?: "luan-giai" | "hoi-vien" | "nap-la";
   initialPackId?: "LA-ENTRY-300" | "LA-START-1100" | "LA-DISCOVER-3000" | "LA-LIBRARY-8000";
   userBalance?: number;
+  topUpContinuation?: WalletTopUpContinuationRequestV1;
+  topUpReturnPath?: string;
 };
 
 export function PaidTopicSelector({
@@ -84,6 +89,8 @@ export function PaidTopicSelector({
   initialTab,
   initialPackId,
   userBalance = 0,
+  topUpContinuation,
+  topUpReturnPath,
 }: PaidTopicSelectorProps) {
   const t = useTranslations("reports");
 
@@ -125,9 +132,18 @@ export function PaidTopicSelector({
   for (const offer of safeOffers) {
     const sku = resolveActiveSkuFromPublicOfferKey(offer.offerKey);
     if (sku) {
+      let upgradeCreditDescriptor = null;
+      if (offer.upgradeCredit) {
+        upgradeCreditDescriptor = {
+          sourceSku: "ZIWEI-NATAL-EXCERPT-P0",
+          targetSku: sku,
+          creditExpiresAt: offer.upgradeCredit.creditExpiresAt,
+        };
+      }
       renderedOfferDescriptors.push({
         offerId: offer.offerKey,
         sku,
+        upgradeCredit: upgradeCreditDescriptor,
       });
     }
   }
@@ -246,6 +262,7 @@ export function PaidTopicSelector({
   return (
     <section aria-labelledby="topic-selector-heading" className="pricing-page-container">
       <OfferViewTracker offers={renderedOfferDescriptors} />
+      <TopupTracker activeTab={activeTab} />
 
       {/* Header */}
       <div className="c-head">
@@ -514,6 +531,7 @@ export function PaidTopicSelector({
             })}
           </div>
           <p className="pack-note">{t("selection.membershipNotice")}</p>
+          <MembershipPanel locale={locale} />
         </section>
 
       {/* Tab 3: Nạp Lá (FD-066: VND appears here) */}
@@ -724,7 +742,9 @@ export function PaidTopicSelector({
               <form action={createTopUpOrderFormAction}>
                 <input type="hidden" name="packId" value={activePack.id} />
                 <input type="hidden" name="locale" value={locale} />
-                {topics?.chartId && (
+                {topUpContinuation && <input type="hidden" name="continuation" value={JSON.stringify(topUpContinuation)} />}
+                {topUpReturnPath && <input type="hidden" name="returnPath" value={topUpReturnPath} />}
+                {!topUpReturnPath && topics?.chartId && (
                   <input
                     type="hidden"
                     name="returnPath"

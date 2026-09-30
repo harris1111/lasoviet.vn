@@ -1539,7 +1539,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     await expect(
       database
         .update(commerceEntitlements)
-        .set({ sku: "ZIWEI-CAREER-P0" })
+        .set({ sku: "ZIWEI-CAREER-P0", dailyBonusExpiresAt: null })
         .where(eq(commerceEntitlements.id, entitlement1!.id)),
     ).rejects.toMatchObject({
       cause: expect.objectContaining({
@@ -1555,7 +1555,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     try {
       await database
         .update(commerceEntitlements)
-        .set({ sku: "ZIWEI-CAREER-P0" })
+        .set({ sku: "ZIWEI-CAREER-P0", dailyBonusExpiresAt: null })
         .where(eq(commerceEntitlements.id, entitlement1!.id));
     } finally {
       await database.execute(sql`
