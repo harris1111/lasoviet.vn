@@ -32,7 +32,7 @@ CREATE TABLE "guarantee_claims" (
 );
 --> statement-breakpoint
 ALTER TABLE "part_feedbacks" ADD CONSTRAINT "part_feedbacks_user_id_auth_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "part_feedbacks" ADD CONSTRAINT "part_feedbacks_chart_id_ziwei_charts_id_fk" FOREIGN KEY ("chart_id") REFERENCES "public"."ziwei_charts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "part_feedbacks" ADD CONSTRAINT "part_feedbacks_chart_id_ziwei_charts_id_fk" FOREIGN KEY ("chart_id") REFERENCES "public"."ziwei_charts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "guarantee_claims" ADD CONSTRAINT "guarantee_claims_account_id_auth_users_id_fk" FOREIGN KEY ("account_id") REFERENCES "public"."auth_users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "guarantee_claims" ADD CONSTRAINT "guarantee_claims_entitlement_id_commerce_entitlements_id_fk" FOREIGN KEY ("entitlement_id") REFERENCES "public"."commerce_entitlements"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "guarantee_claims" ADD CONSTRAINT "guarantee_claims_spend_transaction_id_wallet_transactions_id_fk" FOREIGN KEY ("spend_transaction_id") REFERENCES "public"."wallet_transactions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

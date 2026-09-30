@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ReportChartSnapshotV1Schema } from "./report-chart-snapshot-v1.js";
 import {
   EvidenceActionCategorySchema,
   EvidenceInterpretationBoundCodeSchema,
@@ -767,6 +768,7 @@ export const ReportComprehensiveV2ReadyViewV1Schema = baseReportReadyViewV1Schem
   contentVersion: z.literal("ziwei-comprehensive.v2"),
   locale: z.literal("vi"),
   content: ComprehensiveReportPublicContentV2Schema,
+  chartSnapshot: ReportChartSnapshotV1Schema.nullable().optional(),
 }).strict();
 export type ReportComprehensiveV2ReadyViewV1 = z.infer<
   typeof ReportComprehensiveV2ReadyViewV1Schema
@@ -776,6 +778,7 @@ export const ReportComprehensiveV3ReadyViewV1Schema = baseReportReadyViewV1Schem
   contentVersion: z.literal("ziwei-comprehensive.v3"),
   locale: z.literal("vi"),
   content: ComprehensiveReportPublicContentV3Schema,
+  chartSnapshot: ReportChartSnapshotV1Schema.nullable().optional(),
 }).strict();
 export type ReportComprehensiveV3ReadyViewV1 = z.infer<
   typeof ReportComprehensiveV3ReadyViewV1Schema

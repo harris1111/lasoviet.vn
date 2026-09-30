@@ -131,6 +131,7 @@ import {
   COMMERCE_INGRESS_SECRET,
   COMMERCE_RETURN_ORIGIN,
   COMMERCE_SEPAY_ENV,
+  COMMERCE_AUTO_APPROVE_TOPUPS,
   COMMERCE_SEPAY_MERCHANT,
   COMMERCE_SEPAY_SECRET,
   COMMERCE_ORDER_TTL_SECONDS,
@@ -430,6 +431,10 @@ function privacyDatabase() {
     {
       provide: COMMERCE_SEPAY_ENV,
       useFactory: () => applicationEnvironment().sepay.environment,
+    },
+    {
+      provide: COMMERCE_AUTO_APPROVE_TOPUPS,
+      useFactory: () => applicationEnvironment().sepayAutoApproveTopUps ?? false,
     },
     {
       provide: COMMERCE_SEPAY_MERCHANT,

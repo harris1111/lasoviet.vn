@@ -10,10 +10,10 @@ function route(id: string) {
   return value;
 }
 
-function content(routeId: string, contentType = "KnowledgeArticle") {
+function content(routeId: string, contentType = "KnowledgeArticle", locale: "vi" | "en" = "vi") {
   return {
     routeId,
-    locale: "vi" as const,
+    locale,
     contentType: contentType as "KnowledgeArticle" | "CommercialPage",
     title: "Fact-based title",
     summary: "Fact-based summary.",
@@ -54,11 +54,26 @@ describe("structured data", () => {
     ]);
   });
 
-  it("uses the server product catalog for the identity Product and Offer", () => {
+  it("does not publish the legacy VND catalog offer for the Vietnamese identity Product", () => {
     const identityRoute = route("commercial.tu-vi.identity");
     const nodes = buildStructuredData(
       identityRoute,
-      content(identityRoute.id, "CommercialPage"),
+      content(identityRoute.id, "CommercialPage", "vi"),
+      productCatalog,
+    );
+
+    expect(nodes[0]).toMatchObject({
+      "@type": "Product",
+      sku: "ZIWEI-IDENTITY-P0",
+    });
+    expect(nodes[0]).not.toHaveProperty("offers");
+  });
+
+  it("still uses the server product catalog for the English identity Product and Offer", () => {
+    const identityRoute = route("commercial.tu-vi.identity");
+    const nodes = buildStructuredData(
+      identityRoute,
+      content(identityRoute.id, "CommercialPage", "en"),
       productCatalog,
     );
 

@@ -11,6 +11,9 @@ import {
 } from "@lasoviet/backend";
 import {
   AccountLibraryV2Schema,
+  findLaProduct,
+  LIFETIME_BASE_PRICE_LA,
+  type LaSku,
   CommerceSkuSchema,
   PaymentSelfClaimRequestV1Schema,
   resolveProductTitle,
@@ -34,6 +37,7 @@ export const COMMERCE_ACTOR_SECRET = Symbol("COMMERCE_ACTOR_SECRET");
 export const COMMERCE_SEPAY_SECRET = Symbol("COMMERCE_SEPAY_SECRET");
 export const COMMERCE_INGRESS_SECRET = Symbol("COMMERCE_INGRESS_SECRET");
 export const COMMERCE_SEPAY_ENV = Symbol("COMMERCE_SEPAY_ENV");
+export const COMMERCE_AUTO_APPROVE_TOPUPS = Symbol("COMMERCE_AUTO_APPROVE_TOPUPS");
 export const COMMERCE_SEPAY_MERCHANT = Symbol("COMMERCE_SEPAY_MERCHANT");
 export const COMMERCE_RETURN_ORIGIN = Symbol("COMMERCE_RETURN_ORIGIN");
 export const COMMERCE_ORDER_TTL_SECONDS = Symbol("COMMERCE_ORDER_TTL_SECONDS");
@@ -60,16 +64,22 @@ function equal(a: string | undefined, b: string): boolean {
 function walletIntentRequest(body: unknown) {
   if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
   const value = body as Record<string, unknown>;
-  if (Object.keys(value).length !== 4 ||
+  if (
+    Object.keys(value).length !== 4 ||
     typeof value.chartId !== "string" || value.chartId.trim().length === 0 ||
     typeof value.chartVersionId !== "string" || value.chartVersionId.trim().length === 0 ||
-    (value.sku !== "ZIWEI-NATAL-EXCERPT-P0" && value.sku !== "ZIWEI-IDENTITY-P0") ||
-    (value.locale !== "vi" && value.locale !== "en")) return null;
-  return value as {
-    chartId: string;
-    chartVersionId: string;
-    sku: "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
-    locale: "vi" | "en";
+    typeof value.sku !== "string" ||
+    (value.locale !== "vi" && value.locale !== "en")
+  ) return null;
+  const product = findLaProduct(value.sku);
+  if (!product || product.availability !== "active" || !product.locales.includes(value.locale as "vi" | "en")) {
+    return null;
+  }
+  return {
+    chartId: value.chartId.trim(),
+    chartVersionId: value.chartVersionId.trim(),
+    sku: product.sku as LaSku,
+    locale: value.locale as "vi" | "en",
   };
 }
 
@@ -98,17 +108,28 @@ function customerWalletIntent(value: {
   stateVersion: number;
   createdAt: string;
 }) {
-  if (value.id.trim().length === 0 ||
-    (value.sku !== "ZIWEI-NATAL-EXCERPT-P0" && value.sku !== "ZIWEI-IDENTITY-P0") ||
+  if (
+    value.id.trim().length === 0 ||
     (value.locale !== "vi" && value.locale !== "en") ||
-    (value.amountLa !== 240 && value.amountLa !== 720 && value.amountLa !== 960) ||
     !["pending", "completed", "cancelled", "expired"].includes(value.status) ||
     !Number.isInteger(value.stateVersion) || value.stateVersion <= 0 ||
-    Number.isNaN(Date.parse(value.createdAt))) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+    Number.isNaN(Date.parse(value.createdAt))
+  ) {
+    throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  }
+  const product = findLaProduct(value.sku);
+  if (!product) throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  if (value.sku === "ZIWEI-IDENTITY-P0") {
+    if (value.amountLa < 0 || value.amountLa > LIFETIME_BASE_PRICE_LA) {
+      throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+    }
+  } else if (value.amountLa !== product.priceLa) {
+    throw new Error("WALLET_INTENT_PROJECTION_INVALID");
+  }
   return {
     id: value.id,
     sku: value.sku,
-    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale),
+    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale as "vi" | "en"),
     locale: value.locale,
     amountLa: value.amountLa,
     status: value.status,
@@ -153,6 +174,7 @@ export class CommerceController {
     @Inject(COMMERCE_SEPAY_SECRET) private readonly sepaySecret: string | undefined,
     @Inject(COMMERCE_INGRESS_SECRET) private readonly ingressSecret: string,
     @Inject(COMMERCE_SEPAY_ENV) private readonly sepayEnvironment: "disabled" | "sandbox" | "production",
+    @Inject(COMMERCE_AUTO_APPROVE_TOPUPS) private readonly autoApproveTopUps: boolean,
     @Inject(COMMERCE_SEPAY_MERCHANT) private readonly merchantId: string | undefined,
     @Inject(COMMERCE_RETURN_ORIGIN) private readonly origin: string,
     @Inject(COMMERCE_ORDER_TTL_SECONDS) private readonly orderTtlSeconds: number | undefined,
@@ -452,9 +474,7 @@ export class CommerceController {
     const parsed = WalletTopUpOrderCreateV1Schema.safeParse(body);
     if (!parsed.success) throw new BadRequestException({ code: "TOP_UP_ORDER_INVALID" });
     const actor = await this.actor(authorization);
-    // With payments disabled nothing may confirm a top-up, and auto-paying
-    // one would mint Lá for free, so top-ups are refused outright.
-    if (this.sepayEnvironment === "disabled") {
+    if (this.sepayEnvironment === "disabled" && !this.autoApproveTopUps) {
       throw new ServiceUnavailableException({ code: "TOP_UP_UNAVAILABLE" });
     }
     const repository = this.repository();
@@ -464,6 +484,42 @@ export class CommerceController {
       if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") throw new ForbiddenException({ code: result.code });
       if (result.code === "CHECKOUT_PAYMENTS_PAUSED") throw new ServiceUnavailableException({ code: result.code });
       return { ok: false, error: { code: result.code } };
+    }
+    if (this.sepayEnvironment === "disabled" && this.autoApproveTopUps) {
+      try {
+        if (result.value.status === "pending") {
+          const paidResult = await repository.recordPaid({
+            invoiceNumber: result.value.invoiceNumber,
+            matchMethod: "invoice_number",
+            providerEventId: `disabled-autopay:topup:${result.value.id}`,
+            amount: result.value.amount,
+            currency: result.value.currency,
+            traceId: actor.requestId,
+          });
+          if (!paidResult.ok) {
+            return { ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } };
+          }
+        }
+        const paidProjection = await repository.readTopUpOrderProjection(actor, result.value.id);
+        if (
+          paidProjection === null ||
+          paidProjection.order.status !== "paid" ||
+          paidProjection.creditedLa === null ||
+          paidProjection.creditedLa <= 0
+        ) {
+          return { ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } };
+        }
+        return {
+          ok: true,
+          value: {
+            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa),
+            paymentInstructions: null,
+            reportId: null,
+          },
+        };
+      } catch {
+        return { ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } };
+      }
     }
     const projection = await repository.readTopUpOrderProjection(actor, result.value.id);
     if (projection === null) return { ok: false, error: { code: "TOP_UP_ORDER_CREATE_FAILED" } };

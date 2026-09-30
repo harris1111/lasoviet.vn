@@ -1,3 +1,4 @@
+import { buildReportChartSnapshotFromStored } from "./report-chart-snapshot.js";
 import { customerContactConfig } from "@lasoviet/config";
 import {
   EvidenceItemV1Schema,
@@ -369,6 +370,11 @@ export function createReportQueryService(options: {
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
           chartId: record.chartId,
+          chartSnapshot: buildReportChartSnapshotFromStored(
+            record.chartNormalizedOutput,
+            record.sourceSnapshot,
+            version.chartVersionId,
+          ),
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },
@@ -433,6 +439,11 @@ export function createReportQueryService(options: {
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
           chartId: record.chartId,
+          chartSnapshot: buildReportChartSnapshotFromStored(
+            record.chartNormalizedOutput,
+            record.sourceSnapshot,
+            version.chartVersionId,
+          ),
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },

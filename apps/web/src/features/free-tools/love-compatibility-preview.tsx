@@ -392,8 +392,8 @@ export function LoveCompatibilityPreview({ locale, className }: LoveCompatibilit
             <Link
               href={
                 isVi
-                  ? `/tao-la-so/tu-vi?name=${encodeURIComponent(nameA)}&birthYear=${yearA}`
-                  : `/en/tao-la-so/tu-vi?name=${encodeURIComponent(nameA)}&birthYear=${yearA}`
+                  ? `/tao-la-so/tu-vi?from=boi-tinh-yeu&name=${encodeURIComponent(nameA)}&birthYear=${yearA}`
+                  : `/en/tao-la-so/tu-vi?from=boi-tinh-yeu&name=${encodeURIComponent(nameA)}&birthYear=${yearA}`
               }
               style={{
                 display: "inline-block",

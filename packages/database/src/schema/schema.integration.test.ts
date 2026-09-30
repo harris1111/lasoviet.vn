@@ -67,7 +67,8 @@ import { generatedPreviewRequests, generatedPreviewSections } from "./generated-
 describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
   const openRouterPricingVersion = "openrouter-deepseek-flash-v1-20260920";
-  const currentMigrationTimestamp = 1790813340000;
+  const geminiFlashPricingVersion = "9router-ag-gemini-3.8-flash-v1-20260925";
+  const currentMigrationTimestamp = 1790813460000;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -123,6 +124,32 @@ describe("database schema integration", () => {
     }
   }
 
+
+  async function removeGeminiFlashPricingForRewind(
+    client: ReturnType<typeof postgres>,
+  ): Promise<void> {
+    let triggerDisabled = false;
+
+    try {
+      await client`
+        ALTER TABLE ai_model_pricing
+        DISABLE TRIGGER prevent_mutation_ai_model_pricing
+      `;
+      triggerDisabled = true;
+      await client`
+        DELETE FROM ai_model_pricing
+        WHERE pricing_version = ${geminiFlashPricingVersion}
+      `;
+    } finally {
+      if (triggerDisabled) {
+        await client`
+          ALTER TABLE ai_model_pricing
+          ENABLE TRIGGER prevent_mutation_ai_model_pricing
+        `;
+      }
+    }
+  }
+
   async function expectCurrentClaudePricingAndJournal(
     client: ReturnType<typeof postgres>,
   ): Promise<void> {
@@ -132,6 +159,13 @@ describe("database schema integration", () => {
       WHERE pricing_version = ${claudePricingVersion}
     `;
     expect(pricing?.pricing_version).toBe(claudePricingVersion);
+
+    const [geminiPricing] = await client<{ pricing_version: string }[]>`
+      SELECT pricing_version
+      FROM ai_model_pricing
+      WHERE pricing_version = ${geminiFlashPricingVersion}
+    `;
+    expect(geminiPricing?.pricing_version).toBe(geminiFlashPricingVersion);
 
     const [tail] = await client<{ created_at: string }[]>`
       SELECT created_at
@@ -175,9 +209,10 @@ describe("database schema integration", () => {
         DROP COLUMN terminal_findings
       `;
       await removeOpenRouterPricingForRewind(client);
+      await removeGeminiFlashPricingForRewind(client);
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790813280000, 1790813340000)
+        WHERE created_at IN (1790813280000, 1790813340000, 1790813400000, 1790813460000)
       `;
       await client`
         INSERT INTO report_section_checkpoints (
@@ -509,6 +544,7 @@ describe("database schema integration", () => {
       `;
       await removeClaudePricingForRewind(client);
       await removeOpenRouterPricingForRewind(client);
+      await removeGeminiFlashPricingForRewind(client);
       await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       await client`
@@ -520,7 +556,9 @@ describe("database schema integration", () => {
           1790813160000,
           1790813220000,
           1790813280000,
-          1790813340000
+          1790813340000,
+          1790813400000,
+          1790813460000
         )
       `;
       await client`
@@ -568,6 +606,52 @@ describe("database schema integration", () => {
         ) VALUES (
           '10000000-0000-4000-8000-000000000044', ${ownerId}, 'wallet-0037-excerpt-chart',
           'wallet-0037-excerpt-version', 'ZIWEI-NATAL-EXCERPT-P0', 'en', 240, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+
+      // Migration 0045: new SKUs and rollover prices
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000045', ${ownerId}, 'wallet-0045-palace-chart',
+          'wallet-0045-palace-version', 'ZIWEI-PALACE-LIFE-P0', 'vi', 120, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000046', ${ownerId}, 'wallet-0045-palace-chart-2',
+          'wallet-0045-palace-version-2', 'ZIWEI-PALACE-LIFE-P0', 'vi', 240, 'pending', 1
+        )
+      `).rejects.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000047', ${ownerId}, 'wallet-0045-rollover-chart',
+          'wallet-0045-rollover-version', 'ZIWEI-IDENTITY-P0', 'vi', 840, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000048', ${ownerId}, 'wallet-0045-zero-chart',
+          'wallet-0045-zero-version', 'ZIWEI-IDENTITY-P0', 'vi', 0, 'pending', 1
+        )
+      `).resolves.toBeDefined();
+
+      await expect(client`
+        INSERT INTO wallet_purchase_intents (
+          id, owner_id, chart_id, chart_version_id, sku, locale, price_la, status, state_version
+        ) VALUES (
+          '10000000-0000-4000-8000-000000000049', ${ownerId}, 'wallet-0045-invalid-chart',
+          'wallet-0045-invalid-version', 'ZIWEI-IDENTITY-P0', 'vi', 961, 'pending', 1
         )
       `).rejects.toBeDefined();
     } finally {
@@ -3154,7 +3238,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-17)).toEqual([
+    expect(journal.entries.slice(-19)).toEqual([
       {
         idx: 27,
         version: "7",
@@ -3272,6 +3356,20 @@ describe("database schema integration", () => {
         version: "7",
         when: 1790813340000,
         tag: "0043_ai_model_pricing_openrouter_deepseek_flash",
+        breakpoints: true,
+      },
+      {
+        idx: 44,
+        version: "7",
+        when: 1790813400000,
+        tag: "0044_ai_model_pricing_9router_gemini_flash",
+        breakpoints: true,
+      },
+      {
+        idx: 45,
+        version: "7",
+        when: 1790813460000,
+        tag: "0045_wallet_catalog_rollover_pricing",
         breakpoints: true,
       },
     ]);
@@ -3591,6 +3689,7 @@ describe("database schema integration", () => {
     `;
     await removeClaudePricingForRewind(client);
     await removeOpenRouterPricingForRewind(client);
+    await removeGeminiFlashPricingForRewind(client);
     await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
@@ -3608,7 +3707,9 @@ describe("database schema integration", () => {
         1790813160000,
         1790813220000,
         1790813280000,
-        1790813340000
+        1790813340000,
+        1790813400000,
+        1790813460000
       )
     `;
 

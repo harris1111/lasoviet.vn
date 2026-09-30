@@ -88,6 +88,7 @@ export type AppEnvironment = {
   cloudS3: CloudS3Environment;
   garage: GarageEnvironment;
   sepay: SePayEnvironment;
+  sepayAutoApproveTopUps?: boolean;
   telegram?: {
     botToken: string;
     chatId: string;
@@ -239,6 +240,7 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     cloudS3: CloudS3EnvironmentSchema,
     garage: GarageEnvironmentSchema,
     sepay: SePayEnvironmentSchema,
+    sepayAutoApproveTopUps: z.boolean().default(false),
     telegram: z
       .object({
         botToken: trimmedNonEmpty,

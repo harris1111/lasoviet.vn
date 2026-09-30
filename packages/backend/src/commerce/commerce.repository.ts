@@ -135,7 +135,7 @@ export function createDatabaseCommerceRepository(
     now: getNow,
     reportVersionResolver,
   });
-  const guaranteeFeedback = createGuaranteeFeedbackService(database, walletService, {
+  const guaranteeFeedback = createGuaranteeFeedbackService(database, {
     now: getNow,
   });
 

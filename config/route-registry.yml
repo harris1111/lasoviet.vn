@@ -266,7 +266,7 @@ routes:
     id: brand.about
     path: /ve-la-so-viet
     intent: brand.about
-    template: about-page
+    template: about-page-designed
     owner: brand
     schema_types: [AboutPage, Organization, BreadcrumbList]
 
@@ -968,3 +968,17 @@ routes:
     intent: redirect.legacy-tarot
     template: redirect
     redirect: { disposition: "301", target: /boi-bai }
+
+  - <<: *private_defaults
+    id: api.feedback.parts
+    path: /api/commerce/feedback/parts
+    locale_behavior: unlocalized
+    intent: api.feedback.parts
+    template: api-command
+
+  - <<: *private_defaults
+    id: api.wallet.guarantee
+    path: /api/commerce/wallet/guarantee-claim
+    locale_behavior: unlocalized
+    intent: api.wallet.guarantee
+    template: api-command

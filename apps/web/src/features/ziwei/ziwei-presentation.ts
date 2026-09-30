@@ -253,8 +253,8 @@ const insightLabels: LocalizedMap = {
 };
 
 const offers: LocalizedMap = {
-  en: { "ZIWEI-IDENTITY-P0": "Comprehensive Zi Wei reading" },
-  vi: { "ZIWEI-IDENTITY-P0": "Luận giải Tử Vi toàn diện" },
+  en: { "ZIWEI-IDENTITY-P0": "Lifetime Zi Wei reading" },
+  vi: { "ZIWEI-IDENTITY-P0": "Tử Vi trọn đời" },
 };
 
 const chrome = {
@@ -406,7 +406,7 @@ export function ziweiPresentation(
     ),
     offer: (value: string) =>
       offers[locale][value] ??
-      (locale === "en" ? "Comprehensive Zi Wei reading" : "Luận giải Tử Vi toàn diện"),
+      (locale === "en" ? "Lifetime Zi Wei reading" : "Tử Vi trọn đời"),
     fact(value: string) {
       if (value.startsWith("palaces.") && value.endsWith(".earthlyBranchId")) {
         const palaceId = value.slice(

@@ -13,6 +13,7 @@ function controller(options: {
   orderTtlSeconds?: number;
   webhookSecret?: string;
   sepayEnvironment?: "disabled" | "sandbox" | "production";
+  autoApproveTopUps?: boolean;
 } = {}) {
   const database = {} as never;
   return new CommerceController(
@@ -21,6 +22,7 @@ function controller(options: {
     options.sepayEnvironment === "disabled" ? undefined as never : "provider-secret",
     "ingress-secret",
     (options.sepayEnvironment ?? "sandbox") as never,
+    options.autoApproveTopUps ?? false,
     options.sepayEnvironment === "disabled" ? undefined as never : "merchant",
     "https://lasoviet.example",
     options.orderTtlSeconds ?? 900,
@@ -48,6 +50,384 @@ const nonPaid = Buffer.from(JSON.stringify({
 }));
 
 describe("SePay controller HTTP contract", () => {
+  it("rejects top-up creation while payments are disabled unless auto-approval is explicitly enabled", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    try {
+      await expect(
+        controller({ sepayEnvironment: "disabled" }).createTopUpOrder(
+          "Bearer valid-token",
+          { packId: "LA-START-1100", locale: "vi" },
+        ),
+      ).rejects.toMatchObject({
+        status: 503,
+        response: { code: "TOP_UP_UNAVAILABLE" },
+      });
+    } finally {
+      authSpy.mockRestore();
+    }
+  });
+
+  it("auto-approves a top-up and returns the credited order when explicitly enabled", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const paidOrder = { ...pendingOrder, status: "paid", paidAt: new Date("2026-09-29T00:01:00.000Z") };
+    const recordPaidSpy = vi.fn().mockResolvedValue({ ok: true, replayed: false });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue({
+        order: paidOrder,
+        creditedLa: 1100,
+      }),
+      recordPaid: recordPaidSpy,
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "disabled",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+
+      expect(recordPaidSpy).toHaveBeenCalledWith({
+        invoiceNumber: "LSV-topup-1",
+        matchMethod: "invoice_number",
+        providerEventId: "disabled-autopay:topup:topup-1",
+        amount: 99000,
+        currency: "VND",
+        traceId: "req-1",
+      });
+      expect(result).toMatchObject({
+        ok: true,
+        value: {
+          order: {
+            id: "topup-1",
+            kind: "wallet_topup",
+            status: "paid",
+            creditedLa: 1100,
+          },
+          paymentInstructions: null,
+        },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+
+  it("returns TOP_UP_AUTO_PAYMENT_FAILED when recordPaid fails during auto-approval", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      recordPaid: vi.fn().mockResolvedValue({ ok: false, code: "PAYMENT_AMOUNT_MISMATCH" }),
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "disabled",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+      expect(result).toEqual({ ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns TOP_UP_AUTO_PAYMENT_FAILED when recordPaid throws during auto-approval", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      recordPaid: vi.fn().mockRejectedValue(new Error("db exploded")),
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "disabled",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+      expect(result).toEqual({ ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns TOP_UP_AUTO_PAYMENT_FAILED when projection read returns null", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      recordPaid: vi.fn().mockResolvedValue({ ok: true, replayed: false }),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue(null),
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "disabled",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+      expect(result).toEqual({ ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns TOP_UP_AUTO_PAYMENT_FAILED when projection status remains pending", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      recordPaid: vi.fn().mockResolvedValue({ ok: true, replayed: false }),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue({
+        order: pendingOrder,
+        creditedLa: null,
+      }),
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "disabled",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+      expect(result).toEqual({ ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("returns TOP_UP_AUTO_PAYMENT_FAILED when creditedLa is zero or null despite paid status", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const paidOrder = { ...pendingOrder, status: "paid", paidAt: new Date("2026-09-29T00:01:00.000Z") };
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      recordPaid: vi.fn().mockResolvedValue({ ok: true, replayed: false }),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue({
+        order: paidOrder,
+        creditedLa: 0,
+      }),
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "disabled",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+      expect(result).toEqual({ ok: false, error: { code: "TOP_UP_AUTO_PAYMENT_FAILED" } });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("does not auto-approve top-ups when sepayEnvironment is sandbox or production even if autoApproveTopUps is true", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account",
+      userId: "user-1",
+      sessionId: "session-1",
+      requestId: "req-1",
+    });
+    const pendingOrder = {
+      id: "topup-1",
+      paymentCode: "LSVK7M2P9QXJ",
+      invoiceNumber: "LSV-topup-1",
+      ownerId: "user-1",
+      chartId: null,
+      chartVersionId: null,
+      sku: "LA-START-1100",
+      amount: 99000,
+      currency: "VND",
+      locale: "vi",
+      kind: "wallet_topup",
+      status: "pending",
+      paidAt: null,
+      createdAt: new Date("2026-09-29T00:00:00.000Z"),
+    };
+    const recordPaidSpy = vi.fn();
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ ok: true, value: pendingOrder, reused: false }),
+      readTopUpOrderProjection: vi.fn().mockResolvedValue({
+        order: pendingOrder,
+        creditedLa: null,
+      }),
+      recordPaid: recordPaidSpy,
+    } as never);
+
+    try {
+      const result = await controller({
+        sepayEnvironment: "sandbox",
+        autoApproveTopUps: true,
+      }).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100",
+        locale: "vi",
+      });
+
+      expect(recordPaidSpy).not.toHaveBeenCalled();
+      expect(result).toMatchObject({
+        ok: true,
+        value: {
+          order: {
+            id: "topup-1",
+            kind: "wallet_topup",
+            status: "pending",
+            creditedLa: null,
+          },
+          paymentInstructions: expect.any(Object),
+        },
+      });
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
   it("rejects malformed wallet command bodies before authentication or repository access", async () => {
     const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository");
     try {
@@ -84,13 +464,83 @@ describe("SePay controller HTTP contract", () => {
       expect(result).toEqual({
         ok: true,
         value: {
-          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Comprehensive Zi Wei reading", locale: "en", amountLa: 720,
+          id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Lifetime Zi Wei reading", locale: "en", amountLa: 720,
           status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
         },
       });
       expect(JSON.stringify(result)).not.toContain("chart-1");
       expect(JSON.stringify(result)).not.toContain("private-chart-version");
       expect(JSON.stringify(result)).not.toMatch(/provider|invoice|allocation|receipt/i);
+    } finally {
+      authSpy.mockRestore();
+      repoSpy.mockRestore();
+    }
+  });
+
+  it("projects zero-cost rollover and single-palace intents cleanly and rejects reserved or generic SKUs", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createWalletPurchaseIntent: vi.fn().mockImplementation((_actor, req) => {
+        if (req.sku === "ZIWEI-IDENTITY-P0") {
+          return Promise.resolve({
+            ok: true,
+            value: {
+              id: "intent-zero", sku: "ZIWEI-IDENTITY-P0", chartVersionId: "chart-v1",
+              locale: "vi", amountLa: 0, status: "pending", stateVersion: 1,
+              createdAt: "2026-09-17T00:00:00.000Z",
+            },
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          value: {
+            id: "intent-palace", sku: req.sku, chartVersionId: "chart-v1",
+            locale: "vi", amountLa: 120, status: "pending", stateVersion: 1,
+            createdAt: "2026-09-17T00:00:00.000Z",
+          },
+        });
+      }),
+    } as never);
+
+    try {
+      // 1. Zero-cost rollover projection
+      const zeroResult = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-IDENTITY-P0", locale: "vi",
+      });
+      expect(zeroResult).toEqual({
+        ok: true,
+        value: {
+          id: "intent-zero", sku: "ZIWEI-IDENTITY-P0", productTitle: "Tử Vi trọn đời", locale: "vi", amountLa: 0,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+
+      // 2. Canonical single palace projection
+      const palaceResult = await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi",
+      });
+      expect(palaceResult).toEqual({
+        ok: true,
+        value: {
+          id: "intent-palace", sku: "ZIWEI-PALACE-LIFE-P0", productTitle: "Cung Mệnh", locale: "vi", amountLa: 120,
+          status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+        },
+      });
+
+      // 3. Reserved SKUs are rejected with BadRequestException
+      for (const reservedSku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-TODAY-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
+        await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+          chartId: "chart-1", chartVersionId: "version-1", sku: reservedSku, locale: "vi",
+        })).rejects.toBeInstanceOf(BadRequestException);
+      }
+
+      // 4. Generic palace SKU is rejected with BadRequestException
+      await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-PALACE-P0", locale: "vi",
+      })).rejects.toBeInstanceOf(BadRequestException);
     } finally {
       authSpy.mockRestore();
       repoSpy.mockRestore();
@@ -129,7 +579,7 @@ describe("SePay controller HTTP contract", () => {
           items: [{
             id: "wh_0123456789abcdef0123456789abcdef", category: "spend", laDelta: -240,
             resultingPurchasedLa: 40, resultingPromotionalLa: 60,
-            productTitle: "Luận giải Tử Vi toàn diện", occurredAt: "2026-09-17T00:00:00.000Z",
+            productTitle: "Tử Vi trọn đời", occurredAt: "2026-09-17T00:00:00.000Z",
           }],
         },
       }),
@@ -182,7 +632,7 @@ describe("SePay controller HTTP contract", () => {
           {
             source: "ledger_spend", id: "entitlement-wallet", entitlementId: "entitlement-wallet", orderId: null,
             profileId: null, profileDisplayName: null,
-            productTitle: "Comprehensive Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
+            productTitle: "Lifetime Zi Wei reading", entitlementStatus: "active", reportId: "report-1",
             readUrl: null, reportStatus: "requested", locale: "en", createdAt: "2026-09-17T00:00:00.000Z",
             purchasedAt: "2026-09-17T00:00:00.000Z",
           },
@@ -431,7 +881,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -512,7 +962,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -914,7 +1364,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -987,7 +1437,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",
@@ -1146,7 +1596,7 @@ describe("SePay controller HTTP contract", () => {
             amount: 79000,
             currency: "VND",
             locale: "vi",
-            productTitle: "Luận giải Tử Vi toàn diện",
+            productTitle: "Tử Vi trọn đời",
             paymentCode: "LSVK7M2P9QXJ",
             chartId: "chart-1",
             createdAt: "2026-09-05T00:00:00.000Z",

@@ -7,6 +7,13 @@ import { localizedPath } from "../homepage/homepage-utilities";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
 import { DISCIPLINES, HOMEPAGE_V3_IMAGE_ROOT, NEEDS, TUVI_ART } from "./homepage-v3-data";
 
+const NEED_ART = {
+  self: "/images/lasoviet/v11/guong-dong-hieu-ban-than-homepage.webp",
+  work: "/images/lasoviet/v11/thuoc-dong-dinh-huong-cong-viec-homepage.webp",
+  love: "/images/lasoviet/v11/giay-do-ket-noi-tinh-cam-homepage.webp",
+  decision: "/images/lasoviet/v11/son-mai-nga-re-quyet-dinh-homepage.webp",
+} as const;
+
 export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
   const t = useTranslations("homepage-v3.needs");
   const [active, setActive] = useState(0);
@@ -39,6 +46,10 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
         </div>
 
         <div className="hv3-need-detail" aria-live="polite">
+          <div className="hv3-need-art" aria-hidden="true">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img key={need.id} src={NEED_ART[need.id]} alt="" width={1254} height={1254} loading="lazy" decoding="async" />
+          </div>
           <p className="hv3-need-path">{t(`items.${need.id}.path`)}</p>
           <div className="hv3-chips">
             {chipKeys.map((key) => (

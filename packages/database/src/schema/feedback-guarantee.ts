@@ -7,7 +7,7 @@ import { walletTransactions } from "./wallet-commerce.js";
 export const partFeedbacks = pgTable("part_feedbacks", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id").references(() => authUsers.id),
-  chartId: text("chart_id").notNull().references(() => ziweiCharts.id),
+  chartId: text("chart_id").notNull().references(() => ziweiCharts.id, { onDelete: "cascade" }),
   reportId: text("report_id"),
   partId: text("part_id").notNull(),
   rating: text("rating").notNull(),

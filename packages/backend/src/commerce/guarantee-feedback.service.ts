@@ -1,10 +1,11 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import {
   GuaranteeClaimRequestV1Schema,
   GuaranteeClaimResultV1Schema,
   PartFeedbackCreateV1Schema,
   PartFeedbackResultV1Schema,
+  PartFeedbackRatingSchema,
   type CurrentActor,
   type GuaranteeClaimRequestV1,
   type GuaranteeClaimResultV1,
@@ -19,6 +20,7 @@ import {
   commerceEntitlements,
   guaranteeClaims,
   partFeedbacks,
+  reportReservations,
   walletAccounts,
   walletPurchaseIntents,
   walletSpendAllocations,
@@ -27,7 +29,8 @@ import {
   type Database,
 } from "@lasoviet/database";
 
-import type { WalletService } from "../wallet/wallet.service.js";
+import { createWalletService } from "../wallet/wallet.service.js";
+import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 
 export function resolveRelatedPalaceSuggestion(partId: string): RelatedPalaceSuggestionV1 {
   const normalized = partId.toLowerCase().trim();
@@ -38,7 +41,7 @@ export function resolveRelatedPalaceSuggestion(partId: string): RelatedPalaceSug
     normalized.includes("overview") ||
     normalized.includes("core-axis") ||
     normalized.includes("excerpt") ||
-    normalized.includes("p0")
+    normalized.includes("identity-p0")
   ) {
     return {
       palaceId: "ziwei.palace.travel",
@@ -183,7 +186,6 @@ export type GuaranteeFeedbackServiceOptions = {
 
 export function createGuaranteeFeedbackService(
   database: Database,
-  walletService: WalletService,
   options: GuaranteeFeedbackServiceOptions = {},
 ) {
   const getNow = options.now ?? (() => new Date());
@@ -204,11 +206,31 @@ export function createGuaranteeFeedbackService(
       const [chart] = await database
         .select({ id: ziweiCharts.id })
         .from(ziweiCharts)
+        .innerJoin(birthProfiles, and(
+          eq(birthProfiles.id, ziweiCharts.profileId),
+          isNull(birthProfiles.deletedAt),
+          actor.kind === "account"
+            ? eq(birthProfiles.userId, actor.userId)
+            : and(eq(birthProfiles.anonymousActorId, actor.anonymousActorId), gt(birthProfiles.anonymousExpiresAt, getNow())),
+        ))
         .where(eq(ziweiCharts.id, parsed.data.chartId))
         .limit(1);
 
       if (!chart) {
         return { ok: false, code: "FEEDBACK_CHART_NOT_FOUND" };
+      }
+
+      if (parsed.data.reportId) {
+        if (actor.kind !== "account") return { ok: false, code: "FEEDBACK_CHART_NOT_FOUND" };
+        const [report] = await database.select({ id: reportReservations.id })
+          .from(reportReservations)
+          .innerJoin(commerceEntitlements, and(
+            eq(commerceEntitlements.id, reportReservations.entitlementId),
+            eq(commerceEntitlements.ownerId, actor.userId),
+            eq(commerceEntitlements.chartId, parsed.data.chartId),
+          ))
+          .where(eq(reportReservations.reportId, parsed.data.reportId)).limit(1);
+        if (!report) return { ok: false, code: "FEEDBACK_CHART_NOT_FOUND" };
       }
 
       const userId = actor.kind === "account" ? actor.userId : null;
@@ -242,7 +264,7 @@ export function createGuaranteeFeedbackService(
           chartId: inserted.chartId,
           partId: inserted.partId,
           reportId: inserted.reportId,
-          rating: inserted.rating as any,
+          rating: PartFeedbackRatingSchema.parse(inserted.rating),
           comment: inserted.comment,
           createdAt: inserted.createdAt.toISOString(),
         },
@@ -274,20 +296,23 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_ACCOUNT_REQUIRED" };
       }
 
-      const [account] = await database
+      return database.transaction(async (transaction) => {
+        // Serialize first-claim decisions per owner before touching wallet balances.
+        await transaction.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`guarantee:${actor.userId}`}, 0))`);
+      const [account] = await transaction
         .select({
           emailVerified: authUsers.emailVerified,
           isAnonymous: authUsers.isAnonymous,
         })
         .from(authUsers)
         .where(eq(authUsers.id, actor.userId))
-        .limit(1);
+        .limit(1).for("update");
 
       if (!account || !account.emailVerified || account.isAnonymous) {
         return { ok: false, code: "GUARANTEE_ACCOUNT_INELIGIBLE" };
       }
 
-      const [chart] = await database
+      const [chart] = await transaction
         .select({ id: ziweiCharts.id })
         .from(ziweiCharts)
         .innerJoin(
@@ -315,7 +340,7 @@ export function createGuaranteeFeedbackService(
         idempotencyKey: parsed.data.idempotencyKey,
       });
 
-      const [existingByKey] = await database
+      const [existingByKey] = await transaction
         .select()
         .from(guaranteeClaims)
         .where(eq(guaranteeClaims.idempotencyKey, parsed.data.idempotencyKey))
@@ -332,7 +357,7 @@ export function createGuaranteeFeedbackService(
       }
 
       // 4. First claim enforcement
-      const [existingAccountClaim] = await database
+      const [existingAccountClaim] = await transaction
         .select({ id: guaranteeClaims.id })
         .from(guaranteeClaims)
         .where(eq(guaranteeClaims.accountId, actor.userId))
@@ -343,7 +368,7 @@ export function createGuaranteeFeedbackService(
       }
 
       // 5. Entitlement lookup (active, wallet-backed, not revoked)
-      const entitlements = await database
+      const entitlements = await transaction
         .select({
           entitlement: commerceEntitlements,
           spend: walletTransactions,
@@ -372,9 +397,10 @@ export function createGuaranteeFeedbackService(
 
       // Find matching entitlement by partId or scope
       const normalizedPartId = parsed.data.partId.toLowerCase();
-      let matched = entitlements.find((candidate) => {
+      const matched = entitlements.find((candidate) => {
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
+        if (Array.isArray(scope?.palaces) && scope.palaces.some((palace: string) => palace.toLowerCase() === normalizedPartId)) return true;
         if (Array.isArray(scope?.sections)) {
           return scope.sections.some(
             (sec: string) =>
@@ -392,7 +418,7 @@ export function createGuaranteeFeedbackService(
       const { entitlement, spend } = matched;
 
       // 6. Check if already restored
-      const [existingReversal] = await database
+      const [existingReversal] = await transaction
         .select({ id: walletTransactions.id })
         .from(walletTransactions)
         .where(
@@ -410,7 +436,7 @@ export function createGuaranteeFeedbackService(
       // 7. Get spend price in Lá and check < 500 Lá
       let priceLa = 0;
       if (spend.purchaseIntentId) {
-        const [intent] = await database
+        const [intent] = await transaction
           .select({ priceLa: walletPurchaseIntents.priceLa })
           .from(walletPurchaseIntents)
           .where(eq(walletPurchaseIntents.id, spend.purchaseIntentId))
@@ -421,7 +447,7 @@ export function createGuaranteeFeedbackService(
       }
 
       if (priceLa === 0) {
-        const [allocated] = await database
+        const [allocated] = await transaction
           .select({
             amountLa: sql<number>`coalesce(sum(${walletSpendAllocations.amountLa}), 0)`,
           })
@@ -430,19 +456,19 @@ export function createGuaranteeFeedbackService(
         priceLa = Number(allocated?.amountLa ?? 0);
       }
 
-      if (priceLa >= 500) {
+      if (priceLa <= 0 || priceLa >= 500) {
         return { ok: false, code: "GUARANTEE_PRICE_EXCEEDS_LIMIT" };
       }
 
       // 8. 24-hour expiration window
       const now = getNow();
       const expirationTime = spend.createdAt.getTime() + 24 * 60 * 60 * 1000;
-      if (now.getTime() > expirationTime) {
+      if (now.getTime() >= expirationTime || now.getTime() < spend.createdAt.getTime()) {
         return { ok: false, code: "GUARANTEE_WINDOW_EXPIRED" };
       }
 
       // 9. Wallet lookup
-      const [wallet] = await database
+      const [wallet] = await transaction
         .select()
         .from(walletAccounts)
         .where(eq(walletAccounts.ownerId, actor.userId))
@@ -453,7 +479,7 @@ export function createGuaranteeFeedbackService(
       }
 
       // 10. Execute compensating restore
-      const restoreResult = await walletService.restore({
+      const restoreResult = await createWalletService(createDatabaseWalletRepository(transaction, { now: getNow })).restore({
         actor,
         restoration: {
           kind: "restoration",
@@ -475,16 +501,16 @@ export function createGuaranteeFeedbackService(
       }
 
       // 11. Revoke entitlement
-      await database
+      await transaction
         .update(commerceEntitlements)
         .set({
           revokedAt: now,
           revocationReason: "guarantee_claim",
         })
-        .where(eq(commerceEntitlements.id, entitlement.id));
+        .where(and(eq(commerceEntitlements.ownerId, actor.userId), eq(commerceEntitlements.ledgerSpendId, spend.id)));
 
       // 12. Insert feedback
-      const [feedback] = await database
+      const [feedback] = await transaction
         .insert(partFeedbacks)
         .values({
           userId: actor.userId,
@@ -500,9 +526,7 @@ export function createGuaranteeFeedbackService(
       // 13. Related palace suggestion
       const relatedPalaceSuggestion = resolveRelatedPalaceSuggestion(parsed.data.partId);
 
-      if (!feedback) {
-        return { ok: false, code: "GUARANTEE_INVALID_REQUEST" };
-      }
+      if (!feedback) throw new Error("GUARANTEE_FEEDBACK_INSERT_FAILED");
 
       // 14. Claim number & result payload
       const claimNumber = `GC-${randomBytes(4).toString("hex").toUpperCase()}`;
@@ -522,7 +546,7 @@ export function createGuaranteeFeedbackService(
       };
 
       // 15. Insert guarantee claim record
-      await database.insert(guaranteeClaims).values({
+      await transaction.insert(guaranteeClaims).values({
         id: claimId,
         claimNumber,
         accountId: actor.userId,
@@ -543,6 +567,7 @@ export function createGuaranteeFeedbackService(
       });
 
       return { ok: true, value: claimResult };
+      });
     },
   };
 }
