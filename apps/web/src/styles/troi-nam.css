@@ -1329,6 +1329,65 @@
   background-repeat: no-repeat;
 }
 
+/*
+ * Two gold leaves drift down inside the "unlock with Lá" step card (step 3)
+ * on continuous loop — ambient, not scroll-triggered, so no JS is needed.
+ * Backgrounds are set per-leaf in troi-nam-value.tsx. prefers-reduced-motion
+ * already collapses every .tn animation via the existing global rule.
+ */
+.tn .tn-value .hv3-steps li[data-step="3"] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::before,
+.tn .tn-value .hv3-steps li[data-step="3"]::after {
+  content: "";
+  position: absolute;
+  /* Starts at the visible top edge, not above it — with overflow:hidden on
+     the card, a negative starting offset spent most of the loop clipped out
+     of view before it ever faded in. */
+  top: 0;
+  width: 26px;
+  height: 34px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  pointer-events: none;
+  animation: tn-leaf-fall 6s ease-in infinite;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::before {
+  left: 18%;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::after {
+  left: 68%;
+  width: 20px;
+  height: 26px;
+  animation-duration: 7s;
+  animation-delay: 2s;
+}
+
+@keyframes tn-leaf-fall {
+  0% {
+    transform: translate(0, 0) rotate(-8deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(8px, 440px) rotate(40deg);
+    opacity: 0;
+  }
+}
+
 .tn .tn-value .hv3-step-visual > svg,
 .tn .tn-value .hv3-step-dot {
   display: none;

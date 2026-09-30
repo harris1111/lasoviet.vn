@@ -3,6 +3,11 @@ import { troiNamAsset } from "./troi-nam-assets";
 
 export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
   const icons = ["I02.la-so-mien-phi", "I02.luu-la-so", "I02.mo-bang-la"];
+  // Step 3 ("Mở khóa bằng Lá") gets two drifting gold leaves via ::before/::after
+  // on its <li> — see troi-nam.css — since that <li> belongs to the shared,
+  // unmodified HomepageV3Value and can't take real injected children.
+  const leafFront = troiNamAsset("E01.la-vang-mat-truoc-1");
+  const leafBack = troiNamAsset("E01.la-vang-mat-sau-2");
 
   return (
     <div className="hv3 tn-value">
@@ -15,6 +20,16 @@ export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
           `}
         </style>
       ))}
+      <style>
+        {`
+          .tn .tn-value .hv3-steps li[data-step="3"]::before {
+            background-image: url("${leafFront.src}");
+          }
+          .tn .tn-value .hv3-steps li[data-step="3"]::after {
+            background-image: url("${leafBack.src}");
+          }
+        `}
+      </style>
       <HomepageV3Value locale={locale} showPacks={false} />
     </div>
   );
