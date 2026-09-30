@@ -192,6 +192,48 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     expect(await walletOf(actor.userId)).toMatchObject({ purchasedBalance: 6000, promotionalBalance: 2000 });
   });
 
+
+  it("settles top-up with exact 1100 Lá credit lot and idempotent replay via disabled-autopay providerEventId", async () => {
+    const frozenNow = new Date("2026-09-29T04:00:00.000Z");
+    const actor = await createAccount();
+    const repo = createDatabaseCommerceRepository(database, { now: () => frozenNow });
+    const created = await repo.createTopUpOrder(actor, "LA-START-1100", "vi");
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const payment = {
+      invoiceNumber: created.value.invoiceNumber,
+      matchMethod: "invoice_number" as const,
+      providerEventId: `disabled-autopay:topup:${created.value.id}`,
+      amount: created.value.amount,
+      currency: created.value.currency,
+      traceId: actor.requestId,
+    };
+
+    // First auto-settlement succeeds
+    const first = await repo.recordPaid(payment);
+    expect(first).toEqual({ ok: true, replayed: false });
+
+    // Idempotent replay succeeds without duplicate balance
+    const replay = await repo.recordPaid(payment);
+    expect(replay).toEqual({ ok: true, replayed: true });
+
+    // Verification of exact 1100 Lá credited (1000 purchased + 100 promotional)
+    const wallet = await walletOf(actor.userId);
+    expect(wallet).toMatchObject({ purchasedBalance: 1000, promotionalBalance: 100 });
+
+    const grants = await database.select().from(walletTransactions).where(eq(walletTransactions.topUpOrderId, created.value.id));
+    expect(grants).toHaveLength(1);
+
+    const lots = await database.select().from(walletCreditLots).where(eq(walletCreditLots.grantTransactionId, grants[0]!.id));
+    expect(lots.map((lot) => [lot.bucket, lot.grantedLa]).sort()).toEqual([["promotional", 100], ["purchased", 1000]]);
+
+    const projection = await repo.readTopUpOrderProjection(actor, created.value.id);
+    expect(projection).not.toBeNull();
+    expect(projection?.order.status).toBe("paid");
+    expect(projection?.creditedLa).toBe(1100);
+  });
+
   it("refuses a self-claim when two eligible top-up orders share the amount", async () => {
     const now = new Date("2026-09-27T04:00:00.000Z");
     const actor = await createAccount();

@@ -1169,6 +1169,8 @@ describe("birth profile wizard analytics helpers and gates", () => {
     expect(mapToolToTopConcern("lich-am")).toBe("wellbeing");
     expect(mapToolToTopConcern("giai-mong")).toBe("wellbeing");
     expect(mapToolToTopConcern("tarot")).toBe("career");
+    expect(mapToolToTopConcern("than-so-hoc")).toBe("self_understanding");
+    expect(mapToolToTopConcern("boi-tinh-yeu")).toBe("love");
     expect(mapToolToTopConcern("phong-thuy")).toBe("family");
     expect(mapToolToTopConcern("xem-chi-tay")).toBe("self_understanding");
   });

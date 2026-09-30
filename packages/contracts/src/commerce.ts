@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { isSinglePalaceSku, getPalaceIdFromSku, type LaSku } from "./la-catalog.js";
+import type { ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
 
 export const CommerceSkuSchema = z.enum([
   "ZIWEI-IDENTITY-P0",
@@ -90,9 +92,18 @@ export const COMPREHENSIVE_REPORT_V4_1_TIER_1_LOCKED_SECTIONS = [
 
 export const EntitlementScopeSchema = z
   .object({
-    sections: z.array(ComprehensiveReportSectionIdSchema).min(1),
+    sections: z.array(ComprehensiveReportSectionIdSchema),
+    palaces: z.array(z.string().trim().min(1)).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((val, ctx) => {
+    if (val.sections.length === 0 && (!val.palaces || val.palaces.length === 0)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "scope must contain at least one section or palace",
+      });
+    }
+  });
 export type EntitlementScope = z.infer<typeof EntitlementScopeSchema>;
 
 export const TIER_1_ENTITLEMENT_SCOPE: EntitlementScope = Object.freeze({
@@ -112,16 +123,32 @@ export const TIER_2_V4_1_ENTITLEMENT_SCOPE: EntitlementScope = Object.freeze({
 });
 
 export type EntitlementReportFamily = "v1" | "v2" | "v3" | "v4" | "v4_1";
-export type EntitlementScopeOptions = { reportFamily?: EntitlementReportFamily };
+export type EntitlementScopeOptions = {
+  reportFamily?: EntitlementReportFamily;
+  palaceId?: ZiweiPalaceId;
+};
 
 export function resolveEntitlementScopeForSku(
-  sku: CommerceSku,
+  sku: CommerceSku | LaSku | string,
   familyOrOptions?: EntitlementReportFamily | EntitlementScopeOptions,
 ): EntitlementScope {
   const family =
     typeof familyOrOptions === "string"
       ? familyOrOptions
       : familyOrOptions?.reportFamily;
+  const optionPalaceId =
+    typeof familyOrOptions === "object" ? familyOrOptions?.palaceId : undefined;
+
+  if (isSinglePalaceSku(sku)) {
+    const palaceId = getPalaceIdFromSku(sku) ?? optionPalaceId;
+    if (!palaceId) {
+      throw new Error(`Single palace SKU ${sku} must resolve to a valid palace ID`);
+    }
+    return {
+      sections: [],
+      palaces: [palaceId],
+    };
+  }
 
   switch (sku) {
     case "ZIWEI-NATAL-EXCERPT-P0":
@@ -129,21 +156,111 @@ export function resolveEntitlementScopeForSku(
     case "ZIWEI-IDENTITY-P0":
       if (family === "v4_1") return TIER_2_V4_1_ENTITLEMENT_SCOPE;
       return family === "v4" ? TIER_2_V4_ENTITLEMENT_SCOPE : TIER_2_ENTITLEMENT_SCOPE;
+    default:
+      throw new Error(`No entitlement scope handler implemented for SKU: ${sku}`);
   }
 }
 
-export const PRODUCT_DISPLAY_NAMES: Record<CommerceSku, Record<"vi" | "en", string>> = {
+export const PRODUCT_DISPLAY_NAMES: Record<string, Record<"vi" | "en", string>> = {
   "ZIWEI-IDENTITY-P0": {
-    vi: "Luận giải Tử Vi toàn diện",
-    en: "Comprehensive Zi Wei reading",
+    vi: "Tử Vi trọn đời",
+    en: "Lifetime Zi Wei reading",
   },
   "ZIWEI-NATAL-EXCERPT-P0": {
     vi: "Bản mệnh và tiềm năng",
     en: "Core identity and potential",
   },
+  "ZIWEI-RELATIONSHIP-P0": {
+    vi: "Tình duyên và hôn nhân",
+    en: "Love and marriage",
+  },
+  "ZIWEI-CAREER-P0": {
+    vi: "Công việc và tài lộc",
+    en: "Career and wealth",
+  },
+  "ZIWEI-PALACE-LIFE-P0": {
+    vi: "Cung Mệnh",
+    en: "Life Palace",
+  },
+  "ZIWEI-PALACE-SIBLINGS-P0": {
+    vi: "Cung Huynh Đệ",
+    en: "Siblings Palace",
+  },
+  "ZIWEI-PALACE-SPOUSE-P0": {
+    vi: "Cung Phu Thê",
+    en: "Spouse Palace",
+  },
+  "ZIWEI-PALACE-CHILDREN-P0": {
+    vi: "Cung Tử Tức",
+    en: "Children Palace",
+  },
+  "ZIWEI-PALACE-WEALTH-P0": {
+    vi: "Cung Tài Bạch",
+    en: "Wealth Palace",
+  },
+  "ZIWEI-PALACE-HEALTH-P0": {
+    vi: "Cung Tật Ách",
+    en: "Health Palace",
+  },
+  "ZIWEI-PALACE-TRAVEL-P0": {
+    vi: "Cung Thiên Di",
+    en: "Travel Palace",
+  },
+  "ZIWEI-PALACE-FRIENDS-P0": {
+    vi: "Cung Nô Bộc",
+    en: "Friends Palace",
+  },
+  "ZIWEI-PALACE-CAREER-P0": {
+    vi: "Cung Quan Lộc",
+    en: "Career Palace",
+  },
+  "ZIWEI-PALACE-PROPERTY-P0": {
+    vi: "Cung Điền Trạch",
+    en: "Property Palace",
+  },
+  "ZIWEI-PALACE-FORTUNE-P0": {
+    vi: "Cung Phúc Đức",
+    en: "Fortune Palace",
+  },
+  "ZIWEI-PALACE-PARENTS-P0": {
+    vi: "Cung Phụ Mẫu",
+    en: "Parents Palace",
+  },
+  "ZIWEI-TODAY-P0": {
+    vi: "Hôm nay của bạn",
+    en: "Today's reading",
+  },
+  "ZIWEI-MONTHLY-P0": {
+    vi: "Tháng này của bạn",
+    en: "Monthly reading",
+  },
+  "ZIWEI-YEAR-2026-P0": {
+    vi: "Vận hạn năm 2026",
+    en: "Year 2026 forecast",
+  },
+  "ZIWEI-COMBO-2026-P0": {
+    vi: "Combo Tử Vi trọn đời + Vận hạn năm 2026",
+    en: "Lifetime Zi Wei + 2026 Year Combo",
+  },
+  "MEMBERSHIP-MONTHLY-P0": {
+    vi: "Hội viên tháng",
+    en: "Monthly membership",
+  },
+  "MEMBERSHIP-YEARLY-P0": {
+    vi: "Hội viên năm",
+    en: "Yearly membership",
+  },
+  "MEMBERSHIP-MONTHLY-1500": {
+    vi: "Hội viên tháng",
+    en: "Monthly membership",
+  },
+  "MEMBERSHIP-YEARLY-8000": {
+    vi: "Hội viên năm",
+    en: "Yearly membership",
+  },
 };
 
-export function resolveProductTitle(sku: CommerceSku, locale: "vi" | "en"): string {
+export function resolveProductTitle(sku: CommerceSku | LaSku | string, locale: "vi" | "en"): string {
   return PRODUCT_DISPLAY_NAMES[sku]?.[locale] ?? sku;
 }
 

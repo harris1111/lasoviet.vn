@@ -12,6 +12,7 @@ import { HomepageV3Hero } from "../../features/homepage-v3/homepage-v3-hero";
 import { HomepageV3Needs } from "../../features/homepage-v3/homepage-v3-needs";
 import { HomepageV3Motion } from "../../features/homepage-v3/homepage-v3-motion";
 import { HomepageV3Testimonials } from "../../features/homepage-v3/homepage-v3-testimonials-section";
+import { HomepageV3Showcase } from "../../features/homepage-v3/homepage-v3-showcase";
 import {
   HomepageV3About,
   HomepageV3Story,
@@ -44,6 +45,9 @@ export default async function Page({ params }: PageProps) {
         <main aria-label={t("app.name")}>
           <section className="hv3-section hv3-hero" data-home-block="hero" id="lap-la-so">
             <HomepageV3Hero locale={locale} />
+          </section>
+          <section className="hv3-section hv3-showcase" data-home-block="showcase" id="xem-truoc">
+            <HomepageV3Showcase locale={locale} />
           </section>
           <section className="hv3-section hv3-story-section" data-home-block="story">
             <HomepageV3Story />

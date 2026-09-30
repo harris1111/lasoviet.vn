@@ -1,6 +1,6 @@
 "use client";
 
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import {
   CANONICAL_BRANCH_IDS,
   getBranchOptionLabel,
@@ -168,7 +168,7 @@ export function TimePrecisionFields({
           {currentPrecision === "exact_minute" ? (
             <div className="wizard-time-inputs ui-field-shell__control">
               <span aria-hidden="true" className="ui-field-shell__icon">
-                <Icon name="clock" />
+                <LsvIcon name="birth-hour" size={20} />
               </span>
               <label className="wizard-time-input-label">
                 <span className="sr-only">{labels.hour}</span>
@@ -204,7 +204,7 @@ export function TimePrecisionFields({
                 <span className="sr-only">{labels.branch ?? labels.title}</span>
                 <div className="ui-field-shell__control">
                   <span aria-hidden="true" className="ui-field-shell__icon">
-                    <Icon name="orbit" />
+                    <LsvIcon name="state-uncertain" size={20} />
                   </span>
                   <select
                     aria-label={labels.branch ?? labels.title}

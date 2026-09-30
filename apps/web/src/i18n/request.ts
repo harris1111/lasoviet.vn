@@ -6,6 +6,7 @@ import enProfile from "../../messages/en/profile.json";
 import enReports from "../../messages/en/reports.json";
 import enZiwei from "../../messages/en/ziwei.json";
 import enHomepageV3 from "../../messages/en/homepage-v3.json";
+import enBrandAbout from "../../messages/en/brand-about.json";
 import viCommon from "../../messages/vi/common.json";
 import viNavigation from "../../messages/vi/navigation.json";
 import viAuth from "../../messages/vi/auth.json";
@@ -13,11 +14,12 @@ import viProfile from "../../messages/vi/profile.json";
 import viReports from "../../messages/vi/reports.json";
 import viZiwei from "../../messages/vi/ziwei.json";
 import viHomepageV3 from "../../messages/vi/homepage-v3.json";
+import viBrandAbout from "../../messages/vi/brand-about.json";
 import {routing} from "./routing";
 
 const messages = {
-  vi: {common: viCommon, navigation: viNavigation, auth: viAuth, profile: viProfile, reports: viReports, ziwei: viZiwei, "homepage-v3": viHomepageV3},
-  en: {common: enCommon, navigation: enNavigation, auth: enAuth, profile: enProfile, reports: enReports, ziwei: enZiwei, "homepage-v3": enHomepageV3},
+  vi: {common: viCommon, navigation: viNavigation, auth: viAuth, profile: viProfile, reports: viReports, ziwei: viZiwei, "homepage-v3": viHomepageV3, "brand-about": viBrandAbout},
+  en: {common: enCommon, navigation: enNavigation, auth: enAuth, profile: enProfile, reports: enReports, ziwei: enZiwei, "homepage-v3": enHomepageV3, "brand-about": enBrandAbout},
 };
 
 export default getRequestConfig(async ({requestLocale}) => {

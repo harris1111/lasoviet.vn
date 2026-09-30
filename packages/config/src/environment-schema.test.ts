@@ -103,6 +103,7 @@ const validNormalizedProduction = {
     orderTtlSeconds: 900,
     webhookSecret: "synthetic-sepay-webhook-secret-never-serialize",
   },
+  sepayAutoApproveTopUps: false,
 } as const;
 
 function expectInvalid(source: NodeJS.ProcessEnv, variable: string) {
@@ -613,6 +614,99 @@ describe("environment loading", () => {
     const invalidSerialized = JSON.stringify(invalidResult);
     expect(invalidSerialized).not.toContain(secretToken);
     expect(invalidSerialized).toContain("TELEGRAM_BOT_TOKEN");
+  });
+
+  it("defaults sepayAutoApproveTopUps to false when SEPAY_AUTO_APPROVE_TOPUPS is unset", () => {
+    const result = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      SEPAY_ENV: "disabled",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        sepayAutoApproveTopUps: false,
+      },
+    });
+  });
+
+  it("parses SEPAY_AUTO_APPROVE_TOPUPS=false as false", () => {
+    const result = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      SEPAY_ENV: "disabled",
+      SEPAY_AUTO_APPROVE_TOPUPS: "false",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        sepayAutoApproveTopUps: false,
+      },
+    });
+  });
+
+  it("parses SEPAY_AUTO_APPROVE_TOPUPS=true as true when SEPAY_ENV=disabled in development", () => {
+    const result = loadEnvironment({
+      ...completeAi,
+      SEPAY_ENV: "disabled",
+      SEPAY_AUTO_APPROVE_TOPUPS: "true",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        sepayAutoApproveTopUps: true,
+      },
+    });
+  });
+
+  it("allows SEPAY_AUTO_APPROVE_TOPUPS=true with SEPAY_ENV=disabled in NODE_ENV=production (beta host)", () => {
+    const result = loadEnvironment({
+      ...productionBase,
+      ...completeAi,
+      SEPAY_ENV: "disabled",
+      SEPAY_AUTO_APPROVE_TOPUPS: "true",
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      value: {
+        sepayAutoApproveTopUps: true,
+      },
+    });
+  });
+
+  it("fails config when SEPAY_AUTO_APPROVE_TOPUPS=true but SEPAY_ENV is sandbox or production", () => {
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        SEPAY_ENV: "sandbox",
+        SEPAY_AUTO_APPROVE_TOPUPS: "true",
+      },
+      "SEPAY_AUTO_APPROVE_TOPUPS",
+    );
+    expectInvalid(
+      {
+        ...productionBase,
+        ...completeAi,
+        SEPAY_ENV: "production",
+        SEPAY_AUTO_APPROVE_TOPUPS: "true",
+      },
+      "SEPAY_AUTO_APPROVE_TOPUPS",
+    );
+  });
+
+  it("fails config when SEPAY_AUTO_APPROVE_TOPUPS has non-boolean values", () => {
+    for (const invalidValue of ["1", "0", "yes", "no", "TRUE", "true1"]) {
+      expectInvalid(
+        {
+          ...productionBase,
+          ...completeAi,
+          SEPAY_ENV: "disabled",
+          SEPAY_AUTO_APPROVE_TOPUPS: invalidValue,
+        },
+        "SEPAY_AUTO_APPROVE_TOPUPS",
+      );
+    }
   });
 });
 
