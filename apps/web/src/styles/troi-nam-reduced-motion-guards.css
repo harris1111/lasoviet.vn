@@ -32,4 +32,9 @@
   .tn .tn-value .hv3-steps li[data-step="3"]::after {
     opacity: 0 !important;
   }
+
+  .tn .tn-about .hv3-final-cta::before,
+  .tn .tn-about .hv3-final-cta::after {
+    opacity: 0 !important;
+  }
 }

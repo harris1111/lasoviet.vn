@@ -1522,6 +1522,54 @@
   color: var(--tn-text);
 }
 
+/*
+ * Two floating hoa đăng (candle lanterns) bob gently at the base of the
+ * closing CTA, on continuous loop — ambient, matching the falling gold
+ * leaves in Value. z-index lifts them above .hv3-final-cta-bg and the CTA
+ * copy's own z-index:auto stacking (both are later in source order and
+ * would otherwise paint over a plain pseudo-element).
+ */
+.tn .tn-about .hv3-final-cta::before,
+.tn .tn-about .hv3-final-cta::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 6%;
+  width: 4rem;
+  height: 4rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgb(255 190 110 / 0.35));
+  animation: tn-lantern-float 6s ease-in-out infinite;
+}
+
+.tn .tn-about .hv3-final-cta::before {
+  left: 8%;
+}
+
+.tn .tn-about .hv3-final-cta::after {
+  right: 9%;
+  width: 3.25rem;
+  height: 3.25rem;
+  animation-duration: 7s;
+  animation-delay: 1.8s;
+}
+
+@keyframes tn-lantern-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+    filter: drop-shadow(0 0 8px rgb(255 190 110 / 0.3));
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+    filter: drop-shadow(0 0 14px rgb(255 190 110 / 0.55));
+  }
+}
+
 .tn .tn-about .hv3-final-cta-bg {
   background-size: cover;
   background-position: center;
