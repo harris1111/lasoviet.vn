@@ -34,16 +34,18 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
       </picture>
       <div className="tn-hero-scrim" aria-hidden="true" />
 
-      <div className="tn-hero-copy">
-        <h1 className="tn-hero-title">
-          <span>{t("hero.h1a")}</span>
-          <span>{t("hero.h1b")}</span>
-        </h1>
-        <p className="tn-hero-sub">{t("hero.sub")}</p>
-      </div>
+      <div className="tn-hero-content">
+        <div className="tn-hero-copy">
+          <h1 className="tn-hero-title">
+            <span>{t("hero.h1a")}</span>
+            <span>{t("hero.h1b")}</span>
+          </h1>
+          <p className="tn-hero-sub">{t("hero.sub")}</p>
+        </div>
 
-      <div className="hv3 tn-hero-form">
-        <HomepageV3BirthForm state={state} />
+        <div className="hv3 tn-hero-form">
+          <HomepageV3BirthForm state={state} />
+        </div>
       </div>
     </section>
   );
