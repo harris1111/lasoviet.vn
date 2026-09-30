@@ -183,7 +183,7 @@ it("links to full current decadal cycle reading for late ordinals 8 and 11 from 
       },
     } as unknown as ReportChartSnapshotV1;
 
-    const report = v3Report(false);
+    const report = v3Report(true);
     report.chartSnapshot = lateChartSnapshot;
     report.content.currentDecadal = {
       title: `Đại vận ${lateOrdinal}`,
