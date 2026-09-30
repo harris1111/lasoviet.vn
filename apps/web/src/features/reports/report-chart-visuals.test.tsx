@@ -69,6 +69,47 @@ describe("report chart visuals", () => {
     expect(html).toContain("aria-current=\"true\"");
     expect(html).not.toMatch(/is-good|is-bad|is-risk/);
   });
+
+  it("keeps a late current cycle visible by shifting the eight-cycle timeline window", () => {
+    const lateSnapshot = {
+      ...snapshot,
+      decadal: {
+        currentOrdinal: 8,
+        cycles: Array.from({ length: 12 }, (_, ordinal) => ({
+          ordinal,
+          palaceId: ZIWEI_PALACE_IDS[ordinal % ZIWEI_PALACE_IDS.length]!,
+          ageRange: [5 + 10 * ordinal, 14 + 10 * ordinal] as [number, number],
+          yearRange: [1997 + 10 * ordinal, 2006 + 10 * ordinal] as [number, number],
+        })),
+      },
+    } satisfies ReportChartSnapshotV1;
+    const html = renderToStaticMarkup(<ReportDecadalTimeline snapshot={lateSnapshot} t={t} />);
+    expect(html).toContain("45-54 tuổi");
+    expect(html).toContain("115-124 tuổi");
+    expect(html).toContain('aria-current="true"');
+    expect(html).not.toContain("5-14 tuổi");
+  });
+
+  it("keeps late ordinal 11 visible in shifted eight-cycle timeline window", () => {
+    const late11Snapshot = {
+      ...snapshot,
+      decadal: {
+        currentOrdinal: 11,
+        cycles: Array.from({ length: 12 }, (_, ordinal) => ({
+          ordinal,
+          palaceId: ZIWEI_PALACE_IDS[ordinal % ZIWEI_PALACE_IDS.length]!,
+          ageRange: [5 + 10 * ordinal, 14 + 10 * ordinal] as [number, number],
+          yearRange: [1997 + 10 * ordinal, 2006 + 10 * ordinal] as [number, number],
+        })),
+      },
+    } satisfies ReportChartSnapshotV1;
+    const html = renderToStaticMarkup(<ReportDecadalTimeline snapshot={late11Snapshot} t={t} />);
+    // window clamped to 4..11 (45-54 tuổi to 115-124 tuổi)
+    expect(html).toContain("45-54 tuổi");
+    expect(html).toContain("115-124 tuổi");
+    expect(html).toContain('aria-current="true"');
+    expect(html).not.toContain("5-14 tuổi");
+  });
 });
 
 it("draws only frozen triad/opposite connections and gives interactive charts one tab stop", () => {

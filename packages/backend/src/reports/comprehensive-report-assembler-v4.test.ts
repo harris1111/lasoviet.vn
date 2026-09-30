@@ -255,4 +255,35 @@ describe("beginner teaser assembly and disclosure", () => {
       expect(() => assembleComprehensiveReportV4_1([...acceptedSensitivitySections(), { key: "decadalTeasers", value }], chartFacts, REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER)).toThrow();
     }
   });
+
+  it("assembles decadalTeasers when current ordinal is outside 0..7", () => {
+    const chartFacts = beginnerFacts();
+    chartFacts.timing.decadal = {
+      ...chartFacts.timing.decadal,
+      index: 8,
+      ageRange: [82, 91] as [number, number],
+      yearRange: [2082, 2091] as [number, number],
+      earthlyBranchId: "ziwei.branch.dog",
+    };
+    const cycles = teaserCyclesFor(chartFacts);
+    expect(cycles.map((c) => c.ordinal)).toEqual([4, 5, 6, 7, 9, 10, 11]);
+    const teasers = cycles.map((cycle) => ({ ordinal: cycle.ordinal, narrative: "Chặng này cần kiên nhẫn.", evidenceKeys }));
+    const baseSections = acceptedSensitivitySections().map((s) => {
+      if ((s as any).key === "currentDecadal") {
+        return {
+          key: "currentDecadal",
+          value: {
+            ...narrative("Đại vận"),
+            state: "active",
+            index: 8,
+            ageRange: [82, 91],
+            yearRange: [2082, 2091],
+          },
+        };
+      }
+      return s;
+    });
+    const report = assembleComprehensiveReportV4_1([...baseSections, { key: "decadalTeasers", value: teasers }], chartFacts, REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER);
+    expect(report.decadalTeasers).toEqual(cycles.map((cycle) => ({ ...cycle, narrative: "Chặng này cần kiên nhẫn.", evidenceKeys })));
+  });
 });

@@ -452,13 +452,18 @@ export function ReportDecadalTimeline({
 }) {
   const current = snapshot.decadal.currentOrdinal;
   const cycles = snapshot.decadal.cycles;
+  const timelineStart =
+    current != null && current > 7
+      ? Math.max(0, Math.min(Math.max(0, cycles.length - 8), current - 3))
+      : 0;
+  const timelineCycles = cycles.slice(timelineStart, timelineStart + 8);
   return (
     <section className="report-timeline" aria-labelledby="report-timeline-title">
       <h4 id="report-timeline-title" className="report-timeline-title">
         {t("reader.timeline_title")}
       </h4>
       <ol className="report-cycles">
-        {cycles.slice(0, 8).map((cycle) => {
+        {timelineCycles.map((cycle) => {
           const isCurrent = cycle.ordinal === current;
           const isPast = current !== null && cycle.ordinal < current;
           const palace = snapshot.palaces.find((p) => p.palaceId === cycle.palaceId);

@@ -639,6 +639,28 @@ describe("validateComprehensiveZiweiReportV4_1", () => {
     const report = { ...sample.report, decadalTeasers: cycles.map((cycle) => ({ ...cycle,
       narrative: "Chặng này bạn nên để ý những việc đã nhận và giữ lời hẹn.", evidenceKeys: [facts.evidenceKeys[0]!] })) };
     expect(validateComprehensiveZiweiReportV4_1(report, sample.facts).ok).toBe(true);
+
+    // Validate report when current ordinal is outside 0..7 (e.g. ordinal 8)
+    const outsideFacts = structuredClone(facts);
+    outsideFacts.timing.decadal = {
+      ...outsideFacts.timing.decadal,
+      index: 8,
+      ageRange: [82, 91] as [number, number],
+      yearRange: [2082, 2091] as [number, number],
+      earthlyBranchId: "ziwei.branch.dog",
+    };
+    const outsideSample = createSensitivityReport(outsideFacts);
+    outsideSample.report.currentDecadal = {
+      ...outsideSample.report.currentDecadal,
+      index: 8,
+      ageRange: [82, 91],
+      yearRange: [2082, 2091],
+    };
+    const outsideCycles = teaserCyclesFor(outsideFacts);
+    expect(outsideCycles.map((c) => c.ordinal)).toEqual([4, 5, 6, 7, 9, 10, 11]);
+    const outsideReport = { ...outsideSample.report, decadalTeasers: outsideCycles.map((cycle) => ({ ...cycle,
+      narrative: "Chặng này bạn nên để ý những việc đã nhận và giữ lời hẹn.", evidenceKeys: [outsideFacts.evidenceKeys[0]!] })) };
+    expect(validateComprehensiveZiweiReportV4_1(outsideReport, outsideSample.facts).ok).toBe(true);
     for (const patch of [
       { ordinal: 11 }, { palaceId: "ziwei.palace.parents" }, { evidenceKeys: ["unknown"] },
       { narrative: "Bạn sinh lúc 8 giờ 30." }, { narrative: "Bạn sinh ngày 2000-01-01." },

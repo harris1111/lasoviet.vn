@@ -24,7 +24,7 @@ const narrativeSchema = z.object({
 }).strict();
 
 export const decadalTeasersSchema = z.array(z.object({
-  ordinal: z.number().int().min(0).max(7),
+  ordinal: z.number().int().min(0).max(11),
   narrative: z.string().trim().min(1).max(2_000),
   evidenceKeys: z.array(z.string().trim().min(1)).min(1),
 }).strict()).max(7);
