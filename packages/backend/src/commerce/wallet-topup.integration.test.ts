@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   authUsers,
+  birthProfiles, birthProfileRevisions, calculationRuns, ziweiCharts, ziweiChartVersions, evidenceSets,
+  walletPurchaseIntents, walletTopUpContinuations, commerceEntitlements, reportReservations,
   commerceOrders,
   commercePaymentEvents,
   commerceUnmatchedPayments,
@@ -49,6 +51,62 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     return { kind: "account", userId, sessionId: `session-${userId}`, requestId: `request-${userId}` };
   }
 
+  async function chartFixture(actor: Extract<CurrentActor, { kind: "account" }>) {
+    const userId = actor.userId;
+    const profileId = `profile-${randomUUID()}`;
+    const revisionId = `revision-${randomUUID()}`;
+    const chartId = `chart-${randomUUID()}`;
+    const chartVersionId = `chart-version-${randomUUID()}`;
+    const evidenceId = `evidence-${randomUUID()}`;
+    const runId = randomUUID();
+
+    await database.insert(birthProfiles).values({ id: profileId, userId });
+    await database.insert(birthProfileRevisions).values({
+      id: revisionId,
+      profileId,
+      revisionNumber: 1,
+      originalInput: { version: 1, displayName: "Continuation owner" },
+      normalizedInput: {},
+      consentVersion: "privacy.v1",
+    });
+    await database.insert(calculationRuns).values({
+      id: runId,
+      profileId,
+      profileRevisionId: revisionId,
+      idempotencyKey: `run-${runId}`,
+      engineId: "ziwei.iztro",
+      engineVersion: "1.0",
+      adapterId: "iztro",
+      adapterVersion: "1.0",
+      schemaId: "ziwei.chart.v1",
+      ruleSetId: "ziwei.default",
+      inputHash: "a".repeat(64),
+      configHash: "b".repeat(64),
+      rawSnapshotHash: "c".repeat(64),
+    });
+    await database.insert(ziweiCharts).values({
+      id: chartId,
+      profileId,
+      profileRevisionId: revisionId,
+    });
+    await database.insert(ziweiChartVersions).values({
+      id: chartVersionId,
+      chartId,
+      calculationRunId: runId,
+      normalizedOutput: {},
+      privateRawSnapshot: {},
+      warnings: [],
+      provenance: {},
+    });
+    await database.insert(evidenceSets).values({
+      id: evidenceId,
+      chartVersionId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+    });
+    return { userId, chartId, chartVersionId, evidenceId, actor };
+  }
+
   async function walletOf(userId: string) {
     const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, userId)).limit(1);
     return wallet;
@@ -59,6 +117,101 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     const local = new Date(date.getTime() + 7 * 60 * 60 * 1000);
     return `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())}T${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
   }
+
+  const frozenNow = new Date("2026-09-30T09:00:00.000Z");
+
+  async function continuationFixture(sku = "ZIWEI-NATAL-EXCERPT-P0") {
+    const actor = await createAccount();
+    const chart = await chartFixture(actor);
+    const repository = createDatabaseCommerceRepository(database, { now: () => frozenNow });
+    const intent = await repository.createWalletPurchaseIntent(actor, { chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku, locale: "vi" });
+    if (!intent.ok) throw new Error(intent.code);
+    const continuation = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, confirmedPriceLa: intent.value.amountLa, returnTab: "palaces" as const, returnOpen: "life" };
+    return { actor, chart, repository, intent: intent.value, continuation };
+  }
+
+  it("credits and completes the confirmed unlock atomically, then replays without a second debit", async () => {
+    const fixture = await continuationFixture();
+    const { actor, repository, continuation, chart } = fixture;
+    const created = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+    if (!created.ok) throw new Error(created.code);
+    expect((await repository.readTopUpOrderProjection(actor, created.value.id))?.continuation?.status).toBe("pending");
+    expect(await walletOf(actor.userId)).toBeUndefined();
+    const payment = { invoiceNumber: created.value.invoiceNumber, providerEventId: `continued-${randomUUID()}`, amount: 29000, currency: "VND", traceId: "continuation" };
+    const [first, replay] = await Promise.all([repository.recordPaid(payment), repository.recordPaid(payment)]);
+    expect(first.ok && replay.ok).toBe(true);
+    const projection = await repository.readTopUpOrderProjection(actor, created.value.id);
+    expect(projection?.continuation).toMatchObject({ status: "completed", remainingLa: 60 });
+    expect(projection?.continuation?.returnPath).toBe(`/la-so/${chart.chartId}?tab=palaces&topupOrder=${created.value.id}&open=life`);
+    const wallet = await walletOf(actor.userId);
+    expect(wallet?.purchasedBalance).toBe(60);
+    expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+    expect(await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.ownerId, actor.userId))).toHaveLength(1);
+    expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, chart.chartVersionId))).toHaveLength(1);
+  });
+
+  it("credits two separately paid QR orders but completes their shared intent only once", async () => {
+    const { actor, repository, continuation } = await continuationFixture();
+    const small = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+    const large = await repository.createTopUpOrder(actor, "LA-START-1100", "vi", continuation);
+    if (!small.ok || !large.ok) throw new Error("order fixture failed");
+    const results = await Promise.all([small.value, large.value].map((order) => repository.recordPaid({ invoiceNumber: order.invoiceNumber, providerEventId: `parallel-${randomUUID()}`, amount: order.amount, currency: "VND", traceId: "parallel" })));
+    expect(results.every((result) => result.ok)).toBe(true);
+    const statuses = await Promise.all([small.value, large.value].map(async (order) => (await repository.readTopUpOrderProjection(actor, order.id))?.continuation?.status));
+    expect(statuses.sort()).toEqual(["blocked", "completed"]);
+    const wallet = await walletOf(actor.userId);
+    expect(wallet!.purchasedBalance + wallet!.promotionalBalance).toBe(1160);
+    expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+    expect(await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.ownerId, actor.userId))).toHaveLength(1);
+  });
+
+  it.each(["cancelled", "insufficient", "price_changed", "stale_version"])("leaves top-up credit intact when continuation is %s", async (failure) => {
+    const { actor, repository, continuation, intent } = await continuationFixture(["insufficient", "price_changed"].includes(failure) ? "ZIWEI-IDENTITY-P0" : undefined);
+    const created = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+    if (!created.ok) throw new Error(created.code);
+    if (failure === "cancelled") await database.update(walletPurchaseIntents).set({ status: "cancelled", stateVersion: intent.stateVersion + 1 }).where(eq(walletPurchaseIntents.id, intent.id));
+    if (failure === "price_changed") await database.update(walletPurchaseIntents).set({ priceLa: intent.amountLa - 1 }).where(eq(walletPurchaseIntents.id, intent.id));
+    if (failure === "stale_version") await database.update(walletPurchaseIntents).set({ stateVersion: intent.stateVersion + 1 }).where(eq(walletPurchaseIntents.id, intent.id));
+    expect(await repository.recordPaid({ invoiceNumber: created.value.invoiceNumber, providerEventId: `blocked-${randomUUID()}`, amount: 29000, currency: "VND", traceId: "blocked" })).toMatchObject({ ok: true });
+    const projection = await repository.readTopUpOrderProjection(actor, created.value.id);
+    expect(projection?.continuation?.status).toBe("blocked");
+    const wallet = await walletOf(actor.userId);
+    expect(wallet?.purchasedBalance).toBe(300);
+    expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(0);
+  });
+
+  it("rolls back both top-up credit and continuation spend when settlement commit fails", async () => {
+    const { actor, repository, continuation } = await continuationFixture();
+    const created = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+    if (!created.ok) throw new Error(created.code);
+    const payment = { invoiceNumber: created.value.invoiceNumber, providerEventId: `atomic-${randomUUID()}`, amount: 29000, currency: "VND", traceId: "atomic" };
+    const failing = createDatabaseCommerceRepository(database, {
+      now: () => frozenNow,
+      beforePaymentCommit: async () => { throw new Error("injected commit failure"); },
+    });
+    await expect(failing.recordPaid(payment)).rejects.toThrow("injected commit failure");
+    expect(await walletOf(actor.userId)).toBeUndefined();
+    expect((await repository.readTopUpOrderProjection(actor, created.value.id))?.continuation?.status).toBe("pending");
+    expect(await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.ownerId, actor.userId))).toHaveLength(0);
+    expect(await repository.recordPaid(payment)).toMatchObject({ ok: true });
+    expect((await walletOf(actor.userId))?.purchasedBalance).toBe(60);
+    expect((await repository.readTopUpOrderProjection(actor, created.value.id))?.continuation?.status).toBe("completed");
+  });
+
+  it("rejects forged owner/price terms and never rebinds an existing QR order", async () => {
+    const { actor, repository, continuation } = await continuationFixture();
+    expect(await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", { ...continuation, confirmedPriceLa: 1 })).toEqual({ ok: false, code: "TOP_UP_CONTINUATION_INVALID" });
+    const outsider = await createAccount();
+    expect(await repository.createTopUpOrder(outsider, "LA-ENTRY-300", "vi", continuation)).toEqual({ ok: false, code: "TOP_UP_CONTINUATION_INVALID" });
+    const plain = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi");
+    const linked = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+    const replay = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+    if (!plain.ok || !linked.ok || !replay.ok) throw new Error("order fixture failed");
+    expect(plain.value.id).not.toBe(linked.value.id);
+    expect(replay.value.id).toBe(linked.value.id);
+    await expect(database.update(walletTopUpContinuations).set({ confirmedPriceLa: 1 }).where(eq(walletTopUpContinuations.orderId, linked.value.id))).rejects.toThrow();
+    expect(await repository.readTopUpOrderProjection(outsider, linked.value.id)).toBeNull();
+  });
 
   it("creates a pending top-up order with the pack's VND amount and reuses it on refresh", async () => {
     const actor = await createAccount();

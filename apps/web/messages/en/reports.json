@@ -74,7 +74,7 @@
     "unlockDialogShortBalanceTitle": "Not enough Lá",
     "unlockDialogShortBalanceBody": "You need {gap} more Lá. Your current balance is {balance} Lá.",
     "unlockDialogTopupAction": "Top up {pack} — {vnd}",
-    "unlockDialogTopupNote": "After topping up, come back to this page and unlock again — your selection is kept.",
+    "unlockDialogTopupNote": "After payment is confirmed, you will return to the selected section. If the selection or price has changed, your top-up remains in your wallet for you to confirm again.",
     "unlockDialogGenericError": "Something went wrong. Please try again.",
     "laInstantNotice": "Lá is credited immediately upon transfer confirmation.",
     "topupNotice": "Pay via VietQR bank transfer. Lá is credited automatically within seconds. Credits never expire.",
@@ -90,7 +90,18 @@
     "benefitSupport": "Fast error support",
     "benefitSupportDesc": "Message via Messenger or email if payment encounters issues.",
     "supportHeading": "Have questions before buying?",
-    "supportDesc": "Lá Số Việt replies via Messenger or email during business hours."
+    "supportDesc": "Lá Số Việt replies via Messenger or email during business hours.",
+    "unlockAfterTopupConsent": "Top up to automatically unlock {item} for {price} Lá after payment is confirmed.",
+    "unlockCompletedBalance": "Your selected part is unlocked. Your wallet has {balance} Lá remaining.",
+    "unlockReadPart": "Read your unlocked part",
+    "unlockResidualSuggestion": "You can use your remaining Lá to choose your next reading.",
+    "unlockReviewSelection": "Choose your next reading",
+    "unlockContinuationBlocked": "Your Lá is in your wallet. The previous selection has changed; review the price before unlocking.",
+    "residualPalaceToday": "Your remaining Lá covers another palace and Today ({cost} Lá).",
+    "residualToday": "Your remaining Lá covers Today ({cost} Lá).",
+    "residualTwoDays": "Save Lá for two Today readings after your included days end ({cost} Lá).",
+    "residualTopicPalace": "Your remaining Lá covers a second topic and one palace ({cost} Lá).",
+    "residualReserved": "Some suggested readings are not on sale yet. Keep your Lá in your wallet and explore available readings."
   },
   "checkout": {
     "eyebrow": "Payment",
@@ -318,6 +329,7 @@
     "monthly": "Monthly membership",
     "yearly": "Annual membership",
     "confirmTitle": "Confirm membership",
-    "confirm": "Confirm Lá payment"
+    "confirm": "Confirm Lá payment",
+    "confirmAfterTopup": "After topping up, return to Membership to confirm your purchase or renewal."
   }
 }

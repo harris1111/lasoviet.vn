@@ -12,6 +12,15 @@ import {
 import { buildZiweiIdentityEvidence } from "../evidence/ziwei-identity-rules.js";
 import { KnowledgeError, type KnowledgePassageV1 } from "../knowledge/knowledge-retrieval.service.js";
 
+vi.mock("./report-query.repository.js", () => ({
+  createDatabaseReportQueryRepository: () => ({
+    readAuthorizedReport: vi.fn().mockResolvedValue({
+      reservation: { reportVersionId: "report-version-1" },
+      entitlements: [{ active: true }],
+    }),
+  }),
+}));
+
 const palaceIds: ZiweiPalaceId[] = [
   "ziwei.palace.life",
   "ziwei.palace.siblings",
@@ -933,6 +942,7 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
         id: "order-1",
         kind: "content_purchase",
         status: "paid",
+        paidAt: new Date("2026-09-15T00:00:00.000Z"),
         ownerId: "owner-1",
         chartId: "chart-1",
         chartVersionId: "chart-version-1",
@@ -997,7 +1007,7 @@ describe("createDatabaseReportGenerationSourceRepository - lifecycle fence", () 
     });
   });
 
-  it("allows an active or soft-archived profile when frozen null context matches", async () => {
+  it("allows matching frozen null context when independently authorized", async () => {
     for (const deletedAt of [null, new Date("2026-09-15T00:00:00.000Z")]) {
       const { result } = await validate({
         ...validOrderAuthority({

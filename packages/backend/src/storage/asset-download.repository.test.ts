@@ -32,6 +32,7 @@ describe("full report PDF authorization", () => {
   it.each([
     { ok: false },
     { ok: true, value: { state: "pending" } },
+    { ok: true, value: { state: "ready", contentVersion: "ziwei-palaces.v1", content: {} } },
     { ok: true, value: { state: "ready", contentVersion: "ziwei-comprehensive.v3", content: { lockedSections: ["palaceReadings"] } } },
   ])("denies invalid or partial projections even with a lifetime SKU", async (result) => {
     ports.read.mockResolvedValue({ entitlements: [{ active: true, sku: "ZIWEI-IDENTITY-P0" }] });

@@ -48,6 +48,7 @@ export {
   commerceUnmatchedPayments,
 } from "./schema/commerce.js";
 export {
+  walletTopUpContinuations,
   dailyReadingUnlocks,
   walletAccounts,
   walletCommandReceipts,
@@ -63,6 +64,7 @@ export {
   generatedPreviewSections,
 } from "./schema/generated-preview.js";
 export {
+  reportEntitlementLinks,
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,

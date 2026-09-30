@@ -22,6 +22,7 @@ import {
   WalletBalanceV1Schema,
   WalletHistoryV1Schema,
   WalletTopUpOrderCreateV1Schema,
+  type WalletTopUpContinuationViewV1,
   GuaranteeClaimRequestV1Schema,
   GuaranteeClaimResultV1Schema,
   PartFeedbackCreateV1Schema,
@@ -262,7 +263,7 @@ export class CommerceController {
     };
   }
 
-  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null) {
+  private buildCustomerSafeTopUpOrder(order: WalletTopUpOrder, creditedLa: number | null, continuation?: WalletTopUpContinuationViewV1 | null) {
     const orderLocale = (order.locale === "en" ? "en" : "vi") as "vi" | "en";
     const supportUrl = orderLocale === "en"
       ? `/en/lien-he?order=${encodeURIComponent(order.invoiceNumber)}`
@@ -281,6 +282,7 @@ export class CommerceController {
       creditApplied: 0,
       creditExpiresAt: null,
       creditedLa,
+      ...(continuation ? { continuation } : {}),
       supportUrl,
     };
   }
@@ -509,7 +511,7 @@ export class CommerceController {
       throw new ServiceUnavailableException({ code: "TOP_UP_UNAVAILABLE" });
     }
     const repository = this.repository();
-    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale);
+    const result = await repository.createTopUpOrder(actor, parsed.data.packId, parsed.data.locale, parsed.data.continuation);
     if (!result.ok) {
       if (result.code === "CHECKOUT_ACCOUNT_REQUIRED") throw new UnauthorizedException({ code: result.code });
       if (result.code === "CHECKOUT_EMAIL_VERIFICATION_REQUIRED") throw new ForbiddenException({ code: result.code });
@@ -543,7 +545,7 @@ export class CommerceController {
         return {
           ok: true,
           value: {
-            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa),
+            order: this.buildCustomerSafeTopUpOrder(paidProjection.order, paidProjection.creditedLa, paidProjection.continuation),
             paymentInstructions: null,
             reportId: null,
           },
@@ -557,7 +559,7 @@ export class CommerceController {
     return {
       ok: true,
       value: {
-        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa),
+        order: this.buildCustomerSafeTopUpOrder(projection.order, projection.creditedLa, projection.continuation),
         paymentInstructions: this.buildPaymentInstructions(projection.order),
         reportId: null,
       },
@@ -581,7 +583,7 @@ export class CommerceController {
       return {
         ok: true,
         value: {
-          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa),
+          order: this.buildCustomerSafeTopUpOrder(topUp.order, topUp.creditedLa, topUp.continuation),
           paymentInstructions: this.sepayEnvironment === "disabled" || topUp.order.status !== "pending"
             ? null
             : this.buildPaymentInstructions(topUp.order),

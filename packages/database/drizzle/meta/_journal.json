@@ -348,6 +348,20 @@
     {
       "idx": 49,
       "version": "7",
+      "when": 1790813700000,
+      "tag": "0049_shared_natal_report_entitlements",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790813760000,
+      "tag": "0050_wallet_topup_continuations",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
       "when": 1790813820000,
       "tag": "0051_membership_subscriptions",
       "breakpoints": true

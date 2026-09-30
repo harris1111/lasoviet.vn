@@ -1,3 +1,4 @@
+import { WalletTopUpContinuationViewV1Schema } from "@lasoviet/contracts";
 import { z } from "zod";
 
 export const PaymentInstructionsSchema = z
@@ -39,6 +40,7 @@ export const CheckoutOrderSummarySchema = z
     creditApplied: z.number().int().nonnegative(),
     creditExpiresAt: z.string().datetime({ offset: true }).nullable(),
     creditedLa: z.number().int().positive().nullable(),
+    continuation: WalletTopUpContinuationViewV1Schema.optional(),
     supportUrl: z.string().trim().min(1),
   })
   .strict();

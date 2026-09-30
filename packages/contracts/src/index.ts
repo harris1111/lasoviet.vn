@@ -352,6 +352,8 @@ export {
   WalletSpendV1Schema,
   WalletTopUpCatalogV1,
   WalletTopUpOrderCreateV1Schema,
+  WalletTopUpContinuationRequestV1Schema,
+  WalletTopUpContinuationViewV1Schema,
   WalletTopUpPackIdSchema,
   WalletTransactionReceiptV1Schema,
 } from "./wallet-commerce-v1.js";
@@ -367,6 +369,8 @@ export type {
   WalletSpendAllocationV1,
   WalletSpendV1,
   WalletTopUpOrderCreateV1,
+  WalletTopUpContinuationRequestV1,
+  WalletTopUpContinuationViewV1,
   WalletTopUpPackId,
   WalletTransactionReceiptV1,
 } from "./wallet-commerce-v1.js";
@@ -545,6 +549,7 @@ export {
   ComprehensiveReportPublicContentV3Schema,
   projectComprehensiveReportPublicContentV3,
   ReportComprehensiveV3ReadyViewV1Schema,
+  ReportPalacesReadyViewV1Schema,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
@@ -571,6 +576,7 @@ export type {
   ComprehensiveReportPublicContentV3,
   ComprehensiveReportViewContentV3,
   ReportComprehensiveV3ReadyViewV1,
+  ReportPalacesReadyViewV1,
 } from "./identity-report-v1.js";
 
 export {

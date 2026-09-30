@@ -7,7 +7,7 @@ export type WalletUnlockLoadedState =
       intentVersion: number;
       walletVersion: number;
     }
-  | { step: "short_balance"; balance: number; priceLa: number };
+  | { step: "short_balance"; balance: number; priceLa: number; intentId: string; intentVersion: number; walletVersion: number };
 
 /**
  * Decides whether a freshly loaded intent + balance is enough to confirm the
@@ -21,7 +21,7 @@ export function resolveWalletUnlockLoadedState(
   placeholderWalletVersion: number,
 ): WalletUnlockLoadedState {
   if (balance.totalLa < intent.amountLa) {
-    return { step: "short_balance", balance: balance.totalLa, priceLa: intent.amountLa };
+    return { step: "short_balance", balance: balance.totalLa, priceLa: intent.amountLa, intentId: intent.id, intentVersion: intent.stateVersion, walletVersion: placeholderWalletVersion };
   }
   return {
     step: "confirm",
