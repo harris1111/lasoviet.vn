@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { authUsers, birthProfiles, birthProfileRevisions, calculationRuns, commerceEntitlements, createDatabase, evidenceSets, guaranteeClaims, partFeedbacks, runMigrations, walletAccounts, walletPurchaseIntents, walletTransactions, ziweiCharts, ziweiChartVersions, type Database } from "@lasoviet/database";
+import { authUsers, birthProfiles, birthProfileRevisions, calculationRuns, commerceEntitlements, createDatabase, evidenceSets, guaranteeClaims, partFeedbacks, reportReservations, runMigrations, walletAccounts, walletPurchaseIntents, walletTransactions, ziweiCharts, ziweiChartVersions, type Database } from "@lasoviet/database";
 import { TIER_1_ENTITLEMENT_SCOPE, getPalaceIdFromSku, isSinglePalaceSku, type CurrentActor, type WalletGrantV1 } from "@lasoviet/contracts";
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createWalletService } from "../wallet/wallet.service.js";
@@ -201,6 +201,33 @@ describe("guarantee atomicity and authority", () => {
     const entitlements = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.ownerId, owner.userId));
     expect(entitlements.every(e => e.revokedAt !== null)).toBe(true);
     expect(await service().claimGuarantee(owner.actor, claim(owner.chartId))).toMatchObject({ ok: false, code: "GUARANTEE_ALREADY_CLAIMED" });
+  });
+  it("rejects foreign report associations before any refund and binds replay to the report", async () => {
+    const owner = await ownerFixture("Report owner");
+    const other = await ownerFixture("Foreign report owner");
+    const spendId = await insertWalletSpend(owner, "ZIWEI-NATAL-EXCERPT-P0", 240, frozenNow);
+    const otherSpendId = await insertWalletSpend(other, "ZIWEI-NATAL-EXCERPT-P0", 240, frozenNow);
+    async function reserveReport(person: typeof owner, ledgerSpendId: string) {
+      const [entitlement] = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.ledgerSpendId, ledgerSpendId));
+      const reportId = randomUUID();
+      await database.insert(reportReservations).values({ reportId, reportVersionId: randomUUID(), entitlementId: entitlement!.id,
+        chartVersionId: person.chartVersionId, evidenceVersionId: person.evidenceId, knowledgeVersionId: "fixture",
+        promptVersion: "fixture", reportConfigVersion: "fixture", locale: "vi", sku: "ZIWEI-NATAL-EXCERPT-P0" });
+      return reportId;
+    }
+    const ownReportId = await reserveReport(owner, spendId);
+    const foreignReportId = await reserveReport(other, otherSpendId);
+    for (const reportId of [foreignReportId, randomUUID()]) {
+      expect(await service().claimGuarantee(owner.actor, { ...claim(owner.chartId), reportId })).toEqual({ ok: false, code: "GUARANTEE_NOT_OWNER" });
+    }
+    expect(await database.select().from(walletTransactions).where(eq(walletTransactions.reversalOfTransactionId, spendId))).toHaveLength(0);
+    expect(await database.select().from(partFeedbacks).where(eq(partFeedbacks.userId, owner.userId))).toHaveLength(0);
+    const request = { ...claim(owner.chartId), reportId: ownReportId };
+    const result = await service().claimGuarantee(owner.actor, request);
+    expect(result).toMatchObject({ ok: true });
+    expect(await service().claimGuarantee(owner.actor, request)).toEqual(result);
+    expect(await service().claimGuarantee(owner.actor, claim(owner.chartId, request.partId, request.idempotencyKey)))
+      .toEqual({ ok: false, code: "GUARANTEE_IDEMPOTENCY_CONFLICT" });
   });
   it("permits only one claim across different purchases racing on the same account", async () => {
     const owner = await ownerFixture("Race");

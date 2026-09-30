@@ -25,6 +25,7 @@ export type AuthorizedReportEntitlement = {
   chartId: string;
   sku: string;
   scope: EntitlementScope;
+  periodKey?: string;
   active: true;
   source: "order" | "ledger_spend";
 };
@@ -59,6 +60,8 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
   return (
+    (sku === "ZIWEI-MONTHLY-P0" && priceLa === 300) ||
+    (sku === "ZIWEI-YEAR-2026-P0" && priceLa === 480) ||
     ((sku === "ZIWEI-RELATIONSHIP-P0" || sku === "ZIWEI-CAREER-P0") && priceLa === 480) ||
     (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
     (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
@@ -159,6 +162,7 @@ export function createDatabaseReportQueryRepository(
           eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
           eq(walletPurchaseIntents.ownerId, input.ownerId),
           eq(walletPurchaseIntents.status, "completed"),
+          eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey),
         ),
       )
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
@@ -323,6 +327,7 @@ export function createDatabaseReportQueryRepository(
         chartId: record.entitlement.chartId,
         sku: record.entitlement.sku,
         scope: record.entitlement.scope,
+        periodKey: record.entitlement.periodKey,
         active: true as const,
         source: "ledger_spend" as const,
       }));
@@ -349,6 +354,7 @@ export function createDatabaseReportQueryRepository(
           chartId: entitlement.chartId,
           sku: entitlement.sku,
           scope: entitlement.scope,
+          periodKey: entitlement.periodKey,
           active: true as const,
           source: "order" as const,
         })),

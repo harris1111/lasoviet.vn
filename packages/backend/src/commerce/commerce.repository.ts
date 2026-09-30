@@ -80,6 +80,7 @@ export type CommerceRepositoryOptions = {
   paymentCodeFactory?: () => string;
   beforeClaimLockedRequery?: () => Promise<void>;
   reportVersionResolver?: ReportVersionResolver;
+  resolveMonthlyPeriodKey?: (asOfDate: string) => string;
 };
 
 export type OwnedOrderProjection = {
@@ -134,6 +135,7 @@ export function createDatabaseCommerceRepository(
   const walletUnlock = createWalletUnlockService(database, walletService, {
     now: getNow,
     reportVersionResolver,
+    resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey,
   });
   const guaranteeFeedback = createGuaranteeFeedbackService(database, {
     now: getNow,

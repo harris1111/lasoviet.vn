@@ -34,6 +34,7 @@ export const COMPREHENSIVE_REPORT_SECTION_IDS = [
   "annualSnapshot",
   "birthTimeSensitivity",
   "topicDeepDive",
+  "periodReading",
 ] as const;
 
 export const ComprehensiveReportSectionIdSchema = z.enum(COMPREHENSIVE_REPORT_SECTION_IDS);
@@ -152,6 +153,9 @@ export function resolveEntitlementScopeForSku(
   }
 
   switch (sku) {
+    case "ZIWEI-MONTHLY-P0":
+    case "ZIWEI-YEAR-2026-P0":
+      return { sections: ["periodReading"] };
     case "ZIWEI-RELATIONSHIP-P0":
     case "ZIWEI-CAREER-P0":
       return { sections: ["topicDeepDive"] };

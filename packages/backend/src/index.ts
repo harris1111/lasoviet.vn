@@ -785,6 +785,7 @@ export type {
   AdminBusinessMetricsRepository,
 } from "./admin-business-metrics/business-metrics.repository.js";
 
+export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
 export {
   DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG,
   TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES,
