@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 
 import { SiteFooter } from "../../../components/site-footer";
 import { SiteHeader } from "../../../components/site-header";
+import { TroiNamAbout } from "../../../features/troi-nam/troi-nam-about";
+import { TroiNamFaq } from "../../../features/troi-nam/troi-nam-faq";
+import { TroiNamValue } from "../../../features/troi-nam/troi-nam-value";
 import { TroiNamCompare } from "../../../features/troi-nam/troi-nam-compare";
 import { TroiNamExplore } from "../../../features/troi-nam/troi-nam-explore";
 import { TroiNamHero } from "../../../features/troi-nam/troi-nam-hero";
@@ -47,6 +50,15 @@ export default async function Page({ params }: PageProps) {
         </section>
         <section className="tn-section" data-troi-nam-block="usp">
           <TroiNamUsp />
+        </section>
+        <section className="tn-section" data-troi-nam-block="value">
+          <TroiNamValue locale={locale} />
+        </section>
+        <section className="tn-section" data-troi-nam-block="faq">
+          <TroiNamFaq locale={locale} />
+        </section>
+        <section className="tn-section" data-troi-nam-block="about">
+          <TroiNamAbout locale={locale} />
         </section>
       </main>
       <SiteFooter locale={locale} />

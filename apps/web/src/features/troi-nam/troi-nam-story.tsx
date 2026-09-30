@@ -6,8 +6,7 @@ export function TroiNamStory() {
 
   return (
     <div className="hv3 tn-story">
-      <picture className="tn-story-media" aria-hidden="true">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
+      <picture className="tn-story-media">
         <img
           src={plate.src}
           srcSet={plate.srcSet}

@@ -239,6 +239,16 @@ async function cutIcon(input, cell, outPath) {
     if (v > peak) peak = v;
   }
 
+  // The source sheets are not spaced perfectly evenly, so the tip of an icon in the
+  // next row can intrude a few pixels into this cell's edge. Ignore an edge band so
+  // those slivers are neither measured nor exported.
+  const inset = Math.round(Math.min(width, height) * 0.07);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (x < inset || x >= width - inset || y < inset || y >= height - inset) luma[y * width + x] = 0;
+    }
+  }
+
   const threshold = 40;
   let minX = width;
   let minY = height;

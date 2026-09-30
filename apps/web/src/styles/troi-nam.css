@@ -1112,3 +1112,221 @@
     gap: calc(var(--tn-gutter) / 2);
   }
 }
+
+
+/* ---- PLAN2-D: Value, Faq, About ---- */
+/* Presentation only. Shared v3 components and their state stay unchanged. */
+.tn .tn-value.hv3,
+.tn .tn-faq.hv3,
+.tn .tn-about.hv3 {
+  max-width: var(--tn-max);
+  margin-inline: auto;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-value .hv3-container,
+.tn .tn-faq .hv3-container,
+.tn .tn-about .hv3-container {
+  max-width: var(--tn-max);
+  padding: 0;
+}
+
+.tn .tn-value .hv3-h2,
+.tn .tn-faq .hv3-h2,
+.tn .tn-about .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-value .hv3-lead {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-value .hv3-steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+  margin-top: calc(var(--tn-gutter) * 2);
+}
+
+.tn .tn-value .hv3-steps li {
+  min-width: 0;
+  padding: var(--tn-gutter);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 1rem;
+  background: var(--lacquer-900);
+}
+
+.tn .tn-value .hv3-step-visual {
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: var(--tn-gutter);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tn .tn-value .hv3-step-visual > svg,
+.tn .tn-value .hv3-step-dot {
+  display: none;
+}
+
+.tn .tn-value .hv3-h3 {
+  margin: 0;
+  color: var(--tn-gold-light);
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+}
+
+.tn .tn-value .hv3-steps p {
+  max-width: 38ch;
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+  line-height: 1.7;
+}
+
+.tn .tn-faq .hv3-faq-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--tn-gutter) * 2);
+}
+
+.tn .tn-faq .hv3-faq-side,
+.tn .tn-faq .hv3-faq-list {
+  min-width: 0;
+  max-width: none;
+}
+
+.tn .tn-faq .hv3-faq-item {
+  border-top-color: var(--lacquer-line);
+}
+
+.tn .tn-faq .hv3-faq-item:last-child {
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-faq .hv3-faq-q {
+  min-height: 4rem;
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-faq .hv3-faq-plus {
+  border-color: var(--tn-gold);
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-faq .hv3-faq-a {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+/* Never override the accordion's native hidden state. */
+.tn .tn-faq .hv3-link,
+.tn .tn-faq .hv3-faq-a a,
+.tn .tn-about .hv3-about-body .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-about .hv3-about-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  background: var(--lacquer-900);
+  color: var(--tn-text);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 1rem;
+}
+
+.tn .tn-about .hv3-about-panel::before {
+  content: "";
+  display: block;
+  min-height: clamp(14rem, 55vw, 22rem);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tn .tn-about .hv3-about-art {
+  display: none;
+}
+
+.tn .tn-about .hv3-about-body {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: var(--tn-gutter);
+}
+
+.tn .tn-about .hv3-about-body p {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-about .hv3-final-cta {
+  margin-top: calc(var(--tn-gutter) * 2);
+  border-radius: 1rem;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+}
+
+.tn .tn-about .hv3-final-cta-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+}
+
+/* Remove the v3 light-theme side plates in both themes. */
+.tn .tn-about .hv3-final-cta-bg::before,
+.tn .tn-about .hv3-final-cta-bg::after {
+  display: none;
+}
+
+.tn .tn-about .hv3-final-cta-inner {
+  padding: var(--tn-section-y) var(--tn-gutter);
+}
+
+.tn .tn-about .hv3-final-cta-inner p {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-value .hv3-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tn .tn-faq .hv3-faq-layout {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .tn .tn-about .hv3-about-panel {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: stretch;
+  }
+
+  .tn .tn-about .hv3-about-panel::before {
+    min-height: 26rem;
+  }
+
+  .tn .tn-about .hv3-about-body {
+    align-self: center;
+    padding-block: calc(var(--tn-gutter) * 1.5);
+  }
+}
+
+
+/* ---- PLAN2-C portraits: append after the accumulated Trời Nam styles ---- */
+.tn .tn-testimonials .hv3-tt-avatar {
+  display: block;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 1px solid var(--tn-gold);
+  border-radius: 50%;
+  object-fit: cover;
+}
