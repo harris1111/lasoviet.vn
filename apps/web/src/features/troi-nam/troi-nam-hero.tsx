@@ -42,7 +42,7 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
         <p className="tn-hero-sub">{t("hero.sub")}</p>
       </div>
 
-      <div className="tn-hero-form">
+      <div className="hv3 tn-hero-form">
         <HomepageV3BirthForm state={state} />
       </div>
     </section>
