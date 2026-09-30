@@ -29,7 +29,7 @@ import {
 } from "./commerce.js";
 
 describe("commerce contracts", () => {
-  it("resolves entitlement scope for canonical single palace SKUs and fails closed for reserved products", () => {
+  it("resolves implemented palace and topic scopes while rejecting unsupported products", () => {
     const lifeScope = resolveEntitlementScopeForSku("ZIWEI-PALACE-LIFE-P0");
     expect(lifeScope).toEqual({
       sections: [],
@@ -45,8 +45,8 @@ describe("commerce contracts", () => {
     expect(EntitlementScopeSchema.safeParse(wealthScope).success).toBe(true);
 
     expect(() => resolveEntitlementScopeForSku("ZIWEI-PALACE-UNKNOWN" as any)).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toThrow();
+    expect(resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toEqual({ sections: ["topicDeepDive"] });
+    expect(resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toEqual({ sections: ["topicDeepDive"] });
     expect(() => resolveEntitlementScopeForSku("ZIWEI-TODAY-P0")).toThrow();
     expect(() => resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toThrow();
     expect(() => resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toThrow();
