@@ -1,5 +1,8 @@
 "use client";
 
+import { PeriodReportReader } from "./period-report-reader";
+import { TopicReportReader } from "./topic-report-reader";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type {
@@ -612,6 +615,8 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
       </section>)}
     </main>;
   }
+  if (report.contentVersion === "ziwei.period-reading.v1") return <PeriodReportReader report={report} />;
+  if (report.contentVersion === "ziwei.topic-deep-dive.v1") return <TopicReportReader report={report} />;
   if (report.contentVersion === "ziwei-comprehensive.v1") {
     return <ComprehensiveReportReader locale={locale} report={report} />;
   }

@@ -1,3 +1,4 @@
+import { readActiveMembership } from "../commerce/membership.service.js";
 import { findLaProduct } from "@lasoviet/contracts";
 import { reportReservationAuthority } from "./natal-report-authority.js";
 import { and, desc, eq, gt, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
@@ -27,6 +28,7 @@ export type AuthorizedReportEntitlement = {
   chartId: string;
   sku: string;
   scope: EntitlementScope;
+  periodKey?: string;
   active: true;
   expiresAt?: Date | null;
   dailyBonusExpiresAt?: Date | null;
@@ -64,7 +66,8 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
   const product = findLaProduct(sku);
-  if (!product || !["natal", "palace"].includes(product.category) || !Number.isSafeInteger(priceLa)) return false;
+  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
   return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }
 
@@ -167,6 +170,7 @@ export function createDatabaseReportQueryRepository(
           eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
           eq(walletPurchaseIntents.ownerId, input.ownerId),
           eq(walletPurchaseIntents.status, "completed"),
+          eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey),
         ),
       )
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
@@ -219,6 +223,7 @@ export function createDatabaseReportQueryRepository(
     ) {
       return null;
     }
+    if (record.intent.sku === "ZIWEI-MONTHLY-P0" && record.intent.priceLa === 0 && !await readActiveMembership(database, input.ownerId, now())) return null;
     if (!(await isActiveSpend(record.spend.id, record.intent.priceLa))) {
       return null;
     }
@@ -338,6 +343,7 @@ export function createDatabaseReportQueryRepository(
         expiresAt: record.entitlement.expiresAt,
         dailyBonusExpiresAt: record.entitlement.dailyBonusExpiresAt,
         grantedAt: record.entitlement.createdAt,
+        periodKey: record.entitlement.periodKey,
         active: true as const,
         source: "ledger_spend" as const,
       }));
@@ -367,6 +373,7 @@ export function createDatabaseReportQueryRepository(
           expiresAt: entitlement.expiresAt,
           dailyBonusExpiresAt: entitlement.dailyBonusExpiresAt,
           grantedAt: entitlement.createdAt,
+          periodKey: entitlement.periodKey,
           active: true as const,
           source: "order" as const,
         })),

@@ -314,7 +314,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-MONTHLY-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.union([z.literal(300), z.literal(240)]),
+    amountLa: z.union([z.literal(300), z.literal(240), z.literal(0)]),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -402,6 +402,8 @@ export const WalletContentPriceV1Schema = z
           message: "identity price must be between 0 and 960 Lá",
         });
       }
+    } else if (value.sku === "ZIWEI-MONTHLY-P0" && value.amountLa === 0) {
+      // Included membership reading; live membership is checked by server authorization.
     } else if (value.amountLa !== item.priceLa && !(value.sku.startsWith("ZIWEI-") && value.sku !== "ZIWEI-TODAY-P0" && value.amountLa === Math.ceil(item.priceLa * 0.8))) {
       context.addIssue({
         code: "custom",

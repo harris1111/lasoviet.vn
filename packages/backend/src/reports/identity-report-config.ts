@@ -328,6 +328,7 @@ const REPORT_RUNTIME_POLICIES: Readonly<Record<
 });
 
 export function resolveReportRuntimePolicy(reportConfigVersion: string): ReportRuntimePolicy {
+  if (reportConfigVersion === "ziwei.topic-deep-dive.report.v1" || reportConfigVersion === "ziwei.period-reading.report.v1") return { maximumWallClockMs: 15 * 60 * 1_000 };
   const policy = REPORT_RUNTIME_POLICIES[
     reportConfigVersion as keyof typeof REPORT_RUNTIME_POLICIES
   ];

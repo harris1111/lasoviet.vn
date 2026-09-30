@@ -1,5 +1,6 @@
 import { createMembershipService, createWalletService, createDatabaseWalletRepository } from "@lasoviet/backend";
 import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
+import { lunarPeriodPurchaseKey } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
@@ -126,6 +127,8 @@ function customerWalletIntent(value: {
     if (value.amountLa < 0 || value.amountLa > LIFETIME_BASE_PRICE_LA) {
       throw new Error("WALLET_INTENT_PROJECTION_INVALID");
     }
+  } else if (value.sku === "ZIWEI-MONTHLY-P0" && value.amountLa === 0) {
+    // Included membership benefit, authorized at purchase and read time.
   } else if (value.amountLa !== product.priceLa && value.amountLa !== Math.ceil(product.priceLa * 0.8)) {
     throw new Error("WALLET_INTENT_PROJECTION_INVALID");
   }
@@ -191,6 +194,7 @@ export class CommerceController {
     return createDatabaseCommerceRepository(this.database, {
       dailyReadingWriter: writePersonalDailyReading,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
+      resolveMonthlyPeriodKey: lunarPeriodPurchaseKey,
     });
   }
 

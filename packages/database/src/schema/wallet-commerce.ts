@@ -102,6 +102,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   chartVersionId: text("chart_version_id").notNull(),
   sku: text("sku").notNull(),
   locale: text("locale").notNull(),
+  periodKey: text("period_key").notNull().default("lifetime"),
   priceLa: integer("price_la").notNull(),
   status: text("status").notNull().default("pending"),
   stateVersion: integer("state_version").notNull().default(1),
@@ -115,7 +116,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
     OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
-    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240))
+    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240, 0))
     OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040))
     OR (${table.sku} IN ('MEMBERSHIP-MONTHLY-P0', 'MEMBERSHIP-MONTHLY-1500') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1500)

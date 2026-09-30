@@ -30,3 +30,6 @@ export {
 export type {
   PersonalDailyReadingWriterOptions,
 } from "./ziwei/personal-daily-reading-writer.js";
+
+export { calculatePeriodReadingFacts } from "./ziwei/period-reading-facts.js";
+export { lunarPeriodPurchaseKey } from "./ziwei/period-purchase-key.js";

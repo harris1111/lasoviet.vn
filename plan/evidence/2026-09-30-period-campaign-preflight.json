@@ -1,0 +1,295 @@
+{
+  "version": 1,
+  "campaignId": "feb0ff12-be69-488e-8302-097bc305ab2b",
+  "asOfDate": "2026-09-30",
+  "selectedPeriods": [
+    "monthly",
+    "annual"
+  ],
+  "requestedRuns": 20,
+  "source": "synthetic profiles calculated by Iztro; real configured provider required for acceptance",
+  "status": "dry_run_not_acceptance",
+  "acceptedPeriods": [],
+  "evidence": [
+    {
+      "kindId": "monthly",
+      "index": 0,
+      "chartVersionId": "synthetic-kind-0",
+      "snapshotHash": "bbfe23a8090d5cb05c7b2b28334d7df409c2e5595e175fe769a2cbfbdf94e5c4",
+      "evidenceCount": 3
+    },
+    {
+      "kindId": "monthly",
+      "index": 1,
+      "chartVersionId": "synthetic-kind-1",
+      "snapshotHash": "01a7d7f99b57b002b7669efc5228d68348b5fd5de16f5fad1b022b56bd15cbc9",
+      "evidenceCount": 5
+    },
+    {
+      "kindId": "monthly",
+      "index": 2,
+      "chartVersionId": "synthetic-kind-2",
+      "snapshotHash": "3861c109ac6f305be7ae4d47d542d0b6fc4a62719795f0613f1cdfdc44db62eb",
+      "evidenceCount": 4
+    },
+    {
+      "kindId": "monthly",
+      "index": 3,
+      "chartVersionId": "synthetic-kind-3",
+      "snapshotHash": "719714d3c22f94a9c20d19aa81228662b243025866b39452d22b899609bf568f",
+      "evidenceCount": 6
+    },
+    {
+      "kindId": "monthly",
+      "index": 4,
+      "chartVersionId": "synthetic-kind-4",
+      "snapshotHash": "d1f5908e2c747de30267dcab878edd35a2afbda08e34120e034fa94153685dcf",
+      "evidenceCount": 7
+    },
+    {
+      "kindId": "monthly",
+      "index": 5,
+      "chartVersionId": "synthetic-kind-5",
+      "snapshotHash": "9c0d4ddfd7aff37b2458dc866da9747e92fbba64262c10774818998cc74ecc47",
+      "evidenceCount": 7
+    },
+    {
+      "kindId": "monthly",
+      "index": 6,
+      "chartVersionId": "synthetic-kind-6",
+      "snapshotHash": "1df03d8d0f2bea07da216ec5d932a64d3ebf4813d4a584bbc6e17de81d8144c7",
+      "evidenceCount": 4
+    },
+    {
+      "kindId": "monthly",
+      "index": 7,
+      "chartVersionId": "synthetic-kind-7",
+      "snapshotHash": "7d197de0f69600a9083a2de95f2e3a309d4c31a60fe4bdc43bce2212767faf64",
+      "evidenceCount": 4
+    },
+    {
+      "kindId": "monthly",
+      "index": 8,
+      "chartVersionId": "synthetic-kind-8",
+      "snapshotHash": "a526b53dbc89ead4a9f7b55fc4b8def3770010553d6c004e2eba01d2fed8c9a1",
+      "evidenceCount": 5
+    },
+    {
+      "kindId": "monthly",
+      "index": 9,
+      "chartVersionId": "synthetic-kind-9",
+      "snapshotHash": "4587a5cfae6fda3ebf219871b05ed857d00ca0141b77119b7c9de3822a3d868d",
+      "evidenceCount": 6
+    },
+    {
+      "kindId": "monthly",
+      "index": 10,
+      "chartVersionId": "synthetic-kind-10",
+      "snapshotHash": "afa7d45eec4c469ba9c95034151d7ddbcc8f6d8a20637ddda8f9720e8a582b11",
+      "evidenceCount": 3
+    },
+    {
+      "kindId": "monthly",
+      "index": 11,
+      "chartVersionId": "synthetic-kind-11",
+      "snapshotHash": "fa8afd8698dbc2997dbf557ffd943cea228773789c6542624d1b31b027ec4e40",
+      "evidenceCount": 5
+    },
+    {
+      "kindId": "monthly",
+      "index": 12,
+      "chartVersionId": "synthetic-kind-12",
+      "snapshotHash": "4208454726f253686a0d816d0faf7be0ce66b0c1697c0acd47fc03aed44cc046",
+      "evidenceCount": 5
+    },
+    {
+      "kindId": "monthly",
+      "index": 13,
+      "chartVersionId": "synthetic-kind-13",
+      "snapshotHash": "6d41ff3d408d599245b94942c6b6d48be04a76b1676a12d57ef2db31e665191d",
+      "evidenceCount": 4
+    },
+    {
+      "kindId": "monthly",
+      "index": 14,
+      "chartVersionId": "synthetic-kind-14",
+      "snapshotHash": "2e355255885311fb6ba55aa8dccc9b56a181064f9c189a3f4e0b62fd2e5ac9b6",
+      "evidenceCount": 5
+    },
+    {
+      "kindId": "monthly",
+      "index": 15,
+      "chartVersionId": "synthetic-kind-15",
+      "snapshotHash": "478701035781471ed1541056e13e4b6b4263669316d616d7c385aa0810f58b78",
+      "evidenceCount": 6
+    },
+    {
+      "kindId": "monthly",
+      "index": 16,
+      "chartVersionId": "synthetic-kind-16",
+      "snapshotHash": "bb599aa5e168493adb6365a8b7b7f03f2d0a6a315853ae0e3b026634d0c2bcd2",
+      "evidenceCount": 6
+    },
+    {
+      "kindId": "monthly",
+      "index": 17,
+      "chartVersionId": "synthetic-kind-17",
+      "snapshotHash": "2693dbf7dce0769b0bf8ce8cbbc9eb2cf89e371d2aa43a68bb47ef99e34233bd",
+      "evidenceCount": 5
+    },
+    {
+      "kindId": "monthly",
+      "index": 18,
+      "chartVersionId": "synthetic-kind-18",
+      "snapshotHash": "6728cc1161cbebc18e4bf48f5a0600c3453929f6f5d08f0485432d9bf186d5e6",
+      "evidenceCount": 3
+    },
+    {
+      "kindId": "monthly",
+      "index": 19,
+      "chartVersionId": "synthetic-kind-19",
+      "snapshotHash": "6f9fd981b50939522ec7b3a7dce52f27652b679b62980672706a58e53b0b48e9",
+      "evidenceCount": 4
+    },
+    {
+      "kindId": "annual",
+      "index": 0,
+      "chartVersionId": "synthetic-kind-0",
+      "snapshotHash": "a459c4697df427d9598819918b9f892d5d9af8eb0992771740f7e65d7ee50ba9",
+      "evidenceCount": 41
+    },
+    {
+      "kindId": "annual",
+      "index": 1,
+      "chartVersionId": "synthetic-kind-1",
+      "snapshotHash": "233ce0c6e1df835d7196de716c01d05445bb24f76f02c569837db5f8b679f55a",
+      "evidenceCount": 43
+    },
+    {
+      "kindId": "annual",
+      "index": 2,
+      "chartVersionId": "synthetic-kind-2",
+      "snapshotHash": "5eca432d9bc0cba08b91f2ab0f577d0394b325262358cd131a71f45106a351ec",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 3,
+      "chartVersionId": "synthetic-kind-3",
+      "snapshotHash": "026904b1e6897adcbad301b5a41eb957607bee7417e907b783df0a400e547f3f",
+      "evidenceCount": 44
+    },
+    {
+      "kindId": "annual",
+      "index": 4,
+      "chartVersionId": "synthetic-kind-4",
+      "snapshotHash": "df72258c193affda31b52b53252bd8dd18071baf6a5643c25af7f319eba857f8",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 5,
+      "chartVersionId": "synthetic-kind-5",
+      "snapshotHash": "b021cae4d964b8149549e89c3e33fa679c6b6f664c87872704dfde21b36a7a0a",
+      "evidenceCount": 43
+    },
+    {
+      "kindId": "annual",
+      "index": 6,
+      "chartVersionId": "synthetic-kind-6",
+      "snapshotHash": "800eee3c85f87ecf017058dd268956bad65f277376d29a1ce9babe22ae338251",
+      "evidenceCount": 41
+    },
+    {
+      "kindId": "annual",
+      "index": 7,
+      "chartVersionId": "synthetic-kind-7",
+      "snapshotHash": "97d542966854660cf4b8ff0994082a7ee11d15e906a571941365bdd056a44c51",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 8,
+      "chartVersionId": "synthetic-kind-8",
+      "snapshotHash": "aa2e4bfe07e9735e9925fdf5e2c91d636c46812fe9d9773e9a013d1b92ba1c4c",
+      "evidenceCount": 41
+    },
+    {
+      "kindId": "annual",
+      "index": 9,
+      "chartVersionId": "synthetic-kind-9",
+      "snapshotHash": "ddf8e68b4a118ec0609c517a4aa750bbb69d1a246d854bb0c8c18ddce9bf0d6c",
+      "evidenceCount": 41
+    },
+    {
+      "kindId": "annual",
+      "index": 10,
+      "chartVersionId": "synthetic-kind-10",
+      "snapshotHash": "1ef9883402432e96caaff9caf7a1275734689ba0c3da99eeb6cbaa0ba6fa3dba",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 11,
+      "chartVersionId": "synthetic-kind-11",
+      "snapshotHash": "6a2bb3ac16ef2ad817a39a3990088d71da5a33530b0e572c761cf7f53328b5f4",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 12,
+      "chartVersionId": "synthetic-kind-12",
+      "snapshotHash": "268408f2025539b13481271e7dbed34f2db061767c9e7db948d29f22947e4611",
+      "evidenceCount": 43
+    },
+    {
+      "kindId": "annual",
+      "index": 13,
+      "chartVersionId": "synthetic-kind-13",
+      "snapshotHash": "2473d7e074dddf1a477d1caa97ff20b32143db093b1dad9dadc24b9a20036c39",
+      "evidenceCount": 41
+    },
+    {
+      "kindId": "annual",
+      "index": 14,
+      "chartVersionId": "synthetic-kind-14",
+      "snapshotHash": "82dcfc9417ba95d1fc318f32b5586126cc209042a9a3597421454ecb70a85faf",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 15,
+      "chartVersionId": "synthetic-kind-15",
+      "snapshotHash": "e8d2d9c4f94377fe349d2dee70a4e8f5ffc18df8eeab7bd0e9b51b903e23377c",
+      "evidenceCount": 41
+    },
+    {
+      "kindId": "annual",
+      "index": 16,
+      "chartVersionId": "synthetic-kind-16",
+      "snapshotHash": "9493de01f357edb5bdf9886baa13c81377121e0639acd7fca664e1a8a16f95ff",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 17,
+      "chartVersionId": "synthetic-kind-17",
+      "snapshotHash": "940b6149016569d6bef85ec3a4fc533f51e7ba862ef14d97d38ca94905057f29",
+      "evidenceCount": 43
+    },
+    {
+      "kindId": "annual",
+      "index": 18,
+      "chartVersionId": "synthetic-kind-18",
+      "snapshotHash": "3c4f0d20bc9698e39c4da86c161a8b3401426ed683f2e7a95a7f7f0873bc04c2",
+      "evidenceCount": 42
+    },
+    {
+      "kindId": "annual",
+      "index": 19,
+      "chartVersionId": "synthetic-kind-19",
+      "snapshotHash": "2422792e194455ebe53f006fcfcb7cdc03c850b084f886a746958630cac071dc",
+      "evidenceCount": 41
+    }
+  ]
+}

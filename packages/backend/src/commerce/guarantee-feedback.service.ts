@@ -1,3 +1,4 @@
+import { periodKindForSku } from "../reports/period-report-config.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, desc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import {
@@ -332,6 +333,8 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_NOT_OWNER" };
       }
 
+      const isPeriod = periodKindForSku(parsed.data.partId.toUpperCase()) !== null;
+      if (isPeriod && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
       // The optional report association is private owner data, including on the refund path.
       if (parsed.data.reportId) {
         const [report] = await transaction.select({ id: reportReservations.id })
@@ -411,9 +414,18 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND" };
       }
 
+      let periodEntitlementId: string | undefined;
+      if (isPeriod) {
+        const [reservation] = await transaction.select({entitlementId: reportReservations.entitlementId})
+          .from(reportReservations).where(eq(reportReservations.reportId, parsed.data.reportId!)).limit(1);
+        if (!reservation) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
+        periodEntitlementId = reservation.entitlementId;
+      }
+
       // Find matching entitlement by partId or scope
       const normalizedPartId = parsed.data.partId.toLowerCase();
       const matched = entitlements.find((candidate) => {
+        if (isPeriod && candidate.entitlement.id !== periodEntitlementId) return false;
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
         if (candidate.entitlement.sku === "ZIWEI-TODAY-P0") {
