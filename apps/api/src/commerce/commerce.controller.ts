@@ -6,6 +6,7 @@ import {
   createDatabaseCommerceRepository,
   createSePayGateway,
   createSePayWebhookService,
+  ensureWalletWelcomeGrant,
   walletTopUpPackTitle,
   type WalletTopUpOrder,
 } from "@lasoviet/backend";
@@ -161,6 +162,27 @@ export class CommerceController {
     return createDatabaseCommerceRepository(this.database, {
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
+  }
+
+  /**
+   * Grants the FD-105 60-Lá welcome bonus the first time a verified account
+   * touches the wallet. Idempotent (safe to call every request); failures
+   * (already granted, not yet eligible) are swallowed so the caller's own
+   * response is unaffected.
+   */
+  private async ensureWelcomeGrant(actor: CurrentActor): Promise<{ grantedAt: string; promotionalLa: number } | null> {
+    if (actor.kind !== "account") return null;
+    try {
+      const receipt = await ensureWalletWelcomeGrant(this.database, actor.userId, {
+        now: () => new Date(),
+        requestId: actor.requestId,
+        traceId: actor.requestId,
+      });
+      return receipt ? { grantedAt: receipt.completedAt, promotionalLa: 60 } : null;
+    } catch {
+      // Best-effort: the wallet read/unlock below must still complete.
+      return null;
+    }
   }
 
   private async actor(authorization: string | undefined): Promise<CurrentActor> {
@@ -344,9 +366,11 @@ export class CommerceController {
 
   @Get("wallet/balance")
   async walletBalance(@Headers("authorization") authorization: string | undefined) {
-    const result = await this.repository().readWalletBalance(await this.actor(authorization));
+    const actor = await this.actor(authorization);
+    const welcomeGrant = await this.ensureWelcomeGrant(actor);
+    const result = await this.repository().readWalletBalance(actor);
     if (!result.ok) walletError(result.error.code);
-    return { ok: true, value: WalletBalanceV1Schema.parse(result.value) };
+    return { ok: true, value: WalletBalanceV1Schema.parse(result.value), ...(welcomeGrant ? { welcomeGrant } : {}) };
   }
 
   @Get("wallet/history")
@@ -386,7 +410,9 @@ export class CommerceController {
   ) {
     const input = walletUnlockRequest(body);
     if (input === null) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
-    const result = await this.repository().unlockWalletPurchase(await this.actor(authorization), input);
+    const actor = await this.actor(authorization);
+    await this.ensureWelcomeGrant(actor);
+    const result = await this.repository().unlockWalletPurchase(actor, input);
     if (!result.ok) walletError(result.code);
     const intent = customerWalletIntent({
       id: result.value.intent.id,

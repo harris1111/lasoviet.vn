@@ -551,6 +551,10 @@ export type {
 } from "./wallet/wallet.repository.js";
 export { createWalletService } from "./wallet/wallet.service.js";
 export {
+  ensureWalletWelcomeGrant,
+  WALLET_WELCOME_GRANT_PROMOTIONAL_LA,
+} from "./wallet/wallet-welcome-grant.js";
+export {
   isWalletTopUpOrder,
   walletTopUpCreditedLa,
   walletTopUpPackTitle,
