@@ -180,10 +180,10 @@ describe("commerce migration layout", () => {
       new URL("0047_part_feedback_and_guarantee_claims.sql", migrationRoot),
       "utf8",
     );
-    expect(migration).toContain('ALTER TABLE "commerce_entitlements" ADD COLUMN "revoked_at"');
-    expect(migration).toContain('ALTER TABLE "commerce_entitlements" ADD COLUMN "revocation_reason"');
-    expect(migration).toContain('CREATE TABLE "part_feedbacks"');
-    expect(migration).toContain('CREATE TABLE "guarantee_claims"');
+    expect(migration).toContain('ALTER TABLE "commerce_entitlements" ADD COLUMN IF NOT EXISTS "revoked_at"');
+    expect(migration).toContain('ALTER TABLE "commerce_entitlements" ADD COLUMN IF NOT EXISTS "revocation_reason"');
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "part_feedbacks"');
+    expect(migration).toContain('CREATE TABLE IF NOT EXISTS "guarantee_claims"');
     expect(migration).toContain('"guarantee_claims_account_unique"');
     expect(migration).toContain('"guarantee_claims_idempotency_unique"');
 
