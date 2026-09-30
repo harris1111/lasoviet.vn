@@ -170,3 +170,328 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ---- PLAN2-A: Story, Ticker, Explore ---- */
+/* Scope overrides to the wrappers. No v3 tokens or global rules are changed. */
+.tn .tn-story.hv3,
+.tn .tn-ticker.hv3,
+.tn .tn-explore.hv3 {
+  position: relative;
+  max-width: var(--tn-max);
+  margin-inline: auto;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-story .hv3-container,
+.tn .tn-explore .hv3-container {
+  position: relative;
+  max-width: var(--tn-max);
+  padding: 0;
+}
+
+.tn .tn-story .hv3-h2,
+.tn .tn-explore .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+/* Story: the new plate replaces only the decorative art, never the copy. */
+.tn .tn-story {
+  isolation: isolate;
+  overflow: clip;
+}
+
+.tn .tn-story-media {
+  display: block;
+  height: clamp(15rem, 62vw, 22.5rem);
+}
+
+.tn .tn-story-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 40%;
+}
+
+.tn .tn-story .hv3-story-art {
+  display: none;
+}
+
+.tn .tn-story .hv3-story-panel {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--tn-text);
+}
+
+.tn .tn-story .hv3-story-copy {
+  width: 100%;
+  padding: var(--tn-gutter);
+}
+
+.tn .tn-story .hv3-story-body {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-story .hv3-questions p {
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-story .hv3-questions .hv3-q-accent {
+  color: var(--tn-gold-light);
+}
+
+/* Ticker: retain the existing marquee, pause and reduced-motion behavior. */
+.tn .tn-ticker .hv3-ticker-region {
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+  padding-block: var(--tn-gutter);
+}
+
+.tn .tn-ticker .hv3-marquee-cycle a,
+.tn .tn-ticker .hv3-marquee-chip {
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+  color: var(--tn-text);
+}
+
+.tn .tn-ticker .hv3-marquee-cycle a:hover {
+  border-color: var(--tn-gold);
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-ticker a:focus-visible,
+.tn .tn-explore :focus-visible {
+  outline-color: var(--tn-gold-light);
+}
+
+/* Explore: texture stays behind the unmodified interactive component. */
+.tn .tn-explore {
+  isolation: isolate;
+  scroll-margin-top: var(--tn-section-y);
+}
+
+.tn .tn-explore-texture {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-head {
+  max-width: 52ch;
+}
+
+.tn .tn-explore .hv3-eyebrow,
+.tn .tn-explore .hv3-mono,
+.tn .tn-explore .hv3-accent,
+.tn .tn-explore .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-lead,
+.tn .tn-explore .hv3-hint,
+.tn .tn-explore .hv3-panel-desc,
+.tn .tn-explore .hv3-panel-note,
+.tn .tn-explore .hv3-legend,
+.tn .tn-explore .hv3-cell-branch {
+  color: var(--tn-text-muted);
+}
+
+.tn .tn-explore .hv3-shortcuts {
+  display: flex;
+}
+
+.tn .tn-explore .hv3-shortcuts button {
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-shortcuts button[aria-pressed="true"] {
+  color: var(--tn-text);
+  border-color: var(--son);
+  background: var(--lacquer-700);
+}
+
+.tn .tn-explore .hv3-explore-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-explore .hv3-chart-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  scroll-margin-top: var(--tn-section-y);
+}
+
+/* Reset the hero's shared .hv3-chart height, margins, order and clipping. */
+.tn .tn-explore .hv3-chart {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  flex: none;
+  order: initial;
+  overflow: visible;
+  aspect-ratio: 1;
+}
+
+.tn .tn-explore .hv3-cell {
+  padding: 6px;
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+  background: var(--lacquer-700);
+}
+
+.tn .tn-explore .hv3-cell[data-state="trine"] {
+  border-color: var(--son);
+  background: var(--lacquer-800);
+}
+
+.tn .tn-explore .hv3-cell[data-state="opposite"] {
+  border-color: var(--tn-gold);
+  background: var(--lacquer-900);
+}
+
+.tn .tn-explore .hv3-cell[data-state="selected"] {
+  border-color: var(--son);
+  background: var(--lacquer-900);
+}
+
+.tn .tn-explore .hv3-cell-glyph {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-chart-core {
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-chart-core > div {
+  border-color: var(--son);
+  outline-color: var(--son);
+}
+
+.tn .tn-explore .hv3-line-trine {
+  stroke: var(--son);
+}
+
+.tn .tn-explore .hv3-dot-trine {
+  fill: var(--son);
+}
+
+.tn .tn-explore .hv3-line-opposite {
+  stroke: var(--tn-gold);
+}
+
+.tn .tn-explore .hv3-dot-opposite {
+  fill: var(--tn-gold);
+}
+
+.tn .tn-explore .hv3-legend-trine {
+  border-color: var(--son);
+}
+
+.tn .tn-explore .hv3-legend-opposite {
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-explore .hv3-rel-trine {
+  color: var(--son);
+}
+
+.tn .tn-explore .hv3-rel-opposite {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-panel {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--tn-gutter);
+  color: var(--tn-text);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-relations {
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-btn {
+  color: var(--tn-ink) !important;
+  background: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-btn:hover {
+  background: var(--tn-gold);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-story-media {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    z-index: -1;
+  }
+
+  .tn .tn-story-media img {
+    object-position: 78% 50%;
+  }
+
+  .tn .tn-story-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--tn-ink) 0%, transparent 100%);
+  }
+
+  .tn .tn-story .hv3-story-panel {
+    min-height: 35rem;
+    justify-content: center;
+  }
+
+  .tn .tn-story .hv3-story-copy {
+    width: min(64%, 44rem);
+    padding: var(--tn-gutter);
+  }
+
+  .tn .tn-ticker .hv3-ticker-region {
+    padding-block: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-ticker .hv3-marquee-cycle a,
+  .tn .tn-ticker .hv3-marquee-chip {
+    font-size: var(--tn-body);
+  }
+
+  .tn .tn-explore .hv3-shortcuts {
+    display: none;
+  }
+
+  .tn .tn-explore .hv3-explore-body {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .tn .tn-explore .hv3-cell {
+    padding: 10px 12px;
+  }
+
+  .tn .tn-explore .hv3-panel {
+    min-height: 22.5rem;
+  }
+}
+

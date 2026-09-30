@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 
 import { SiteFooter } from "../../../components/site-footer";
 import { SiteHeader } from "../../../components/site-header";
+import { TroiNamExplore } from "../../../features/troi-nam/troi-nam-explore";
 import { TroiNamHero } from "../../../features/troi-nam/troi-nam-hero";
+import { TroiNamStory } from "../../../features/troi-nam/troi-nam-story";
+import { TroiNamTicker } from "../../../features/troi-nam/troi-nam-ticker";
 
 type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
 
@@ -20,6 +23,15 @@ export default async function Page({ params }: PageProps) {
       <SiteHeader locale={locale} />
       <main>
         <TroiNamHero locale={locale} />
+        <section className="tn-section" data-troi-nam-block="story">
+          <TroiNamStory />
+        </section>
+        <section className="tn-section" data-troi-nam-block="ticker">
+          <TroiNamTicker />
+        </section>
+        <section className="tn-section" data-troi-nam-block="explore">
+          <TroiNamExplore locale={locale} />
+        </section>
       </main>
       <SiteFooter locale={locale} />
     </div>
