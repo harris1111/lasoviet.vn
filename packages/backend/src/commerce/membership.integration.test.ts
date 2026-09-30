@@ -146,6 +146,23 @@ describe("membership wallet and expiry integration", () => {
     expect(await email.send(payload)).toMatchObject({ status: "failed_permanent", errorCode: "RECIPIENT_UNSUBSCRIBED" });
     expect(provider.send).not.toHaveBeenCalled();
   });
+  it("delivers a consented expiry reminder once through the retry worker without wallet activity", async () => {
+    const owner = await fixture();
+    await owner.buy();
+    time = new Date("2026-10-27T03:00:00Z");
+    const preferences = { isNonTransactionalAllowed: vi.fn(async (_email: string, userId: string) => userId === owner.id) } as unknown as NotificationPreferenceStore;
+    const scanner = createMembershipExpiryReminderService({ database: db, preferenceStore: preferences, tokenSecret: "synthetic", now });
+    expect((await scanner.scanAndEnqueue()).enqueued).toBe(1);
+    const provider = { send: vi.fn(async () => ({ ok: true as const, providerMessageId: "synthetic" })) };
+    const email = createAuthEmailDeliveryService({ store: createDatabaseAuthEmailDeliveryStore(db), provider, recipientFingerprintSecret: "synthetic", preferenceChecker: preferences, membershipReminderAllowed: (request, current) => membershipReminderAllowed(db, request, current), now });
+    const balance = await owner.wallet.readBalance(owner.actor);
+    await email.retryDue(100);
+    await scanner.scanAndEnqueue();
+    await email.retryDue(100);
+    expect(provider.send).toHaveBeenCalledTimes(1);
+    expect(provider.send).toHaveBeenCalledWith(expect.objectContaining({ to: `${owner.id}@example.test`, text: expect.stringContaining("Không tự động gia hạn") }), expect.stringContaining("membership-expiry:"));
+    expect(await owner.wallet.readBalance(owner.actor)).toEqual(balance);
+  });
   it("compares base discount and rollover without stacking", () => {
     expect(membershipPrice(960, undefined, true)).toBe(768);
     expect(membershipPrice(960, 720, true)).toBe(720);
