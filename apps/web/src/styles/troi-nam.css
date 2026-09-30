@@ -86,11 +86,30 @@
   display: block;
 }
 
+.tn-hero-media picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
 .tn-hero-plate {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: 62% 50%;
+}
+
+/*
+ * L03 (dusk/chuyển đêm) has no phone crop yet, so the crossfade only runs at
+ * >=880px (see the desktop media block below). `dusk`/`night` are 0..1 weights
+ * the scroll-progress bridge writes onto `.tn-hero` (see troi-nam-hero.tsx);
+ * absent JS/reduced-motion they default to 0, i.e. the plain dawn plate.
+ */
+.tn-hero-plate-dusk {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 /* Keeps ivory text legible over the plate's brightest band. */
@@ -104,6 +123,20 @@
     rgb(8 7 6 / 0.28) 42%,
     rgb(8 7 6 / 0.88) 100%
   );
+}
+
+/*
+ * Extra darkening for the `night` phase, layered above `.tn-hero-scrim`.
+ * Stays off below 880px along with `.tn-hero-plate-dusk`: without that photo
+ * swap this would just be a plain black fade over the unchanged dawn plate.
+ */
+.tn-hero-scrim-night {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #050403;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Measure lives on the heading, where `em` tracks the display size. Putting it on the
@@ -193,6 +226,17 @@
 
   .tn-hero-plate {
     object-position: 70% 50%;
+  }
+
+  .tn-hero-plate-dusk {
+    display: block;
+    object-fit: cover;
+    object-position: 70% 50%;
+    opacity: var(--tn-hero-dusk, 0);
+  }
+
+  .tn-hero-scrim-night {
+    opacity: var(--tn-hero-night, 0);
   }
 
   .tn-hero-scrim {
