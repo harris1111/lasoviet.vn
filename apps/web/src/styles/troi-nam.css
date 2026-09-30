@@ -653,6 +653,33 @@
   gap: var(--tn-gutter);
 }
 
+/*
+ * Stacked scroll-in reveal for the four need cards (troi-nam-needs.tsx sets
+ * `data-need-reveal` via IntersectionObserver). No JS, IntersectionObserver
+ * missing, or prefers-reduced-motion: the attribute is never set and every
+ * card stays at its normal opacity/position — safe default.
+ */
+.tn .tn-needs[data-need-reveal] .hv3-need {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.tn .tn-needs[data-need-reveal="pending"] .hv3-need {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.tn .tn-needs[data-need-reveal] .hv3-need:nth-child(2) {
+  transition-delay: 60ms;
+}
+
+.tn .tn-needs[data-need-reveal] .hv3-need:nth-child(3) {
+  transition-delay: 120ms;
+}
+
+.tn .tn-needs[data-need-reveal] .hv3-need:nth-child(4) {
+  transition-delay: 180ms;
+}
+
 .tn .tn-needs .hv3-need {
   position: relative;
   overflow: hidden;

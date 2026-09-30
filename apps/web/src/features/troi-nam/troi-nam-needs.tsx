@@ -1,3 +1,7 @@
+"use client";
+
+import { useLayoutEffect, useRef } from "react";
+
 import { HomepageV3Needs } from "../homepage-v3/homepage-v3-needs";
 import { troiNamAsset } from "./troi-nam-assets";
 
@@ -11,9 +15,40 @@ export function TroiNamNeeds({ locale }: { locale: "en" | "vi" }) {
     // Keep the original decision icon; the year icon would mislabel this CTA.
     { id: "decision", plate: troiNamAsset("S04"), icon: null },
   ];
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  // Runs before paint (not useEffect) so the very first render already shows
+  // the correct state: if the card row is already on screen at mount, reveal
+  // it immediately with no hide-then-show flash; otherwise hide instantly
+  // (no transition yet) and let the observer animate it in on scroll.
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    const list = wrap?.querySelector<HTMLElement>(".hv3-need-list");
+    if (!wrap || !list) return;
+    if (typeof IntersectionObserver !== "function") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    const rect = list.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      wrap.setAttribute("data-need-reveal", "in");
+      return;
+    }
+
+    wrap.setAttribute("data-need-reveal", "pending");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        wrap.setAttribute("data-need-reveal", "in");
+        observer.disconnect();
+      },
+      { threshold: 0.2 },
+    );
+    observer.observe(list);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="hv3 tn-needs" id="nhu-cau">
+    <div className="hv3 tn-needs" id="nhu-cau" ref={wrapRef}>
       {assets.map((asset, index) => (
         <style key={asset.id}>
           {`
