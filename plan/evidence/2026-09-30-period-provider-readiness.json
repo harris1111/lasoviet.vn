@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "campaignId": "54ac3c61-58dc-440a-bdad-e5d0a8258e00",
+  "asOfDate": "2026-09-30",
+  "selectedPeriods": [
+    "monthly",
+    "annual"
+  ],
+  "requestedRuns": 20,
+  "source": "synthetic profiles calculated by Iztro; real configured provider required for acceptance",
+  "status": "blocked",
+  "acceptedPeriods": [],
+  "evidence": [],
+  "reason": "CONFIGURED_PROVIDER_DATABASE_AND_APPROVED_PRODUCTION_GATE_REQUIRED"
+}

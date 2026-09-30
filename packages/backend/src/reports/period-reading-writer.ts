@@ -30,6 +30,12 @@ export function validatePeriodReading(content: ZiweiPeriodReadingContentV1, fact
     }
     if (!canNameAdversity && /(?:hạn\s+nặng|hao\s+tài|tai\s+họa|tháng\s+hạn)/iu.test(text)) findings.push("UNCOMPUTED_ADVERSITY");
   };
+  // Overview comparisons must associate every named adverse month with its own computed obstacle.
+  for (const sentence of (content.title + ". " + content.overview.narrative).split(/[.!?;\n]+/u)) {
+    if (!/(?:hạn\s+nặng|hao\s+tài|tai\s+họa|tháng\s+hạn)/iu.test(sentence)) continue;
+    const months = [...sentence.toLocaleLowerCase("vi").matchAll(monthPattern)].map(match => monthWords[match[1]!] ?? Number(match[1]));
+    if (months.length === 0 || months.some(month => !facts.periods.filter(period => period.month === month).every(period => period.obstacleStarIds.length > 0))) findings.push("UNCOMPUTED_ADVERSITY");
+  }
   check(content.title + " " + content.overview.narrative, content.overview.evidenceKeys, facts.evidenceKeys, 180, facts.periods.map(p => p.month), facts.periods.some(p => p.obstacleStarIds.length > 0));
   for (const section of content.periods) {
     const period = facts.periods.find(p => p.id === section.periodId);
@@ -46,7 +52,9 @@ export async function writePeriodReading(input: { facts: ZiweiPeriodReadingFacts
   let findings: string[] = [];
   for (let attempt = 0; attempt < 2; attempt++) {
     const result = await input.provider.generateStructured({ schema: ZiweiPeriodReadingContentV1Schema, schemaName: "ziwei_period_reading_v1",
-      use: "production_report_generation", costContext: input.costContext, purpose: attempt ? "rewrite" : "report", maxOutputTokens: facts.kind === "annual" ? 20000 : 8000,
+      use: "production_report_generation", costContext: input.costContext ? { ...input.costContext,
+        ...(input.costContext.idempotencyKey ? { idempotencyKey: `${input.costContext.idempotencyKey}:${attempt ? "rewrite" : "report"}` } : {}),
+        purpose: attempt ? "rewrite" : "report" } : undefined, purpose: attempt ? "rewrite" : "report", maxOutputTokens: facts.kind === "annual" ? 20000 : 8000,
       system: "Write a substantial Vietnamese astrology reading from the supplied computed lunar periods. Return only the exact JSON schema. Explain star terms immediately for beginners. Copy period identifiers and evidence keys exactly, cover every supplied period once including leap-month halves. Annual: at least150 Vietnamese syllables of substantive prose and actions per period. Monthly: at least700 per period. Overview: at least180. Distinguish preparation from predictions. No invented scores, events, dates, months, ritual advice, death/lifespan claims, certainty promises, lottery numbers, Han ideographs, or English brightness labels. Only mention adverse monthly patterns when the relevant period includes obstacleStarIds; explain the matching stars as context, never inevitable events. Do not mention AI or internal inputs. All dates refer to the lunar calendar. Each period may name only its own month. No specific days. Annual overview may compare supplied months but may not attribute an adverse pattern to a month without obstacle evidence. Do not reproduce birth data or technical identifiers in prose.",
       user: JSON.stringify({ tuple: PERIOD_READING_TUPLE, facts, knowledgePacks: (input.knowledgePacks ?? []).map(pack => ({ id: pack.id, passages: pack.passages.slice(0, 2).map(passage => ({ passageId: passage.passageId, content: passage.content.slice(0, 1800) })) })), ...(prior ? { rewrite: { prior, findings } } : {}) }),
     });

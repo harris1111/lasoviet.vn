@@ -21,12 +21,19 @@ describe("period writer fail-closed quality", () => {
     const wrong = content(); wrong.periods[0]!.narrative += " Ngày 12 có hạn nặng.";
     expect(validatePeriodReading(wrong, facts).findings).toEqual(expect.arrayContaining(["UNCOMPUTED_DAY", "UNCOMPUTED_ADVERSITY"]));
   });
+  it("does not transfer an adverse monthly fact to another month in the overview", () => {
+    const annual = { ...facts, kind: "annual" as const, periods: [{ ...facts.periods[0]!, obstacleStarIds: ["ziwei.star.lianZhen"] }, { ...facts.periods[0]!, id: "september", month: 9 }] };
+    const wrong = content(); wrong.kind = "annual"; wrong.overview.narrative += " Tháng chín hao tài.";
+    expect(validatePeriodReading(wrong, annual).findings).toContain("UNCOMPUTED_ADVERSITY");
+  });
   it("allows one corrective rewrite and never returns failed quality as success", async () => {
     const wrong = content(); wrong.periods[0]!.narrative = "Ngắn.";
     const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: wrong, providerId: "fixture", modelId: "fixture" } });
-    const result = await writePeriodReading({ facts, provider: { generateStructured } });
+    const result = await writePeriodReading({ facts, provider: { generateStructured }, costContext: { idempotencyKey: "report-1" } });
     expect(result).toMatchObject({ ok: false, error: { code: "PERIOD_QUALITY_REJECTED" } });
     expect(generateStructured).toHaveBeenCalledTimes(2);
     expect(generateStructured.mock.calls[1]?.[0].purpose).toBe("rewrite");
+    expect(generateStructured.mock.calls[0]?.[0].costContext.idempotencyKey).toBe("report-1:report");
+    expect(generateStructured.mock.calls[1]?.[0].costContext.idempotencyKey).toBe("report-1:rewrite");
   });
 });
