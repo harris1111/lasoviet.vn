@@ -1200,11 +1200,11 @@ html[data-theme="light"] .result-tab-button.is-active {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid var(--gold-400);
+  border: 1px solid var(--accent-gold);
   border-radius: 12px;
-  background: var(--night-900, #151322);
-  color: var(--pearl-100, #f6f0e8);
-  box-shadow: 0 8px 24px #0005;
+  background: var(--surface-panel);
+  color: var(--text-body);
+  box-shadow: var(--surface-shadow);
 }
 .welcome-grant-notice button {
   margin-left: auto;
