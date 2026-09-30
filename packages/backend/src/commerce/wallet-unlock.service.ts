@@ -600,10 +600,19 @@ export function createWalletUnlockService(
         return failed("WALLET_INTENT_VERSION_CONFLICT");
       }
 
-      // Dedicated zero-cost unlock path when effective price is 0 (100% rollover credit)
+      // Zero-cost audit path for complete rollover credit or included monthly membership access.
       if (intent.priceLa === 0) {
-        const zeroResult = await database.transaction(async (transaction) => {
+        const zeroResult = await database.transaction<WalletResult<WalletUnlockOutcome>>(async (transaction) => {
           const currentNow = now();
+          // Match paid wallet commands: account, wallet, intent, then chart locks.
+          if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
+          const [walletAccount] = await transaction.select().from(walletAccounts)
+            .where(eq(walletAccounts.ownerId, actor.userId))
+            .limit(1)
+            .for("update");
+          if (walletAccount === undefined || walletAccount.stateVersion !== request.expectedWalletVersion) {
+            return failed("WALLET_VERSION_CONFLICT");
+          }
           const [initialIntent] = await transaction.select().from(walletPurchaseIntents)
             .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
             .limit(1)
@@ -647,14 +656,6 @@ export function createWalletUnlockService(
           const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
-          }
-
-          const [walletAccount] = await transaction.select().from(walletAccounts)
-            .where(eq(walletAccounts.ownerId, actor.userId))
-            .limit(1)
-            .for("update");
-          if (walletAccount === undefined || walletAccount.stateVersion !== request.expectedWalletVersion) {
-            return failed("WALLET_VERSION_CONFLICT");
           }
 
           const continuationOperation = `wallet.report.unlock.v1.intent-v${request.expectedIntentVersion}`;
