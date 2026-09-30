@@ -71,7 +71,7 @@ test("the founder-run stack delivers registration email and serves the anonymous
   // Inspector is visible
   await expect(page.getByTestId("ziwei-detail-inspector")).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "Ba điểm để tự quan sát" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ba điểm để tự quan sát|Lá số Tử Vi của bạn, và 2 điều lá số nói riêng về bạn/ })).toBeVisible();
   const trigger = page.getByRole("button", { name: "Xem căn cứ" }).first();
   await trigger.click();
   const dialog = page.getByRole("dialog");

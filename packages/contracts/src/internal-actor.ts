@@ -9,6 +9,7 @@ export type CurrentActor =
       userId: string;
       sessionId: string;
       requestId: string;
+      emailVerified?: boolean;
     }
   | {
       kind: "anonymous";
@@ -27,6 +28,7 @@ export type InternalActorV1 =
       aud: typeof INTERNAL_ACTOR_AUDIENCE;
       exp: number;
       requestId: string;
+      emailVerified?: boolean;
     }
   | {
       version: 1;
@@ -55,6 +57,7 @@ const accountActor = z
     aud: z.literal(INTERNAL_ACTOR_AUDIENCE),
     exp: z.number().int().positive(),
     requestId: actorIdentifier,
+    emailVerified: z.boolean().optional(),
   })
   .strict();
 

@@ -5,7 +5,7 @@
   "paymentDeferred": "SePay sẽ được mở ở bước tiếp theo.",
   "preview": {
     "eyebrow": "Xem trước miễn phí",
-    "title": "Ba điểm để tự quan sát",
+    "title": "Lá số Tử Vi của bạn, và 2 điều lá số nói riêng về bạn",
     "strength": "Điểm mạnh",
     "tension": "Điểm căng cần quan sát",
     "coverage": "Phần xem trước bao quát {percent}% nội dung của {offer}."
@@ -288,5 +288,20 @@
     "timeline_living": "Đang sống",
     "timeline_read_full": "Đọc đầy đủ chặng này",
     "timeline_read_palace": "Đọc cung {palace}"
+  },
+  "readerUpgrade": {
+    "title": "Đọc tiếp Tử Vi trọn đời",
+    "description": "Khám phá mười hai cung, các cấu trúc chính, chủ đề cuộc sống và bối cảnh đại vận, năm hiện tại.",
+    "price": "Giá nâng cấp của bạn: {amount} Lá",
+    "credit": "Bạn đang được giảm {amount} Lá so với giá niêm yết 960 Lá.",
+    "terms": "Lá đã dùng mở cung lẻ và Bản mệnh của lá số này được khấu trừ trong 7 ngày từ lần mua đầu. Giá cuối cùng và số dư được kiểm tra lại trước khi bạn xác nhận.",
+    "loading": "Đang kiểm tra giá nâng cấp…",
+    "unavailable": "Mở bảng xác nhận để kiểm tra giá và số dư hiện tại.",
+    "unlock": "Xem giá và xác nhận nâng cấp",
+    "topup": "Nạp Lá",
+    "palaces": "Luận giải mười hai cung",
+    "patterns": "Cấu trúc chính và chủ đề cuộc sống",
+    "timing": "Đại vận và năm hiện tại",
+    "scope": "Chỉ hiển thị tiêu đề và hình minh họa cho đến khi bạn mở."
   }
 }

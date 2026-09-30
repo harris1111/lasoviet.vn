@@ -1,7 +1,9 @@
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
 
-import type { CurrentActor } from "@lasoviet/contracts";
+import type { CurrentActor, TopConcernV1 } from "@lasoviet/contracts";
 import {
+  birthProfileReadingContextRevisions,
+  birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
   evidenceItems,
@@ -17,6 +19,7 @@ export type AuthorizedZiweiChartRecord = {
   normalizedOutput: Record<string, unknown>;
   originalInput: Record<string, unknown>;
   normalizedInput: Record<string, unknown> | null;
+  topConcern?: TopConcernV1 | null;
   evidenceSetId: string | null;
   capabilityId: string | null;
   ruleVersion: string | null;
@@ -56,6 +59,7 @@ export function createDatabaseZiweiQueryRepository(
           normalizedOutput: ziweiChartVersions.normalizedOutput,
           originalInput: birthProfileRevisions.originalInput,
           normalizedInput: birthProfileRevisions.normalizedInput,
+          topConcern: birthProfileReadingContextRevisions.topConcern,
         })
         .from(ziweiCharts)
         .innerJoin(birthProfiles, eq(birthProfiles.id, ziweiCharts.profileId))
@@ -66,6 +70,17 @@ export function createDatabaseZiweiQueryRepository(
         .innerJoin(
           ziweiChartVersions,
           eq(ziweiChartVersions.chartId, ziweiCharts.id),
+        )
+        .leftJoin(
+          birthProfileReadingContexts,
+          eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId),
+        )
+        .leftJoin(
+          birthProfileReadingContextRevisions,
+          eq(
+            birthProfileReadingContextRevisions.id,
+            birthProfileReadingContexts.currentRevisionId,
+          ),
         )
         .where(
           and(
@@ -94,9 +109,11 @@ export function createDatabaseZiweiQueryRepository(
           ),
         )
         .limit(1);
+      const topConcern = (record.topConcern ?? undefined) as TopConcernV1 | undefined;
       if (evidenceSet === undefined) {
         return {
           ...record,
+          topConcern,
           evidenceSetId: null,
           capabilityId: null,
           ruleVersion: null,
@@ -108,7 +125,7 @@ export function createDatabaseZiweiQueryRepository(
         .from(evidenceItems)
         .where(eq(evidenceItems.evidenceSetId, evidenceSet.evidenceSetId))
         .orderBy(evidenceItems.evidenceKey);
-      return { ...record, ...evidenceSet, items };
+      return { ...record, topConcern, ...evidenceSet, items };
     },
 
     async readEvidenceItem(evidenceSetId, evidenceId) {

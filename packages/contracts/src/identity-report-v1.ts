@@ -701,6 +701,8 @@ export function projectComprehensiveReportPublicContentV3(
 }
 
 const baseReportReadyViewV1Schema = z.object({
+  chartId: z.string().trim().min(1).optional(),
+  chartVersionId: z.string().trim().min(1).optional(),
   version: z.literal(1),
   state: z.literal("ready"),
   reportId: z.string().trim().min(1),

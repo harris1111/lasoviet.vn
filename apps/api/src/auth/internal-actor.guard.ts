@@ -60,6 +60,7 @@ export async function verifyInternalActorToken(
           userId: parsed.data.sub,
           sessionId: parsed.data.sid,
           requestId: parsed.data.requestId,
+          ...(parsed.data.emailVerified !== undefined ? { emailVerified: parsed.data.emailVerified } : {}),
         }
       : {
           kind: "anonymous" as const,

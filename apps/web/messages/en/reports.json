@@ -5,7 +5,7 @@
   "paymentDeferred": "SePay will open in the next step.",
   "preview": {
     "eyebrow": "Free preview",
-    "title": "Three points to reflect on",
+    "title": "Your Zi Wei Chart, and 2 Key Insights Personal to You",
     "strength": "Strength",
     "tension": "Tension to observe",
     "coverage": "This preview covers {percent}% of the {offer}."
@@ -288,5 +288,20 @@
     "timeline_living": "Living now",
     "timeline_read_full": "Read this cycle in full",
     "timeline_read_palace": "Read the {palace} palace"
+  },
+  "readerUpgrade": {
+    "title": "Continue with your complete lifetime reading",
+    "description": "Explore the twelve palaces, major chart patterns, life themes and the current decadal and annual context.",
+    "price": "Your upgrade: {amount} Lá",
+    "credit": "Your current discount: {amount} Lá against the 960 Lá list price.",
+    "terms": "Eligible palace and Natal Excerpt purchases on this chart count toward rollover for 7 days from the first purchase. The final price and balance are checked again before you confirm.",
+    "loading": "Checking your upgrade price…",
+    "unavailable": "Open the confirmation to check your current price and balance.",
+    "unlock": "Review upgrade",
+    "topup": "Top up Lá",
+    "palaces": "Twelve palace readings",
+    "patterns": "Major patterns and life themes",
+    "timing": "Current decade and year",
+    "scope": "Only titles and placeholders are shown until you unlock."
   }
 }

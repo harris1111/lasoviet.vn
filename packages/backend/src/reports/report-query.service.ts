@@ -360,6 +360,8 @@ export function createReportQueryService(options: {
             : TIER_1_ENTITLEMENT_SCOPE,
         );
         const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartId: record.entitlements[0]?.chartId,
+          chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
           contentVersion: "ziwei-comprehensive.v3",
@@ -428,6 +430,8 @@ export function createReportQueryService(options: {
         );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartId: record.entitlements[0]?.chartId,
+          chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
           contentVersion: "ziwei-comprehensive.v2",
@@ -494,6 +498,8 @@ export function createReportQueryService(options: {
         );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartId: record.entitlements[0]?.chartId,
+          chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
           contentVersion: "ziwei-comprehensive.v1",
@@ -565,6 +571,8 @@ export function createReportQueryService(options: {
           : CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN;
 
       const readyParse = ReportReadyViewV1Schema.safeParse({
+          chartId: record.entitlements[0]?.chartId,
+          chartVersionId: version.chartVersionId,
         version: 1,
         state: "ready",
         contentVersion: "identity.v1",
