@@ -10,7 +10,6 @@ import {
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
   createDatabaseNotificationPreferenceStore,
-  createVerifiedSignInNurtureService,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAiCostService,
@@ -58,7 +57,12 @@ export class WorkerModule {}
 
 export function createMaintenanceRunner() {
   const environment = loadEnvironment(process.env);
-  if (!environment.ok || environment.value.databaseUrl === undefined) {
+  if (
+    !environment.ok ||
+    environment.value.databaseUrl === undefined ||
+    environment.value.internalActorSecret === undefined ||
+    environment.value.internalActorSecret.trim() === ""
+  ) {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
@@ -93,13 +97,6 @@ export function createMaintenanceRunner() {
       repository: createDatabaseAdminAccessRepository(database),
     }),
   });
-  const nurtureNotification = createVerifiedSignInNurtureService({
-    database,
-    preferenceStore,
-    tokenSecret: environment.value.internalActorSecret ?? "",
-    canonicalOrigin: environment.value.betterAuthUrl,
-  });
-
   return createPhaseOneMaintenanceRunner({
     accountDeletion: createAccountDeletionService({
       repository: createDatabaseDeletionRepository(database),
@@ -115,7 +112,6 @@ export function createMaintenanceRunner() {
     analyticsRetention: createAnalyticsRetentionService({
       repository: createDatabaseAnalyticsRepository(database),
     }),
-    nurtureNotification,
   });
 }
 

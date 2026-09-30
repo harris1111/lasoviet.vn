@@ -286,6 +286,12 @@ function statusForProviderResult(
     : "failed_permanent";
 }
 
+export const DISABLED_NOTIFICATION_KINDS: ReadonlySet<string> = new Set([
+  "nurture_verified_signin",
+  "han_month_reminder",
+  "delayed_unlock_completed",
+]);
+
 export function createAuthEmailDeliveryService(
   options: AuthEmailDeliveryServiceOptions,
 ) {
@@ -314,6 +320,17 @@ export function createAuthEmailDeliveryService(
       let record = await options.store.getByIdempotencyKey(idempotencyKey);
       if (terminalOrActive(record, now)) {
         return outcome(record);
+      }
+
+      if (DISABLED_NOTIFICATION_KINDS.has(validatedRequest.kind)) {
+        await options.store.markFailure(
+          idempotencyKey,
+          0,
+          "failed_permanent",
+          "DISPATCH_DISABLED",
+          now,
+        );
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
       }
 
       // Check unsubscribe / preferences for non-transactional messages
@@ -437,13 +454,15 @@ export function createDatabaseAuthEmailDeliveryStore(
               or(
                 eq(notificationDeliveries.kind, "report_ready"),
                 eq(notificationDeliveries.kind, "report_failed"),
-                eq(notificationDeliveries.kind, "nurture_verified_signin"),
-                eq(notificationDeliveries.kind, "han_month_reminder"),
               ),
             ),
             and(
               eq(notificationDeliveries.status, "failed_retryable"),
               lt(notificationDeliveries.attemptCount, 3),
+              or(
+                eq(notificationDeliveries.kind, "report_ready"),
+                eq(notificationDeliveries.kind, "report_failed"),
+              ),
             ),
           ),
         )

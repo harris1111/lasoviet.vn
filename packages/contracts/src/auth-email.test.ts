@@ -59,7 +59,7 @@ describe("persisted email delivery contracts", () => {
       recipient: "User@Example.Test",
       locale: "vi" as const,
       actionUrl: "https://lasoviet.net/la-so/chart-456?palace=ziwei.palace.career",
-      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky?token=unsub-token-789",
+      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=unsub-token-789",
       requestId: "req-nurture-1",
       userId: "user-123",
       chartId: "chart-456",
@@ -78,7 +78,7 @@ describe("persisted email delivery contracts", () => {
         chartId: "chart-456",
         palaceId: "ziwei.palace.career",
         palaceTitle: "Cung Quan Lộc",
-        unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky?token=unsub-token-789",
+        unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=unsub-token-789",
       });
     }
   });
@@ -115,7 +115,7 @@ describe("persisted email delivery contracts", () => {
       recipient: "reader@example.test",
       locale: "vi" as const,
       actionUrl: "https://lasoviet.net/la-so/chart-123?tab=nam-nay",
-      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky?token=unsub-456",
+      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=unsub-456",
       requestId: "req-han-1",
       userId: "user-123",
       chartId: "chart-123",

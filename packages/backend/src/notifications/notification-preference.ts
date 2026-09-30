@@ -11,7 +11,7 @@ import {
   consents,
   notificationPreferences,
   type Database,
-} from "@lasoviet/database";
+} from "@lasoviet/database/runtime";
 
 export interface NotificationPreferenceStore {
   getPreferences(userId: string): Promise<NotificationPreferencesV1>;
@@ -27,6 +27,9 @@ export interface NotificationPreferenceStore {
 }
 
 export function fingerprintEmail(email: string, secret: string): string {
+  if (!secret || secret.trim() === "") {
+    throw new Error("NOTIFICATION_PREFERENCE_SECRET_REQUIRED");
+  }
   return createHmac("sha256", secret)
     .update(email.trim().toLowerCase())
     .digest("hex");
@@ -37,6 +40,9 @@ export function generateUnsubscribeToken(
   secret: string,
   now = new Date(),
 ): string {
+  if (!secret || secret.trim() === "") {
+    throw new Error("NOTIFICATION_PREFERENCE_SECRET_REQUIRED");
+  }
   const data = {
     userId: payload.userId.trim(),
     email: payload.email.trim().toLowerCase(),
@@ -50,12 +56,19 @@ export function generateUnsubscribeToken(
   return `${encodedPayload}.${signature}`;
 }
 
+export const CLOCK_SKEW_TOLERANCE_MS = 60_000; // 1 minute bounded skew
+export const DEFAULT_UNSUBSCRIBE_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
 export function verifyUnsubscribeToken(
   token: string,
   secret: string,
-  maxAgeMs = 30 * 24 * 60 * 60 * 1000,
+  maxAgeMs = DEFAULT_UNSUBSCRIBE_TOKEN_TTL_MS,
   now = new Date(),
+  maxFutureSkewMs = CLOCK_SKEW_TOLERANCE_MS,
 ): Result<{ userId: string; email: string }, "TOKEN_INVALID" | "TOKEN_EXPIRED"> {
+  if (!secret || secret.trim() === "") {
+    return { ok: false, error: { code: "TOKEN_INVALID", messageKey: "privacy.token_invalid", retryable: false } };
+  }
   const parts = token.split(".");
   if (parts.length !== 2) {
     return { ok: false, error: { code: "TOKEN_INVALID", messageKey: "privacy.token_invalid", retryable: false } };
@@ -88,7 +101,13 @@ export function verifyUnsubscribeToken(
   }
 
   const { userId, email, timestamp } = parseResult.data;
-  if (now.getTime() - timestamp > maxAgeMs) {
+  const nowMs = now.getTime();
+  // Reject future-issued tokens beyond bounded skew
+  if (timestamp - nowMs > maxFutureSkewMs) {
+    return { ok: false, error: { code: "TOKEN_INVALID", messageKey: "privacy.token_invalid", retryable: false } };
+  }
+  // Keep 30-day TTL
+  if (nowMs - timestamp > maxAgeMs) {
     return { ok: false, error: { code: "TOKEN_EXPIRED", messageKey: "privacy.token_expired", retryable: false } };
   }
 
@@ -103,6 +122,9 @@ export function createDatabaseNotificationPreferenceStore(
   secret: string,
   nowValue: () => Date = () => new Date(),
 ): NotificationPreferenceStore {
+  if (!database || !secret || secret.trim() === "") {
+    throw new Error("NOTIFICATION_PREFERENCE_STORE_CONFIG_INVALID");
+  }
   return {
     async getPreferences(userId: string): Promise<NotificationPreferencesV1> {
       const [record] = await database

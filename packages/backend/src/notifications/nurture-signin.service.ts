@@ -238,7 +238,7 @@ export function createVerifiedSignInNurtureService(
           recipient: user.email,
           locale: "vi",
           actionUrl: `${origin}/la-so/${encodeURIComponent(chartRecord.chartId)}?palace=${encodeURIComponent(selectedPalaceId)}`,
-          unsubscribeUrl: `${origin}/thong-bao/huy-dang-ky?token=${encodeURIComponent(unsubToken)}`,
+          unsubscribeUrl: `${origin}/thong-bao/huy-dang-ky#token=${encodeURIComponent(unsubToken)}`,
           requestId: `nurture-${user.id}-${now.getTime()}`,
           userId: user.id,
           chartId: chartRecord.chartId,

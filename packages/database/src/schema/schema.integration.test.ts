@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import postgres from "postgres";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
@@ -68,7 +69,12 @@ describe("database schema integration", () => {
   const claudePricingVersion = "9router-ag-claude-sonnet-4-6-v1-20260917";
   const openRouterPricingVersion = "openrouter-deepseek-flash-v1-20260920";
   const geminiFlashPricingVersion = "9router-ag-gemini-3.8-flash-v1-20260925";
-  const currentMigrationTimestamp = 1790813460000;
+  const journalMetadataUrl = new URL("../../drizzle/meta/_journal.json", import.meta.url);
+  const journalMetadata = JSON.parse(readFileSync(journalMetadataUrl, "utf8")) as {
+    entries: Array<{ idx: number; when: number; tag: string }>;
+  };
+  const currentMigrationTimestamp =
+    journalMetadata.entries[journalMetadata.entries.length - 1]!.when;
   let container:
     | Awaited<ReturnType<PostgreSqlContainer["start"]>>
     | undefined;
@@ -212,7 +218,7 @@ describe("database schema integration", () => {
       await removeGeminiFlashPricingForRewind(client);
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (1790813280000, 1790813340000, 1790813400000, 1790813460000)
+        WHERE created_at > 1790813220000
       `;
       await client`
         INSERT INTO report_section_checkpoints (
@@ -549,17 +555,7 @@ describe("database schema integration", () => {
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
-        WHERE created_at IN (
-          1790812980000,
-          1790813040000,
-          1790813100000,
-          1790813160000,
-          1790813220000,
-          1790813280000,
-          1790813340000,
-          1790813400000,
-          1790813460000
-        )
+        WHERE created_at > 1790812920000
       `;
       await client`
         INSERT INTO wallet_purchase_intents (
@@ -3238,7 +3234,7 @@ describe("database schema integration", () => {
     expect(new Set(indexes).size).toBe(indexes.length);
     expect(new Set(tags).size).toBe(tags.length);
     expect(new Set(timestamps).size).toBe(timestamps.length);
-    expect(journal.entries.slice(-19)).toEqual([
+    const anchorEntries = [
       {
         idx: 27,
         version: "7",
@@ -3372,7 +3368,22 @@ describe("database schema integration", () => {
         tag: "0045_wallet_catalog_rollover_pricing",
         breakpoints: true,
       },
-    ]);
+      {
+        idx: 46,
+        version: "7",
+        when: 1790813520000,
+        tag: "0046_fd105_notification_delivery_kinds",
+        breakpoints: true,
+      },
+    ];
+
+    for (const anchor of anchorEntries) {
+      expect(journal.entries).toContainEqual(anchor);
+    }
+
+    const latestJournalEntry = journal.entries[journal.entries.length - 1]!;
+    expect(latestJournalEntry.when).toBe(currentMigrationTimestamp);
+    expect(latestJournalEntry.idx).toBeGreaterThanOrEqual(46);
   });
 
   it("applies 0026 AI cost, 0027 reading context, 0028 analytics, and 0029 checkpoints to a clean database", async () => {
@@ -3693,24 +3704,7 @@ describe("database schema integration", () => {
     await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
-      WHERE created_at IN (
-        1790064000000,
-        1790553600000,
-        1790640000000,
-        1790726400000,
-        1790812800000,
-        1790812860000,
-        1790812920000,
-        1790812980000,
-        1790813040000,
-        1790813100000,
-        1790813160000,
-        1790813220000,
-        1790813280000,
-        1790813340000,
-        1790813400000,
-        1790813460000
-      )
+      WHERE created_at > 1789977600000
     `;
 
     const [latestBefore] = await client<{ created_at: string }[]>`

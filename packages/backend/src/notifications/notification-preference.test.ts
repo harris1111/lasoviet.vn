@@ -63,4 +63,53 @@ describe("notification-preference token handling", () => {
       expect(verified.error.code).toBe("TOKEN_EXPIRED");
     }
   });
+  it("rejects a future-issued token beyond bounded clock skew", () => {
+    const baseTime = new Date("2026-09-27T12:00:00Z");
+    const futureIssuedAt = new Date("2026-09-27T12:05:00Z"); // 5 minutes in the future
+    const token = generateUnsubscribeToken(
+      { userId: "usr-123", email: "user@test.com" },
+      secret,
+      futureIssuedAt,
+    );
+
+    const verified = verifyUnsubscribeToken(token, secret, undefined, baseTime);
+    expect(verified.ok).toBe(false);
+    if (!verified.ok) {
+      expect(verified.error.code).toBe("TOKEN_INVALID");
+    }
+  });
+
+  it("accepts a token within bounded future skew", () => {
+    const baseTime = new Date("2026-09-27T12:00:00Z");
+    const slightFutureTime = new Date("2026-09-27T12:00:30Z"); // 30 seconds future (within 60s)
+    const token = generateUnsubscribeToken(
+      { userId: "usr-123", email: "user@test.com" },
+      secret,
+      slightFutureTime,
+    );
+
+    const verified = verifyUnsubscribeToken(token, secret, undefined, baseTime);
+    expect(verified.ok).toBe(true);
+  });
+
+  it("fails closed on missing or empty secret", () => {
+    const now = new Date("2026-09-27T12:00:00Z");
+    expect(() => generateUnsubscribeToken({ userId: "u1", email: "u1@test.com" }, "")).toThrow(
+      "NOTIFICATION_PREFERENCE_SECRET_REQUIRED",
+    );
+    expect(() => fingerprintEmail("u1@test.com", "")).toThrow(
+      "NOTIFICATION_PREFERENCE_SECRET_REQUIRED",
+    );
+
+    const token = generateUnsubscribeToken({ userId: "u1", email: "u1@test.com" }, secret, now);
+    const verified = verifyUnsubscribeToken(token, "", undefined, now);
+    expect(verified.ok).toBe(false);
+    if (!verified.ok) {
+      expect(verified.error.code).toBe("TOKEN_INVALID");
+    }
+
+    expect(() => createDatabaseNotificationPreferenceStore(null as any, "")).toThrow(
+      "NOTIFICATION_PREFERENCE_STORE_CONFIG_INVALID",
+    );
+  });
 });

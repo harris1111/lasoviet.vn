@@ -281,11 +281,11 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
     expect([PALACE_TITLES_VI["ziwei.palace.career"], PALACE_TITLES_VI["ziwei.palace.life"]]).toContain(
       payload.palaceTitle,
     );
-    expect(payload.unsubscribeUrl).toContain("https://lasoviet.net/thong-bao/huy-dang-ky?token=");
+    expect(payload.unsubscribeUrl).toContain("https://lasoviet.net/thong-bao/huy-dang-ky#token=");
 
     // Verify unsubscribe token in payload is valid
     const url = new URL(payload.unsubscribeUrl);
-    const tokenInUrl = url.searchParams.get("token");
+    const tokenInUrl = new URLSearchParams(url.hash.replace(/^#/, "")).get("token");
     expect(tokenInUrl).toBeDefined();
     const tokenCheck = verifyUnsubscribeToken(tokenInUrl!, tokenSecret, undefined, getNow());
     expect(tokenCheck.ok).toBe(true);
