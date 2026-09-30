@@ -864,3 +864,6 @@ export {
 export { ZiweiPeriodFactV1Schema, ZiweiPeriodReadingFactsV1Schema, ZiweiPeriodReadingContentV1Schema, type ZiweiPeriodReadingFactsV1, type ZiweiPeriodReadingContentV1 } from "./ziwei-period-reading-v1.js";
 export { ZiweiTopicDeepDivePublicContentV1Schema, projectTopicDeepDivePublicContent, type ZiweiTopicDeepDivePublicContentV1 } from "./ziwei-topic-deep-dive-v1.js";
 export { ReportTopicReadyViewV1Schema, PaidReportSkuSchema, type ReportTopicReadyViewV1 } from "./identity-report-v1.js";
+
+export { ZiweiPeriodReadingPublicContentV1Schema, projectPeriodReadingPublicContent, type ZiweiPeriodReadingPublicContentV1 } from "./ziwei-period-reading-public-v1.js";
+export { ReportPeriodReadyViewV1Schema, type ReportPeriodReadyViewV1 } from "./identity-report-v1.js";

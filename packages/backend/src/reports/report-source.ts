@@ -5,6 +5,7 @@ import {
   EvidenceSetV1Schema,
   FrozenIdentityReportFactsV1Schema,
   type EvidenceSetV1,
+  type ZiweiPeriodReadingFactsV1,
   type FrozenIdentityReportFactsV1,
   type IdentityReportSectionId,
   type ReadingContextV1,
@@ -34,6 +35,8 @@ export type IdentityReportSource = {
   knowledgePacks?: readonly ZiweiReportKnowledgePack[];
   comprehensiveFactsV4?: ComprehensiveZiweiFactsV4;
   readingContext?: ReadingContextV1 | null;
+  paidPeriodKey?: string;
+  periodReadingFacts?: ZiweiPeriodReadingFactsV1;
 };
 
 export type ComprehensiveReportSource = IdentityReportSource & {

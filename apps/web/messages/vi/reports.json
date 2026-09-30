@@ -313,5 +313,11 @@
     "claim": "Yêu cầu hoàn Lá và khóa lại phần này",
     "restored": "Đã hoàn {amount} Lá. Phần đọc đã được khóa lại.",
     "related": "Thử đọc thêm {palace}"
+  },
+  "periodReader": {
+    "calendar": "Luận giải theo lịch âm",
+    "overview": "Tổng quan",
+    "periods": "Các giai đoạn trong bài luận",
+    "cautions": "Điều nên lưu ý"
   }
 }

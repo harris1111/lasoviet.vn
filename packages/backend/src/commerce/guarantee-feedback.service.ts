@@ -1,3 +1,4 @@
+import { periodKindForSku } from "../reports/period-report-config.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 import {
@@ -159,6 +160,7 @@ export function resolveRelatedPalaceSuggestion(partId: string): RelatedPalaceSug
 }
 
 function computeGuaranteeFingerprint(input: {
+  reportId?: string | null;
   accountId: string;
   chartId: string;
   partId: string;
@@ -175,6 +177,7 @@ function computeGuaranteeFingerprint(input: {
         rating: input.rating,
         comment: input.comment,
         idempotencyKey: input.idempotencyKey,
+        ...(input.reportId ? {reportId: input.reportId} : {}),
       }),
     )
     .digest("hex");
@@ -330,8 +333,12 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_NOT_OWNER" };
       }
 
+      const isPeriod = periodKindForSku(parsed.data.partId.toUpperCase()) !== null;
+      if (isPeriod && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
+
       // 3. Replay idempotency check
       const fingerprint = computeGuaranteeFingerprint({
+        ...(isPeriod ? {reportId: parsed.data.reportId} : {}),
         accountId: actor.userId,
         chartId: parsed.data.chartId,
         partId: parsed.data.partId,
@@ -395,9 +402,18 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND" };
       }
 
+      let periodEntitlementId: string | undefined;
+      if (isPeriod) {
+        const [reservation] = await transaction.select({entitlementId: reportReservations.entitlementId})
+          .from(reportReservations).where(eq(reportReservations.reportId, parsed.data.reportId!)).limit(1);
+        if (!reservation) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
+        periodEntitlementId = reservation.entitlementId;
+      }
+
       // Find matching entitlement by partId or scope
       const normalizedPartId = parsed.data.partId.toLowerCase();
       const matched = entitlements.find((candidate) => {
+        if (isPeriod && candidate.entitlement.id !== periodEntitlementId) return false;
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
         if (Array.isArray(scope?.palaces) && scope.palaces.some((palace: string) => palace.toLowerCase() === normalizedPartId)) return true;
