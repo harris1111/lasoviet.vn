@@ -60,7 +60,8 @@ export function resolveIdentityReportVersionFamily<T extends string = IdentityRe
       promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
       promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
       promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY ||
-      promptVersion === REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1
+      promptVersion === REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1 ||
+      promptVersion === "ziwei.period-reading.prompt.v1"
     ) &&
     knowledgeVersion === REPORT_KNOWLEDGE_VERSION_V4
   ) {

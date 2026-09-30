@@ -48,8 +48,8 @@ describe("commerce contracts", () => {
     expect(resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toEqual({ sections: ["topicDeepDive"] });
     expect(resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toEqual({ sections: ["topicDeepDive"] });
     expect(() => resolveEntitlementScopeForSku("ZIWEI-TODAY-P0")).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toThrow();
+    expect(resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toEqual({sections:["periodReading"]});
+    expect(resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toEqual({sections:["periodReading"]});
   });
   it("adds strict order kinds without changing the V1 SKU contract", () => {
     expect(CommerceOrderKindSchema.safeParse("content_purchase").success).toBe(true);

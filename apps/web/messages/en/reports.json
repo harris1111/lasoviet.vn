@@ -313,5 +313,11 @@
     "claim": "Request a Lá refund and lock this part",
     "restored": "{amount} Lá restored. This reading is now locked.",
     "related": "Explore {palace}"
+  },
+  "periodReader": {
+    "calendar": "Lunar calendar reading",
+    "overview": "Overview",
+    "periods": "Reading periods",
+    "cautions": "Things to consider"
   }
 }
