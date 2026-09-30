@@ -1,0 +1,221 @@
+/* Trời Nam — homepage visual system. Tokens first, then the hero. */
+
+.tn {
+  --tn-ink: var(--lacquer-950);
+  --tn-gold: var(--gold-500);
+  --tn-gold-light: var(--gold-400);
+  --tn-text: var(--pearl-100);
+  --tn-text-muted: var(--pearl-400);
+
+  /* Display peaks at 120px on desktop and stays readable at 320px. */
+  --tn-display: clamp(2.25rem, 1.4rem + 4.3vw, 7.5rem);
+  --tn-h2: clamp(1.75rem, 1.2rem + 2.4vw, 3.25rem);
+  --tn-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+
+  --tn-gutter: clamp(1rem, 0.5rem + 2.5vw, 4rem);
+  --tn-section-y: clamp(3.5rem, 2rem + 7vw, 8rem);
+  --tn-max: 1280px;
+
+  background: var(--tn-ink);
+  color: var(--tn-text);
+}
+
+.tn-section {
+  padding-block: var(--tn-section-y);
+  padding-inline: var(--tn-gutter);
+}
+
+.tn-shell {
+  max-width: var(--tn-max);
+  margin-inline: auto;
+}
+
+/* ---- Hero ---- */
+
+.tn-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  display: grid;
+  align-content: end;
+  gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  padding-block: clamp(5rem, 4rem + 6vw, 7rem) clamp(2rem, 1.5rem + 3vw, 4rem);
+  padding-inline: var(--tn-gutter);
+  overflow: clip;
+}
+
+/* The picture element must not take a grid cell, or it pushes the copy sideways. */
+.tn-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  display: block;
+}
+
+.tn-hero-plate {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 50%;
+}
+
+/* Keeps ivory text legible over the plate's brightest band. */
+.tn-hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgb(8 7 6 / 0.72) 0%,
+    rgb(8 7 6 / 0.28) 42%,
+    rgb(8 7 6 / 0.88) 100%
+  );
+}
+
+/* Measure lives on the heading, where `em` tracks the display size. Putting it on the
+   wrapper would resolve `ch` against 16px and collapse the line into one word per row. */
+.tn-hero-title {
+  margin: 0;
+  max-width: 9em;
+  font-family: var(--font-display);
+  font-size: var(--tn-display);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.tn-hero-title span {
+  display: block;
+}
+
+.tn-hero-title span + span {
+  color: var(--tn-gold-light);
+}
+
+.tn-hero-sub {
+  margin: clamp(0.75rem, 0.5rem + 1vw, 1.25rem) 0 0;
+  max-width: 24ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 1rem + 0.7vw, 1.625rem);
+  line-height: 1.35;
+  color: var(--tn-text);
+}
+
+.tn-hero-form {
+  border: 1px solid var(--lacquer-line);
+  border-radius: 16px;
+  background: rgb(15 13 10 / 0.82);
+  backdrop-filter: blur(10px);
+  padding: clamp(1rem, 0.75rem + 1.5vw, 1.75rem);
+}
+
+@media (min-width: 880px) {
+  .tn-hero {
+    align-content: center;
+    align-items: center;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+    gap: clamp(2rem, 1rem + 4vw, 5rem);
+  }
+
+  .tn-hero-plate {
+    object-position: 70% 50%;
+  }
+
+  .tn-hero-scrim {
+    background:
+      linear-gradient(90deg, rgb(8 7 6 / 0.92) 0%, rgb(8 7 6 / 0.62) 46%, rgb(8 7 6 / 0.15) 78%),
+      linear-gradient(180deg, rgb(8 7 6 / 0.45) 0%, rgb(8 7 6 / 0) 35%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tn * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* The v3 form was laid out for a wider column; keep it compact inside the hero panel.
+   Plan 2 restyles the form itself. */
+.tn-hero-form .hv3-form {
+  display: grid;
+  gap: 0.875rem;
+  max-width: none;
+}
+
+.tn-hero-form .hv3-cta {
+  width: 100%;
+}
+
+/* The v3 field styling assumes a lighter surface; on the hero's glass panel the inputs
+   lose their edges entirely. Give them back a visible boundary. Plan 2 restyles the
+   form properly. */
+.tn-hero-form .hv3-input,
+.tn-hero-form input,
+.tn-hero-form select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--lacquer-line);
+  border-radius: 10px;
+  background: rgb(8 7 6 / 0.55);
+  color: var(--tn-text);
+}
+
+.tn-hero-form input::placeholder {
+  color: var(--pearl-500);
+}
+
+.tn-hero-form .hv3-seg button,
+.tn-hero-form .hv3-choice button {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  border: 1px solid var(--lacquer-line);
+  border-radius: 999px;
+  background: rgb(8 7 6 / 0.4);
+  color: var(--tn-text-muted);
+}
+
+.tn-hero-form .hv3-seg button[aria-pressed="true"],
+.tn-hero-form .hv3-choice button[aria-pressed="true"] {
+  border-color: var(--tn-gold);
+  background: var(--gold-400);
+  color: var(--lacquer-950);
+  font-weight: 600;
+}
+
+.tn-hero-form .hv3-cta {
+  min-height: 52px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--son);
+  color: var(--pearl-50);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.tn-hero-form .hv3-cta:hover {
+  background: var(--gold-500);
+  color: var(--lacquer-950);
+}
+
+.tn-hero-form input[type="checkbox"] {
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+  flex: none;
+  padding: 0;
+  border-radius: 4px;
+}
+
+/* Two pills with long Vietnamese labels overflow a narrow phone; let them wrap. */
+.tn-hero-form .hv3-seg {
+  flex-wrap: wrap;
+}
+
+.tn-hero-form .hv3-seg button {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+}
