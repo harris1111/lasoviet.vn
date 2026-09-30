@@ -7,6 +7,7 @@ const statsEl = document.querySelector<HTMLDivElement>("#stats")!;
 const progressInput = document.querySelector<HTMLInputElement>("#progress")!;
 const activeButton = document.querySelector<HTMLButtonElement>("#toggle-active")!;
 const reinitButton = document.querySelector<HTMLButtonElement>("#reinit")!;
+const chartTargetButton = document.querySelector<HTMLButtonElement>("#toggle-chart-target")!;
 
 // Guards the "dispose requested while init is still pending" race: if a
 // newer generation starts before an older one's promise resolves, the
@@ -83,6 +84,21 @@ reinitButton.addEventListener("click", () => {
   active = true;
   activeButton.textContent = "Pause";
   void boot();
+});
+
+// Stands in for the real `.tn-explore .hv3-chart` bounding rect the Next
+// stage will measure in Task 4 — exercises setChartTarget's screen-to-world
+// projection without that DOM existing in this standalone harness.
+let usingFallback = true;
+function demoChartRect() {
+  const { width, height } = stage.getBoundingClientRect();
+  const size = Math.min(width, height) * 0.5;
+  return { x: (width - size) / 2, y: (height - size) / 2, width: size, height: size };
+}
+chartTargetButton.addEventListener("click", () => {
+  usingFallback = !usingFallback;
+  handle?.setChartTarget(usingFallback ? null : demoChartRect());
+  chartTargetButton.textContent = usingFallback ? "Chart target: fallback" : "Chart target: demo rect";
 });
 
 void boot();

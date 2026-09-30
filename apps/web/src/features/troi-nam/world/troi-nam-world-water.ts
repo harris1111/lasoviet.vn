@@ -24,22 +24,26 @@ const fragmentShader = /* glsl */ `
   uniform float uTime;
   uniform vec3 uColorDeep;
   uniform vec3 uColorGold;
+  uniform float uNightWeight;
 
   void main() {
     // A soft reflection path under the sun, narrow far away and wider near
     // the camera (world z close to the camera's +z) — a stylized stand-in
     // for a mirrored sun path, not a real reflection. Broken into ripple
     // segments along its length instead of one solid triangle of light.
+    // The sun's gone by night, so uNightWeight fades the streak out.
     float streakCenter = 1.6;
     float bandWidth = clamp(0.22 + (vWorldPos.z + 22.0) * 0.045, 0.18, 1.4);
     float dist = abs(vWorldPos.x - streakCenter);
     float streak = smoothstep(bandWidth, 0.0, dist);
     float ripple = smoothstep(0.1, 0.9, 0.5 + 0.5 * sin(vWorldPos.z * 14.0 + uTime * 1.8));
-    streak *= mix(0.12, 1.0, ripple);
+    streak *= mix(0.12, 1.0, ripple) * (1.0 - uNightWeight * 0.9);
 
     vec3 horizonGlow = vec3(0.42, 0.26, 0.11);
     float nearHorizon = smoothstep(-8.0, -22.0, vWorldPos.z);
-    vec3 base = mix(uColorDeep, horizonGlow, nearHorizon * 0.4);
+    vec3 base = mix(uColorDeep, horizonGlow, nearHorizon * 0.4 * (1.0 - uNightWeight));
+    vec3 nightBase = vec3(0.02, 0.025, 0.05);
+    base = mix(base, nightBase, uNightWeight);
 
     vec3 color = mix(base, uColorGold, clamp(streak, 0.0, 1.0) * 0.85);
     float fade = smoothstep(-24.0, -4.0, vWorldPos.z);
@@ -50,6 +54,7 @@ const fragmentShader = /* glsl */ `
 export type Water = {
   mesh: THREE.Mesh;
   update(dt: number): void;
+  setNightWeight(weight: number): void;
   dispose(): void;
 };
 
@@ -65,6 +70,7 @@ export function createWater(scene: THREE.Scene, { quality }: { quality: "low" | 
     uTime: { value: 0 },
     uColorDeep: { value: new THREE.Color(0x0c0b12) },
     uColorGold: { value: new THREE.Color(0xf2dca0) },
+    uNightWeight: { value: 0 },
   };
   const material = new THREE.ShaderMaterial({
     vertexShader,
@@ -83,6 +89,9 @@ export function createWater(scene: THREE.Scene, { quality }: { quality: "low" | 
     mesh,
     update(dt: number) {
       uniforms.uTime.value += dt;
+    },
+    setNightWeight(weight: number) {
+      uniforms.uNightWeight.value = weight;
     },
     dispose() {
       scene.remove(mesh);

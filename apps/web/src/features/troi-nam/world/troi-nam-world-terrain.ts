@@ -12,6 +12,7 @@ import { mulberry32 } from "./troi-nam-world-rng";
 
 export type KarstLayers = {
   group: THREE.Group;
+  setNightWeight(weight: number): void;
   dispose(): void;
 };
 
@@ -66,9 +67,12 @@ export function createKarstLayers(scene: THREE.Scene, { quality, seed }: { quali
   const near = new THREE.Color(0x120d08);
   const far = new THREE.Color(0x7a5a3a);
 
+  const nightColor = new THREE.Color(0x060812);
+
   const group = new THREE.Group();
   const geometries: THREE.BufferGeometry[] = [];
-  const materials: THREE.Material[] = [];
+  const materials: THREE.MeshBasicMaterial[] = [];
+  const layers: Array<{ material: THREE.MeshBasicMaterial; baseColor: THREE.Color; baseOpacity: number }> = [];
 
   for (let i = 0; i < layerCount; i++) {
     const t = layerCount === 1 ? 0 : i / (layerCount - 1); // 0 near .. 1 far
@@ -93,12 +97,21 @@ export function createKarstLayers(scene: THREE.Scene, { quality, seed }: { quali
     group.add(mesh);
     geometries.push(geometry);
     materials.push(material);
+    layers.push({ material, baseColor: spec.color, baseOpacity: spec.opacity });
   }
 
   scene.add(group);
 
   return {
     group,
+    setNightWeight(weight: number) {
+      // Ridges recede and cool toward a moonlit near-silhouette as night
+      // rises, but never fully vanish — the horizon stays readable.
+      for (const layer of layers) {
+        layer.material.opacity = layer.baseOpacity * (1 - weight * 0.55);
+        layer.material.color.copy(layer.baseColor).lerp(nightColor, weight * 0.85);
+      }
+    },
     dispose() {
       scene.remove(group);
       geometries.forEach((g) => g.dispose());
