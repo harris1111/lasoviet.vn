@@ -250,6 +250,10 @@ it("excludes the browser daily reading proxy from robots and sitemaps", () => {
   });
 });
 
+ it("keeps checkout status and presence API private and outside sitemaps", () => {
+   expect(routeRegistry.find((route) => route.id === "api.backend.commerce.presence")).toMatchObject({ path: "/commerce/orders/[orderId]/presence", status: "live_noindex", private: true, sitemap: false, robots: "noindex,nofollow" });
+   expect(routeRegistry.find((route) => route.id === "commerce.order-status-api")).toMatchObject({ path: "/api/commerce/orders/[orderId]/status", status: "live_noindex", private: true, sitemap: false, robots: "noindex,nofollow", localeOwners: ["vi"] });
+ });
 it("keeps membership status and commands private, unlocalized, noindex and outside sitemaps", () => {
   for (const layer of ["backend", "web"]) {
     for (const command of ["", ".intents", ".purchase"]) {

@@ -6,6 +6,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import {
+  acknowledgeTopUpPresence,
   createDatabaseCommerceRepository,
   createSePayGateway,
   createSePayWebhookService,
@@ -600,6 +601,14 @@ export class CommerceController {
   async libraryV2(@Headers("authorization") authorization: string | undefined) {
     const value = await this.repository().readAccountLibraryV2(await this.actor(authorization));
     return { ok: true, value: AccountLibraryV2Schema.parse(value) };
+  }
+
+  @Post("orders/:orderId/presence")
+  @HttpCode(HttpStatus.OK)
+  async presence(@Headers("authorization") authorization: string | undefined, @Param("orderId") orderId: string) {
+    const actor = await this.actor(authorization);
+    if (!await acknowledgeTopUpPresence(this.database, actor, orderId)) throw new NotFoundException({ code: "ORDER_NOT_FOUND" });
+    return { ok: true };
   }
 
   @Get("orders/:orderId")

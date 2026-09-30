@@ -1,5 +1,5 @@
 import { createMembershipExpiryReminderService, membershipReminderAllowed } from "@lasoviet/backend";
-import { calculateIztroReportSnapshot } from "@lasoviet/engine-adapters";
+import { calculateIztroReportSnapshot, lunarReminderDay } from "@lasoviet/engine-adapters";
 import { Module } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
 import { loadEnvironment } from "@lasoviet/config";
@@ -10,6 +10,9 @@ import {
   createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
+  createDelayedUnlockCompletionService,
+  createVerifiedSignInNurtureService,
+  createHanMonthReminderService,
   createDatabaseNotificationPreferenceStore,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
@@ -81,11 +84,17 @@ export function createMaintenanceRunner() {
     database,
     environment.value.internalActorSecret ?? "",
   );
+  const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
+  const hanReminder = createHanMonthReminderService(database, { preferenceStore, tokenSecret: environment.value.internalActorSecret, resolveLunarDay: lunarReminderDay });
+  const delayedUnlock = createDelayedUnlockCompletionService(database);
   const email = createAuthEmailDeliveryService({
     store: createDatabaseAuthEmailDeliveryStore(database),
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
     preferenceChecker: preferenceStore,
+    delayedUnlockEligibility: delayedUnlock.isEligible,
+    nurtureEligibility: nurture.isEligible,
+    hanReminderEligibility: hanReminder.isEligible,
     membershipReminderAllowed: (request, now) => membershipReminderAllowed(database, request, now),
   });
   const telegramAlert = createTelegramAlertProvider({
@@ -110,6 +119,9 @@ export function createMaintenanceRunner() {
         }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: async (limit) => {
+      await nurture.scanAndEnqueue(limit);
+      await hanReminder.scanAndEnqueue(limit);
+      await delayedUnlock.scan((request) => email.send(request), limit);
       await createMembershipExpiryReminderService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret ?? "" }).scanAndEnqueue(limit);
       return email.retryDue(limit);
     },

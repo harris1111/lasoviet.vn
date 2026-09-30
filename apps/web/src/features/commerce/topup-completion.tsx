@@ -1,5 +1,6 @@
 import "server-only";
 import Link from "next/link";
+import { TopUpPresence } from "./topup-presence";
 import { getTranslations } from "next-intl/server";
 import type { CurrentActor, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
 import { privateApiClient } from "../../api/private-api-client";
@@ -24,7 +25,9 @@ export async function TopUpCompletionNotice({ continuation, locale, chartId }: {
   const t = await getTranslations("reports.selection");
   const prefix = locale === "en" ? "/en" : "";
   const suggestion = residualBalanceSuggestion(continuation.unlockedSku, continuation.remainingLa ?? 0, locale);
+  const orderId = new URL(continuation.returnPath, "https://lasoviet.net").searchParams.get("topupOrder");
   return <section className="container" role="status">
+    {orderId && <TopUpPresence orderId={orderId} />}
     <p>{t("unlockCompletedBalance", { balance: continuation.remainingLa ?? 0 })}</p>
     {continuation.reportId && <Link className="button button-primary" href={`${prefix}/bao-cao/${encodeURIComponent(continuation.reportId)}`}>{t("unlockReadPart")}</Link>}
     {(continuation.remainingLa ?? 0) > 0 && <>

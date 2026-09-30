@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 import type { NormalizedBirthProfileV1, ZiweiHoroscopeResultV1 } from "@lasoviet/contracts";
 import {
   computeEngineHanMonths,
-  createBlockedHanMonthReminderAdapter,
-  HAN_MONTH_REMINDER_BLOCKERS,
 } from "./han-month-reminder.js";
 
 const mockBirthProfile: NormalizedBirthProfileV1 = {
@@ -96,7 +94,7 @@ function createMockHoroscopeResult(
   };
 }
 
-describe("han-month-reminder foundation & blocked adapter", () => {
+describe("han-month-reminder engine marker foundation", () => {
   it("extracts engine-computed warn months without inventing astrological data", () => {
     const mockHoroscope = () =>
       createMockHoroscopeResult([
@@ -125,14 +123,4 @@ describe("han-month-reminder foundation & blocked adapter", () => {
     expect(warnMonths).toEqual([]);
   });
 
-  it("blocked adapter returns precise blocked status with architectural blocker details", async () => {
-    const adapter = createBlockedHanMonthReminderAdapter();
-    const result = await adapter.scheduleDueReminders();
-
-    expect(result.status).toBe("blocked");
-    expect(result.reason).toBe("INFRASTRUCTURE_UNSUPPORTED");
-    expect(result.blockers).toEqual(HAN_MONTH_REMINDER_BLOCKERS);
-    expect(result.blockers.some((b) => b.includes("CRON_OR_LUNAR_SCHEDULER_MISSING"))).toBe(true);
-    expect(result.blockers.some((b) => b.includes("VAN_HAN_2026_ENTITLEMENT_MISSING"))).toBe(true);
-  });
 });

@@ -23,7 +23,7 @@ export interface NotificationPreferenceStore {
     token: string,
   ): Promise<Result<{ email: string; userId: string }, "TOKEN_INVALID" | "TOKEN_EXPIRED">>;
   unsubscribeEmail(email: string, userId?: string): Promise<void>;
-  isNonTransactionalAllowed(recipient: string, userId?: string): Promise<boolean>;
+  isNonTransactionalAllowed(recipient: string, userId?: string, kind?: "nurture" | "han"): Promise<boolean>;
 }
 
 export function fingerprintEmail(email: string, secret: string): string {
@@ -264,7 +264,7 @@ export function createDatabaseNotificationPreferenceStore(
       }
     },
 
-    async isNonTransactionalAllowed(recipient: string, userId?: string): Promise<boolean> {
+    async isNonTransactionalAllowed(recipient: string, userId?: string, kind: "nurture" | "han" = "nurture"): Promise<boolean> {
       const emailFp = fingerprintEmail(recipient, secret);
 
       if (userId) {
@@ -272,12 +272,13 @@ export function createDatabaseNotificationPreferenceStore(
           .select({
             unsubscribedAll: notificationPreferences.unsubscribedAll,
             nurtureEmailsAllowed: notificationPreferences.nurtureEmailsAllowed,
+            hanRemindersAllowed: notificationPreferences.hanRemindersAllowed,
           })
           .from(notificationPreferences)
           .where(eq(notificationPreferences.userId, userId))
           .limit(1);
 
-        if (userPref && (userPref.unsubscribedAll || !userPref.nurtureEmailsAllowed)) {
+        if (userPref && (userPref.unsubscribedAll || !(kind === "han" ? userPref.hanRemindersAllowed : userPref.nurtureEmailsAllowed))) {
           return false;
         }
 
@@ -298,12 +299,13 @@ export function createDatabaseNotificationPreferenceStore(
         .select({
           unsubscribedAll: notificationPreferences.unsubscribedAll,
           nurtureEmailsAllowed: notificationPreferences.nurtureEmailsAllowed,
+            hanRemindersAllowed: notificationPreferences.hanRemindersAllowed,
         })
         .from(notificationPreferences)
         .where(eq(notificationPreferences.emailFingerprint, emailFp))
         .limit(1);
 
-      if (emailPref && (emailPref.unsubscribedAll || !emailPref.nurtureEmailsAllowed)) {
+      if (emailPref && (emailPref.unsubscribedAll || !(kind === "han" ? emailPref.hanRemindersAllowed : emailPref.nurtureEmailsAllowed))) {
         return false;
       }
 

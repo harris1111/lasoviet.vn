@@ -91,3 +91,18 @@ export async function linkAnonymousActorToAccount(
     };
   });
 }
+
+export { notificationVerifiedSignins } from "./schema/notifications.js";
+
+/** Receives the server-created session event, never a browser-supplied timestamp. */
+export async function recordVerifiedNotificationSignIn(database: import("./client.js").Database, session: { userId: string; createdAt: Date }): Promise<boolean> {
+  const { authUsers } = await import("./schema/auth.js");
+  const { notificationVerifiedSignins } = await import("./schema/notifications.js");
+  const { sql } = await import("drizzle-orm");
+  const [owner] = await database.select({ id: authUsers.id }).from(authUsers)
+    .where(and(eq(authUsers.id, session.userId), eq(authUsers.emailVerified, true), eq(authUsers.isAnonymous, false))).limit(1);
+  if (!owner || !Number.isFinite(session.createdAt.getTime())) return false;
+  await database.insert(notificationVerifiedSignins).values({ userId: owner.id, signedInAt: session.createdAt })
+    .onConflictDoUpdate({ target: notificationVerifiedSignins.userId, set: { signedInAt: sql`greatest(${notificationVerifiedSignins.signedInAt}, ${session.createdAt.toISOString()}::timestamptz)` } });
+  return true;
+}

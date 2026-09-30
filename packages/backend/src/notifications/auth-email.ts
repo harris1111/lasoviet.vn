@@ -11,6 +11,9 @@ import {
 import {
   AuthEmailRequestSchema,
   PersistedEmailDeliveryRequestSchema,
+  type HanMonthReminderEmailRequest,
+  type NurtureVerifiedSignInEmailRequest,
+  type DelayedUnlockCompletedEmailRequest,
   type AuthEmailKind,
   type AuthEmailRequest,
   type PersistedEmailDeliveryRequest,
@@ -104,8 +107,11 @@ export type AuthEmailDeliveryServiceOptions = {
   provider: EmailProvider;
   recipientFingerprintSecret: string;
   preferenceChecker?: {
-    isNonTransactionalAllowed(recipient: string, userId?: string): Promise<boolean>;
+    isNonTransactionalAllowed(recipient: string, userId?: string, kind?: "nurture" | "han"): Promise<boolean>;
   };
+  hanReminderEligibility?: (request: HanMonthReminderEmailRequest) => Promise<boolean>;
+  nurtureEligibility?: (request: NurtureVerifiedSignInEmailRequest) => Promise<boolean>;
+  delayedUnlockEligibility?: (request: DelayedUnlockCompletedEmailRequest) => Promise<boolean>;
   membershipReminderAllowed?: (request: Extract<PersistedEmailDeliveryRequest, { kind: "membership_expiry" }>, now: Date) => Promise<boolean>;
   now?: () => Date;
 };
@@ -224,38 +230,42 @@ function fingerprint(recipient: string, secret: string): string {
     .digest("hex");
 }
 
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
 function renderMessage(request: PersistedEmailDeliveryRequest): EmailMessage {
   const template = messages[request.locale][request.kind];
   let text = template.text.replaceAll("{actionUrl}", request.actionUrl);
-  let html = template.html.replaceAll("{actionUrl}", request.actionUrl);
+  let html = template.html.replaceAll("{actionUrl}", escapeHtml(request.actionUrl));
   let subject = template.subject;
 
   if (request.kind === "membership_expiry") {
     text = text.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
-    html = html.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+    html = html.replaceAll("{expiresAt}", escapeHtml(request.expiresAt)).replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
   } else if (request.kind === "nurture_verified_signin") {
     text = text
       .replaceAll("{palaceTitle}", request.palaceTitle)
       .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
     html = html
-      .replaceAll("{palaceTitle}", request.palaceTitle)
-      .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+      .replaceAll("{palaceTitle}", escapeHtml(request.palaceTitle))
+      .replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
     subject = subject.replaceAll("{palaceTitle}", request.palaceTitle);
   } else if (request.kind === "han_month_reminder") {
     text = text
-      .replaceAll("{monthIndex}", String(request.monthIndex))
+      .replaceAll("{monthIndex}", request.periodLabel ?? String(request.monthIndex))
       .replaceAll("{primaryFocus}", request.primaryFocus)
       .replaceAll("{prepText}", request.prepText)
       .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
     html = html
-      .replaceAll("{monthIndex}", String(request.monthIndex))
-      .replaceAll("{primaryFocus}", request.primaryFocus)
-      .replaceAll("{prepText}", request.prepText)
-      .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
-    subject = subject.replaceAll("{monthIndex}", String(request.monthIndex));
+      .replaceAll("{monthIndex}", escapeHtml(request.periodLabel ?? String(request.monthIndex)))
+      .replaceAll("{primaryFocus}", escapeHtml(request.primaryFocus))
+      .replaceAll("{prepText}", escapeHtml(request.prepText))
+      .replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
+    subject = subject.replaceAll("{monthIndex}", request.periodLabel ?? String(request.monthIndex));
   } else if (request.kind === "delayed_unlock_completed") {
     text = text.replaceAll("{itemName}", request.itemName);
-    html = html.replaceAll("{itemName}", request.itemName);
+    html = html.replaceAll("{itemName}", escapeHtml(request.itemName));
     subject = subject.replaceAll("{itemName}", request.itemName);
   }
 
@@ -339,7 +349,7 @@ export function createAuthEmailDeliveryService(
         return outcome(record);
       }
 
-      if (DISABLED_NOTIFICATION_KINDS.has(validatedRequest.kind)) {
+      if (DISABLED_NOTIFICATION_KINDS.has(validatedRequest.kind) && !(validatedRequest.kind === "delayed_unlock_completed" && options.delayedUnlockEligibility) && !(validatedRequest.kind === "nurture_verified_signin" && options.nurtureEligibility) && !(validatedRequest.kind === "han_month_reminder" && options.hanReminderEligibility)) {
         await options.store.markFailure(
           idempotencyKey,
           0,
@@ -359,12 +369,12 @@ export function createAuthEmailDeliveryService(
       // Check unsubscribe / preferences for non-transactional messages
       if (
         (validatedRequest.kind === "membership_expiry" || validatedRequest.kind === "nurture_verified_signin" ||
-          validatedRequest.kind === "han_month_reminder") &&
-        options.preferenceChecker !== undefined
+          validatedRequest.kind === "han_month_reminder")
       ) {
-        const allowed = await options.preferenceChecker.isNonTransactionalAllowed(
+        const allowed = await options.preferenceChecker?.isNonTransactionalAllowed(
           validatedRequest.recipient,
           validatedRequest.userId,
+          validatedRequest.kind === "han_month_reminder" ? "han" : "nurture",
         );
         if (!allowed) {
           await options.store.markFailure(
@@ -384,6 +394,22 @@ export function createAuthEmailDeliveryService(
         new Date(now.getTime() + LEASE_MS),
       );
       if (claim === null) {
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "delayed_unlock_completed" &&
+        !await options.delayedUnlockEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "UNLOCK_NOTICE_NO_LONGER_ELIGIBLE", nowValue());
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "nurture_verified_signin" && !await options.nurtureEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "NURTURE_NO_LONGER_ELIGIBLE", nowValue());
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "han_month_reminder" && !await options.hanReminderEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "HAN_REMINDER_NO_LONGER_ELIGIBLE", nowValue());
         return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
       }
 
@@ -478,6 +504,9 @@ export function createDatabaseAuthEmailDeliveryStore(
                 eq(notificationDeliveries.kind, "report_ready"),
                 eq(notificationDeliveries.kind, "membership_expiry"),
                 eq(notificationDeliveries.kind, "report_failed"),
+                eq(notificationDeliveries.kind, "delayed_unlock_completed"),
+                eq(notificationDeliveries.kind, "nurture_verified_signin"),
+                eq(notificationDeliveries.kind, "han_month_reminder"),
               ),
             ),
             and(
@@ -487,6 +516,9 @@ export function createDatabaseAuthEmailDeliveryStore(
                 eq(notificationDeliveries.kind, "report_ready"),
                 eq(notificationDeliveries.kind, "membership_expiry"),
                 eq(notificationDeliveries.kind, "report_failed"),
+                eq(notificationDeliveries.kind, "delayed_unlock_completed"),
+                eq(notificationDeliveries.kind, "nurture_verified_signin"),
+                eq(notificationDeliveries.kind, "han_month_reminder"),
               ),
             ),
           ),

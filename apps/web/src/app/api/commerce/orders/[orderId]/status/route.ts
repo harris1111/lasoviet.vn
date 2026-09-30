@@ -80,3 +80,25 @@ export async function GET(
     headers: NO_STORE_HEADERS,
   });
 }
+
+export async function POST(request: Request, { params }: { params: Promise<{ orderId: string }> }): Promise<Response> {
+  const headers = { ...NO_STORE_HEADERS, "x-robots-tag": "noindex, nofollow" };
+  const origin = request.headers.get("origin");
+  if ((origin && origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site") {
+    return new NextResponse(null, { status: 403, headers });
+  }
+  try {
+    const actor = await resolveVerifiedAccountActor();
+    const { orderId } = await params;
+    if (!/^[0-9a-f-]{36}$/i.test(orderId)) return new NextResponse(null, { status: 404, headers });
+    const result = await privateApiClient(actor, actor.requestId).request<{ ok: boolean }>(
+      `/commerce/orders/${encodeURIComponent(orderId)}/presence`, { method: "POST" },
+    );
+    return new NextResponse(null, { status: result.ok ? 204 : 404, headers });
+  } catch (error) {
+    if (error instanceof VerifiedAccountResolutionError || error instanceof PrivateApiClientError) {
+      return new NextResponse(null, { status: 404, headers });
+    }
+    throw error;
+  }
+}

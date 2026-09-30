@@ -1018,6 +1018,16 @@ routes:
     template: api-command
 
   - <<: *private_defaults
+    id: commerce.order-status-api
+    path: /api/commerce/orders/[orderId]/status
+    intent: private.commerce.order-status-and-presence
+    template: private-api
+    locale_behavior: unlocalized
+    locale_owners: [vi]
+    owner: commerce
+    schema_types: []
+
+  - <<: *private_defaults
     id: api.backend.membership
     path: /commerce/membership
     locale_behavior: unlocalized
@@ -1064,3 +1074,13 @@ routes:
     intent: api.web.membership.purchase
     template: private-api
     owner: engineering
+
+  - <<: *private_defaults
+    id: api.backend.commerce.presence
+    path: /commerce/orders/[orderId]/presence
+    intent: private.commerce.presence-command
+    template: private-api
+    locale_behavior: unlocalized
+    locale_owners: [vi]
+    owner: commerce
+    schema_types: []

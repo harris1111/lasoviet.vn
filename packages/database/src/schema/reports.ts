@@ -34,6 +34,7 @@ export const reportReservations = pgTable("report_reservations", {
   lastErrorCode: text("last_error_code"),
   nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true, mode: "date" }),
   rewriteConsumedAt: timestamp("rewrite_consumed_at", { withTimezone: true, mode: "date" }),
+  lastReminderCheckAt: timestamp("last_reminder_check_at", { withTimezone: true, mode: "date" }),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   asOfDate: date("as_of_date", { mode: "string" }),
