@@ -169,7 +169,7 @@ it("shows past and future teasers and an accessible link to the full current cyc
 it("links to full current decadal cycle reading for late ordinals 8 and 11 from full 12-cycle snapshot", () => {
   const full12Cycles = Array.from({ length: 12 }, (_, ordinal) => ({
     ordinal,
-    palaceId: `ziwei.palace.${palaceIds[ordinal % palaceIds.length]}` as const,
+    palaceId: `ziwei.palace.${palaceIds[ordinal % palaceIds.length]!}` as const,
     ageRange: [5 + 10 * ordinal, 14 + 10 * ordinal] as [number, number],
     yearRange: [1997 + 10 * ordinal, 2006 + 10 * ordinal] as [number, number],
   }));
