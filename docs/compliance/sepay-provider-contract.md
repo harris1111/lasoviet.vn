@@ -111,3 +111,28 @@ content is logged.
 - SePay, [API tạo đơn hàng thanh toán](https://developer.sepay.vn/vi/cong-thanh-toan/API/don-hang/form-thanh-toan), verified 2026-09-03.
 - SePay, [IPN](https://developer.sepay.vn/vi/cong-thanh-toan/IPN), verified 2026-09-03.
 - SePay, [Sandbox Cổng thanh toán](https://developer.sepay.vn/vi/cong-thanh-toan/sandbox), verified 2026-09-03.
+
+## Beta top-up auto-approval exception (dated 2026-09-29)
+
+As an explicit founder/owner decision dated 2026-09-29, public beta website top-ups
+can succeed without transferring money under strict containment:
+
+- **Flag & Environment Restriction:** Controlled strictly by `SEPAY_AUTO_APPROVE_TOPUPS=true`.
+  This flag is valid **only** when `SEPAY_ENV=disabled`. In active environments
+  (`SEPAY_ENV=sandbox` or `SEPAY_ENV=production`), setting this flag to `true` is strictly
+  rejected during configuration loading.
+- **Supersedes Webhook-Only Requirement:** In this mode and only when `SEPAY_ENV=disabled`,
+  top-up orders are auto-confirmed immediately upon creation by calling `recordPaid` with
+  provider event ID `disabled-autopay:topup:<orderId>`. The public SePay webhook remains
+  completely disabled (`503 SERVICE_UNAVAILABLE`), and active payment flows are unchanged.
+- **Safety Safeguards Retained:** All existing verified-account requirements, email verification
+  guards, and payment circuit-breaker protections remain strictly active and enforced.
+- **Operational & Balance Warnings:**
+  - *Public Beta Minting Risk:* Any verified user on the public beta instance can mint free test
+    Lá balances by initiating a wallet top-up while this flag is active.
+  - *Persistence & Launch Reconciliation:* Balances granted during beta test runs are not
+    automatically revoked when the flag is disabled. They persist in the wallet database and require
+    an audited, owner-approved reconciliation before commercial launch.
+- **Activation & Rollback:**
+  - *Activation:* Set `SEPAY_ENV=disabled` and `SEPAY_AUTO_APPROVE_TOPUPS=true` in the deployment environment file, then recreate the API container to pick up the updated external environment (a mere container restart retaining cached environment is insufficient).
+  - *Rollback:* Remove `SEPAY_AUTO_APPROVE_TOPUPS` or set it to `false` (default) in the environment file and recreate the API container; top-up creation then reverts to `503 TOP_UP_UNAVAILABLE`.

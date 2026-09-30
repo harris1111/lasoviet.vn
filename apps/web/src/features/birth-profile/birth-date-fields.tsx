@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, type ChangeEvent } from "react";
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import { isFutureSolarDate, isValidSolarDate, MIN_BIRTH_YEAR } from "./homepage-birth-prefill";
 
 export const BIRTH_DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
@@ -132,7 +132,7 @@ export function BirthDateFields({
     <div className={`birth-date-fields ${className}`}>
       <div className="birth-date-inputs ui-field-shell__control">
         <span aria-hidden="true" className="ui-field-shell__icon birth-date-leading-icon">
-          <Icon name="calendar-day" />
+          <LsvIcon name="ui-calendar" size={20} />
         </span>
 
         {/* Inline Day Select */}
@@ -224,7 +224,7 @@ export function BirthDateFields({
               title={calendarButtonLabel}
               type="button"
             >
-              <Icon name="calendar-day" />
+              <LsvIcon name="ui-calendar" size={20} />
             </button>
             <input
               aria-hidden="true"

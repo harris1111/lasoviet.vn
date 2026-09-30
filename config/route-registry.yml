@@ -266,7 +266,7 @@ routes:
     id: brand.about
     path: /ve-la-so-viet
     intent: brand.about
-    template: about-page
+    template: about-page-designed
     owner: brand
     schema_types: [AboutPage, Organization, BreadcrumbList]
 

@@ -6,7 +6,7 @@ import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-import { Icon } from "../../components/icon";
+import { LsvIcon } from "../../components/lsv-icon";
 import {
   parseCheckoutStatus,
   type CheckoutStatus,
@@ -800,7 +800,7 @@ export function VietQrCheckout({
         onClick={() => copyField(field)}
         type="button"
       >
-        <Icon name={copiedField === field ? "check" : "hash"} />
+        <LsvIcon name={copiedField === field ? "ui-check" : "ui-copy"} size={18} />
         <span>{copyLabels[field]}</span>
       </button>
     );
@@ -871,7 +871,7 @@ export function VietQrCheckout({
             <div>
               <dt>{labels.remainingTime}</dt>
               <dd className="vietqr-time">
-                <Icon name="clock" />
+                <LsvIcon name="payment-pending" size={20} />
                 <time dateTime={instructions.expiresAt}>{remainingTime}</time>
                 <span className="vietqr-time-deadline">
                   {" ("}{expiresAtLabel}{" "}

@@ -57,11 +57,13 @@ function productNode(
     name: product.name,
     description: content.summary,
     sku: product.sku,
-    offers: {
+    // The Vietnamese wallet flow confirms its Lá price at purchase time. Do
+    // not publish the legacy VND catalog amount as its public offer.
+    ...(content.locale === "vi" ? {} : { offers: {
       "@type": "Offer",
       price: product.price,
       priceCurrency: product.currency,
-    },
+    } }),
   };
 }
 

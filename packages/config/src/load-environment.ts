@@ -124,6 +124,7 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "sepay.accountHolder": "SEPAY_ACCOUNT_HOLDER",
   "sepay.orderTtlSeconds": "SEPAY_ORDER_TTL_SECONDS",
   "sepay.webhookSecret": "SEPAY_WEBHOOK_SECRET",
+  sepayAutoApproveTopUps: "SEPAY_AUTO_APPROVE_TOPUPS",
   "telegram.botToken": "TELEGRAM_BOT_TOKEN",
   "telegram.chatId": "TELEGRAM_CHAT_ID",
 };
@@ -428,7 +429,22 @@ export function loadEnvironment(
     return partialOptionalGroup("telegram", telegramState.missing);
   }
 
+  let sepayAutoApproveTopUps = false;
+  if (source.SEPAY_AUTO_APPROVE_TOPUPS !== undefined) {
+    if (source.SEPAY_AUTO_APPROVE_TOPUPS === "true") {
+      if (sepay.value.environment !== "disabled") {
+        return invalidEnvironment("SEPAY_AUTO_APPROVE_TOPUPS");
+      }
+      sepayAutoApproveTopUps = true;
+    } else if (source.SEPAY_AUTO_APPROVE_TOPUPS === "false") {
+      sepayAutoApproveTopUps = false;
+    } else {
+      return invalidEnvironment("SEPAY_AUTO_APPROVE_TOPUPS");
+    }
+  }
+
   const normalized: AppEnvironment = {
+    sepayAutoApproveTopUps,
     nodeEnv: parsedNodeEnv.data as NodeEnvironment,
     ai: ai.value,
     smtp: smtp.value,

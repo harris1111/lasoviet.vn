@@ -4,12 +4,20 @@
   "products": [
     {
       "sku": "ZIWEI-IDENTITY-P0",
-      "name": "Luận giải Tử Vi toàn diện",
+      "name": "Tử Vi trọn đời",
       "method": "ziwei",
       "price": 79000,
       "phase": "P0",
       "availability": "first_paid_flow",
-      "sections": ["overview", "coreAxis", "keyConfigurations", "palaceReadings", "thematicSynthesis", "strengthsAndTensions", "practicalDirection"]
+      "sections": [
+        "overview",
+        "coreAxis",
+        "keyConfigurations",
+        "palaceReadings",
+        "thematicSynthesis",
+        "strengthsAndTensions",
+        "practicalDirection"
+      ]
     },
     {
       "sku": "ZIWEI-NATAL-EXCERPT-P0",
@@ -18,7 +26,12 @@
       "price": 19000,
       "phase": "P1",
       "availability": "first_paid_flow",
-      "sections": ["overview", "coreAxis", "strengthsAndTensions", "practicalDirection"]
+      "sections": [
+        "overview",
+        "coreAxis",
+        "strengthsAndTensions",
+        "practicalDirection"
+      ]
     },
     {
       "sku": "ZIWEI-RELATIONSHIP-P0",
@@ -28,7 +41,15 @@
       "phase": "P7",
       "availability": "reserved",
       "decision_ref": "OD-001",
-      "sections": ["relationship_needs", "attachment_expression", "conflict_patterns", "healthy_conditions", "timing", "actions", "limitations"]
+      "sections": [
+        "relationship_needs",
+        "attachment_expression",
+        "conflict_patterns",
+        "healthy_conditions",
+        "timing",
+        "actions",
+        "limitations"
+      ]
     },
     {
       "sku": "ZIWEI-CAREER-P0",
@@ -38,7 +59,15 @@
       "phase": "P7",
       "availability": "reserved",
       "decision_ref": "OD-001",
-      "sections": ["career_motivation", "capabilities", "work_environment", "money_patterns", "timing", "actions", "limitations"]
+      "sections": [
+        "career_motivation",
+        "capabilities",
+        "work_environment",
+        "money_patterns",
+        "timing",
+        "actions",
+        "limitations"
+      ]
     },
     {
       "sku": "BAZI-COMPREHENSIVE-P0",
@@ -48,7 +77,15 @@
       "phase": "P8",
       "availability": "reserved",
       "decision_ref": "OD-002",
-      "sections": ["day_master_summary", "five_elements_balance", "ten_gods_relationships", "branch_relationships", "luck_pillars_overview", "actions", "limitations"],
+      "sections": [
+        "day_master_summary",
+        "five_elements_balance",
+        "ten_gods_relationships",
+        "branch_relationships",
+        "luck_pillars_overview",
+        "actions",
+        "limitations"
+      ],
       "note": "Founder-resolved 2026-09-05 (OD-002, Option A): one comprehensive report at this price, contingent on the report passing the common release QA gate. Checkout enablement still blocked on Phase 08 Task 4."
     },
     {
@@ -59,7 +96,14 @@
       "phase": "P9",
       "availability": "reserved",
       "decision_ref": "OD-003",
-      "sections": ["planets_and_signs", "houses", "major_aspects", "method_and_provenance", "actions", "limitations"],
+      "sections": [
+        "planets_and_signs",
+        "houses",
+        "major_aspects",
+        "method_and_provenance",
+        "actions",
+        "limitations"
+      ],
       "note": "Founder-resolved 2026-09-05 (OD-003, Option A): one interpretation covering planets, angles, houses, and aspects at this price, contingent on natal fixtures and twenty-report QA passing. Checkout enablement still blocked on Phase 09 Task 3."
     }
   ]

@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "eyebrow": "Tri thức huyền học chuẩn hóa cho người Việt",
+    "title": "Mang tri thức huyền học đúc kết ngàn năm đến gần hơn với người Việt.",
+    "lead": "Lá Số Việt không khởi sinh từ tâm lý mập mờ hay những lời phán số phận an bài. Chúng tôi xây dựng một nền tảng tri thức chuẩn hóa, quy tụ các bộ môn thuật số tinh hoa Đông - Tây, diễn giải bằng tiếng Việt thuần túy, có căn cứ và minh bạch — trao cho bạn chìa khóa tự thấu hiểu chính mình để chủ động làm chủ mọi ngã rẽ cuộc sống."
+  },
+  "mission": {
+    "eyebrow": "Sứ mệnh",
+    "title": "Ba việc chúng tôi làm mỗi ngày.",
+    "items": {
+      "m1": {
+        "title": "Đơn giản hóa & Chuẩn hóa",
+        "body": "Đơn giản hóa kho tàng huyền học ngàn năm Đông - Tây thành một hệ thống luận giải số hóa có cấu trúc, chuẩn xác và dễ tiếp cận."
+      },
+      "m2": {
+        "title": "Tiếng Việt thuần túy & Có căn cứ",
+        "body": "Chuyển hóa thuật ngữ cổ thư phức tạp thành ngôn ngữ hiện đại, rõ ràng; mọi nhận định đều gắn liền đường dẫn đối chiếu cụ thể — nói có sách, mách có chứng."
+      },
+      "m3": {
+        "title": "Thấu hiểu & Chủ động",
+        "body": "Giúp người Việt nhìn thấy trọn vẹn điểm mạnh, điểm yếu và các cột mốc vận hạn, từ đó có sự chuẩn bị chủ động và vững vàng nhất cho cuộc sống."
+      }
+    }
+  },
+  "vision": {
+    "eyebrow": "Tầm nhìn",
+    "body": "Trở thành nền tảng tri thức & diễn giải huyền học số hóa hàng đầu cho người Việt, thiết lập tiêu chuẩn mới về tính minh bạch, sự chuẩn xác học thuật và đạo đức trong trải nghiệm khám phá bản thân và dự báo vận hạn."
+  },
+  "values": {
+    "eyebrow": "5 giá trị cốt lõi",
+    "title": "Điều giữ cho mọi lời luận giải luôn đáng tin.",
+    "items": {
+      "v1": {
+        "title": "Khoa học & Có căn cứ",
+        "body": "Mọi kết quả luận giải đều xuất phát từ thuật toán an sao, lập quẻ và tính toán thiên văn chuẩn xác. Tuyệt đối không suy diễn cảm tính, không đưa ra nhận định mơ hồ thiếu cơ sở cổ thư."
+      },
+      "v2": {
+        "title": "Khách quan & Nhất quán",
+        "body": "Chuẩn hóa dữ liệu bằng mô hình điện toán chuyên biệt, loại bỏ hoàn toàn yếu tố tâm lý chủ quan hay sự bất ổn định giữa các lần tra cứu."
+      },
+      "v3": {
+        "title": "Minh bạch & Tôn trọng",
+        "body": "Tuyệt đối không hù dọa vận hạn, không lợi dụng tâm lý lo âu để chèo kéo mê tín cúng bái. Chi phí trải nghiệm công khai, rõ ràng ngay từ đầu."
+      },
+      "v4": {
+        "title": "Cá nhân hóa theo ngữ cảnh",
+        "body": "Không dùng bài văn mẫu chung chung. Mỗi lá số được bóc tách chi tiết theo đúng ngày giờ sinh và đúng trăn trở thực tế của cá nhân."
+      },
+      "v5": {
+        "title": "Trực quan & Mở lối",
+        "body": "Biến những đồ hình phức tạp thành giao diện tương tác trực quan; biến sự lo âu thành điểm tựa hành động tự chủ."
+      }
+    }
+  },
+  "disciplines": {
+    "eyebrow": "5 bộ môn thuật số tinh hoa",
+    "title": "Một góc nhìn không bao giờ là đủ.",
+    "lead": "Lá Số Việt không giới hạn ở một bộ môn đơn lẻ, mà hội tụ các hệ quy chiếu thuật số tinh hoa của nhân loại để mang lại góc nhìn đa chiều, toàn diện nhất.",
+    "items": {
+      "tuvi": {
+        "name": "Tử Vi Đẩu Số",
+        "desc": "Tấm bản đồ vận mệnh 12 cung vị, soi tỏ cốt cách bản thể, tài lộc, công danh và biến chuyển đại vận.",
+        "cta": "Lập lá số ngay"
+      },
+      "batu": {
+        "name": "Bát Tự Hà Lạc",
+        "desc": "Bốn trụ Năm - Tháng - Ngày - Giờ, luận giải sự cân bằng ngũ hành và nhịp điệu phong độ theo thời gian.",
+        "cta": "Tìm hiểu Bát Tự"
+      },
+      "chiemtinh": {
+        "name": "Chiêm Tinh Phương Tây",
+        "desc": "Đồ hình 12 nhà và tọa độ các hành tinh thời khắc chào đời, giải mã cấu trúc tâm lý chiều sâu và động lực nội tại.",
+        "cta": "Tìm hiểu Chiêm Tinh"
+      },
+      "kinhdich": {
+        "name": "Kinh Dịch Vạn Năng",
+        "desc": "Công cụ tham vấn triết học theo thời điểm, gợi mở hành động nên tiến hay nên dừng trước từng quyết định.",
+        "cta": "Tìm hiểu Kinh Dịch"
+      },
+      "thansohoc": {
+        "name": "Thần Số Học",
+        "desc": "Tần số rung động của họ tên và ngày sinh, định hình bài học đường đời và nhịp điệu các chu kỳ năm cá nhân.",
+        "cta": "Tìm hiểu Thần Số Học"
+      }
+    }
+  },
+  "commitments": {
+    "eyebrow": "4 cam kết vàng",
+    "title": "Những điều chúng tôi không bao giờ đánh đổi.",
+    "items": {
+      "c1": {
+        "title": "Cam kết căn cứ học thuật",
+        "body": "Mọi khẳng định đều chỉ rõ nguyên lý đằng sau; không phán xét phỏng đoán."
+      },
+      "c2": {
+        "title": "Cam kết bảo mật vĩnh viễn",
+        "body": "Bảo vệ tuyệt đối ngày giờ sinh và thông tin cá nhân; dữ liệu người dùng ẩn danh tự động xóa sau 24 giờ."
+      },
+      "c3": {
+        "title": "Cam kết đạo đức trải nghiệm",
+        "body": "Nói không với chiêu trò hù dọa, countdown đếm ngược giả, tỷ giá nạp tiền ảo hay chi phí ẩn."
+      },
+      "c4": {
+        "title": "Cam kết đồng hành & làm chủ",
+        "body": "Cung cấp góc nhìn điềm đạm, giúp bạn thấu hiểu chính mình thay vì tạo tâm lý phụ thuộc hay sợ hãi số phận."
+      }
+    }
+  },
+  "closing": {
+    "quote": "Số phận không phải là một bản án ấn định sẵn, mà là một bản đồ với nhiều lối đi. Lá Số Việt ở đây để cùng bạn thắp sáng tấm bản đồ ấy.",
+    "ctaTitle": "Chặng đường phía trước của bạn đã sẵn sàng được soi tỏ.",
+    "cta": "Khai mở lá số của bạn ngay"
+  }
+}

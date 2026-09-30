@@ -112,8 +112,8 @@ const OFFER_CONTENT: Record<
       en: "Most complete",
     },
     title: {
-      vi: "Luận giải Tử Vi toàn diện",
-      en: "Comprehensive Zi Wei reading",
+      vi: "Tử Vi trọn đời",
+      en: "Lifetime Zi Wei reading",
     },
     summary: {
       vi: "Đọc trọn cấu trúc lá số — từ nền tảng bản mệnh đến 12 cung và những mối liên hệ nổi bật.",
@@ -140,7 +140,7 @@ const OFFER_CONTENT: Record<
       en: "You want a comprehensive reference reading to revisit across specific questions and reflective phases.",
     },
     ctaLabel: {
-      vi: "Chọn Luận giải Tử Vi toàn diện — 79.000 ₫",
+      vi: "Chọn Tử Vi trọn đời — 79.000 ₫",
       en: "Select Comprehensive Zi Wei Reading — 79,000 VND",
     },
   },

@@ -1,0 +1,11 @@
+/* Opt-in motion only; product state comes from the application, never from animation. */
+.lsv-icon-effect { display: inline-flex; align-items: center; justify-content: center; transform-origin: center; }
+.lsv-icon-effect[data-effect="loading"] svg { animation: lsv-icon-spin 1.2s linear infinite; }
+.lsv-icon-effect[data-effect="reveal"] svg { animation: lsv-icon-reveal var(--motion-panel) ease-out both; }
+.lsv-icon-effect[data-effect="connect"] svg { animation: lsv-icon-connect var(--motion-panel) ease-out both; }
+.lsv-icon-effect[data-effect="success"] svg { animation: lsv-icon-confirm var(--motion-standard) ease-out both; }
+@keyframes lsv-icon-spin { to { transform: rotate(360deg); } }
+@keyframes lsv-icon-reveal { from { opacity: .3; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes lsv-icon-connect { from { opacity: .4; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
+@keyframes lsv-icon-confirm { from { transform: scale(.85); } to { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .lsv-icon-effect svg { animation: none !important; } }

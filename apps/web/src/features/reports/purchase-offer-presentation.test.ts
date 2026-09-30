@@ -38,8 +38,8 @@ describe("purchase-offer-presentation", () => {
       expect(offer.anchorId).toBe("ziwei-comprehensive");
       expect(offer.price).toBe(79000);
       expect(offer.currency).toBe("VND");
-      expect(offer.title.vi).toBe("Luận giải Tử Vi toàn diện");
-      expect(offer.title.en).toBe("Comprehensive Zi Wei reading");
+      expect(offer.title.vi).toBe("Tử Vi trọn đời");
+      expect(offer.title.en).toBe("Lifetime Zi Wei reading");
       expect(offer.deliverables.vi).toHaveLength(5);
       expect(offer.deliverables.vi[1]).toContain("12 cung");
       expect(offer.deliverables.vi[4]).toContain("2.200–3.200 từ");
@@ -147,7 +147,7 @@ describe("purchase-offer-presentation", () => {
       });
 
       expect(presentations[0]!.ctaLabel.vi).toBe("Chọn Bản mệnh và tiềm năng — 19.000 ₫");
-      expect(presentations[1]!.ctaLabel.vi).toBe("Chọn Luận giải Tử Vi toàn diện — 79.000 ₫");
+      expect(presentations[1]!.ctaLabel.vi).toBe("Chọn Tử Vi trọn đời — 79.000 ₫");
       expect(presentations[1]!.badge?.vi).toBe("Đầy đủ nhất");
       expect(presentations[1]!.fit?.vi).toBe("Bạn muốn có một bản tham chiếu đầy đủ để đọc lại theo từng câu hỏi và từng giai đoạn suy ngẫm.");
       expect(presentations[1]!.summary.vi).toBe("Đọc trọn cấu trúc lá số — từ nền tảng bản mệnh đến 12 cung và những mối liên hệ nổi bật.");
