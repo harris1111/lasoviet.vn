@@ -57,7 +57,7 @@ export function createDatabaseAssetDownloadRepository(
         const result = await query.getReport({ kind: "account", userId: ownerId, sessionId: "asset-download", requestId: "asset-download" }, asset.reportId);
         if (!result.ok || !("state" in result.value) || result.value.state !== "ready") return null;
         const report = result.value;
-        if ("lockedSections" in report.content) return null;
+        if (report.contentVersion === "ziwei-palaces.v1" || "lockedSections" in report.content) return null;
         return { objectKey: asset.objectKey };
       } catch {
         return null;

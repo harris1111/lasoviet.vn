@@ -1,4 +1,6 @@
-import { and, desc, eq, gt, isNotNull, isNull, or, sql } from "drizzle-orm";
+import { findLaProduct } from "@lasoviet/contracts";
+import { reportReservationAuthority } from "./natal-report-authority.js";
+import { and, desc, eq, gt, isNotNull, isNull, ne, or, sql } from "drizzle-orm";
 
 import type { EntitlementScope } from "@lasoviet/contracts";
 import {
@@ -61,10 +63,9 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 }
 
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
-  return (
-    (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
-    (sku === "ZIWEI-IDENTITY-P0" && Number.isSafeInteger(priceLa) && priceLa >= 0 && priceLa <= 960)
-  );
+  const product = findLaProduct(sku);
+  if (!product || !["natal", "palace"].includes(product.category) || !Number.isSafeInteger(priceLa)) return false;
+  return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa;
 }
 
 export type ReportQueryRepository = {
@@ -118,6 +119,7 @@ export function createDatabaseReportQueryRepository(
       isNull(commerceEntitlements.orderId),
       isNotNull(commerceEntitlements.ledgerSpendId),
       isNull(commerceEntitlements.revokedAt),
+      sql`not exists (select 1 from wallet_transactions as restoration where restoration.kind = 'restoration' and restoration.reversal_of_transaction_id = ${walletTransactions.id})`,
     ];
     if (input.entitlementId) {
       predicates.push(eq(commerceEntitlements.id, input.entitlementId));
@@ -142,7 +144,7 @@ export function createDatabaseReportQueryRepository(
       .from(commerceEntitlements)
       .innerJoin(
         reportReservations,
-        eq(reportReservations.entitlementId, commerceEntitlements.id),
+        reportReservationAuthority(database),
       )
       .innerJoin(
         walletTransactions,
@@ -211,7 +213,7 @@ export function createDatabaseReportQueryRepository(
       record.intent.chartId !== record.entitlement.chartId ||
       record.intent.chartVersionId !== record.reservation.chartVersionId ||
       record.intent.sku !== record.entitlement.sku ||
-      record.intent.sku !== record.reservation.sku ||
+      (record.reservation.entitlementId === record.entitlement.id && record.intent.sku !== record.reservation.sku) ||
       record.intent.locale !== record.reservation.locale ||
       !isSupportedWalletPrice(record.intent.sku, record.intent.priceLa)
     ) {
@@ -231,7 +233,7 @@ export function createDatabaseReportQueryRepository(
       (
         version.reportId !== record.reservation.reportId ||
         version.reportVersionId !== record.reservation.reportVersionId ||
-        version.entitlementId !== record.entitlement.id ||
+        version.entitlementId !== record.reservation.entitlementId ||
         version.chartVersionId !== record.reservation.chartVersionId ||
         version.evidenceVersionId !== record.reservation.evidenceVersionId ||
         version.knowledgeVersionId !== record.reservation.knowledgeVersionId ||
@@ -247,7 +249,7 @@ export function createDatabaseReportQueryRepository(
     return { ...record, version: version ?? null };
   }
 
-  async function loadActiveChartEntitlements(ownerId: string, chartId: string) {
+  async function loadActiveChartEntitlements(ownerId: string, chartId: string, chartVersionId: string, locale: string) {
     const orderEntitlements = await database
       .select({
         entitlement: commerceEntitlements,
@@ -269,9 +271,9 @@ export function createDatabaseReportQueryRepository(
       .innerJoin(
         reportReservations,
         and(
-          eq(reportReservations.entitlementId, commerceEntitlements.id),
+          reportReservationAuthority(database),
           eq(reportReservations.chartVersionId, commerceOrders.chartVersionId),
-          eq(reportReservations.sku, commerceEntitlements.sku),
+          or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceEntitlements.sku)),
           eq(reportReservations.locale, commerceOrders.locale),
         ),
       )
@@ -299,6 +301,8 @@ export function createDatabaseReportQueryRepository(
           eq(commerceEntitlements.ownerId, ownerId),
           activeExpiry(),
           eq(commerceEntitlements.chartId, chartId),
+          eq(reportReservations.chartVersionId, chartVersionId),
+          eq(reportReservations.locale, locale),
           isNotNull(commerceEntitlements.orderId),
           isNull(commerceEntitlements.ledgerSpendId),
           isNull(commerceEntitlements.revokedAt),
@@ -325,7 +329,7 @@ export function createDatabaseReportQueryRepository(
         ),
       )
     )
-      .filter((record): record is NonNullable<typeof record> => record !== null)
+      .filter((record): record is NonNullable<typeof record> => record !== null && record.reservation.chartVersionId === chartVersionId && record.reservation.locale === locale)
       .map((record) => ({
         id: record.entitlement.id,
         chartId: record.entitlement.chartId,
@@ -345,7 +349,7 @@ export function createDatabaseReportQueryRepository(
           (
             version.reportId === reservation.reportId &&
             version.reportVersionId === reservation.reportVersionId &&
-            version.entitlementId === entitlement.id &&
+            version.entitlementId === reservation.entitlementId &&
             version.chartVersionId === reservation.chartVersionId &&
             version.evidenceVersionId === reservation.evidenceVersionId &&
             version.knowledgeVersionId === reservation.knowledgeVersionId &&
@@ -390,7 +394,7 @@ export function createDatabaseReportQueryRepository(
         .innerJoin(
           commerceEntitlements,
           and(
-            eq(commerceEntitlements.id, reportReservations.entitlementId),
+            reportReservationAuthority(database),
             eq(commerceEntitlements.ownerId, ownerId),
           activeExpiry(),
             isNull(commerceEntitlements.revokedAt),
@@ -402,6 +406,7 @@ export function createDatabaseReportQueryRepository(
             eq(commerceOrders.id, commerceEntitlements.orderId),
             eq(commerceOrders.ownerId, ownerId),
             eq(commerceOrders.chartId, commerceEntitlements.chartId),
+            eq(commerceOrders.status, "paid"),
           ),
         )
         .innerJoin(
@@ -434,9 +439,9 @@ export function createDatabaseReportQueryRepository(
           and(
             eq(reportReservations.reportId, reportId),
             eq(reportReservations.chartVersionId, commerceOrders.chartVersionId),
-            eq(reportReservations.sku, commerceEntitlements.sku),
+            or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceEntitlements.sku)),
             eq(commerceOrders.sku, commerceEntitlements.sku),
-            eq(reportReservations.sku, commerceOrders.sku),
+            or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceOrders.sku)),
             eq(reportReservations.locale, commerceOrders.locale),
           ),
         )
@@ -453,7 +458,7 @@ export function createDatabaseReportQueryRepository(
         record.order.kind !== "content_purchase" ||
         record.entitlement.orderId !== record.order.id ||
         record.order.sku !== record.entitlement.sku ||
-        record.entitlement.sku !== record.reservation.sku
+        (record.reservation.entitlementId === record.entitlement.id && record.entitlement.sku !== record.reservation.sku)
       ) {
         return record === undefined ? readWalletAuthorizedReport(ownerId, reportId) : null;
       }
@@ -472,7 +477,7 @@ export function createDatabaseReportQueryRepository(
         if (
           version.reportId !== reservationRecord.reportId ||
           version.reportVersionId !== reservationRecord.reportVersionId ||
-          version.entitlementId !== record.entitlement.id ||
+          version.entitlementId !== record.reservation.entitlementId ||
           version.chartVersionId !== record.order.chartVersionId ||
           version.evidenceVersionId !== reservationRecord.evidenceVersionId ||
           version.knowledgeVersionId !== reservationRecord.knowledgeVersionId ||
@@ -480,8 +485,7 @@ export function createDatabaseReportQueryRepository(
           version.reportConfigVersion !== reservationRecord.reportConfigVersion ||
           version.locale !== reservationRecord.locale ||
           version.sku !== reservationRecord.sku ||
-          version.sku !== record.order.sku ||
-          version.sku !== record.entitlement.sku
+          (reservationRecord.entitlementId === record.entitlement.id && version.sku !== record.order.sku)
         ) {
           return null;
         }
@@ -518,7 +522,7 @@ export function createDatabaseReportQueryRepository(
           evidenceItems: evidenceList,
           source: "order",
           chartId: record.entitlement.chartId,
-          entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+          entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
           ...(await loadChartSnapshotInputs(version)),
         };
       }
@@ -545,7 +549,7 @@ export function createDatabaseReportQueryRepository(
         evidenceItems: [],
         source: "order",
         chartId: record.entitlement.chartId,
-        entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+        entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
       };
     },
   };
@@ -582,7 +586,7 @@ export function createDatabaseReportQueryRepository(
       reservation: record.reservation,
       version: record.version,
       evidenceItems: items,
-      entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
+      entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
       wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id },
       chartId: record.entitlement.chartId,
       ...(await loadChartSnapshotInputs(record.version)),

@@ -64,6 +64,7 @@ export {
   generatedPreviewSections,
 } from "./schema/generated-preview.js";
 export {
+  reportEntitlementLinks,
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,

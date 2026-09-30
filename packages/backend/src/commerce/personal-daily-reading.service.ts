@@ -1,3 +1,4 @@
+import { reportReservationAuthority } from "../reports/natal-report-authority.js";
 import { dailyReadingDate, readPurchasedDailyReading } from "./daily-wallet-unlock.service.js";
 import {
   NormalizedBirthProfileV1Schema,
@@ -7,7 +8,7 @@ import {
   type PersonalDailyReadingV1,
   type Result,
 } from "@lasoviet/contracts";
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { commerceEntitlements, reportReservations, type Database } from "@lasoviet/database";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 import type { ZiweiQueryRepository } from "../ziwei/ziwei-query.repository.js";
@@ -27,23 +28,26 @@ export function createDatabaseDailyReadingAccess(database: Database) {
       id: commerceEntitlements.id,
       reportId: reportReservations.reportId,
     }).from(commerceEntitlements)
-      .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .innerJoin(reportReservations, reportReservationAuthority(database))
       .where(and(
         eq(commerceEntitlements.ownerId, ownerId),
+        isNull(commerceEntitlements.revokedAt),
         eq(commerceEntitlements.chartId, chartId),
         eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"),
         gt(commerceEntitlements.dailyBonusExpiresAt, now),
-      )).orderBy(desc(reportReservations.createdAt)).limit(1);
-    if (!candidates[0]) return null;
-    const authorized = await createDatabaseReportQueryRepository(database, () => now)
-      .readAuthorizedReport(ownerId, candidates[0].reportId);
-    const entitlement = authorized?.entitlements.find((item) => item.id === candidates[0]?.id);
-    if (!authorized || !entitlement?.grantedAt || !entitlement.dailyBonusExpiresAt) return null;
-    return {
-      grantedAt: entitlement.grantedAt,
-      expiresAt: entitlement.dailyBonusExpiresAt,
-      chartVersionId: authorized.reservation.chartVersionId,
-    };
+      )).orderBy(desc(commerceEntitlements.createdAt));
+    for (const candidate of candidates) {
+      const authorized = await createDatabaseReportQueryRepository(database, () => now)
+        .readAuthorizedReport(ownerId, candidate.reportId);
+      const entitlement = authorized?.entitlements.find((item) => item.id === candidate.id);
+      if (!authorized || !entitlement?.grantedAt || !entitlement.dailyBonusExpiresAt) continue;
+      return {
+        grantedAt: entitlement.grantedAt,
+        expiresAt: entitlement.dailyBonusExpiresAt,
+        chartVersionId: authorized.reservation.chartVersionId,
+      };
+    }
+    return null;
   };
 }
 
