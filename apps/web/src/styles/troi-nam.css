@@ -799,6 +799,23 @@
   gap: var(--tn-gutter);
 }
 
+/*
+ * Stagger reveal for the discipline links, driven by `data-reveal`/`--i`
+ * already set in the shared HomepageV3Needs markup (see troi-nam-needs.tsx
+ * for why it's wired here instead of via the live homepage's motion system).
+ * No JS/IntersectionObserver/prefers-reduced-motion: `data-reveal-ready` is
+ * never set, so every card stays at its normal opacity/position.
+ */
+.tn .tn-needs[data-reveal-ready] .hv3-disc-slot {
+  transition: opacity 220ms ease, transform 220ms ease;
+  transition-delay: calc(min(var(--i, 0), 6) * 60ms);
+}
+
+.tn .tn-needs[data-reveal-ready] .hv3-disc-slot:not([data-in]) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
 .tn .tn-needs .hv3-disc-slot-flagship {
   grid-column: auto;
 }

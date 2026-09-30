@@ -47,6 +47,43 @@ export function TroiNamNeeds({ locale }: { locale: "en" | "vi" }) {
     return () => observer.disconnect();
   }, []);
 
+  // The discipline links below already carry `data-reveal` + `--i` (set by
+  // the shared HomepageV3Needs for the live homepage's HomepageV3Motion
+  // system), but that system isn't mounted on this preview page, so those
+  // attributes currently do nothing. This reveals the same markup directly
+  // instead of introducing a second, parallel attribute scheme, and stays
+  // forward-compatible if HomepageV3Motion is ever mounted here too.
+  useLayoutEffect(() => {
+    const wrap = wrapRef.current;
+    const slots = wrap ? Array.from(wrap.querySelectorAll<HTMLElement>(".hv3-disc-slot[data-reveal]")) : [];
+    if (!wrap || slots.length === 0) return;
+    if (typeof IntersectionObserver !== "function") return;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    wrap.setAttribute("data-reveal-ready", "");
+    const viewportHeight = window.innerHeight;
+    const pending: HTMLElement[] = [];
+    for (const slot of slots) {
+      const rect = slot.getBoundingClientRect();
+      if (rect.top < viewportHeight && rect.bottom > 0) slot.setAttribute("data-in", "");
+      else pending.push(slot);
+    }
+    if (pending.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.setAttribute("data-in", "");
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1 },
+    );
+    pending.forEach((slot) => observer.observe(slot));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="hv3 tn-needs" id="nhu-cau" ref={wrapRef}>
       {assets.map((asset, index) => (
