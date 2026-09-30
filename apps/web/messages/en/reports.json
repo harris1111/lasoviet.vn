@@ -330,6 +330,8 @@
     "yearly": "Annual membership",
     "confirmTitle": "Confirm membership",
     "confirm": "Confirm Lá payment",
-    "confirmAfterTopup": "After topping up, return to Membership to confirm your purchase or renewal."
+    "confirmAfterTopup": "After topping up, return to Membership to confirm your purchase or renewal.",
+    "loading": "Loading membership status…",
+    "error": "Membership status could not be loaded. Please try again."
   }
 }

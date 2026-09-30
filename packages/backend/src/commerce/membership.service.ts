@@ -84,6 +84,9 @@ export function createMembershipService(database: Database, wallet: WalletServic
       if (!isMembershipSku(request.sku) || catalog(request.sku)?.availability !== "active") return fail("WALLET_INTENT_INVALID");
       const sku = request.sku;
       return database.transaction(async (transaction) => {
+        // Match wallet.spend's account-first order before advisory or intent locks.
+        const [account] = await transaction.select().from(authUsers).where(eq(authUsers.id, actor.userId)).limit(1).for("update");
+        if (!account?.emailVerified || account.isAnonymous) return fail("WALLET_ACCOUNT_INELIGIBLE");
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${scope(actor.userId)}))`);
         const [pending] = await transaction.select().from(walletPurchaseIntents).where(and(eq(walletPurchaseIntents.ownerId, actor.userId), eq(walletPurchaseIntents.chartId, scope(actor.userId)), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.status, "pending"))).limit(1);
         if (pending && pending.priceLa === MEMBERSHIP_PLANS[sku].priceLa && pending.locale === request.locale) return { ok: true as const, value: projectIntent(pending) };

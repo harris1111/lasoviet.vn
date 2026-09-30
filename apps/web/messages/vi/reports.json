@@ -330,6 +330,8 @@
     "yearly": "Hội viên năm",
     "confirmTitle": "Xác nhận hội viên",
     "confirm": "Xác nhận trừ Lá",
-    "confirmAfterTopup": "Sau khi nạp Lá, quay lại Hội viên để xác nhận đăng ký hoặc gia hạn."
+    "confirmAfterTopup": "Sau khi nạp Lá, quay lại Hội viên để xác nhận đăng ký hoặc gia hạn.",
+    "loading": "Đang tải trạng thái hội viên…",
+    "error": "Chưa tải được trạng thái hội viên. Vui lòng thử lại."
   }
 }

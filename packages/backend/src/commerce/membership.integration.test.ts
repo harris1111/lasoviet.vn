@@ -92,6 +92,19 @@ describe("membership wallet and expiry integration", () => {
     const periods = await db.select().from(membershipSubscriptions).where(eq(membershipSubscriptions.ownerId, owner.id)).orderBy(membershipSubscriptions.startsAt);
     expect(periods[1]?.startsAt).toEqual(periods[0]?.expiresAt);
   });
+  it("serializes a pending locale change against purchase without deadlock or an extra debit", async () => {
+    const owner = await fixture();
+    const intent = await owner.service.createIntent(owner.actor, { sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi" });
+    const balance = await owner.wallet.readBalance(owner.actor);
+    if (!intent.ok || !balance.ok) throw new Error("fixture");
+    const [changed, bought] = await Promise.all([
+      owner.service.createIntent(owner.actor, { sku: "MEMBERSHIP-MONTHLY-P0", locale: "en" }),
+      owner.service.purchase(owner.actor, { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: balance.value.stateVersion, idempotencyKey: randomUUID() }),
+    ]);
+    expect(changed.ok).toBe(true);
+    expect(await owner.wallet.readBalance(owner.actor)).toMatchObject({ ok: true, value: { totalLa: bought.ok ? 18_500 : 20_000 } });
+    expect(await db.select().from(membershipSubscriptions).where(eq(membershipSubscriptions.ownerId, owner.id))).toHaveLength(bought.ok ? 1 : 0);
+  }, 10_000);
   it("restoration revokes membership access and discount immediately", async () => {
     const owner = await fixture();
     const { result } = await owner.buy();

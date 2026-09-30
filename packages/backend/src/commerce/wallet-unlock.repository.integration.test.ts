@@ -1195,13 +1195,31 @@ describe("wallet unlock repository integration", () => {
     const discounted = await ports.service.createPurchaseIntent(owner.actor, request);
     expect(discounted).toMatchObject({ ok: true, value: { amountLa: 192 } });
     expect(await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-IDENTITY-P0" })).toMatchObject({ ok: true, value: { amountLa: 768 } });
+    const palace = await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-PALACE-LIFE-P0" });
+    expect(palace).toMatchObject({ ok: true, value: { amountLa: 96 } });
+    const fundedMember = await createWalletService(ports.repository).readBalance(owner.actor);
+    if (!palace.ok || !fundedMember.ok) throw new Error("palace intent");
+    const paid = await ports.service.unlock(owner.actor, { purchaseIntentId: palace.value.id, expectedIntentVersion: 1, expectedWalletVersion: fundedMember.value.stateVersion, idempotencyKey: randomUUID() });
+    if (!paid.ok) throw new Error("palace purchase");
+    const [reservation] = await database.select().from(reportReservations).where(eq(reportReservations.reportId, paid.value.reportId));
+    const jobId = randomUUID();
+    await database.update(reportReservations).set({ activeJobId: jobId }).where(eq(reportReservations.id, reservation!.id));
+    const source = createDatabaseReportGenerationSourceRepository({ database, now: () => current, knowledgeRetrieval: { retrieveKnowledge: vi.fn() } });
+    const validate = () => source.validateLifecycle({ reportVersionId: reservation!.reportVersionId, jobId, readingContextRevisionId: null });
+    expect(await validate()).toMatchObject({ ok: true });
     current = new Date(frozenNow.getTime() + 30 * 86_400_000);
     expect(await createDatabaseDailyReadingAccess(database)(owner.userId, owner.chartId, current)).toBeNull();
+    expect(await validate()).toMatchObject({ ok: true });
+    expect(await createDatabaseReportQueryRepository(database, () => current).readAuthorizedReport(owner.userId, paid.value.reportId)).not.toBeNull();
     if (!discounted.ok) throw new Error("discount");
     const before = await createWalletService(ports.repository).readBalance(owner.actor);
     if (!before.ok) throw new Error("balance");
     expect(await ports.service.unlock(owner.actor, { purchaseIntentId: discounted.value.id, expectedIntentVersion: 1, expectedWalletVersion: before.value.stateVersion, idempotencyKey: randomUUID() })).toMatchObject({ ok: false });
     expect(await createWalletService(ports.repository).readBalance(owner.actor)).toEqual(before);
+    const [entitlement] = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.id, reservation!.entitlementId));
+    expect(await ports.repository.restore({ actor: owner.actor, restoration: { kind: "restoration", actorId: owner.userId, originalSpendId: entitlement!.ledgerSpendId!, expectedWalletVersion: before.value.stateVersion, reasonCode: "test.member.report.refund", requestId: randomUUID(), traceId: randomUUID(), idempotencyKey: randomUUID() } })).toMatchObject({ ok: true });
+    expect(await validate()).toMatchObject({ ok: false });
+    expect(await createDatabaseReportQueryRepository(database, () => current).readAuthorizedReport(owner.userId, paid.value.reportId)).toBeNull();
   });
 
   it("atomically buys a daily reading once, replays without generation, and allows the next Vietnam day", async () => {
