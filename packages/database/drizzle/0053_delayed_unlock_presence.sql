@@ -12,3 +12,5 @@ CREATE TABLE IF NOT EXISTS notification_verified_signins (
   signed_in_at timestamptz NOT NULL,
   last_checked_at timestamptz
 );
+--> statement-breakpoint
+ALTER TABLE report_reservations ADD COLUMN IF NOT EXISTS last_reminder_check_at timestamptz;

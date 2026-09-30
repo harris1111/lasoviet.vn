@@ -42,11 +42,11 @@ export function computeEngineHanMonths(
 
   const warnMonths: ComputedHanMonth[] = [];
   for (const m of result.yearly.months) {
-    if (m.marker === "warn") {
+    if (m.marker === "warn" && m.primaryFocus?.trim() && m.preparationText?.trim()) {
       warnMonths.push({
         monthIndex: m.monthIndex,
-        primaryFocus: m.primaryFocus ?? "công việc",
-        prepText: m.preparationText ?? "Cần chú ý cẩn trọng trong các quyết định tháng này.",
+        primaryFocus: m.primaryFocus,
+        prepText: m.preparationText,
         marker: "warn",
         palaceId: m.palaceId,
         palaceName: m.palaceName,
@@ -55,38 +55,4 @@ export function computeEngineHanMonths(
   }
 
   return warnMonths;
-}
-
-export type BlockedHanMonthReminderResult = {
-  status: "blocked";
-  reason: "INFRASTRUCTURE_UNSUPPORTED";
-  blockers: readonly string[];
-};
-
-export interface HanMonthReminderScheduler {
-  scheduleDueReminders(now?: Date): Promise<BlockedHanMonthReminderResult>;
-}
-
-export const HAN_MONTH_REMINDER_BLOCKERS = [
-  "CRON_OR_LUNAR_SCHEDULER_MISSING: Master worker cycle only polls at 15-minute maintenance and 5-second queue intervals; no recurring lunar calendar monthly scheduler exists.",
-  "VAN_HAN_2026_ENTITLEMENT_MISSING: FD-105 Track 2 Wave 2.2 Vận hạn 2026 and Tháng này SKUs and writers are not yet implemented on master.",
-  "REMINDER_DISPATCH_AUDIT_LOG_MISSING: No database schema exists to record which lunar months have already dispatched alerts per user to prevent duplicate spam.",
-] as const;
-
-/**
- * Precise blocked adapter for engine-computed han-month reminders.
- * Retains engine calculation foundation while explicitly blocking automated
- * delivery until lunar cron scheduling, Van Han 2026 entitlement scope, and
- * reminder audit history are merged.
- */
-export function createBlockedHanMonthReminderAdapter(): HanMonthReminderScheduler {
-  return {
-    async scheduleDueReminders(): Promise<BlockedHanMonthReminderResult> {
-      return {
-        status: "blocked",
-        reason: "INFRASTRUCTURE_UNSUPPORTED",
-        blockers: HAN_MONTH_REMINDER_BLOCKERS,
-      };
-    },
-  };
 }

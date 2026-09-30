@@ -11,6 +11,7 @@ import {
 import {
   AuthEmailRequestSchema,
   PersistedEmailDeliveryRequestSchema,
+  type HanMonthReminderEmailRequest,
   type NurtureVerifiedSignInEmailRequest,
   type DelayedUnlockCompletedEmailRequest,
   type AuthEmailKind,
@@ -106,8 +107,9 @@ export type AuthEmailDeliveryServiceOptions = {
   provider: EmailProvider;
   recipientFingerprintSecret: string;
   preferenceChecker?: {
-    isNonTransactionalAllowed(recipient: string, userId?: string): Promise<boolean>;
+    isNonTransactionalAllowed(recipient: string, userId?: string, kind?: "nurture" | "han"): Promise<boolean>;
   };
+  hanReminderEligibility?: (request: HanMonthReminderEmailRequest) => Promise<boolean>;
   nurtureEligibility?: (request: NurtureVerifiedSignInEmailRequest) => Promise<boolean>;
   delayedUnlockEligibility?: (request: DelayedUnlockCompletedEmailRequest) => Promise<boolean>;
   membershipReminderAllowed?: (request: Extract<PersistedEmailDeliveryRequest, { kind: "membership_expiry" }>, now: Date) => Promise<boolean>;
@@ -240,7 +242,7 @@ function renderMessage(request: PersistedEmailDeliveryRequest): EmailMessage {
 
   if (request.kind === "membership_expiry") {
     text = text.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
-    html = html.replaceAll("{expiresAt}", request.expiresAt).replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
+    html = html.replaceAll("{expiresAt}", escapeHtml(request.expiresAt)).replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
   } else if (request.kind === "nurture_verified_signin") {
     text = text
       .replaceAll("{palaceTitle}", request.palaceTitle)
@@ -251,16 +253,16 @@ function renderMessage(request: PersistedEmailDeliveryRequest): EmailMessage {
     subject = subject.replaceAll("{palaceTitle}", request.palaceTitle);
   } else if (request.kind === "han_month_reminder") {
     text = text
-      .replaceAll("{monthIndex}", String(request.monthIndex))
+      .replaceAll("{monthIndex}", request.periodLabel ?? String(request.monthIndex))
       .replaceAll("{primaryFocus}", request.primaryFocus)
       .replaceAll("{prepText}", request.prepText)
       .replaceAll("{unsubscribeUrl}", request.unsubscribeUrl);
     html = html
-      .replaceAll("{monthIndex}", String(request.monthIndex))
+      .replaceAll("{monthIndex}", escapeHtml(request.periodLabel ?? String(request.monthIndex)))
       .replaceAll("{primaryFocus}", escapeHtml(request.primaryFocus))
       .replaceAll("{prepText}", escapeHtml(request.prepText))
       .replaceAll("{unsubscribeUrl}", escapeHtml(request.unsubscribeUrl));
-    subject = subject.replaceAll("{monthIndex}", String(request.monthIndex));
+    subject = subject.replaceAll("{monthIndex}", request.periodLabel ?? String(request.monthIndex));
   } else if (request.kind === "delayed_unlock_completed") {
     text = text.replaceAll("{itemName}", request.itemName);
     html = html.replaceAll("{itemName}", escapeHtml(request.itemName));
@@ -347,7 +349,7 @@ export function createAuthEmailDeliveryService(
         return outcome(record);
       }
 
-      if (DISABLED_NOTIFICATION_KINDS.has(validatedRequest.kind) && !(validatedRequest.kind === "delayed_unlock_completed" && options.delayedUnlockEligibility) && !(validatedRequest.kind === "nurture_verified_signin" && options.nurtureEligibility)) {
+      if (DISABLED_NOTIFICATION_KINDS.has(validatedRequest.kind) && !(validatedRequest.kind === "delayed_unlock_completed" && options.delayedUnlockEligibility) && !(validatedRequest.kind === "nurture_verified_signin" && options.nurtureEligibility) && !(validatedRequest.kind === "han_month_reminder" && options.hanReminderEligibility)) {
         await options.store.markFailure(
           idempotencyKey,
           0,
@@ -372,6 +374,7 @@ export function createAuthEmailDeliveryService(
         const allowed = await options.preferenceChecker?.isNonTransactionalAllowed(
           validatedRequest.recipient,
           validatedRequest.userId,
+          validatedRequest.kind === "han_month_reminder" ? "han" : "nurture",
         );
         if (!allowed) {
           await options.store.markFailure(
@@ -402,6 +405,11 @@ export function createAuthEmailDeliveryService(
 
       if (validatedRequest.kind === "nurture_verified_signin" && !await options.nurtureEligibility?.(validatedRequest)) {
         await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "NURTURE_NO_LONGER_ELIGIBLE", nowValue());
+        return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
+      }
+
+      if (validatedRequest.kind === "han_month_reminder" && !await options.hanReminderEligibility?.(validatedRequest)) {
+        await options.store.markFailure(idempotencyKey, claim.attemptCount, "failed_permanent", "HAN_REMINDER_NO_LONGER_ELIGIBLE", nowValue());
         return outcome(await options.store.getByIdempotencyKey(idempotencyKey));
       }
 
@@ -498,6 +506,7 @@ export function createDatabaseAuthEmailDeliveryStore(
                 eq(notificationDeliveries.kind, "report_failed"),
                 eq(notificationDeliveries.kind, "delayed_unlock_completed"),
                 eq(notificationDeliveries.kind, "nurture_verified_signin"),
+                eq(notificationDeliveries.kind, "han_month_reminder"),
               ),
             ),
             and(
@@ -509,6 +518,7 @@ export function createDatabaseAuthEmailDeliveryStore(
                 eq(notificationDeliveries.kind, "report_failed"),
                 eq(notificationDeliveries.kind, "delayed_unlock_completed"),
                 eq(notificationDeliveries.kind, "nurture_verified_signin"),
+                eq(notificationDeliveries.kind, "han_month_reminder"),
               ),
             ),
           ),

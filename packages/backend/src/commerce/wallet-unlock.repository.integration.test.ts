@@ -1,3 +1,10 @@
+import { createAuthEmailDeliveryService, createDatabaseAuthEmailDeliveryStore } from "../notifications/auth-email.js";
+import { createHanMonthReminderService } from "../notifications/han-month-reminder.service.js";
+import { createDatabaseNotificationPreferenceStore } from "../notifications/notification-preference.js";
+import { createDatabaseReportSourceSnapshotRepository } from "../reports/report-source-snapshot.repository.js";
+import { periodReportVersions } from "../reports/period-report-config.js";
+import { calculateIztroReportSnapshot } from "../../../engine-adapters/src/ziwei/iztro-report-snapshot.js";
+import { NormalizedBirthProfileV1Schema } from "@lasoviet/contracts";
 import { createMembershipService } from "./membership.service.js";
 import { createDatabaseReportGenerationSourceRepository } from "../reports/report-generation.repository.js";
 import { createDatabaseDailyReadingAccess } from "./personal-daily-reading.service.js";
@@ -28,6 +35,8 @@ import {
   birthProfiles,
   calculationRuns,
   commerceEntitlements,
+  consents,
+  notificationDeliveries,
   dailyReadingUnlocks,
   guaranteeClaims,
   commerceOrders,
@@ -390,8 +399,48 @@ describe("wallet unlock repository integration", () => {
       current=new Date("2027-01-01T12:00:00.000Z");expect((await service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`annual-stale-${randomUUID()}`})).ok).toBe(false);expect((await service.createPurchaseIntent(owner.actor,request)).ok).toBe(false);
       current=new Date("2026-12-31T12:00:00.000Z");const result=await service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`annual-valid-${randomUUID()}`});if(!result.ok)throw new Error(result.code);expect(result.value.balance.totalLa).toBe(1520);
       const [entitlement]=await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId,owner.chartId));expect(entitlement).toMatchObject({periodKey:"2026",scope:{sections:["periodReading"]}});
+      const [reservation] = await database.select().from(reportReservations).where(eq(reportReservations.reportId, result.value.reportId));
+      const frozen = reservation!;
+      const profile = NormalizedBirthProfileV1Schema.parse({ version: 1, originalInput: { version: 1, calendar: { kind: "solar", date: "1990-05-12" }, time: { precision: "exact_minute", localTime: "08:30" }, timezone: { offsetMinutes: 420 }, consentVersion: "fixture", gender: "male" }, normalizedCalendar: { kind: "solar", date: "1990-05-12" }, normalizedTime: { precision: "exact_minute", localTime: "08:30" }, timezoneProvenance: { source: "offset", offsetMinutes: 420 }, normalizationWarnings: [], limitations: [] });
+      const snapshot = await calculateIztroReportSnapshot({ birthProfile: profile, chartVersionId: owner.chartVersionId, asOfDate: frozen.asOfDate!, targetYear: 2026, timingRuleVersion: frozen.timingRuleVersion!, sensitivityRuleVersion: frozen.sensitivityRuleVersion!, periodReading: { chartId: owner.chartId, kind: "annual" } });
+      if (!snapshot.ok) throw new Error(snapshot.error.code);
+      const facts = snapshot.value.periodReading!;
+      const period = facts.periods.find((item) => item.obstacleStarIds.length > 0)!;
+      expect(period).toBeDefined();
+      const persisted = await createDatabaseReportSourceSnapshotRepository(database).persist({ version: 1, reportId: frozen.reportId, reportVersionId: frozen.reportVersionId, chartVersionId: frozen.chartVersionId, asOfDate: frozen.asOfDate, targetYear: 2026, timingRuleVersion: frozen.timingRuleVersion, sensitivityRuleVersion: frozen.sensitivityRuleVersion, snapshotHash: snapshot.value.provenance.snapshotHash, snapshot: snapshot.value });
+      expect(persisted.ok).toBe(true);
+      const preferenceStore = createDatabaseNotificationPreferenceStore(database, "fixture", () => current);
+      const notices = createHanMonthReminderService(database, { preferenceStore, tokenSecret: "fixture", now: () => current, resolveLunarDay: () => ({ year: period.year, month: period.month, isLeapMonth: period.isLeapMonth, day: period.dayRange[0] }) });
+      expect(await notices.requestFor(frozen.reportId)).toBeNull();
+      await database.insert(consents).values({ id: randomUUID(), userId: owner.userId, purpose: "offers", documentKey: "privacy", documentVersion: "v1", grantedAt: current });
+      expect(await notices.requestFor(frozen.reportId)).toBeNull(); // Payment alone is not a ready report.
+      const tuple = periodReportVersions();
+      await database.insert(reportVersions).values({ reportId: frozen.reportId, reportVersionId: frozen.reportVersionId, entitlementId: frozen.entitlementId, chartVersionId: frozen.chartVersionId, evidenceVersionId: frozen.evidenceVersionId, knowledgeVersionId: frozen.knowledgeVersionId, promptVersion: frozen.promptVersion, reportConfigVersion: frozen.reportConfigVersion, locale: "vi", sku: frozen.sku, templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion, providerId: "fixture", modelId: "fixture", contentHash: "a".repeat(64), pdfAssetId: randomUUID(), htmlContent: "<p>fixture</p>", structuredContent: { version: 1, contentVersion: "ziwei.period-reading.v1", locale: "vi", kind: "annual", targetYear: 2026, calendar: "lunar", periodKey: "2026", title: "Vận hạn năm 2026", overview: { narrative: "Nội dung thử nghiệm.", evidenceKeys: facts.evidenceKeys }, periods: facts.periods.map((item) => ({ periodId: item.id, title: `Tháng ${item.month}`, narrative: "Nội dung thử nghiệm.", recommendations: ["Ghi lại ưu tiên.", "Trao đổi rõ ràng."], cautions: ["Dành thời gian chuẩn bị."], evidenceKeys: item.evidenceKeys })) } });
+      await database.update(reportReservations).set({ status: "complete" }).where(eq(reportReservations.id, frozen.id));
+      const notice = await notices.requestFor(frozen.reportId);
+      expect(notice).toMatchObject({ marker: "warn", periodId: period.id, monthIndex: period.month, chartVersionId: owner.chartVersionId });
+      if (!notice) throw new Error("missing reminder");
+      expect(await notices.isEligible(notice)).toBe(true);
+      expect(await notices.isEligible({ ...notice, actionUrl: "https://evil.test" })).toBe(false);
+      expect(await notices.scanAndEnqueue()).toBeGreaterThan(0);
+      await notices.scanAndEnqueue();
+      expect(await database.select().from(notificationDeliveries).where(eq(notificationDeliveries.idempotencyKey, notice.idempotencyKey))).toHaveLength(1);
+      await preferenceStore.updatePreferences(owner.userId, { nurtureEmailsAllowed: false, hanRemindersAllowed: true });
+      expect(await notices.isEligible(notice)).toBe(true);
+      let sent = 0;
+      const mail = createAuthEmailDeliveryService({ store: createDatabaseAuthEmailDeliveryStore(database), provider: { async send() { sent += 1; return { ok: true as const, providerMessageId: "han-fixture" }; } }, recipientFingerprintSecret: "fixture", preferenceChecker: preferenceStore, hanReminderEligibility: notices.isEligible, now: () => current });
+      expect((await mail.send(notice)).status).toBe("sent");
+      expect((await mail.send(notice)).status).toBe("sent");
+      expect(sent).toBe(1);
+
+      await preferenceStore.updatePreferences(owner.userId, { hanRemindersAllowed: false });
+      expect(await notices.isEligible(notice)).toBe(false);
+      await preferenceStore.updatePreferences(owner.userId, { hanRemindersAllowed: true });
+      await database.update(commerceEntitlements).set({ revokedAt: current }).where(eq(commerceEntitlements.id, entitlement!.id));
+      expect(await notices.isEligible(notice)).toBe(false);
+
     } finally {topicCatalogGate.enabled=false;}
-  });
+  }, 30_000);
 
   it("keeps topics reserved, then atomically binds an approved 480 Lá topic to its own immutable reservation", async () => {
     const audit = await ownerFixture("Topic audit");

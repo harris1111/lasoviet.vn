@@ -316,4 +316,3 @@ export function makeValidCareerContent(facts: ReturnType<typeof buildFactsFixtur
     ],
   };
 }
-

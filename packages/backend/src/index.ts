@@ -43,25 +43,7 @@ export type {
   VerifiedSignInNurtureServiceOptions,
 } from "./notifications/nurture-signin.service.js";
 
-export {
-  HAN_MONTH_REMINDER_BLOCKERS,
-  computeEngineHanMonths,
-  createBlockedHanMonthReminderAdapter,
-} from "./notifications/han-month-reminder.js";
-export type {
-  BlockedHanMonthReminderResult,
-  ComputedHanMonth,
-  HanMonthReminderScheduler,
-} from "./notifications/han-month-reminder.js";
-
-export {
-  DEFERRED_DELAYED_UNLOCK_DESCRIPTION,
-  createDeferredDelayedUnlockAdapter,
-} from "./notifications/delayed-unlock-notification.js";
-export type {
-  DeferredDelayedUnlockNotificationResult,
-  DelayedUnlockNotificationHandler,
-} from "./notifications/delayed-unlock-notification.js";
+export { computeEngineHanMonths, type ComputedHanMonth } from "./notifications/han-month-reminder.js";
 
 export {
   createDatabaseConsentRepository,
@@ -824,3 +806,5 @@ export type {
   ZiweiTopicDeepDiveWriterResult,
   ZiweiTopicDeepDiveWriterRewrite,
 } from "./reports/topic-deep-dive-writer-v4.js";
+
+export { createHanMonthReminderService, dueComputedHanPeriod, type LunarReminderDay } from "./notifications/han-month-reminder.service.js";

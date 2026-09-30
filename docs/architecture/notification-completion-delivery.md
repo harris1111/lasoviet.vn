@@ -16,6 +16,12 @@ A durable latest verified-session creation timestamp is recorded by Better Auth'
 
 At 48 hours, the worker may enqueue one nurture email per account when no historical paid order or content entitlement exists, current offers consent allows it, and a current owned chart supplies a real palace. The send path repeats these conditions and validates the canonical chart URL and signed unsubscribe link. Missing consent checker fails closed. All dynamic HTML is escaped.
 
+## Computed lunar-month reminders
+
+The annual report catalog gate also gates reminder scanning and dispatch. While `ZIWEI-YEAR-2026-P0` remains reserved pending real-provider stability evidence, no automatic annual reminders are sent. The completed scanner uses the same lunar calendar as the engine and the immutable stored annual report snapshot. It selects only a current lunar year/month/leap flag/day range with genuine obstacle stars included in that period's computed star list. Leap halves retain their distinct identity and are named in the message. It does not infer a warning from prose or invent an uncomputed month.
+
+A ready, still-authorized annual report, verified current owner, active offers consent, and the separate han reminder preference are required. Delivery revalidates all of them, the precise computed period, canonical report destination, and unsubscribe signature. The notification ledger gives one durable delivery key per owner/chart/computed period. Fair bounded scans persist their last-check timestamp so unavailable candidates do not starve later reports.
+
 ## Release evidence
 
 Deployment, provider smoke, and final catalog activation gates remain separate. Tests use disposable PostgreSQL and fake email providers only. Related task statuses remain In Review until deployment evidence exists.

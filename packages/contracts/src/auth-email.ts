@@ -96,6 +96,13 @@ export const HanMonthReminderEmailRequestSchema = z
     primaryFocus: nonEmpty,
     prepText: nonEmpty,
     marker: z.literal("warn"),
+    reportId: nonEmpty.optional(),
+    chartVersionId: nonEmpty.optional(),
+    periodId: nonEmpty.optional(),
+    periodLabel: nonEmpty.optional(),
+    isLeapMonth: z.boolean().optional(),
+    periodPart: z.enum(["normal", "first", "second"]).optional(),
+    dayRange: z.tuple([z.number().int().min(1).max(30), z.number().int().min(1).max(30)]).optional(),
   })
   .strict();
 export type HanMonthReminderEmailRequest = z.infer<
@@ -212,6 +219,13 @@ export function canonicalizeEmailDeliveryRequest(
       primaryFocus: request.primaryFocus.trim(),
       prepText: request.prepText.trim(),
       marker: request.marker,
+      reportId: request.reportId,
+      chartVersionId: request.chartVersionId,
+      periodId: request.periodId,
+      periodLabel: request.periodLabel,
+      isLeapMonth: request.isLeapMonth,
+      periodPart: request.periodPart,
+      dayRange: request.dayRange,
     });
   }
 
