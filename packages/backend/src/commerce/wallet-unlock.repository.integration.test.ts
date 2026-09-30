@@ -1,3 +1,4 @@
+import * as comboReservations from "./combo-report-reservation.js";
 import { createMembershipService } from "./membership.service.js";
 import { createDatabaseReportGenerationSourceRepository } from "../reports/report-generation.repository.js";
 import { createDatabaseDailyReadingAccess } from "./personal-daily-reading.service.js";
@@ -12,7 +13,7 @@ vi.mock("@lasoviet/contracts", async importOriginal => {
   const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
   return { ...actual, findLaProduct: (sku: string) => {
     const product = actual.findLaProduct(sku);
-    return topicCatalogGate.enabled && product && ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku) ? { ...product, availability: "active" } : product;
+    return topicCatalogGate.enabled && product && ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"].includes(sku) ? { ...product, availability: "active" } : product;
   }};
 });
 import { randomUUID } from "node:crypto";
@@ -48,6 +49,7 @@ import {
   ziweiCharts,
   type Database,
 } from "@lasoviet/database";
+import {
   TIER_1_ENTITLEMENT_SCOPE,
   getPalaceIdFromSku,
   isSinglePalaceSku,
@@ -59,6 +61,7 @@ import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createWalletService } from "../wallet/wallet.service.js";
 import { createDatabaseCommerceRepository } from "./commerce.repository.js";
 import { createWalletUnlockService } from "./wallet-unlock.service.js";
+import {
   deriveReportTimingLineage,
   v4_1SensitivityReportVersions,
 } from "../reports/identity-report-config.js";
@@ -345,6 +348,77 @@ describe("wallet unlock repository integration", () => {
       expect(paid.value.balance.totalLa).toBe(before.value.totalLa - 300);
       expect(await guarantee.claimGuarantee(owner.actor, { chartId: owner.chartId, reportId: paid.value.reportId, partId: "ZIWEI-MONTHLY-P0", rating: "inaccurate", idempotencyKey: randomUUID() })).toMatchObject({ ok: true, value: { amountLaRestored: 300 } });
     } finally { topicCatalogGate.enabled = false; }
+  });
+
+  it("atomically charges a reserved combo once, proves both children, and restores/relocks both once", async () => {
+    const audit=await ownerFixture("Combo audit"); const owner=await ownerFixture("Combo buyer");
+    const {authority,repository,service}=walletPorts(audit.userId,{reportVersionResolver:v4_1SensitivityReportVersions});
+    const request={chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi" as const};
+    expect((await service.createPurchaseIntent(owner.actor,request)).ok).toBe(false);topicCatalogGate.enabled=true;
+    try {
+      await repository.grant({targetOwnerId:owner.userId,grant:grant(audit.userId,`combo-grant-${randomUUID()}`,3000),topUpOrderId:null,trustedGrantToken:authority.token});
+      const intent=await service.createPurchaseIntent(owner.actor,request);if(!intent.ok)throw new Error(intent.code);expect(intent.value.amountLa).toBe(1300);
+      const command={purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`combo-${randomUUID()}`};
+      const [first,replay]=await Promise.all([service.unlock(owner.actor,command),service.unlock(owner.actor,command)]);if(!first.ok)throw new Error(first.code);expect(replay).toMatchObject({ok:true,value:{reportId:first.value.reportId}});expect(first.value.balance.totalLa).toBe(1700);
+      const children=await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId,owner.chartId));expect(children).toHaveLength(2);expect(new Set(children.map(child=>child.ledgerSpendId)).size).toBe(1);
+      const annual=children.find(child=>child.sku==="ZIWEI-YEAR-2026-P0")!;const lifetime=children.find(child=>child.sku==="ZIWEI-IDENTITY-P0")!;expect(annual.periodKey).toBe("2026");expect(lifetime.periodKey).toBe("lifetime");
+      const [year]=await database.select().from(reportReservations).where(eq(reportReservations.entitlementId,annual.id));expect(year).toMatchObject({promptVersion:"ziwei.period-reading.prompt.v1",chartVersionId:owner.chartVersionId});
+      const query=createDatabaseReportQueryRepository(database,()=>frozenNow);expect(await query.readAuthorizedReport(owner.userId,first.value.reportId)).not.toBeNull();expect(await query.readAuthorizedReport(owner.userId,year!.reportId)).not.toBeNull();
+      expect(await createDatabaseDailyReadingAccess(database)(owner.userId,owner.chartId,frozenNow)).toMatchObject({chartVersionId:owner.chartVersionId});
+      const source=createDatabaseReportGenerationSourceRepository({database,now:()=>frozenNow,knowledgeRetrieval:{retrieveKnowledge:vi.fn()}});
+      const pairReports=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));
+      for(const row of pairReports){const jobId=randomUUID();await database.update(reportReservations).set({activeJobId:jobId}).where(eq(reportReservations.id,row.id));expect(await source.validateLifecycle({reportVersionId:row.reportVersionId,jobId,readingContextRevisionId:null})).toMatchObject({ok:true});}
+      expect(await service.createPurchaseIntent(owner.actor,request)).toMatchObject({ok:false,code:"WALLET_ENTITLEMENT_EXISTS"});
+      await database.update(commerceEntitlements).set({revokedAt:frozenNow}).where(eq(commerceEntitlements.id,annual.id));expect(await query.readAuthorizedReport(owner.userId,first.value.reportId)).toBeNull();
+      await database.update(commerceEntitlements).set({revokedAt:null}).where(eq(commerceEntitlements.id,annual.id));
+      const guarantee=createGuaranteeFeedbackService(database,{now:()=>frozenNow});expect(await guarantee.claimGuarantee(owner.actor,{chartId:owner.chartId,partId:annual.sku,reportId:year!.reportId,rating:"inaccurate",idempotencyKey:`combo-guarantee-${randomUUID()}`})).toMatchObject({ok:false,code:"GUARANTEE_PRICE_EXCEEDS_LIMIT"});
+      const restoration={kind:"restoration" as const,actorId:owner.userId,originalSpendId:annual.ledgerSpendId!,expectedWalletVersion:first.value.balance.stateVersion,reasonCode:"test.combo.restore",requestId:randomUUID(),traceId:randomUUID(),idempotencyKey:randomUUID()};
+      expect(await repository.restore({actor:owner.actor,restoration})).toMatchObject({ok:true,value:{balance:{totalLa:3000}}});expect(await repository.restore({actor:owner.actor,restoration})).toMatchObject({ok:true,value:{balance:{totalLa:3000}}});
+      expect(await query.readAuthorizedReport(owner.userId,first.value.reportId)).toBeNull();expect(await query.readAuthorizedReport(owner.userId,year!.reportId)).toBeNull();
+      expect((await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId,owner.chartId))).every(child=>child.revokedAt!==null)).toBe(true);
+      expect(await createDatabaseDailyReadingAccess(database)(owner.userId,owner.chartId,frozenNow)).toBeNull();
+    } finally {topicCatalogGate.enabled=false;}
+  });
+
+  it("reuses the natal generation from a palace and rejects a combo when an annual component is already owned", async () => {
+    const audit=await ownerFixture("Combo reuse audit");const owner=await ownerFixture("Combo reuse buyer");const {authority,repository,service}=walletPorts(audit.userId,{reportVersionResolver:v4_1SensitivityReportVersions});topicCatalogGate.enabled=true;
+    try {
+      await repository.grant({targetOwnerId:owner.userId,grant:grant(audit.userId,`combo-reuse-${randomUUID()}`,4000),topUpOrderId:null,trustedGrantToken:authority.token});
+      const palace=await service.createPurchaseIntent(owner.actor,{chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-PALACE-LIFE-P0",locale:"vi"});if(!palace.ok)throw new Error(palace.code);
+      const initial=await service.unlock(owner.actor,{purchaseIntentId:palace.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:randomUUID()});if(!initial.ok)throw new Error(initial.code);
+      const combo=await service.createPurchaseIntent(owner.actor,{chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"});if(!combo.ok)throw new Error(combo.code);expect(combo.value.amountLa).toBe(1300);
+      const bundled=await service.unlock(owner.actor,{purchaseIntentId:combo.value.id,expectedIntentVersion:1,expectedWalletVersion:initial.value.balance.stateVersion,idempotencyKey:randomUUID()});if(!bundled.ok)throw new Error(bundled.code);expect(bundled.value.reportId).toBe(initial.value.reportId);expect(bundled.value.balance.totalLa).toBe(2580);
+      const reports=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));expect(reports).toHaveLength(2);expect(reports.filter(row=>row.promptVersion!=="ziwei.period-reading.prompt.v1")).toHaveLength(1);
+      const other=await ownerFixture("Already annual");const otherPorts=walletPorts(audit.userId);await otherPorts.repository.grant({targetOwnerId:other.userId,grant:grant(audit.userId,`annual-owned-${randomUUID()}`,3000),topUpOrderId:null,trustedGrantToken:otherPorts.authority.token});
+      const year=await otherPorts.service.createPurchaseIntent(other.actor,{chartId:other.chartId,chartVersionId:other.chartVersionId,sku:"ZIWEI-YEAR-2026-P0",locale:"vi"});if(!year.ok)throw new Error(year.code);expect((await otherPorts.service.unlock(other.actor,{purchaseIntentId:year.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:randomUUID()})).ok).toBe(true);
+      expect(await otherPorts.service.createPurchaseIntent(other.actor,{chartId:other.chartId,chartVersionId:other.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"})).toMatchObject({ok:false,code:"WALLET_ENTITLEMENT_EXISTS"});
+    } finally {topicCatalogGate.enabled=false;}
+  });
+
+  it("charges the approved member combo price without rollover stacking and keeps purchased access after membership expiry", async () => {
+    const owner=await ownerFixture("Member combo buyer");let current=new Date(frozenNow);const ports=walletPorts(owner.userId,{now:()=>current,reportVersionResolver:v4_1SensitivityReportVersions});topicCatalogGate.enabled=true;
+    try {
+      const funded=await ports.repository.grant({targetOwnerId:owner.userId,grant:grant(owner.userId,`member-combo-${randomUUID()}`,5000),topUpOrderId:null,trustedGrantToken:ports.authority.token});if(!funded.ok)throw new Error("fund");
+      const membership=createMembershipService(database,createWalletService(ports.repository),{now:()=>current,catalog:sku=>{const product=findLaProduct(sku);return product?{...product,availability:"active"}:undefined;}});
+      const subscription=await membership.createIntent(owner.actor,{sku:"MEMBERSHIP-MONTHLY-P0",locale:"vi"});if(!subscription.ok)throw new Error("subscription");expect((await membership.purchase(owner.actor,{purchaseIntentId:subscription.value.id,expectedIntentVersion:1,expectedWalletVersion:funded.value.balance.stateVersion,idempotencyKey:randomUUID()})).ok).toBe(true);
+      const before=await createWalletService(ports.repository).readBalance(owner.actor);if(!before.ok)throw new Error("balance");
+      const intent=await ports.service.createPurchaseIntent(owner.actor,{chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"});if(!intent.ok)throw new Error(intent.code);expect(intent.value.amountLa).toBe(1040);
+      const paid=await ports.service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:before.value.stateVersion,idempotencyKey:randomUUID()});if(!paid.ok)throw new Error(paid.code);expect(paid.value.balance.totalLa).toBe(before.value.totalLa-1040);
+      current=new Date(frozenNow.getTime()+31*86400000);const query=createDatabaseReportQueryRepository(database,()=>current);const reports=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));expect(reports).toHaveLength(2);for(const report of reports)expect(await query.readAuthorizedReport(owner.userId,report.reportId)).not.toBeNull();
+    } finally {topicCatalogGate.enabled=false;}
+  });
+
+  it("rolls back the combo debit and both report children when fulfillment fails", async () => {
+    const audit=await ownerFixture("Combo rollback audit");const owner=await ownerFixture("Combo rollback buyer");const {authority,repository,service}=walletPorts(audit.userId,{reportVersionResolver:v4_1SensitivityReportVersions});topicCatalogGate.enabled=true;
+    try {
+      await repository.grant({targetOwnerId:owner.userId,grant:grant(audit.userId,`combo-rollback-${randomUUID()}`),topUpOrderId:null,trustedGrantToken:authority.token});
+      const intent=await service.createPurchaseIntent(owner.actor,{chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"});if(!intent.ok)throw new Error(intent.code);
+      const original=comboReservations.reserveComboReports;const failure=vi.spyOn(comboReservations,"reserveComboReports").mockImplementationOnce(async(db,input)=>{await original(db,input);throw new Error("injected after both children");});
+      try {await expect(service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`combo-fail-${randomUUID()}`})).rejects.toThrow("injected after both children");} finally {failure.mockRestore();}
+      expect(await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId,owner.chartId))).toHaveLength(0);
+      expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId))).toHaveLength(0);
+      const [account]=await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId,owner.userId));expect(account).toMatchObject({promotionalBalance:2000,stateVersion:2});
+    } finally {topicCatalogGate.enabled=false;}
   });
 
   it("scopes monthly spends across lunar years, rejects stale quotes atomically, and refunds only the selected period", async () => {

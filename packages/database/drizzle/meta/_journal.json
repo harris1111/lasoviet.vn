@@ -372,6 +372,13 @@
       "when": 1790813880000,
       "tag": "0052_period_reading_purchase_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1790813940000,
+      "tag": "0054_combo_entitlement_authority",
+      "breakpoints": true
     }
   ]
 }
