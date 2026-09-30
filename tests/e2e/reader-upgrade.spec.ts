@@ -21,7 +21,7 @@ test.beforeAll(async () => {
     ` },
     bundle: true, write: false, format: "iife", platform: "browser", jsx: "automatic",
     define: { "process.env": "{}", "process.env.NODE_ENV": '"production"' },
-    alias: { "@lasoviet/contracts": resolve(root, "packages/contracts/src/index.ts") },
+    alias: { "@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts") },
     plugins: [{ name: "isolated-router", setup(builder: any) {
       builder.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "router", namespace: "fixture" }));
       builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "export const useRouter = () => ({push: path => {window.fixtureDestination = path}, refresh: () => {window.fixtureRefresh = true}});", loader: "js" }));

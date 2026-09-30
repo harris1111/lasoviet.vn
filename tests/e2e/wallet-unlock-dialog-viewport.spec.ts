@@ -54,7 +54,7 @@ test.beforeAll(async () => {
     bundle: true,
     // Resolve the real browser-safe contract without the server-only barrel.
     alias: {
-      "@lasoviet/contracts": resolve(root, "packages/contracts/src/wallet-commerce-v1.ts"),
+      "@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts"),
     },
     write: false,
     format: "iife",

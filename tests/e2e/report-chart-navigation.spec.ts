@@ -21,6 +21,7 @@ test.beforeAll(async () => {
       createRoot(document.getElementById("fixture")).render(<NextIntlClientProvider locale="vi" timeZone="Asia/Ho_Chi_Minh" messages={{reports}}><ComprehensiveReportReader report={report}/></NextIntlClientProvider>);
     `, loader: "tsx", resolveDir: resolve(root, "apps/web") },
     bundle: true, write: false, format: "iife", platform: "browser", jsx: "automatic",
+    alias: {"@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts")},
     define: { "process.env.NODE_ENV": '"production"' },
   });
   bundle = result.outputFiles[0].text;
