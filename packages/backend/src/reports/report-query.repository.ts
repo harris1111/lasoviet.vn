@@ -1,3 +1,4 @@
+import { COMBO_SKU, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
 import { readActiveMembership } from "../commerce/membership.service.js";
 import { findLaProduct } from "@lasoviet/contracts";
 import { reportReservationAuthority } from "./natal-report-authority.js";
@@ -65,6 +66,7 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 }
 
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
+  if (sku === COMBO_SKU) return isSupportedComboPrice(priceLa);
   const product = findLaProduct(sku);
   if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
   if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
@@ -170,7 +172,7 @@ export function createDatabaseReportQueryRepository(
           eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
           eq(walletPurchaseIntents.ownerId, input.ownerId),
           eq(walletPurchaseIntents.status, "completed"),
-          eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey),
+          or(eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey), eq(walletPurchaseIntents.sku, COMBO_SKU)),
         ),
       )
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
@@ -208,6 +210,7 @@ export function createDatabaseReportQueryRepository(
       .orderBy(desc(reportReservations.createdAt), desc(reportReservations.id))
       .limit(1);
 
+    const comboAuthority = !!record && record.intent.sku === COMBO_SKU && await hasCompleteComboAuthority(database, record);
     if (
       !record ||
       !hasExclusiveAuthority(record.entitlement) ||
@@ -216,8 +219,8 @@ export function createDatabaseReportQueryRepository(
       record.intent.completedAt === null ||
       record.intent.chartId !== record.entitlement.chartId ||
       record.intent.chartVersionId !== record.reservation.chartVersionId ||
-      record.intent.sku !== record.entitlement.sku ||
-      (record.reservation.entitlementId === record.entitlement.id && record.intent.sku !== record.reservation.sku) ||
+      (!comboAuthority && record.intent.sku !== record.entitlement.sku) ||
+      (!comboAuthority && record.reservation.entitlementId === record.entitlement.id && record.intent.sku !== record.reservation.sku) ||
       record.intent.locale !== record.reservation.locale ||
       !isSupportedWalletPrice(record.intent.sku, record.intent.priceLa)
     ) {

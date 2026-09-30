@@ -6,7 +6,7 @@ export function periodKindForSku(sku: string): "monthly" | "annual" | null {
 }
 export function purchasePeriodKey(sku: string, now: Date, resolveMonthlyPeriodKey?: (asOfDate: string) => string): string {
   return sku === "ZIWEI-MONTHLY-P0" ? (resolveMonthlyPeriodKey?.(deriveReportTimingLineage(now).asOfDate) ?? "unavailable")
-    : sku === "ZIWEI-YEAR-2026-P0" ? "2026" : "lifetime";
+    : (sku === "ZIWEI-YEAR-2026-P0" || sku === "ZIWEI-COMBO-2026-P0") ? "2026" : "lifetime";
 }
 export function periodReportVersions() {
   return { ...PERIOD_READING_TUPLE, family: "v4_1" as const, knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,

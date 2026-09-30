@@ -19,6 +19,7 @@ import {
   auditLogs,
   authUsers,
   commerceOrders,
+  commerceEntitlements,
   type Database,
   walletAccounts,
   walletCommandReceipts,
@@ -632,6 +633,12 @@ export function createDatabaseWalletRepository(
           stateVersion: wallet.stateVersion + 1, updatedAt: now(),
         }).where(eq(walletAccounts.id, wallet.id)).returning();
         if (updated === undefined) return failure("WALLET_NOT_FOUND");
+        const [purchase] = await transaction.select({sku: walletPurchaseIntents.sku}).from(walletPurchaseIntents)
+          .where(eq(walletPurchaseIntents.id, original.purchaseIntentId!)).limit(1);
+        if (purchase?.sku === "ZIWEI-COMBO-2026-P0") {
+          await transaction.update(commerceEntitlements).set({revokedAt: now(), revocationReason: "wallet_restoration"})
+            .where(eq(commerceEntitlements.ledgerSpendId, original.id));
+        }
         const commandReceipt = receipt(restoration.idempotencyKey, entry.id, balance(updated), now());
         await transaction.insert(walletCommandReceipts).values({
           walletId: wallet.id, idempotencyKey: restoration.idempotencyKey, fingerprint, transactionId: entry.id,

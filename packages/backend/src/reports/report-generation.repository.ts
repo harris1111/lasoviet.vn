@@ -1,3 +1,4 @@
+import { COMBO_SKU, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
 import { createDatabaseReportQueryRepository } from "./report-query.repository.js";
 import { findLaProduct } from "@lasoviet/contracts";
 import { and, asc, eq, sql } from "drizzle-orm";
@@ -106,6 +107,7 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 }
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
+  if (sku === COMBO_SKU) return isSupportedComboPrice(priceLa);
   const product = findLaProduct(sku);
   if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
   if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
@@ -229,6 +231,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       ) {
         return contextMismatch();
       }
+      const comboAuthority = hasWalletAuthority && row.intent?.sku === COMBO_SKU && await hasCompleteComboAuthority(dependencies.database, {intent: row.intent, entitlement});
       if (
         hasWalletAuthority &&
         (
@@ -245,9 +248,9 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           row.intent.completedAt === null ||
           row.intent.chartId !== entitlement.chartId ||
           row.intent.chartVersionId !== row.reservation.chartVersionId ||
-          row.intent.sku !== entitlement.sku ||
-          row.intent.periodKey !== entitlement.periodKey ||
-          row.intent.sku !== row.reservation.sku ||
+          (!comboAuthority && row.intent.sku !== entitlement.sku) ||
+          (!comboAuthority && row.intent.periodKey !== entitlement.periodKey) ||
+          (!comboAuthority && row.intent.sku !== row.reservation.sku) ||
           row.intent.locale !== row.reservation.locale ||
           !validWalletPrice(row.intent.sku, row.intent.priceLa)
         )
