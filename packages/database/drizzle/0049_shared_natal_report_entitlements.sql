@@ -1,10 +1,10 @@
-CREATE TABLE report_entitlement_links (
+CREATE TABLE IF NOT EXISTS report_entitlement_links (
   entitlement_id uuid PRIMARY KEY REFERENCES commerce_entitlements(id),
   reservation_id uuid NOT NULL REFERENCES report_reservations(id),
   created_at timestamptz NOT NULL DEFAULT now()
 );
 --> statement-breakpoint
-CREATE INDEX report_entitlement_links_reservation_idx ON report_entitlement_links(reservation_id);
+CREATE INDEX IF NOT EXISTS report_entitlement_links_reservation_idx ON report_entitlement_links(reservation_id);
 --> statement-breakpoint
 -- Older VND upgrades reused a report without storing an explicit association.
 INSERT INTO report_entitlement_links (entitlement_id, reservation_id)
@@ -29,4 +29,5 @@ WHERE own_reservation.id IS NULL
   AND origin.sku IN ('ZIWEI-IDENTITY-P0', 'ZIWEI-NATAL-EXCERPT-P0')
 ORDER BY entitlement.id,
   CASE WHEN reservation.status IN ('html_ready', 'pdf_pending', 'complete') THEN 0 ELSE 1 END,
-  reservation.created_at, reservation.id;
+  reservation.created_at, reservation.id
+ON CONFLICT (entitlement_id) DO NOTHING;
