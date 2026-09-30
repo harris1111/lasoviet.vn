@@ -214,3 +214,52 @@ activation. No remote mutation was approved. Before activation, resolve and
 document shared-secret rotation behavior, verify a live default-store/database
 unsubscribe round trip, and record authorized deployment and authenticated
 runtime smoke. Deferred notification flows remain out of scope.
+
+## 2026-09-30 release resumption
+
+This appendix supersedes the historical uncommitted/unpushed and release
+authorization statements above; the earlier evidence and limitations remain
+historical records.
+
+- The owner authorized choosing the simplest effective options and prioritizing
+  merge/deployment after the safety gates. This is not authorization to skip
+  failed checks, activate deferred dispatch, or mark the original ticket Done.
+- Secret policy A is selected: only the current `INTERNAL_ACTOR_SECRET` verifies
+  unsubscribe tokens. Future secret rotation invalidates existing links. No
+  secret rotation or previous-key support is part of this release.
+- The branch was rebased onto master `223aa5d0b45e3ca00da52729640922ae0e3d3992`.
+  The i18n conflict was corrected to preserve both `brand-about` and
+  `notifications` namespaces and the EN profile import.
+- Implementation commit `46547b024422c641835ce7a1a9ee4dfb0c2172e9` was
+  force-pushed. PR #212 is no longer a draft. Its initial CI failure
+  was the previous blanket web/backend boundary invariant.
+- Boundary correction `924a909e9feefcdb2c2d690eec7ffb843a9fa717` was pushed
+  before Terra's diff review: this was a checkpoint-sequencing deviation, not
+  an approved shortcut. At appendix creation, the correction awaited review
+  before further CI; Terra subsequently returned PASS for the scanner.
+- CI run `36682282444` passed. Sibling `36682286415` failed on 5-second
+  Compose/provenance test timeouts, with a PostgreSQL socket error after the
+  timeout. No obsolete-SHA rerun was performed and no timeout was relaxed.
+- The pending boundary scanner uses the existing TypeScript AST parser and
+  covers production TS/JS module variants, side-effect/static/dynamic imports,
+  exports and literal require forms. The exemption remains exactly one
+  server route and one backend subpath. Focused ESLint exited 0 and all
+  36 workspace-boundary tests passed. The full pre-push command
+  `pnpm i18n:check && pnpm lint && pnpm typecheck` subsequently exited 0
+  (four existing lint warnings, no errors); fresh CI is still pending.
+- Production currently runs immutable release
+  `223aa5d0b45e3ca00da52729640922ae0e3d3992`. Deployment must use the reviewed
+  release script, immutable images and unchanged production Compose manifests,
+  preserving the dirty production checkout. No host Nginx or secret edits.
+- Real signed-token production insert/read/delete smoke requires separately
+  confirmed synthetic-write scope. Public readiness or mocked browser tests
+  are not evidence of a live default-store unsubscribe round trip.
+- For this disabled-foundation release, merge and deployment are permitted
+  after the listed CI and deployment gates. A live signed-token/default-store
+  unsubscribe round trip remains required before notification-dispatch
+  activation or Kaneo #60 Done; it is not a merge/deployment gate for this
+  release. Terra confirmed this boundary and authorized the corrected
+  scanner/appendix commit followed by fresh CI.
+- Nurture, monthly-reminder and delayed-unlock dispatch remain disabled.
+  Kaneo #60 is still `to-do`; the original delivery scope is incomplete.
+  No merge, deployment, or Done transition has occurred at this checkpoint.
