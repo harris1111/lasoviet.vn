@@ -185,6 +185,9 @@ it("links to full current decadal cycle reading for late ordinals 8 and 11 from 
 
     const report = v3Report(true);
     report.chartSnapshot = lateChartSnapshot;
+    if (!("currentDecadal" in report.content)) {
+      throw new Error("Expected Tier 2 report content");
+    }
     report.content.currentDecadal = {
       title: `Đại vận ${lateOrdinal}`,
       state: "active",
