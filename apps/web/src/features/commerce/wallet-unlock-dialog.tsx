@@ -5,6 +5,12 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
+import {
+  trackUnlockConfirmView,
+  trackUnlockConfirmed,
+  trackTopupView,
+  trackPackSelected,
+} from "../analytics/funnel-analytics";
 import type { LaSku } from "@lasoviet/contracts";
 import { resolveWalletUnlockLoadedState } from "./wallet-unlock-dialog-state";
 
@@ -112,7 +118,24 @@ export function WalletUnlockDialog({
         };
         const balance = (await balanceResponse.json()) as { totalLa: number; stateVersion: number };
         if (!active) return;
-        setState(resolveWalletUnlockLoadedState(intent, balance, balance.stateVersion));
+        const loadedState = resolveWalletUnlockLoadedState(intent, balance, balance.stateVersion);
+        setState(loadedState);
+        if (loadedState.step === "confirm") {
+          void trackUnlockConfirmView({
+            sku,
+            price_la: loadedState.priceLa,
+            balance: loadedState.balance,
+            balance_after: loadedState.balance - loadedState.priceLa,
+            placement: "wallet_unlock_dialog",
+          });
+        } else if (loadedState.step === "short_balance") {
+          const gap = loadedState.priceLa - loadedState.balance;
+          const coveringPack = findSmallestCoveringPack(gap);
+          void trackTopupView({
+            pack_id: coveringPack.id,
+            placement: "wallet_unlock_dialog",
+          });
+        }
       } catch {
         if (active) setState({ step: "error", message: labels.genericError });
       }
@@ -177,6 +200,12 @@ export function WalletUnlockDialog({
         return;
       }
       const value = (await response.json()) as { reportId: string | null };
+      void trackUnlockConfirmed({
+        sku,
+        price_la: data.priceLa,
+        amount: data.priceLa,
+        balance_after: data.balance - data.priceLa,
+      });
       onOpenChange(false);
       onUnlocked(value.reportId);
     } catch {
@@ -258,7 +287,9 @@ export function WalletUnlockDialog({
           <div className="wallet-unlock-dialog-short-balance">
             <h3>{labels.shortBalanceTitle}</h3>
             <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>
-            <a className="button button-primary" href={topUpHref}>
+            <a className="button button-primary" href={topUpHref} onClick={() => {
+              void trackPackSelected({ pack_id: coveringPack.id, price_vnd: coveringPack.vndAmount, la_amount: coveringPack.totalLa });
+            }}>
               {t("selection.unlockDialogTopupAction", {
                 pack: coveringPack.name[locale],
                 vnd: coveringPack.vndFormatted[locale],

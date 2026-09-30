@@ -11,9 +11,14 @@ export const CANONICAL_ANALYTICS_EVENT_NAMES = [
   "pack_selected",
   "checkout_created",
   "payment_confirmed",
+  "unlock_confirm_view",
+  "unlock_confirmed",
   "la_spent",
+  "welcome_grant",
   "report_opened",
   "report_section_read",
+  "part_feedback",
+  "guarantee_claimed",
   "upgrade_view",
   "upgrade_purchased",
   "return_visit",
@@ -37,6 +42,8 @@ export const AnalyticsPropertyValueSchema = z.union([
   AnalyticsScalarValueSchema,
   z.array(AnalyticsScalarValueSchema).max(25),
 ]);
+
+export type AnalyticsPropertyValue = z.infer<typeof AnalyticsPropertyValueSchema>;
 
 export const AnalyticsEventV1Schema = z
   .object({

@@ -13,6 +13,7 @@ import type { WalletUnlockDialogSku } from "../commerce/wallet-unlock-dialog";
 import type { PublicOfferKey } from "../commerce/checkout-offer";
 import { resolveActiveSkuFromPublicOfferKey } from "../commerce/checkout-offer";
 import { OfferViewTracker, type RenderedOfferDescriptor } from "./offer-view-tracker";
+import { TopupTracker } from "../commerce/topup-tracker";
 import { SupportCard } from "../../components/ui/support-card";
 import { formatDisplayDate, type ZiweiPresentationLocale } from "../ziwei/ziwei-presentation";
 import {
@@ -125,9 +126,18 @@ export function PaidTopicSelector({
   for (const offer of safeOffers) {
     const sku = resolveActiveSkuFromPublicOfferKey(offer.offerKey);
     if (sku) {
+      let upgradeCreditDescriptor = null;
+      if (offer.upgradeCredit) {
+        upgradeCreditDescriptor = {
+          sourceSku: "ZIWEI-NATAL-EXCERPT-P0",
+          targetSku: sku,
+          creditExpiresAt: offer.upgradeCredit.creditExpiresAt,
+        };
+      }
       renderedOfferDescriptors.push({
         offerId: offer.offerKey,
         sku,
+        upgradeCredit: upgradeCreditDescriptor,
       });
     }
   }
@@ -246,6 +256,7 @@ export function PaidTopicSelector({
   return (
     <section aria-labelledby="topic-selector-heading" className="pricing-page-container">
       <OfferViewTracker offers={renderedOfferDescriptors} />
+      <TopupTracker activeTab={activeTab} />
 
       {/* Header */}
       <div className="c-head">
