@@ -20,6 +20,11 @@
     opacity: 0 !important;
   }
 
+  /* `animation: none` alone would freeze this panel fully opaque forever. */
+  .tn .tn-logo-intro {
+    display: none !important;
+  }
+
   /* Do not override native [hidden], dialog states or accordion display. */
   .tn .tn-needs[data-need-reveal="pending"] .hv3-need,
   .tn .tn-needs[data-reveal-ready] .hv3-disc-slot[data-reveal],

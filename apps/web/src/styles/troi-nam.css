@@ -139,6 +139,65 @@
   pointer-events: none;
 }
 
+/*
+ * Opening logo draw-in: the locked Colophon v5 logomark (brand/logo/README.md,
+ * chốt 2026-09-04) draws itself once on first paint, then this whole panel
+ * fades away. `pointer-events: none` throughout means it never blocks the
+ * birth form or scroll underneath, even mid-draw. Pure CSS autoplay, no JS —
+ * see `.tn-logo-intro { display: none }` in troi-nam-reduced-motion-guards.css:
+ * the broad `animation: none !important` guard alone would freeze this panel
+ * fully opaque forever instead of skipping it.
+ */
+.tn-logo-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(circle, rgb(8 7 6 / 0.82) 0%, rgb(8 7 6 / 0.4) 45%, transparent 72%);
+  opacity: 1;
+  animation: tn-logo-intro-out 500ms ease 1300ms forwards;
+}
+
+.tn-logo-intro-svg {
+  width: clamp(84px, 20vw, 200px);
+  aspect-ratio: 1;
+  overflow: visible;
+  color: var(--tn-gold);
+}
+
+.tn-logo-intro-ring,
+.tn-logo-intro-crown,
+.tn-logo-intro-v {
+  stroke-dasharray: 1;
+}
+.tn-logo-intro-ring { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 0ms both; }
+.tn-logo-intro-crown { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms both; }
+.tn-logo-intro-v { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms both; }
+
+.tn-logo-intro-details,
+.tn-logo-intro-cinnabar {
+  animation: tn-logo-fade-in 400ms ease 700ms both;
+}
+
+@keyframes tn-logo-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes tn-logo-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tn-logo-intro-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 /* Measure lives on the heading, where `em` tracks the display size. Putting it on the
    wrapper would resolve `ch` against 16px and collapse the line into one word per row. */
 .tn-hero-title {

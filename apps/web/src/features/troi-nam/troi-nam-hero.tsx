@@ -9,6 +9,7 @@ import {
 } from "../homepage-v3/homepage-v3-birth-form";
 import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
 import { troiNamAsset } from "./troi-nam-assets";
+import { TroiNamLogoIntro } from "./troi-nam-logo-intro";
 import { clampProgress, scenePhases } from "./troi-nam-motion-math";
 import { createTroiNamProgress } from "./troi-nam-scroll-progress";
 
@@ -97,6 +98,7 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
       </div>
       <div className="tn-hero-scrim" aria-hidden="true" />
       <div className="tn-hero-scrim-night" aria-hidden="true" />
+      <TroiNamLogoIntro />
 
       <div className="tn-hero-content">
         <div className="tn-hero-left">
