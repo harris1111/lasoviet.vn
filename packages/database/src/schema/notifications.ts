@@ -117,3 +117,10 @@ export const notificationDeliveries = pgTable(
     ),
   ],
 );
+
+// Written only after creation of an authenticated, verified account session.
+export const notificationVerifiedSignins = pgTable("notification_verified_signins", {
+  userId: text("user_id").primaryKey().references(() => authUsers.id, { onDelete: "cascade" }),
+  signedInAt: timestamp("signed_in_at", { withTimezone: true, mode: "date" }).notNull(),
+  lastCheckedAt: timestamp("last_checked_at", { withTimezone: true, mode: "date" }),
+});

@@ -794,3 +794,5 @@ export type {
 } from "./commerce/time-limited-entitlement.service.js";
 
 export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";
+
+export { acknowledgeTopUpPresence, createDelayedUnlockCompletionService, DELAYED_UNLOCK_WAIT_MS } from "./notifications/delayed-unlock-completion.js";

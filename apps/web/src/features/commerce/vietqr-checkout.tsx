@@ -1,5 +1,7 @@
 "use client";
 
+import { TopUpPresence } from "./topup-presence";
+
 import { SupportCard } from "../../components/ui/support-card";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 
@@ -486,7 +488,9 @@ export function VietQrCheckout({
     </section>
   ) : null;
 
-  const pollingErrorBlock = hasPollingError ? (
+  const pollingErrorBlock = <>
+    {status.order.kind === "wallet_topup" && status.order.continuation && <TopUpPresence orderId={status.order.id} />}
+    {hasPollingError ? (
     <div
       className="vietqr-polling-error"
       data-testid="checkout-polling-error"
@@ -502,7 +506,7 @@ export function VietQrCheckout({
         {retryActionLabel}
       </button>
     </div>
-  ) : null;
+  ) : null}</>;
 
   const footerSupportBlock = (
     <footer className="checkout-footer-support">

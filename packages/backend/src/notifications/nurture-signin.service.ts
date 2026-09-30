@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, lte } from "drizzle-orm";
+import { and, desc, eq, isNull, isNotNull, lte, notExists, sql } from "drizzle-orm";
 
 import {
   NormalizedZiweiChartV1Schema,
@@ -10,6 +10,7 @@ import {
   commerceOrders,
   commerceEntitlements,
   notificationDeliveries,
+  notificationVerifiedSignins,
   ziweiCharts,
   ziweiChartVersions,
   type Database,
@@ -18,6 +19,7 @@ import {
 import {
   fingerprintEmail,
   generateUnsubscribeToken,
+  verifyUnsubscribeToken,
   type NotificationPreferenceStore,
 } from "./notification-preference.js";
 
@@ -76,21 +78,46 @@ export type NurtureScanResult = {
 
 export interface VerifiedSignInNurtureService {
   scanAndEnqueue(limit?: number): Promise<NurtureScanResult>;
+  isEligible(request: NurtureVerifiedSignInEmailRequest): Promise<boolean>;
 }
 
 export function createVerifiedSignInNurtureService(
   options: VerifiedSignInNurtureServiceOptions,
 ): VerifiedSignInNurtureService {
   const nowValue = options.now ?? (() => new Date());
-  const origin = (options.canonicalOrigin ?? "https://lasoviet.net").replace(/\/+$/, "");
+  const origin = "https://lasoviet.net";
+  if (options.canonicalOrigin && options.canonicalOrigin !== origin) throw new Error("NOTIFICATION_ORIGIN_INVALID");
 
   return {
+    async isEligible(request) {
+      const now = nowValue();
+      const [user] = await options.database.select({ id: authUsers.id, email: authUsers.email }).from(authUsers)
+        .innerJoin(notificationVerifiedSignins, eq(notificationVerifiedSignins.userId, authUsers.id))
+        .where(and(eq(authUsers.id, request.userId), eq(authUsers.emailVerified, true), eq(authUsers.isAnonymous, false), lte(notificationVerifiedSignins.signedInAt, new Date(now.getTime() - 48 * 60 * 60_000)))).limit(1);
+      if (!user || user.email.trim().toLowerCase() !== request.recipient || request.idempotencyKey !== `nurture-signin:${user.id}` || request.locale !== "vi" ||
+        !await options.preferenceStore.isNonTransactionalAllowed(user.email, user.id)) return false;
+      const [paid] = await options.database.select({ id: commerceOrders.id }).from(commerceOrders).where(and(eq(commerceOrders.ownerId, user.id), isNotNull(commerceOrders.paidAt))).limit(1);
+      const [purchase] = await options.database.select({ id: commerceEntitlements.id }).from(commerceEntitlements).where(eq(commerceEntitlements.ownerId, user.id)).limit(1);
+      if (paid || purchase) return false;
+      const [chart] = await options.database.select({ content: ziweiChartVersions.normalizedOutput }).from(ziweiCharts)
+        .innerJoin(birthProfiles, and(eq(birthProfiles.id, ziweiCharts.profileId), eq(birthProfiles.userId, user.id), isNull(birthProfiles.deletedAt)))
+        .innerJoin(ziweiChartVersions, eq(ziweiChartVersions.chartId, ziweiCharts.id))
+        .where(eq(ziweiCharts.id, request.chartId)).orderBy(desc(ziweiChartVersions.createdAt)).limit(1);
+      const parsed = NormalizedZiweiChartV1Schema.safeParse(chart?.content);
+      if (!parsed.success || !parsed.data.palaces.some((palace) => palace.id === request.palaceId) || request.palaceTitle !== PALACE_TITLES_VI[request.palaceId] ||
+        request.actionUrl !== `${origin}/la-so/${encodeURIComponent(request.chartId)}?palace=${encodeURIComponent(request.palaceId)}`) return false;
+      const unsubscribe = new URL(request.unsubscribeUrl);
+      if (unsubscribe.origin !== origin || unsubscribe.pathname !== "/thong-bao/huy-dang-ky" || unsubscribe.search !== "" || unsubscribe.username !== "" || unsubscribe.password !== "") return false;
+      const token = new URLSearchParams(unsubscribe.hash.slice(1)).get("token");
+      const claims = token ? verifyUnsubscribeToken(token, options.tokenSecret, undefined, now) : null;
+      return claims?.ok === true && claims.value.userId === user.id && claims.value.email === user.email.trim().toLowerCase();
+    },
     async scanAndEnqueue(limit = 25): Promise<NurtureScanResult> {
       const now = nowValue();
       // 2 days = 48 hours ago
       const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
-      // 1. Find verified non-anonymous users created at least 2 days ago
+      // Require a recorded verified session event; account creation is not sign-in.
       const candidateUsers = await options.database
         .select({
           id: authUsers.id,
@@ -98,20 +125,23 @@ export function createVerifiedSignInNurtureService(
           createdAt: authUsers.createdAt,
         })
         .from(authUsers)
+        .innerJoin(notificationVerifiedSignins, eq(notificationVerifiedSignins.userId, authUsers.id))
         .where(
           and(
             eq(authUsers.emailVerified, true),
             eq(authUsers.isAnonymous, false),
-            lte(authUsers.createdAt, twoDaysAgo),
+            lte(notificationVerifiedSignins.signedInAt, twoDaysAgo),
+            notExists(options.database.select({ id: notificationDeliveries.id }).from(notificationDeliveries).where(eq(notificationDeliveries.idempotencyKey, sql`'nurture-signin:' || ${authUsers.id}`))),
           ),
         )
-        .orderBy(desc(authUsers.createdAt))
+        .orderBy(sql`${notificationVerifiedSignins.lastCheckedAt} nulls first`, notificationVerifiedSignins.signedInAt)
         .limit(limit);
 
       let enqueued = 0;
       let skipped = 0;
 
       for (const user of candidateUsers) {
+        await options.database.update(notificationVerifiedSignins).set({ lastCheckedAt: now }).where(eq(notificationVerifiedSignins.userId, user.id));
         const idempotencyKey = `nurture-signin:${user.id}`;
 
         // 2. Check if already enqueued / delivered
@@ -133,7 +163,7 @@ export function createVerifiedSignInNurtureService(
           .where(
             and(
               eq(commerceOrders.ownerId, user.id),
-              eq(commerceOrders.status, "paid"),
+              isNotNull(commerceOrders.paidAt),
             ),
           )
           .limit(1);
@@ -235,7 +265,7 @@ export function createVerifiedSignInNurtureService(
           version: 1,
           kind: "nurture_verified_signin",
           idempotencyKey,
-          recipient: user.email,
+          recipient: user.email.trim().toLowerCase(),
           locale: "vi",
           actionUrl: `${origin}/la-so/${encodeURIComponent(chartRecord.chartId)}?palace=${encodeURIComponent(selectedPalaceId)}`,
           unsubscribeUrl: `${origin}/thong-bao/huy-dang-ky#token=${encodeURIComponent(unsubToken)}`,

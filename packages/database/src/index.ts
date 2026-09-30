@@ -111,3 +111,5 @@ export {
   partFeedbacks,
   guaranteeClaims,
 } from "./schema/feedback-guarantee.js";
+
+export { notificationVerifiedSignins } from "./schema/notifications.js";

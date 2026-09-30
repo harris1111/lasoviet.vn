@@ -249,3 +249,7 @@ it("excludes the browser daily reading proxy from robots and sitemaps", () => {
     status: "live_noindex", private: true, robots: "noindex,nofollow", sitemap: false, purchasable: false,
   });
 });
+
+ it("keeps checkout status and presence API private and outside sitemaps", () => {
+   expect(routeRegistry.find((route) => route.id === "commerce.order-status-api")).toMatchObject({ path: "/api/commerce/orders/[orderId]/status", status: "live_noindex", private: true, sitemap: false, robots: "noindex,nofollow", localeOwners: ["vi"] });
+ });

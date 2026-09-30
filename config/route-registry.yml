@@ -1016,3 +1016,13 @@ routes:
     locale_behavior: unlocalized
     intent: api.wallet.guarantee
     template: api-command
+
+  - <<: *private_defaults
+    id: commerce.order-status-api
+    path: /api/commerce/orders/[orderId]/status
+    intent: private.commerce.order-status-and-presence
+    template: private-api
+    locale_behavior: unlocalized
+    locale_owners: [vi]
+    owner: commerce
+    schema_types: []

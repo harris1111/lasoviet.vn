@@ -1,3 +1,5 @@
+import { recordVerifiedNotificationSignIn } from "@lasoviet/database/runtime";
+import { NurtureVerifiedSignInEmailRequestSchema } from "@lasoviet/contracts";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -212,7 +214,7 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
     const getNow = () => currentNow;
 
     const eligibleUserId = "user-eligible-1";
-    const eligibleEmail = "eligible1@example.test";
+    const eligibleEmail = "Eligible1@Example.Test";
     const chartId = "chart-eligible-1";
 
     // User created exactly on 2026-09-27T10:00:00Z
@@ -225,6 +227,7 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
       updatedAt: nowRef,
     });
     await createChartFixture(eligibleUserId, chartId);
+    expect(await recordVerifiedNotificationSignIn(database, { userId: eligibleUserId, createdAt: nowRef })).toBe(true);
     await database.insert(consents).values({
       id: "consent-eligible-1",
       userId: eligibleUserId,
@@ -273,8 +276,11 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
     expect(delivery.kind).toBe("nurture_verified_signin");
     expect(delivery.status).toBe("pending");
 
-    const payload = delivery.requestPayload as any;
-    expect(payload.recipient).toBe(eligibleEmail);
+    const payload = NurtureVerifiedSignInEmailRequestSchema.parse(delivery.requestPayload);
+    expect(await service.isEligible(payload)).toBe(true);
+    expect(await service.isEligible({ ...payload, actionUrl: "https://evil.test" })).toBe(false);
+    expect(await service.isEligible({ ...payload, palaceTitle: '<a href="https://evil.test">fake</a>' })).toBe(false);
+    expect(payload.recipient).toBe(eligibleEmail.toLowerCase());
     expect(payload.userId).toBe(eligibleUserId);
     expect(payload.chartId).toBe(chartId);
     expect(["ziwei.palace.career", "ziwei.palace.life"]).toContain(payload.palaceId);
@@ -291,14 +297,29 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
     expect(tokenCheck.ok).toBe(true);
     if (tokenCheck.ok) {
       expect(tokenCheck.value.userId).toBe(eligibleUserId);
-      expect(tokenCheck.value.email).toBe(eligibleEmail);
+      expect(tokenCheck.value.email).toBe(eligibleEmail.toLowerCase());
     }
 
     // 4. Re-running scan: deduplication / idempotency check
     const scan3 = await service.scanAndEnqueue();
-    expect(scan3.scanned).toBe(1);
+    expect(scan3.scanned).toBe(0);
     expect(scan3.enqueued).toBe(0);
-    expect(scan3.skipped).toBe(1);
+    expect(scan3.skipped).toBe(0);
+  });
+
+  it("never derives sign-in from account creation and excludes unverified sessions", async () => {
+    const signedInAt = new Date("2026-09-30T10:00:00Z");
+    for (const emailVerified of [true, false]) {
+      const userId = `old-account-${emailVerified}`;
+      await database.insert(authUsers).values({ id: userId, name: "Old account", email: `${userId}@example.test`, emailVerified, createdAt: new Date("2026-01-01T00:00:00Z") });
+      await createChartFixture(userId, `chart-${userId}`);
+      expect(await recordVerifiedNotificationSignIn(database, { userId, createdAt: signedInAt })).toBe(emailVerified);
+      // An older replay must not rewind the latest actual sign-in.
+      if (emailVerified) await recordVerifiedNotificationSignIn(database, { userId, createdAt: new Date("2026-01-01T00:00:00Z") });
+    }
+    const preferenceStore = createDatabaseNotificationPreferenceStore(database, tokenSecret, () => signedInAt);
+    const service = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret, now: () => signedInAt });
+    expect((await service.scanAndEnqueue()).enqueued).toBe(0);
   });
 
   it("excludes users with paid purchases or revoked offers consent", async () => {
@@ -315,6 +336,7 @@ describe("VerifiedSignInNurtureService and NotificationPreferences integration",
       updatedAt: new Date("2026-09-25T10:00:00Z"),
     });
     await createChartFixture(paidUserId, "chart-paid-1");
+    await recordVerifiedNotificationSignIn(database, { userId: paidUserId, createdAt: new Date("2026-09-25T10:00:00Z") });
 
     // Insert paid order
     await database.insert(commerceOrders).values({

@@ -541,3 +541,29 @@ describe("auth email delivery state machine", () => {
     expect(calls.count).toBe(0);
   });
 });
+
+ describe("enabled completion email boundaries", () => {
+   const completion = { version: 1 as const, kind: "delayed_unlock_completed" as const, idempotencyKey: "notice:1", recipient: "user@example.test", locale: "vi" as const, actionUrl: "https://lasoviet.net/la-so/c1", requestId: "notice:1", userId: "u1", orderId: "o1", sku: "ZIWEI-PALACE-LIFE-P0", itemName: '<a href="https://evil.test">bad</a>' };
+   it("escapes untrusted HTML and deduplicates an authorized notification", async () => {
+     const messages: EmailMessage[] = [];
+     const service = createAuthEmailDeliveryService({ store: new MemoryDeliveryStore(), provider: { async send(message) { messages.push(message); return { ok: true, providerMessageId: "mock" }; } }, recipientFingerprintSecret: "test", delayedUnlockEligibility: async () => true });
+     expect((await service.send(completion)).status).toBe("sent");
+     expect((await service.send(completion)).status).toBe("sent");
+     expect(messages).toHaveLength(1);
+     expect(messages[0]!.html).toContain("&lt;a href=&quot;https://evil.test&quot;&gt;bad&lt;/a&gt;");
+     expect(messages[0]!.html).not.toContain('<a href="https://evil.test">');
+   });
+   it("rechecks eligibility immediately before dispatch and suppresses withdrawn ownership", async () => {
+     let sent = 0;
+     const service = createAuthEmailDeliveryService({ store: new MemoryDeliveryStore(), provider: { async send() { sent += 1; return { ok: true }; } }, recipientFingerprintSecret: "test", delayedUnlockEligibility: async () => false });
+     expect((await service.send(completion)).errorCode).toBe("UNLOCK_NOTICE_NO_LONGER_ELIGIBLE");
+     expect(sent).toBe(0);
+   });
+   it("fails closed without the nontransactional consent checker", async () => {
+     let sent = 0;
+     const service = createAuthEmailDeliveryService({ store: new MemoryDeliveryStore(), provider: { async send() { sent += 1; return { ok: true }; } }, recipientFingerprintSecret: "test", nurtureEligibility: async () => true });
+     const nurture = { version: 1 as const, kind: "nurture_verified_signin" as const, idempotencyKey: "nurture:u1", recipient: "user@example.test", locale: "vi" as const, actionUrl: "https://lasoviet.net/la-so/c1", unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=x", requestId: "n1", userId: "u1", chartId: "c1", palaceId: "ziwei.palace.life", palaceTitle: "Cung Mệnh" };
+     expect((await service.send(nurture)).errorCode).toBe("RECIPIENT_UNSUBSCRIBED");
+     expect(sent).toBe(0);
+   });
+ });

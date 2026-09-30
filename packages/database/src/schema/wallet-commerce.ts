@@ -149,6 +149,9 @@ export const walletTopUpContinuations = pgTable("wallet_topup_continuations", {
   errorCode: text("error_code"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
   completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+  lastCustomerSeenAt: timestamp("last_customer_seen_at", { withTimezone: true, mode: "date" }),
+  completionSeenAt: timestamp("completion_seen_at", { withTimezone: true, mode: "date" }),
+  lastNoticeCheckAt: timestamp("last_notice_check_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
   index("wallet_topup_continuations_intent_idx").on(table.purchaseIntentId),
   check("wallet_topup_continuations_terms_valid", sql`${table.intentStateVersion} > 0 AND ${table.confirmedPriceLa} >= 0 AND ${table.returnTab} IN ('chart', 'overview', 'palaces', 'topics', 'nam-nay', 'evidence')`),

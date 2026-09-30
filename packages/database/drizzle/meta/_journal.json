@@ -358,6 +358,13 @@
       "when": 1790813760000,
       "tag": "0050_wallet_topup_continuations",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1790813940000,
+      "tag": "0053_delayed_unlock_presence",
+      "breakpoints": true
     }
   ]
 }

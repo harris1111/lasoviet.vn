@@ -9,6 +9,8 @@ import {
   createAiProductionGate,
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
+  createDelayedUnlockCompletionService,
+  createVerifiedSignInNurtureService,
   createDatabaseNotificationPreferenceStore,
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
@@ -80,11 +82,15 @@ export function createMaintenanceRunner() {
     database,
     environment.value.internalActorSecret ?? "",
   );
+  const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
+  const delayedUnlock = createDelayedUnlockCompletionService(database);
   const email = createAuthEmailDeliveryService({
     store: createDatabaseAuthEmailDeliveryStore(database),
     provider,
     recipientFingerprintSecret: environment.value.internalActorSecret ?? "",
     preferenceChecker: preferenceStore,
+    delayedUnlockEligibility: delayedUnlock.isEligible,
+    nurtureEligibility: nurture.isEligible,
   });
   const telegramAlert = createTelegramAlertProvider({
     botToken: environment.value.telegram?.botToken,
@@ -107,7 +113,11 @@ export function createMaintenanceRunner() {
           repository: createDatabaseAnonymousRetentionRepository(database),
         }).purgeExpired(new Date(), limit),
     },
-    retryAuthEmail: (limit) => email.retryDue(limit),
+    retryAuthEmail: async (limit) => {
+      await nurture.scanAndEnqueue(limit);
+      await delayedUnlock.scan((request) => email.send(request), limit);
+      return email.retryDue(limit);
+    },
     reconciliation,
     analyticsRetention: createAnalyticsRetentionService({
       repository: createDatabaseAnalyticsRepository(database),
