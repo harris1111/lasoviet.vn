@@ -1,3 +1,4 @@
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 import { randomUUID } from "node:crypto";
 
 import { and, eq, sql } from "drizzle-orm";
@@ -16,6 +17,7 @@ import {
   evidenceSets,
   outbox,
   reportReservations,
+  reportEntitlementLinks,
   runMigrations,
   walletAccounts,
   walletCommandReceipts,
@@ -426,6 +428,45 @@ describe("wallet unlock repository integration", () => {
     })).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
   });
 
+  it("shares one generation across two palaces, excerpt and rollover lifetime, with linked replay and isolated access", async () => {
+    const audit = await ownerFixture("Shared generation audit");
+    const owner = await ownerFixture("Shared generation owner");
+    const outsider = await ownerFixture("Shared generation outsider");
+    const { authority, repository, service } = walletPorts(audit.userId);
+    const funded = await repository.grant({ targetOwnerId: owner.userId, grant: grant(audit.userId, `shared-${randomUUID()}`), topUpOrderId: null, trustedGrantToken: authority.token });
+    expect(funded.ok).toBe(true);
+    const reportIds: string[] = [];
+    for (const [index, sku] of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-SPOUSE-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-IDENTITY-P0"].entries()) {
+      const intent = await service.createPurchaseIntent(owner.actor, { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi", sku });
+      if (!intent.ok) throw new Error(intent.code);
+      expect(intent.value.amountLa).toBe([120, 120, 240, 480][index]);
+      const [account] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+      const request = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: account!.stateVersion, idempotencyKey: `shared-unlock-${randomUUID()}` };
+      const result = await service.unlock(owner.actor, request);
+      if (!result.ok) throw new Error(result.code);
+      reportIds.push(result.value.reportId);
+      expect(await service.unlock(owner.actor, request)).toMatchObject({ ok: true, value: { reportId: result.value.reportId } });
+      const read = await createDatabaseReportQueryRepository(database).readAuthorizedReport(owner.userId, result.value.reportId);
+      expect(read?.entitlements).toHaveLength(index + 1);
+      expect(await createDatabaseReportQueryRepository(database).readAuthorizedReport(outsider.userId, result.value.reportId)).toBeNull();
+    }
+    expect(new Set(reportIds).size).toBe(1);
+    const reservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId));
+    expect(reservations).toHaveLength(1);
+    expect(await database.select().from(reportEntitlementLinks).where(eq(reportEntitlementLinks.reservationId, reservations[0]!.id))).toHaveLength(3);
+    expect(await database.select().from(outbox).where(eq(outbox.idempotencyKey, `report-request:${reservations[0]!.reportVersionId}`))).toHaveLength(1);
+    const [origin] = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.id, reservations[0]!.entitlementId));
+    const [account] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    const restored = await repository.restore({ actor: owner.actor, restoration: {
+      kind: "restoration", actorId: owner.userId, originalSpendId: origin!.ledgerSpendId!, expectedWalletVersion: account!.stateVersion,
+      reasonCode: "test.shared.origin.restore", requestId: "shared-restore", traceId: "shared-restore", idempotencyKey: `shared-restore-${randomUUID()}`,
+    } });
+    expect(restored.ok).toBe(true);
+    const remaining = await createDatabaseReportQueryRepository(database).readAuthorizedReport(owner.userId, reportIds[0]!);
+    expect(remaining?.entitlements).toHaveLength(3);
+    expect(remaining?.entitlements.some((item) => item.id === origin!.id)).toBe(false);
+  });
+
   it("atomically unlocks exactly once under matching concurrent retries and keeps customer ownership isolated", async () => {
     const audit = await ownerFixture("Audit unlock");
     const owner = await ownerFixture("Wallet owner");
@@ -634,6 +675,29 @@ describe("wallet unlock repository integration", () => {
       eq(walletTransactions.walletId, wallet!.id),
       eq(walletTransactions.kind, "spend"),
     ))).toHaveLength(1);
+  });
+
+  it("serializes distinct wallet and VND natal purchases onto one reservation", async () => {
+    const audit = await ownerFixture("Mixed purchase audit");
+    const owner = await ownerFixture("Mixed purchase owner");
+    const { authority, repository, service } = walletPorts(audit.userId);
+    await repository.grant({ targetOwnerId: owner.userId, grant: grant(audit.userId, `mixed-${randomUUID()}`), topUpOrderId: null, trustedGrantToken: authority.token });
+    const intent = await service.createPurchaseIntent(owner.actor, { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-PALACE-LIFE-P0", locale: "vi" });
+    if (!intent.ok) throw new Error(intent.code);
+    const commerce = createDatabaseCommerceRepository(database, { now: () => frozenNow });
+    const order = await commerce.createOrder(owner.actor, owner.chartId, "ZIWEI-NATAL-EXCERPT-P0", "vi");
+    if (!order.ok) throw new Error(order.code);
+    const request = { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: 2, idempotencyKey: `mixed-unlock-${randomUUID()}` };
+    const [paid, unlocked] = await Promise.all([
+      commerce.recordPaid({ invoiceNumber: order.value.invoiceNumber, providerEventId: `mixed-paid-${randomUUID()}`, amount: 19_000, currency: "VND", traceId: "mixed-test" }),
+      service.unlock(owner.actor, request),
+    ]);
+    expect(paid).toMatchObject({ ok: true });
+    if (!unlocked.ok) throw new Error(unlocked.code);
+    expect(await service.unlock(owner.actor, request)).toMatchObject({ ok: true });
+    expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId))).toHaveLength(1);
+    const read = await createDatabaseReportQueryRepository(database).readAuthorizedReport(owner.userId, unlocked.value.reportId);
+    expect(read?.entitlements.map((item) => item.sku).sort()).toEqual(["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-PALACE-LIFE-P0"]);
   });
 
   it("serializes a direct-VND payment ahead of a wallet unlock and rolls back the losing wallet path", async () => {

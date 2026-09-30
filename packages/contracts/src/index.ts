@@ -535,6 +535,7 @@ export {
   ComprehensiveReportPublicContentV3Schema,
   projectComprehensiveReportPublicContentV3,
   ReportComprehensiveV3ReadyViewV1Schema,
+  ReportPalacesReadyViewV1Schema,
 } from "./identity-report-v1.js";
 export type {
   ReportPublicContentV1,
@@ -561,6 +562,7 @@ export type {
   ComprehensiveReportPublicContentV3,
   ComprehensiveReportViewContentV3,
   ReportComprehensiveV3ReadyViewV1,
+  ReportPalacesReadyViewV1,
 } from "./identity-report-v1.js";
 
 export {

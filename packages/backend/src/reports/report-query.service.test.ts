@@ -1673,6 +1673,26 @@ describe("report query service", () => {
       });
     }
 
+    it("projects only owned palaces and adds identity sections only after the excerpt is owned", async () => {
+      const record = v4_1Record();
+      record.entitlements = [{ id: "life", chartId: "chart-1", sku: "ZIWEI-PALACE-LIFE-P0", scope: { sections: [], palaces: ["ziwei.palace.life"] }, active: true, source: "ledger_spend" }];
+      const repository = { readAuthorizedReport: vi.fn().mockResolvedValue(record) };
+      const service = createReportQueryService({ repository });
+      const first = await service.getReport(accountActor, record.reservation.reportId);
+      expect(first.ok).toBe(true);
+      if (!first.ok || !("contentVersion" in first.value) || first.value.contentVersion !== "ziwei-palaces.v1") throw new Error("expected palace projection");
+      expect(first.value.content.palaceReadings.map((palace) => palace.palaceId)).toEqual(["ziwei.palace.life"]);
+      expect(first.value.content.identity).toBeUndefined();
+      expect(JSON.stringify(first.value)).not.toContain("annualSnapshot");
+      record.entitlements.push({ ...record.entitlements[0]!, id: "spouse", scope: { sections: [], palaces: ["ziwei.palace.spouse"] } });
+      record.entitlements.push({ ...record.entitlements[0]!, id: "excerpt", sku: "ZIWEI-NATAL-EXCERPT-P0", scope: TIER_1_ENTITLEMENT_SCOPE });
+      const second = await service.getReport(accountActor, record.reservation.reportId);
+      if (!second.ok || !("contentVersion" in second.value) || second.value.contentVersion !== "ziwei-palaces.v1") throw new Error("expected palace projection");
+      expect(second.value.content.palaceReadings.map((palace) => palace.palaceId)).toEqual(["ziwei.palace.life", "ziwei.palace.spouse"]);
+      expect(second.value.content.identity).toBeDefined();
+      expect(second.value.content.lockedPalaces).toHaveLength(10);
+    });
+
     it("owner reads V4 comprehensive report with contentVersion ziwei-comprehensive.v2, decadal, annual, actions, and NO sensitivity", async () => {
       const versionRecord = {
         id: "ver-uuid-v4-t2",

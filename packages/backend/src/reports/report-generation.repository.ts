@@ -1,3 +1,4 @@
+import { findLaProduct } from "@lasoviet/contracts";
 import { and, asc, eq, sql } from "drizzle-orm";
 
 import {
@@ -104,10 +105,9 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 }
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
-  return (
-    (sku === "ZIWEI-NATAL-EXCERPT-P0" && priceLa === 240) ||
-    (sku === "ZIWEI-IDENTITY-P0" && (priceLa === 720 || priceLa === 960))
-  );
+  const product = findLaProduct(sku);
+  if (!product || !["natal", "palace"].includes(product.category) || !Number.isSafeInteger(priceLa)) return false;
+  return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa;
 }
 
 export function createDatabaseReportGenerationSourceRepository(dependencies: {
