@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ReportTopicReadyViewV1 } from "@lasoviet/contracts";
+import { PartFeedback } from "./part-feedback";
 import { ReportNarrative } from "./report-narrative";
 
 export function TopicReportReader({ report }: { report: ReportTopicReadyViewV1 }) {
@@ -31,6 +32,7 @@ export function TopicReportReader({ report }: { report: ReportTopicReadyViewV1 }
           <p><strong>{t("topicReader.avoid")}</strong> {action.avoid}</p>
         </li>)}</ol>
       </section>
+      {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} partId={report.sku} locale="vi" paid />}
     </article>
   </main>;
 }

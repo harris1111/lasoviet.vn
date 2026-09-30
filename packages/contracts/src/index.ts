@@ -137,6 +137,11 @@ export {
   canonicalizeAuthEmailRequest,
   ReportFailedEmailRequestV1Schema,
   ReportReadyEmailRequestSchema,
+  NurtureVerifiedSignInEmailRequestSchema,
+  HanMonthReminderEmailRequestSchema,
+  DelayedUnlockCompletedEmailRequestSchema,
+  NotificationPreferencesV1Schema,
+  UnsubscribeTokenClaimsSchema,
   PersistedEmailDeliveryRequestSchema,
   canonicalizeEmailDeliveryRequest,
 } from "./auth-email.js";
@@ -147,6 +152,11 @@ export type {
   AuthEmailServiceClaims,
   ReportFailedEmailRequestV1,
   ReportReadyEmailRequest,
+  NurtureVerifiedSignInEmailRequest,
+  HanMonthReminderEmailRequest,
+  DelayedUnlockCompletedEmailRequest,
+  NotificationPreferencesV1,
+  UnsubscribeTokenClaims,
   PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
 
@@ -821,6 +831,26 @@ export type {
 } from "./ziwei-topic-deep-dive-v1.js";
 
 export {
+  PartFeedbackRatingSchema,
+  PartFeedbackCreateV1Schema,
+  PartFeedbackV1Schema,
+  RelatedPalaceSuggestionV1Schema,
+  PartFeedbackResultV1Schema,
+  GuaranteeClaimRequestV1Schema,
+  GuaranteeClaimResultV1Schema,
+  GuaranteeErrorCodeSchema,
+} from "./guarantee-feedback-v1.js";
+export type {
+  PartFeedbackRating,
+  PartFeedbackCreateV1,
+  PartFeedbackV1,
+  RelatedPalaceSuggestionV1,
+  PartFeedbackResultV1,
+  GuaranteeClaimRequestV1,
+  GuaranteeClaimResultV1,
+  GuaranteeErrorCode,
+} from "./guarantee-feedback-v1.js";
+export {
   ReportChartPalaceV1Schema,
   ReportChartSnapshotV1Schema,
   ReportChartStarV1Schema,
@@ -830,3 +860,6 @@ export {
   type ReportChartStarV1,
   type ReportDecadalCycleV1,
 } from "./report-chart-snapshot-v1.js";
+
+export { ZiweiTopicDeepDivePublicContentV1Schema, projectTopicDeepDivePublicContent, type ZiweiTopicDeepDivePublicContentV1 } from "./ziwei-topic-deep-dive-v1.js";
+export { ReportTopicReadyViewV1Schema, PaidReportSkuSchema, type ReportTopicReadyViewV1 } from "./identity-report-v1.js";

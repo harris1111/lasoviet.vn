@@ -34,6 +34,7 @@ type AuthorizedReportQueryCommon = {
   version: typeof reportVersions.$inferSelect | null;
   evidenceItems: Array<typeof evidenceItems.$inferSelect>;
   entitlements: AuthorizedReportEntitlement[];
+  chartId: string;
   // FD-104: raw inputs for the display-only chart snapshot. Optional so existing fixtures stay valid.
   chartNormalizedOutput?: unknown;
   sourceSnapshot?: unknown;
@@ -110,6 +111,7 @@ export function createDatabaseReportQueryRepository(
       eq(commerceEntitlements.ownerId, input.ownerId),
       isNull(commerceEntitlements.orderId),
       isNotNull(commerceEntitlements.ledgerSpendId),
+      isNull(commerceEntitlements.revokedAt),
     ];
     if (input.entitlementId) {
       predicates.push(eq(commerceEntitlements.id, input.entitlementId));
@@ -292,6 +294,7 @@ export function createDatabaseReportQueryRepository(
           eq(commerceEntitlements.chartId, chartId),
           isNotNull(commerceEntitlements.orderId),
           isNull(commerceEntitlements.ledgerSpendId),
+          isNull(commerceEntitlements.revokedAt),
         ),
       );
 
@@ -304,6 +307,7 @@ export function createDatabaseReportQueryRepository(
           eq(commerceEntitlements.chartId, chartId),
           isNull(commerceEntitlements.orderId),
           isNotNull(commerceEntitlements.ledgerSpendId),
+          isNull(commerceEntitlements.revokedAt),
         ),
       );
     const walletEntitlements = (
@@ -374,6 +378,7 @@ export function createDatabaseReportQueryRepository(
           and(
             eq(commerceEntitlements.id, reportReservations.entitlementId),
             eq(commerceEntitlements.ownerId, ownerId),
+            isNull(commerceEntitlements.revokedAt),
           ),
         )
         .innerJoin(
@@ -497,6 +502,7 @@ export function createDatabaseReportQueryRepository(
           version,
           evidenceItems: evidenceList,
           source: "order",
+          chartId: record.entitlement.chartId,
           entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
           ...(await loadChartSnapshotInputs(version)),
         };
@@ -523,6 +529,7 @@ export function createDatabaseReportQueryRepository(
         version: null,
         evidenceItems: [],
         source: "order",
+        chartId: record.entitlement.chartId,
         entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
       };
     },
@@ -562,6 +569,7 @@ export function createDatabaseReportQueryRepository(
       evidenceItems: items,
       entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId),
       wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id },
+      chartId: record.entitlement.chartId,
       ...(await loadChartSnapshotInputs(record.version)),
     };
   }

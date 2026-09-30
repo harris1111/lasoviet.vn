@@ -309,7 +309,7 @@ export function createReportQueryService(options: {
         const ready = ReportReadyViewV1Schema.safeParse({
           version: 1, state: "ready", contentVersion: tuple.contentVersion,
           reportId: reservation.reportId, reportVersionId: reservation.reportVersionId,
-          locale: "vi", sku: reservation.sku, fulfillmentStatus: reservationFulfillmentStatus,
+          locale: "vi", sku: reservation.sku, fulfillmentStatus: reservationFulfillmentStatus, chartId: record.chartId,
           content: projectTopicDeepDivePublicContent(content.data),
           lineage: { supersedesReportVersionId: version.supersedesReportVersionId ?? null },
         });
@@ -390,6 +390,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           chartSnapshot: buildReportChartSnapshotFromStored(
             record.chartNormalizedOutput,
             record.sourceSnapshot,
@@ -458,6 +459,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           chartSnapshot: buildReportChartSnapshotFromStored(
             record.chartNormalizedOutput,
             record.sourceSnapshot,
@@ -524,6 +526,7 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          chartId: record.chartId,
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
           },
