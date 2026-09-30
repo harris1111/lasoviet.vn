@@ -27,7 +27,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div className="tn">
-      <SiteHeader locale={locale} />
+      <SiteHeader locale={locale} currentPath={locale === "en" ? "/en/troi-nam" : "/troi-nam"} />
       <main>
         <TroiNamHero locale={locale} />
         <section className="tn-section" data-troi-nam-block="story">
