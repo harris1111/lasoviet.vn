@@ -12,6 +12,7 @@ import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-ch
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import { ZiweiResultTabs } from "../../../../features/ziwei/ziwei-result-tabs";
 import { projectFreeIdentityPreview } from "../../../../features/ziwei/ziwei-free-preview-projection";
+import { Guest24hDeletionBanner } from "../../../../features/ziwei/guest-24h-deletion-banner";
 import {
   parseResultTabState,
   buildCanonicalTabUrl,
@@ -68,6 +69,7 @@ export default async function ZiweiChartResultPage({
   if (!safePreview) notFound();
 
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
+  const isGuest = actor.kind === "anonymous" || actor.emailVerified === false;
 
   const displayName = chartResult.value.birthSummary.displayName;
   const heroTitle = displayName

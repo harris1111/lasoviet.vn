@@ -22,6 +22,8 @@ export type ZiweiOverviewTabProps = {
   >;
   preview: FreeIdentityPreviewV1;
   onNavigateToPalaces: () => void;
+  signInHref?: string;
+  isGuest?: boolean;
 };
 
 export function ZiweiOverviewTab({
@@ -32,21 +34,25 @@ export function ZiweiOverviewTab({
   loadEvidence,
   preview,
   onNavigateToPalaces,
+  signInHref,
+  isGuest,
 }: ZiweiOverviewTabProps) {
   const t = useTranslations("ziwei");
 
   return (
     <div className="ziwei-overview-tab-content">
       <div className="container reading-overview-container">
-        {/* Reuse FreeIdentityPreview (3 deterministic highlights + 2 signals) */}
+        {/* Reuse FreeIdentityPreview (magnet offer + secure reveal/blur) */}
         <FreeIdentityPreview
           chart={chart}
           chartId={chartId}
           displayName={displayName}
+          isGuest={isGuest}
           locale={locale}
           loadEvidence={loadEvidence}
-          preview={preview}
           paidUpgradeEligible={false}
+          preview={preview}
+          signInHref={signInHref}
         />
 
         {/* Primary CTA switches to Palaces tab via URL */}

@@ -1,26 +1,35 @@
 "use client";
 
 import React from "react";
-import type { NormalizedZiweiChartV1 } from "@lasoviet/contracts";
+import type { FreeIdentityPreviewV1, NormalizedZiweiChartV1 } from "@lasoviet/contracts";
 import { useTranslations } from "next-intl";
 
 import {
   ziweiPresentation,
   type ZiweiPresentationLocale,
 } from "./ziwei-presentation";
+import { SecureLockedPreview } from "./secure-locked-preview";
 
 export type ZiweiPalacesTabProps = {
   chart: NormalizedZiweiChartV1;
+  chartId?: string;
   locale: ZiweiPresentationLocale;
   openPalaceId?: string;
   onOpenPalace: (palaceSuffixId?: string) => void;
+  preview?: FreeIdentityPreviewV1;
+  isGuest?: boolean;
+  signInHref?: string;
 };
 
 export function ZiweiPalacesTab({
   chart,
+  chartId,
   locale,
   openPalaceId,
   onOpenPalace,
+  preview,
+  isGuest,
+  signInHref,
 }: ZiweiPalacesTabProps) {
   const t = useTranslations("ziwei");
   const presentation = ziweiPresentation(locale);
@@ -28,7 +37,6 @@ export function ZiweiPalacesTab({
   const palaces = chart.palaces;
   const isSoulPalace = (id: string) => id === chart.soulPalaceId;
   const isBodyPalace = (id: string) => id === chart.bodyPalaceId;
-  const isPreviewEligible = (id: string) => isSoulPalace(id) || isBodyPalace(id);
 
   // Parent openPalaceId is the SOLE source of truth
   const activePalaceSuffix = openPalaceId;
@@ -37,6 +45,11 @@ export function ZiweiPalacesTab({
     const next = activePalaceSuffix === suffix ? undefined : suffix;
     onOpenPalace(next);
   }
+
+  // Pre-index palace title lines from preview if provided
+  const titleLinesMap = new Map(
+    (preview?.palaceTitleLines ?? []).map((line) => [line.palaceId, line]),
+  );
 
   return (
     <div className="container ziwei-palaces-tab-content">
@@ -58,7 +71,37 @@ export function ZiweiPalacesTab({
           const cycleStateName = palace.cycleStateId ? presentation.cycleState(palace.cycleStateId) : "";
           const isSoul = isSoulPalace(palace.id);
           const isBody = isBodyPalace(palace.id);
-          const isPreview = isPreviewEligible(palace.id);
+
+          const titleLineData = titleLinesMap.get(palace.id);
+          const palaceTitleLine = titleLineData?.title;
+
+          // Status per FD-105: Đã đọc · Xem trước · Chưa mở (or legacy fallback)
+          let statusBadgeText: string;
+          let statusBadgeClass: string;
+          let isUnopened = false;
+
+          if (titleLineData) {
+            if (titleLineData.state === "read") {
+              statusBadgeText = locale === "vi" ? "Đã đọc" : "Read";
+              statusBadgeClass = "badge-read";
+            } else if (titleLineData.state === "preview") {
+              statusBadgeText = locale === "vi" ? "Xem trước" : "Preview";
+              statusBadgeClass = "badge-preview";
+            } else {
+              statusBadgeText = locale === "vi" ? "Chưa mở" : "Unopened";
+              statusBadgeClass = "badge-unopened";
+              isUnopened = true;
+            }
+          } else {
+            const isPreview = isSoul || isBody;
+            statusBadgeText = isPreview ? t("palacesTab.previewState") : t("palacesTab.unopenedState");
+            statusBadgeClass = isPreview ? "badge-preview" : "badge-unopened";
+            isUnopened = !isPreview;
+          }
+
+          const unlockHref = isGuest
+            ? signInHref
+            : (chartId ? (locale === "en" ? `/en/la-so/${chartId}/chon-luan-giai` : `/la-so/${chartId}/chon-luan-giai`) : undefined);
 
           return (
             <article
@@ -76,6 +119,9 @@ export function ZiweiPalacesTab({
                       {stemName} {branchName}
                     </span>
                     <h3 className="palace-row-name">{presentation.palace(palace.id)}</h3>
+                    {palaceTitleLine ? (
+                      <span className="palace-title-line">{palaceTitleLine}</span>
+                    ) : null}
                   </div>
                   <div className="palace-row-markers">
                     {isSoul ? <span className="marker-soul">{presentation.chrome.soulMarker}</span> : null}
@@ -105,9 +151,8 @@ export function ZiweiPalacesTab({
                 </div>
 
                 <div className="palace-row-right">
-                  {/* Status marker: 'Preview' for Life and Body palaces, 'Unopened' for all others; never 'read' */}
-                  <span className={`palace-status-badge ${isPreview ? "badge-preview" : "badge-unopened"}`}>
-                    {isPreview ? t("palacesTab.previewState") : t("palacesTab.unopenedState")}
+                  <span className={`palace-status-badge ${statusBadgeClass}`}>
+                    {statusBadgeText}
                   </span>
                   <button
                     aria-expanded={isOpen}
@@ -127,27 +172,44 @@ export function ZiweiPalacesTab({
                 </div>
               </div>
 
-              {/* Expanded palace detail drawer (factual/deterministic only) */}
+              {/* Expanded palace detail drawer */}
               {isOpen ? (
                 <div className="palace-row-detail-drawer">
-                  <div className="palace-facts-grid">
-                    <div className="fact-item">
-                      <span className="fact-label">{presentation.chrome.soulMarker} / {presentation.chrome.bodyMarker}:</span>
-                      <span className="fact-val">
-                        {isSoul ? presentation.chrome.soulMarker : (isBody ? presentation.chrome.bodyMarker : "—")}
-                      </span>
+                  {isUnopened ? (
+                    <SecureLockedPreview
+                      actionHref={unlockHref}
+                      actionLabel={isGuest ? (locale === "vi" ? "Lưu lá số để mở" : "Save chart to reveal") : (locale === "vi" ? "Mở – 120 Lá" : "Unlock – 120 Lá")}
+                      badge={locale === "vi" ? "Chưa mở" : "Locked"}
+                      clippedSentences={titleLineData?.clippedOpening ? [titleLineData.clippedOpening] : []}
+                      counts={{ points: 1, approximateWords: 650 }}
+                      isGuest={isGuest}
+                      lengthHint={4}
+                      locale={locale}
+                      priceLa={120}
+                      signInHref={signInHref}
+                      tagline={presentation.palace(palace.id)}
+                      title={palaceTitleLine ?? presentation.palace(palace.id)}
+                    />
+                  ) : (
+                    <div className="palace-facts-grid">
+                      <div className="fact-item">
+                        <span className="fact-label">{presentation.chrome.soulMarker} / {presentation.chrome.bodyMarker}:</span>
+                        <span className="fact-val">
+                          {isSoul ? presentation.chrome.soulMarker : (isBody ? presentation.chrome.bodyMarker : "—")}
+                        </span>
+                      </div>
+                      <div className="fact-item">
+                        <span className="fact-label">{t("palacesTab.cycleStateLabel")}</span>
+                        <span className="fact-val">{cycleStateName}</span>
+                      </div>
+                      <div className="fact-item">
+                        <span className="fact-label">{t("palacesTab.allStarsLabel")}</span>
+                        <span className="fact-val">
+                          {palace.stars.map((s) => presentation.star(s.id)).join(", ")}
+                        </span>
+                      </div>
                     </div>
-                    <div className="fact-item">
-                      <span className="fact-label">{t("palacesTab.cycleStateLabel")}</span>
-                      <span className="fact-val">{cycleStateName}</span>
-                    </div>
-                    <div className="fact-item">
-                      <span className="fact-label">{t("palacesTab.allStarsLabel")}</span>
-                      <span className="fact-val">
-                        {palace.stars.map((s) => presentation.star(s.id)).join(", ")}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               ) : null}
             </article>
