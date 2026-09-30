@@ -1,6 +1,6 @@
 DROP INDEX IF EXISTS "commerce_entitlements_ledger_spend_unique";
 --> statement-breakpoint
-CREATE UNIQUE INDEX "commerce_entitlements_ledger_spend_sku_unique" ON "commerce_entitlements" ("ledger_spend_id", "sku");
+CREATE UNIQUE INDEX IF NOT EXISTS "commerce_entitlements_ledger_spend_sku_unique" ON "commerce_entitlements" ("ledger_spend_id", "sku");
 --> statement-breakpoint
 CREATE OR REPLACE FUNCTION enforce_commerce_entitlement_purchase_authority()
 RETURNS trigger LANGUAGE plpgsql AS $$
