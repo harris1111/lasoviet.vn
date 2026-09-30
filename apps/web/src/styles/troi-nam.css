@@ -30,6 +30,53 @@
   margin-inline: auto;
 }
 
+/*
+ * World stage (Plan 4): wraps hero/story/ticker/explore. `.tn-world-content`
+ * holds those sections in their normal, unchanged flow/order — this adds no
+ * height. `.tn-world-backdrop` is a non-flow absolute layer the same height
+ * as that content, and `.tn-world-sticky` pins the actual canvas to 100svh
+ * while the stage scrolls past, i.e. the canvas stays on screen for the
+ * whole hero→explore span instead of scrolling away with the hero alone.
+ * `overflow: hidden` on the backdrop clips the sticky child to the stage's
+ * own width so it can't cause horizontal scroll.
+ */
+.tn-world-stage {
+  position: relative;
+}
+
+.tn-world-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.tn-world-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+
+.tn-world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tn-world-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* The world replaces the hero's static photo plates once it has a real
+   first frame — never the legibility scrim, and only after `data-troi-nam-
+   world-ready` lands (failure/reduced-motion leave the plates untouched). */
+.tn[data-troi-nam-world-ready] .tn-hero-media {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
 /* ---- Hero ---- */
 
 .tn-hero {

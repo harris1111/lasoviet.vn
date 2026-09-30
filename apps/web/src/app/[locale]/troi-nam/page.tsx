@@ -13,6 +13,7 @@ import { TroiNamStory } from "../../../features/troi-nam/troi-nam-story";
 import { TroiNamTestimonials } from "../../../features/troi-nam/troi-nam-testimonials";
 import { TroiNamTicker } from "../../../features/troi-nam/troi-nam-ticker";
 import { TroiNamUsp } from "../../../features/troi-nam/troi-nam-usp";
+import { TroiNamWorldStage } from "../../../features/troi-nam/troi-nam-world-stage";
 
 type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
 
@@ -29,16 +30,18 @@ export default async function Page({ params }: PageProps) {
     <div className="tn">
       <SiteHeader locale={locale} currentPath={locale === "en" ? "/en/troi-nam" : "/troi-nam"} />
       <main>
-        <TroiNamHero locale={locale} />
-        <section className="tn-section" data-troi-nam-block="story">
-          <TroiNamStory />
-        </section>
-        <section className="tn-section" data-troi-nam-block="ticker">
-          <TroiNamTicker />
-        </section>
-        <section className="tn-section" data-troi-nam-block="explore">
-          <TroiNamExplore locale={locale} />
-        </section>
+        <TroiNamWorldStage>
+          <TroiNamHero locale={locale} />
+          <section className="tn-section" data-troi-nam-block="story">
+            <TroiNamStory />
+          </section>
+          <section className="tn-section" data-troi-nam-block="ticker">
+            <TroiNamTicker />
+          </section>
+          <section className="tn-section" data-troi-nam-block="explore">
+            <TroiNamExplore locale={locale} />
+          </section>
+        </TroiNamWorldStage>
         <section className="tn-section" data-troi-nam-block="needs">
           <TroiNamNeeds locale={locale} />
         </section>
