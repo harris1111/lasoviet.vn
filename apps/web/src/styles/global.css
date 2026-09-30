@@ -1194,3 +1194,4 @@ html[data-theme="light"] .result-tab-button.is-active {
 .part-feedback button:disabled { opacity: .65; cursor: wait; }
 .part-feedback-guarantee { max-width: 40rem; }
 @media print { .part-feedback { display: none !important; } }
+.topic-report-reader h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.2; margin-block: 16px 24px; }

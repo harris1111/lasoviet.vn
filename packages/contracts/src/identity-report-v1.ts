@@ -708,7 +708,7 @@ const baseReportReadyViewV1Schema = z.object({
   state: z.literal("ready"),
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
-  sku: PaidReportSkuSchema,
+  sku: CommerceSkuSchema,
   fulfillmentStatus: ReportStatusSchema,
   lineage: z.object({
     supersedesReportVersionId: z.string().trim().min(1).nullable(),

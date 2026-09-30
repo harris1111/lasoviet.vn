@@ -1352,6 +1352,7 @@ export function createReportGenerationService(
       if (!isTopicReportTuple(payload) || job.name !== "report.generate.v2" || !source.comprehensiveFactsV4 || !source.knowledgePacks) {
         return failAttempt("AI_OUTPUT_INVALID", false);
       }
+      if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
       const beforeWrite = await lifecycleFence(input);
       if (beforeWrite) return beforeWrite;
       const write = async (rewrite?: Parameters<typeof writeZiweiTopicDeepDiveV4>[0]["rewrite"]) => writeZiweiTopicDeepDiveV4({
@@ -1366,6 +1367,7 @@ export function createReportGenerationService(
       if (!draft.value.quality.ok) {
         const budget = await dependencies.versionRepository.consumeRewriteBudget(payload.reportVersionId);
         if (!budget.ok || !budget.value.consumed) return failAttempt("AI_OUTPUT_INVALID", false);
+        if (guardState(input) !== "active") return failAttempt("REPORT_VERSION_CONFLICT", false);
         const beforeRewrite = await lifecycleFence(input);
         if (beforeRewrite) return beforeRewrite;
         try { draft = await write({ priorContent: draft.value.content, findings: draft.value.quality.findings }); }

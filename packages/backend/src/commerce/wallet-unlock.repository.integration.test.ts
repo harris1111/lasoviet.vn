@@ -1,8 +1,18 @@
+import { createGuaranteeFeedbackService } from "./guarantee-feedback.service.js";
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
+const topicCatalogGate = vi.hoisted(() => ({ enabled: false }));
+vi.mock("@lasoviet/contracts", async importOriginal => {
+  const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
+  return { ...actual, findLaProduct: (sku: string) => {
+    const product = actual.findLaProduct(sku);
+    return topicCatalogGate.enabled && product && ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0"].includes(sku) ? { ...product, availability: "active" } : product;
+  }};
+});
 import { randomUUID } from "node:crypto";
 
 import { and, eq, sql } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   auditLogs,
@@ -279,6 +289,44 @@ describe("wallet unlock repository integration", () => {
       createdAt: spentAt,
     });
   }
+
+  it("keeps topics reserved, then atomically binds an approved 480 Lá topic to its own immutable reservation", async () => {
+    const audit = await ownerFixture("Topic audit");
+    const owner = await ownerFixture("Topic buyer");
+    const { authority, repository, service } = walletPorts(audit.userId);
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-RELATIONSHIP-P0", locale: "vi" as const };
+    expect(await service.createPurchaseIntent(owner.actor, request)).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
+    topicCatalogGate.enabled = true;
+    try {
+      const funded = await repository.grant({ targetOwnerId: owner.userId, grant: grant(audit.userId, `topic-grant-${randomUUID()}`), topUpOrderId: null, trustedGrantToken: authority.token });
+      expect(funded.ok).toBe(true);
+      const intent = await service.createPurchaseIntent(owner.actor, request);
+      if (!intent.ok) throw new Error(intent.code);
+      expect(intent.value.amountLa).toBe(480);
+      const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: 2, idempotencyKey: `topic-unlock-${randomUUID()}` };
+      const [first, replay] = await Promise.all([service.unlock(owner.actor, command), service.unlock(owner.actor, command)]);
+      expect(first.ok && replay.ok).toBe(true);
+      if (!first.ok || !replay.ok) throw new Error("topic unlock failed");
+      expect(first.value.reportId).toBe(replay.value.reportId);
+      expect(first.value.balance.totalLa).toBe(1520);
+      const reservations = await database.select().from(reportReservations).where(eq(reportReservations.reportId, first.value.reportId));
+      expect(reservations).toHaveLength(1);
+      expect(reservations[0]).toMatchObject({ sku: request.sku, chartVersionId: owner.chartVersionId, promptVersion: "ziwei.topic-deep-dive.prompt.v1", reportConfigVersion: "ziwei.topic-deep-dive.report.v1", status: "requested" });
+      const [entitlement] = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.id, reservations[0]!.entitlementId));
+      expect(entitlement?.scope).toEqual({ sections: ["topicDeepDive"] });
+      const events = await database.select().from(outbox).where(eq(outbox.aggregateId, first.value.reportId));
+      expect(events).toHaveLength(1);
+      expect(events[0]?.payload).toMatchObject({ sku: request.sku, chartVersionId: owner.chartVersionId });
+      const query = createDatabaseReportQueryRepository(database);
+      expect(await query.readAuthorizedReport(owner.userId, first.value.reportId)).not.toBeNull();
+      const guarantee = createGuaranteeFeedbackService(database, { now: () => frozenNow });
+      const claim = { chartId: owner.chartId, partId: request.sku, reportId: first.value.reportId, rating: "inaccurate" as const, idempotencyKey: `topic-restore-${randomUUID()}` };
+      const restored = await guarantee.claimGuarantee(owner.actor, claim);
+      expect(restored).toMatchObject({ ok: true, value: { amountLaRestored: 480 } });
+      expect(await query.readAuthorizedReport(owner.userId, first.value.reportId)).toBeNull();
+      expect(await guarantee.claimGuarantee(owner.actor, claim)).toMatchObject({ ok: true });
+    } finally { topicCatalogGate.enabled = false; }
+  });
 
   it("uses exact 240, 720, and 960 Lá pricing, preserves pending reuse, and closes FD-041 at +7 days", async () => {
     const audit = await ownerFixture("Audit pricing");
