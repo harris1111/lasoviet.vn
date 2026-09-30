@@ -25,6 +25,45 @@ export { createSmtpEmailAdapter } from "./notifications/smtp-email-adapter.js";
 export type { SmtpEmailSettings } from "./notifications/smtp-email-adapter.js";
 
 export {
+  createDatabaseNotificationPreferenceStore,
+  fingerprintEmail,
+  generateUnsubscribeToken,
+  verifyUnsubscribeToken,
+} from "./notifications/notification-preference.js";
+export type { NotificationPreferenceStore } from "./notifications/notification-preference.js";
+
+export {
+  PALACE_TITLES_EN,
+  PALACE_TITLES_VI,
+  createVerifiedSignInNurtureService,
+} from "./notifications/nurture-signin.service.js";
+export type {
+  NurtureScanResult,
+  VerifiedSignInNurtureService,
+  VerifiedSignInNurtureServiceOptions,
+} from "./notifications/nurture-signin.service.js";
+
+export {
+  HAN_MONTH_REMINDER_BLOCKERS,
+  computeEngineHanMonths,
+  createBlockedHanMonthReminderAdapter,
+} from "./notifications/han-month-reminder.js";
+export type {
+  BlockedHanMonthReminderResult,
+  ComputedHanMonth,
+  HanMonthReminderScheduler,
+} from "./notifications/han-month-reminder.js";
+
+export {
+  DEFERRED_DELAYED_UNLOCK_DESCRIPTION,
+  createDeferredDelayedUnlockAdapter,
+} from "./notifications/delayed-unlock-notification.js";
+export type {
+  DeferredDelayedUnlockNotificationResult,
+  DelayedUnlockNotificationHandler,
+} from "./notifications/delayed-unlock-notification.js";
+
+export {
   createDatabaseConsentRepository,
 } from "./consent/consent.repository.js";
 export type {
@@ -550,6 +589,14 @@ export {
   walletTopUpPackTitle,
   type WalletTopUpOrder,
 } from "./commerce/wallet-topup.js";
+export {
+  createGuaranteeFeedbackService,
+  resolveRelatedPalaceSuggestion,
+} from "./commerce/guarantee-feedback.service.js";
+export type {
+  GuaranteeFeedbackService,
+  GuaranteeFeedbackServiceOptions,
+} from "./commerce/guarantee-feedback.service.js";
 export { createWalletUnlockService } from "./commerce/wallet-unlock.service.js";
 export type {
   WalletUnlockService,
@@ -737,3 +784,13 @@ export {
 export type {
   AdminBusinessMetricsRepository,
 } from "./admin-business-metrics/business-metrics.repository.js";
+
+export {
+  TimeLimitedEntitlementService,
+} from "./commerce/time-limited-entitlement.service.js";
+export type {
+  CreateLifetimeBonusEntitlementInput,
+  AssertDailyReadingAccessResult,
+} from "./commerce/time-limited-entitlement.service.js";
+
+export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";

@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./notifications/notification-preference": {
+      "types": "./dist/notifications/notification-preference.d.ts",
+      "import": "./dist/notifications/notification-preference.js"
     }
   },
   "files": [

@@ -137,6 +137,11 @@ export {
   canonicalizeAuthEmailRequest,
   ReportFailedEmailRequestV1Schema,
   ReportReadyEmailRequestSchema,
+  NurtureVerifiedSignInEmailRequestSchema,
+  HanMonthReminderEmailRequestSchema,
+  DelayedUnlockCompletedEmailRequestSchema,
+  NotificationPreferencesV1Schema,
+  UnsubscribeTokenClaimsSchema,
   PersistedEmailDeliveryRequestSchema,
   canonicalizeEmailDeliveryRequest,
 } from "./auth-email.js";
@@ -147,6 +152,11 @@ export type {
   AuthEmailServiceClaims,
   ReportFailedEmailRequestV1,
   ReportReadyEmailRequest,
+  NurtureVerifiedSignInEmailRequest,
+  HanMonthReminderEmailRequest,
+  DelayedUnlockCompletedEmailRequest,
+  NotificationPreferencesV1,
+  UnsubscribeTokenClaims,
   PersistedEmailDeliveryRequest,
 } from "./auth-email.js";
 
@@ -796,6 +806,59 @@ export type {
 } from "./ziwei-horoscope-v1.js";
 
 
+export {
+  DailyAspectKeySchema,
+  PersonalDailyReadingAspectSchema,
+  PersonalDailyReadingActionPlanSchema,
+  PersonalDailyReadingQualityGateSchema,
+  PersonalDailyReadingV1Schema,
+} from "./personal-daily-reading-v1.js";
+export type {
+  DailyAspectKey,
+  PersonalDailyReadingAspect,
+  PersonalDailyReadingActionPlan,
+  PersonalDailyReadingQualityGate,
+  PersonalDailyReadingV1,
+} from "./personal-daily-reading-v1.js";
+
+export {
+  TimeLimitedEntitlementSourceSchema,
+  TimeLimitedEntitlementV1Schema,
+  DailyReadingAccessStatusSchema,
+  DailyReadingAccessEvaluationV1Schema,
+  DAILY_READING_CATALOG_BLOCKER_MESSAGE,
+  calculateBonusExpiry,
+  isTimeLimitedEntitlementActive,
+  getTimeLimitedEntitlementRemainingMs,
+  evaluateDailyReadingAccess,
+} from "./time-limited-entitlement-v1.js";
+export type {
+  TimeLimitedEntitlementSource,
+  TimeLimitedEntitlementV1,
+  DailyReadingAccessStatus,
+  DailyReadingAccessEvaluationV1,
+} from "./time-limited-entitlement-v1.js";
+
+export {
+  PartFeedbackRatingSchema,
+  PartFeedbackCreateV1Schema,
+  PartFeedbackV1Schema,
+  RelatedPalaceSuggestionV1Schema,
+  PartFeedbackResultV1Schema,
+  GuaranteeClaimRequestV1Schema,
+  GuaranteeClaimResultV1Schema,
+  GuaranteeErrorCodeSchema,
+} from "./guarantee-feedback-v1.js";
+export type {
+  PartFeedbackRating,
+  PartFeedbackCreateV1,
+  PartFeedbackV1,
+  RelatedPalaceSuggestionV1,
+  PartFeedbackResultV1,
+  GuaranteeClaimRequestV1,
+  GuaranteeClaimResultV1,
+  GuaranteeErrorCode,
+} from "./guarantee-feedback-v1.js";
 export {
   ReportChartPalaceV1Schema,
   ReportChartSnapshotV1Schema,

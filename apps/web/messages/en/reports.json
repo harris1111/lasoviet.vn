@@ -299,5 +299,22 @@
     "timeline_living": "Living now",
     "timeline_read_full": "Read this cycle in full",
     "timeline_read_palace": "Read the {palace} palace"
+  },
+  "feedback": {
+    "question": "Does this part reflect your experience?",
+    "accurate": "Accurate",
+    "partially_accurate": "Partly",
+    "inaccurate": "Not accurate",
+    "thanks": "Thank you for your feedback.",
+    "saving": "Saving…",
+    "error": "Unable to process this. Please try again.",
+    "signIn": "Sign in with a verified account to request a Lá refund.",
+    "alreadyClaimed": "This account has already used its one-time Lá guarantee.",
+    "expired": "The 24-hour Lá guarantee window has ended.",
+    "priceLimit": "The Lá guarantee applies to parts costing less than 500 Lá.",
+    "conditions": "One claim per account, for a part purchased for less than 500 Lá within 24 hours. The refunded part will be locked again.",
+    "claim": "Request a Lá refund and lock this part",
+    "restored": "{amount} Lá restored. This reading is now locked.",
+    "related": "Explore {palace}"
   }
 }

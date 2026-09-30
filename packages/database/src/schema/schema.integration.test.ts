@@ -3368,6 +3368,13 @@ describe("database schema integration", () => {
         tag: "0045_wallet_catalog_rollover_pricing",
         breakpoints: true,
       },
+      {
+        idx: 46,
+        version: "7",
+        when: 1790813520000,
+        tag: "0046_fd105_notification_delivery_kinds",
+        breakpoints: true,
+      },
     ];
 
     for (const anchor of anchorEntries) {
@@ -3376,7 +3383,7 @@ describe("database schema integration", () => {
 
     const latestJournalEntry = journal.entries[journal.entries.length - 1]!;
     expect(latestJournalEntry.when).toBe(currentMigrationTimestamp);
-    expect(latestJournalEntry.idx).toBeGreaterThanOrEqual(45);
+    expect(latestJournalEntry.idx).toBeGreaterThanOrEqual(46);
   });
 
   it("applies 0026 AI cost, 0027 reading context, 0028 analytics, and 0029 checkpoints to a clean database", async () => {
@@ -3639,6 +3646,9 @@ describe("database schema integration", () => {
     await client`DROP TABLE IF EXISTS wallet_spend_allocations`;
     await client`DROP TABLE IF EXISTS wallet_ledger_entries`;
     await client`DROP TABLE IF EXISTS wallet_credit_lots`;
+    await client`DROP TABLE IF EXISTS daily_reading_unlocks`;
+    await client`DROP TABLE IF EXISTS guarantee_claims`;
+    await client`DROP TABLE IF EXISTS part_feedbacks`;
     await client`DROP TABLE IF EXISTS wallet_transactions`;
     await client`DROP TABLE IF EXISTS wallet_purchase_intents`;
     await client`DROP TABLE IF EXISTS wallet_accounts`;

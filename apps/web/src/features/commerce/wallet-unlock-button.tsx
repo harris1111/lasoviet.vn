@@ -59,7 +59,10 @@ export function WalletUnlockButton({
           locale={locale}
           onOpenChange={setOpen}
           onUnlocked={(reportId) => {
-            if (reportId !== null) {
+            if (sku === "ZIWEI-TODAY-P0") {
+              router.push(locale === "en" ? `/en/la-so/${chartId}` : `/la-so/${chartId}`);
+              router.refresh();
+            } else if (reportId !== null) {
               router.push(locale === "en" ? `/en/bao-cao/${reportId}` : `/bao-cao/${reportId}`);
             }
           }}

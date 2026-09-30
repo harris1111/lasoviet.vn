@@ -1,3 +1,4 @@
+import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
@@ -21,6 +22,11 @@ import {
   WalletHistoryV1Schema,
   WalletTopUpOrderCreateV1Schema,
   type WalletTopUpContinuationViewV1,
+  GuaranteeClaimRequestV1Schema,
+  GuaranteeClaimResultV1Schema,
+  PartFeedbackCreateV1Schema,
+  PartFeedbackResultV1Schema,
+  type GuaranteeErrorCode,
   type CommerceSku,
   type CurrentActor,
 } from "@lasoviet/contracts";
@@ -134,6 +140,28 @@ function customerWalletIntent(value: {
   };
 }
 
+function guaranteeError(code: GuaranteeErrorCode): never {
+  switch (code) {
+    case "GUARANTEE_ACCOUNT_REQUIRED":
+      throw new UnauthorizedException({ code });
+    case "GUARANTEE_ACCOUNT_INELIGIBLE":
+    case "GUARANTEE_NOT_OWNER":
+      throw new ForbiddenException({ code });
+    case "GUARANTEE_ALREADY_CLAIMED":
+    case "GUARANTEE_ALREADY_RESTORED":
+    case "GUARANTEE_IDEMPOTENCY_CONFLICT":
+      throw new ConflictException({ code });
+    case "GUARANTEE_ENTITLEMENT_NOT_FOUND":
+      throw new NotFoundException({ code });
+    case "GUARANTEE_PRICE_EXCEEDS_LIMIT":
+    case "GUARANTEE_RATING_INELIGIBLE":
+    case "GUARANTEE_WINDOW_EXPIRED":
+    case "GUARANTEE_INVALID_REQUEST":
+    default:
+      throw new BadRequestException({ code });
+  }
+}
+
 function walletError(code: string): never {
   if (code === "WALLET_ACCOUNT_REQUIRED") throw new UnauthorizedException({ code });
   if (code === "WALLET_ACCOUNT_INELIGIBLE") throw new ForbiddenException({ code });
@@ -160,6 +188,7 @@ export class CommerceController {
 
   private repository() {
     return createDatabaseCommerceRepository(this.database, {
+      dailyReadingWriter: writePersonalDailyReading,
       orderTtlSeconds: this.orderTtlSeconds ?? 86400,
     });
   }
@@ -407,6 +436,37 @@ export class CommerceController {
         reportId: result.value.reportId,
       },
     };
+  }
+
+  @Post("feedback/parts")
+  @HttpCode(HttpStatus.OK)
+  async submitFeedback(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = PartFeedbackCreateV1Schema.safeParse(body);
+    if (!parsed.success) throw new BadRequestException({ code: "FEEDBACK_INVALID" });
+    const actor = await this.actor(authorization);
+    const result = await this.repository().submitPartFeedback(actor, parsed.data);
+    if (!result.ok) {
+      if (result.code === "FEEDBACK_CHART_NOT_FOUND") throw new NotFoundException({ code: result.code });
+      throw new BadRequestException({ code: result.code });
+    }
+    return { ok: true, value: PartFeedbackResultV1Schema.parse(result.value) };
+  }
+
+  @Post("wallet/guarantee-claim")
+  @HttpCode(HttpStatus.OK)
+  async claimGuarantee(
+    @Headers("authorization") authorization: string | undefined,
+    @Body() body: unknown,
+  ) {
+    const parsed = GuaranteeClaimRequestV1Schema.safeParse(body);
+    if (!parsed.success) throw new BadRequestException({ code: "GUARANTEE_INVALID_REQUEST" });
+    const actor = await this.actor(authorization);
+    const result = await this.repository().claimGuarantee(actor, parsed.data);
+    if (!result.ok) guaranteeError(result.code);
+    return { ok: true, value: GuaranteeClaimResultV1Schema.parse(result.value) };
   }
 
   @Post("wallet/top-up-orders")

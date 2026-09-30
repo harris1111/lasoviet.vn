@@ -920,6 +920,24 @@ routes:
     intent: private.account.privacy
     template: account-privacy
 
+  - locale_behavior: vi_default_en_explicit
+    locale_owners: [vi, en]
+    owner: product
+    indexing: noindex_nofollow
+    canonical: self
+    robots: noindex,nofollow
+    schema_types: [WebPage]
+    redirect: { disposition: none }
+    priority: p1
+    status: live_noindex
+    sitemap: false
+    private: false
+    purchasable: false
+    id: notification.unsubscribe
+    path: /thong-bao/huy-dang-ky
+    intent: notification.unsubscribe
+    template: notification-unsubscribe
+
   - <<: *archived_defaults
     id: redirect.legacy-privacy
     path: /bao-mat-du-lieu
@@ -968,3 +986,33 @@ routes:
     intent: redirect.legacy-tarot
     template: redirect
     redirect: { disposition: "301", target: /boi-bai }
+
+  - <<: *private_defaults
+    id: api.ziwei.personal-daily-reading
+    path: /ziwei/charts/{chartId}/daily-reading
+    locale_behavior: unlocalized
+    intent: api.ziwei.personal-daily-reading
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.web.personal-daily-reading
+    path: /api/ziwei/charts/{chartId}/daily-reading
+    locale_behavior: unlocalized
+    intent: api.web.personal-daily-reading
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.feedback.parts
+    path: /api/commerce/feedback/parts
+    locale_behavior: unlocalized
+    intent: api.feedback.parts
+    template: api-command
+
+  - <<: *private_defaults
+    id: api.wallet.guarantee
+    path: /api/commerce/wallet/guarantee-claim
+    locale_behavior: unlocalized
+    intent: api.wallet.guarantee
+    template: api-command

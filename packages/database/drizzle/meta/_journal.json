@@ -327,6 +327,27 @@
     {
       "idx": 46,
       "version": "7",
+      "when": 1790813520000,
+      "tag": "0046_fd105_notification_delivery_kinds",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790813580000,
+      "tag": "0047_part_feedback_and_guarantee_claims",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1790813640000,
+      "tag": "0048_daily_entitlement_expiry",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
       "when": 1790813760000,
       "tag": "0050_wallet_topup_continuations",
       "breakpoints": true

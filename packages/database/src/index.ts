@@ -25,6 +25,7 @@ export {
   notificationDeliveries,
   notificationDeliveryKind,
   notificationDeliveryStatus,
+  notificationPreferences,
 } from "./schema/notifications.js";
 export {
   birthProfileReadingContextMutationReceipts,
@@ -48,6 +49,7 @@ export {
 } from "./schema/commerce.js";
 export {
   walletTopUpContinuations,
+  dailyReadingUnlocks,
   walletAccounts,
   walletCommandReceipts,
   walletCreditLots,
@@ -103,3 +105,8 @@ export {
   analyticsFraudIpRecords,
   analyticsVisitors,
 } from "./schema/analytics.js";
+
+export {
+  partFeedbacks,
+  guaranteeClaims,
+} from "./schema/feedback-guarantee.js";

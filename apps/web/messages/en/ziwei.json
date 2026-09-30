@@ -134,5 +134,14 @@
     "bannerDescription": "This chart is calculated using the mid-day hour (11:00 - 13:00) as a reference baseline. Life Palace, Body Palace, individual palaces, and decadal cycles are provisional estimates. You can add your exact birth hour anytime to view a fully accurate chart.",
     "actionAddTime": "Add birth hour",
     "insightsDisclaimer": "Note: The following insights are provisional reference estimates because exact birth time is unknown."
+  },
+  "dailyReading": {
+    "title": "Today’s personal reading",
+    "bonus": "The lifetime reading includes 7 days of personal daily readings.",
+    "loading": "Loading today’s reading…",
+    "locked": "Personal daily readings are currently available in Vietnamese.",
+    "unlock": "Unlock today – 60 Lá",
+    "actions": "Suggested actions",
+    "cautions": "Things to watch"
   }
 }

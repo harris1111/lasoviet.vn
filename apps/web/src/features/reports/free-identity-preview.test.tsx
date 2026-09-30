@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { FreeIdentityPreviewV1 } from "@lasoviet/contracts";

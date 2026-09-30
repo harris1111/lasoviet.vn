@@ -1180,3 +1180,11 @@ html[data-theme="light"] .result-tab-button.is-active {
   color: var(--pearl-200);
   text-decoration: underline;
 }
+
+.part-feedback { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--border-subtle, #8884); }
+.part-feedback-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.part-feedback button { min-height: 44px; padding: .5rem .75rem; border: 1px solid currentColor; border-radius: 8px; color: inherit; background: transparent; cursor: pointer; }
+.part-feedback button[aria-pressed="true"] { background: var(--gold-400, #cba85c); color: #191522; }
+.part-feedback button:disabled { opacity: .65; cursor: wait; }
+.part-feedback-guarantee { max-width: 40rem; }
+@media print { .part-feedback { display: none !important; } }

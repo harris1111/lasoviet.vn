@@ -1,5 +1,7 @@
 import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
 import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
+import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
+import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
@@ -14,7 +16,8 @@ import type {
   OrderHistoryV1,
   OrderStatus,
 } from "@lasoviet/contracts";
-import { resolveProductTitle, resolveEntitlementScopeForSku } from "@lasoviet/contracts";
+import { resolveProductTitle, resolveEntitlementScopeForSku, type GuaranteeClaimRequestV1, type PartFeedbackCreateV1 } from "@lasoviet/contracts";
+import { createGuaranteeFeedbackService, resolveRelatedPalaceSuggestion } from "./guarantee-feedback.service.js";
 import {
   auditLogs,
   birthProfileReadingContexts,
@@ -76,6 +79,7 @@ export type ContentPurchaseOrder = OrderRecord & {
 type CheckoutLocale = "vi" | "en";
 
 export type CommerceRepositoryOptions = {
+  dailyReadingWriter?: DailyReadingWriter;
   now?: () => Date;
   orderTtlSeconds?: number;
   beforePaymentCommit?: () => Promise<void>;
@@ -137,6 +141,10 @@ export function createDatabaseCommerceRepository(
   const walletUnlock = createWalletUnlockService(database, walletService, {
     now: getNow,
     reportVersionResolver,
+    dailyReadingWriter: options.dailyReadingWriter,
+  });
+  const guaranteeFeedback = createGuaranteeFeedbackService(database, {
+    now: getNow,
   });
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
@@ -338,7 +346,7 @@ export function createDatabaseCommerceRepository(
       requestId: input.providerEventId,
       traceId: input.traceId,
     });
-    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver });
+    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver, dailyReadingWriter: options.dailyReadingWriter });
     await options.beforePaymentCommit?.();
     return { ok: true, replayed: false };
   }
@@ -1020,6 +1028,7 @@ export function createDatabaseCommerceRepository(
       .where(and(
         eq(commerceEntitlements.ownerId, actor.userId),
         isNull(commerceEntitlements.orderId),
+        isNull(commerceEntitlements.revokedAt),
       ))
       .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
     const walletItems: AccountLibraryV2["items"] = walletRows.map((row) => {
@@ -1067,6 +1076,12 @@ export function createDatabaseCommerceRepository(
     },
     unlockWalletPurchase(actor: CurrentActor, input: Parameters<typeof walletUnlock.unlock>[1]) {
       return walletUnlock.unlock(actor, input);
+    },
+    submitPartFeedback(actor: CurrentActor, input: PartFeedbackCreateV1) {
+      return guaranteeFeedback.submitPartFeedback(actor, input);
+    },
+    claimGuarantee(actor: CurrentActor, input: GuaranteeClaimRequestV1) {
+      return guaranteeFeedback.claimGuarantee(actor, input);
     },
     readAccountLibraryV2,
 
@@ -1667,6 +1682,7 @@ export function createDatabaseCommerceRepository(
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
           scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
+          dailyBonusExpiresAt: paidOrder.sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
@@ -2218,6 +2234,7 @@ export function createDatabaseCommerceRepository(
             sku: paidOrder.sku,
             ownerId: paidOrder.ownerId,
             scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
+            dailyBonusExpiresAt: paidOrder.sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           })
           .returning();

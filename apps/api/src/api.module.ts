@@ -8,6 +8,7 @@ import {
   IztroAdapter,
   iztroDefaultConfig,
   calculateZiweiHoroscope,
+  writePersonalDailyReading,
 } from "@lasoviet/engine-adapters";
 import {
   createAuthEmailDeliveryService,
@@ -46,6 +47,8 @@ import {
   createReadingContextService,
   createZiweiCalculationService,
   createZiweiQueryService,
+  createPersonalDailyReadingService,
+  createDatabaseDailyReadingAccess,
   createDatabaseReportQueryRepository,
   createReportQueryService,
   createAccountCenterService,
@@ -489,6 +492,11 @@ function privacyDatabase() {
         createZiweiQueryService({
           repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
           calculateHoroscope: calculateZiweiHoroscope,
+          personalDailyReading: createPersonalDailyReadingService({
+            charts: createDatabaseZiweiQueryRepository(privacyDatabase()),
+            access: createDatabaseDailyReadingAccess(privacyDatabase()),
+            writer: writePersonalDailyReading,
+          }),
         }),
     },
     { provide: REPORT_QUERY_DATABASE, useFactory: privacyDatabase },
