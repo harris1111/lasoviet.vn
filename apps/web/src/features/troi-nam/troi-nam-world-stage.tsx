@@ -89,6 +89,34 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       markReady(false);
     }
 
+    function handleFailure() {
+      // Called on init failure, and again later on context loss or sustained
+      // bad frame times (createTroiNamWorld disposes itself first either way).
+      handle = null;
+      markReady(false);
+    }
+
+    // Pause the render loop (and its RAF cost) while the tab is hidden or the
+    // whole hero→explore span has scrolled out of view — resumed with a
+    // fresh delta (see stopLoop's reset) rather than a jump.
+    let visible = true;
+    let intersecting = true;
+    function updateActive() {
+      const next = visible && intersecting;
+      handle?.setActive(next);
+    }
+    function onVisibilityChange() {
+      visible = document.visibilityState === "visible";
+      updateActive();
+    }
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      const entry = entries.at(-1);
+      intersecting = entry?.isIntersecting ?? true;
+      updateActive();
+    });
+    intersectionObserver.observe(stage);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const resizeObserver = new ResizeObserver(() => {
       resizeCanvas();
       updateChartTarget();
@@ -100,11 +128,7 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
     reducedMotionQuery?.addEventListener?.("change", onReducedMotionChange);
 
     void import("./world/troi-nam-world-scene").then(({ createTroiNamWorld }) =>
-      createTroiNamWorld(canvas!, {
-        quality,
-        seed: 1,
-        onFailure: () => markReady(false),
-      }),
+      createTroiNamWorld(canvas!, { quality, seed: 1, onFailure: handleFailure }),
     ).then(
       (nextHandle) => {
         if (cancelled) {
@@ -118,14 +142,17 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
         // (see createTroiNamProgress: it stores the latest snapshot here).
         const stored = Number(root!.dataset.troiNamProgress);
         handle.setProgress(Number.isFinite(stored) ? stored : 0);
+        updateActive(); // sync the active/inactive state reached while loading
         markReady(true);
       },
-      () => markReady(false),
+      handleFailure,
     );
 
     return () => {
       cancelled = true;
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       root.removeEventListener("troi-nam:progress", onProgress);
       reducedMotionQuery?.removeEventListener?.("change", onReducedMotionChange);
       handle?.dispose();
