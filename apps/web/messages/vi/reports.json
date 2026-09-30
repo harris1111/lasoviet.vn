@@ -74,7 +74,7 @@
     "unlockDialogShortBalanceTitle": "Chưa đủ Lá",
     "unlockDialogShortBalanceBody": "Bạn cần thêm {gap} Lá. Số dư hiện tại là {balance} Lá.",
     "unlockDialogTopupAction": "Nạp {pack} — {vnd}",
-    "unlockDialogTopupNote": "Sau khi nạp xong, quay lại trang này và bấm mở lại — lựa chọn của bạn vẫn được giữ nguyên.",
+    "unlockDialogTopupNote": "Sau khi thanh toán được xác nhận, bạn sẽ trở về đúng phần vừa chọn. Nếu lựa chọn hoặc giá đã thay đổi, Lá vừa nạp vẫn được giữ trong ví để bạn xác nhận lại.",
     "unlockDialogGenericError": "Có lỗi xảy ra. Vui lòng thử lại.",
     "laInstantNotice": "Lá vào ví ngay khi nhận chuyển khoản.",
     "topupNotice": "Thanh toán bằng chuyển khoản VietQR. Lá vào ví ngay khi nhận tiền, không cần chờ duyệt. Lá đã nạp không hết hạn.",
@@ -90,7 +90,18 @@
     "benefitSupport": "Hỗ trợ khi gặp lỗi",
     "benefitSupportDesc": "Nhắn Messenger hoặc email nếu thanh toán gặp lỗi.",
     "supportHeading": "Cần hỏi trước khi mua?",
-    "supportDesc": "Lá Số Việt trả lời qua Messenger hoặc email trong ngày làm việc."
+    "supportDesc": "Lá Số Việt trả lời qua Messenger hoặc email trong ngày làm việc.",
+    "unlockAfterTopupConsent": "Nạp Lá để tự mở {item} với giá {price} Lá khi thanh toán được xác nhận.",
+    "unlockCompletedBalance": "Phần bạn chọn đã mở. Ví còn {balance} Lá.",
+    "unlockReadPart": "Đọc phần vừa mở",
+    "unlockResidualSuggestion": "Bạn có thể dùng số Lá còn lại để chọn phần đọc tiếp theo.",
+    "unlockReviewSelection": "Chọn phần đọc tiếp",
+    "unlockContinuationBlocked": "Lá đã vào ví. Lựa chọn trước đó đã thay đổi; hãy xem lại giá trước khi mở.",
+    "residualPalaceToday": "Số Lá còn lại đủ cho một cung khác và Hôm nay ({cost} Lá).",
+    "residualToday": "Số Lá còn lại đủ cho Hôm nay ({cost} Lá).",
+    "residualTwoDays": "Bạn có thể giữ Lá cho hai ngày Hôm nay sau khi hết lượt tặng ({cost} Lá).",
+    "residualTopicPalace": "Số Lá còn lại đủ cho chủ đề thứ hai và một cung ({cost} Lá).",
+    "residualReserved": "Một số phần gợi ý chưa mở bán. Bạn có thể giữ Lá trong ví và xem các phần hiện có."
   },
   "checkout": {
     "eyebrow": "Thanh toán",

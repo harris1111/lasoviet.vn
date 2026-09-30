@@ -200,6 +200,22 @@ describe("VietQR checkout polling", () => {
     },
   );
 
+  it.each(["pending", "completed", "blocked"] as const)("uses only the paid server continuation outcome: %s", async (status) => {
+    const returnPath = "/la-so/chart-one?tab=palaces&topupOrder=order-one&open=life";
+    const initial = checkoutStatus("pending", null);
+    const paid: CheckoutStatus = {
+      ...checkoutStatus("paid", null),
+      order: { ...checkoutStatus("paid", null).order, kind: "wallet_topup", chartId: null,
+        continuation: { status, returnPath, reportId: "report-one", remainingLa: status === "completed" ? 60 : null, errorCode: status === "blocked" ? "INTENT_TERMS_CHANGED" : null } },
+    };
+    const navigate = vi.fn();
+    const cleanup = startVietQrCheckoutPolling({ initialStatus: initial, fetchStatus: vi.fn().mockResolvedValue(paid), deliverStatus: vi.fn(), navigate, visibility: visibilityHarness() });
+    await vi.advanceTimersByTimeAsync(2_500);
+    if (status === "completed") expect(navigate).toHaveBeenCalledExactlyOnceWith(returnPath);
+    else expect(navigate).not.toHaveBeenCalled();
+    cleanup();
+  });
+
   it.each(["expired", "failed", "refunded"] as const)(
     "does not poll terminal %s status",
     async (status) => {

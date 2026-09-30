@@ -131,3 +131,24 @@ export const walletCommandReceipts = pgTable("wallet_command_receipts", {
   result: jsonb("result").$type<Record<string, unknown>>().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [uniqueIndex("wallet_command_receipts_wallet_key_unique").on(table.walletId, table.idempotencyKey)]);
+
+
+export const walletTopUpContinuations = pgTable("wallet_topup_continuations", {
+  orderId: uuid("order_id").primaryKey().references(() => commerceOrders.id),
+  ownerId: text("owner_id").notNull().references(() => authUsers.id),
+  purchaseIntentId: uuid("purchase_intent_id").notNull().references(() => walletPurchaseIntents.id),
+  intentStateVersion: integer("intent_state_version").notNull(),
+  confirmedPriceLa: integer("confirmed_price_la").notNull(),
+  returnTab: text("return_tab").notNull(),
+  returnOpen: text("return_open"),
+  status: text("status").notNull().default("pending"),
+  reportId: text("report_id"),
+  remainingLa: integer("remaining_la"),
+  errorCode: text("error_code"),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true, mode: "date" }),
+}, (table) => [
+  index("wallet_topup_continuations_intent_idx").on(table.purchaseIntentId),
+  check("wallet_topup_continuations_terms_valid", sql`${table.intentStateVersion} > 0 AND ${table.confirmedPriceLa} >= 0 AND ${table.returnTab} IN ('chart', 'overview', 'palaces', 'topics', 'nam-nay', 'evidence')`),
+  check("wallet_topup_continuations_state_valid", sql`${table.status} IN ('pending', 'completed', 'blocked')`),
+]);

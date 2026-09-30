@@ -47,6 +47,7 @@ export {
   commerceUnmatchedPayments,
 } from "./schema/commerce.js";
 export {
+  walletTopUpContinuations,
   walletAccounts,
   walletCommandReceipts,
   walletCreditLots,

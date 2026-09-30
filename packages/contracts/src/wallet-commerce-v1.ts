@@ -26,9 +26,29 @@ export const WalletTopUpPackIdSchema = z.enum([
 ]);
 export type WalletTopUpPackId = z.infer<typeof WalletTopUpPackIdSchema>;
 
+export const WalletTopUpContinuationRequestV1Schema = z.object({
+  purchaseIntentId: z.string().uuid(),
+  expectedIntentVersion: z.number().int().positive(),
+  confirmedPriceLa: amount,
+  returnTab: z.enum(["chart", "overview", "palaces", "topics", "nam-nay", "evidence"]).default("topics"),
+  returnOpen: z.string().regex(/^[a-zA-Z0-9._-]{1,128}$/).optional(),
+}).strict();
+export type WalletTopUpContinuationRequestV1 = z.infer<typeof WalletTopUpContinuationRequestV1Schema>;
+
+export const WalletTopUpContinuationViewV1Schema = z.object({
+  status: z.enum(["pending", "completed", "blocked"]),
+  unlockedSku: z.string().min(1).optional(),
+  returnPath: z.string().regex(/^\/(?:en\/)?la-so\/[^?#]+(?:\?[^#]*)?$/),
+  reportId: id.nullable(),
+  remainingLa: amount.nullable(),
+  errorCode: z.string().nullable(),
+}).strict();
+export type WalletTopUpContinuationViewV1 = z.infer<typeof WalletTopUpContinuationViewV1Schema>;
+
 export const WalletTopUpOrderCreateV1Schema = z.object({
   packId: WalletTopUpPackIdSchema,
   locale: z.enum(["vi", "en"]),
+  continuation: WalletTopUpContinuationRequestV1Schema.optional(),
 }).strict();
 export type WalletTopUpOrderCreateV1 = z.infer<typeof WalletTopUpOrderCreateV1Schema>;
 

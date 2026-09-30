@@ -1,3 +1,5 @@
+import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
+import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
@@ -29,6 +31,7 @@ import {
   reportReservations,
   reportVersions,
   type Database,
+  walletTopUpContinuations,
   walletAccounts,
   walletPurchaseIntents,
   walletTransactions,
@@ -89,6 +92,7 @@ export type OwnedOrderProjection = {
 export type OwnedTopUpOrderProjection = {
   order: WalletTopUpOrder;
   creditedLa: number | null;
+  continuation: WalletTopUpContinuationViewV1 | null;
 };
 
 function ownerFilter(actor: CurrentActor, now: Date) {
@@ -334,6 +338,7 @@ export function createDatabaseCommerceRepository(
       requestId: input.providerEventId,
       traceId: input.traceId,
     });
+    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver });
     await options.beforePaymentCommit?.();
     return { ok: true, replayed: false };
   }
@@ -1065,7 +1070,7 @@ export function createDatabaseCommerceRepository(
     },
     readAccountLibraryV2,
 
-    async createTopUpOrder(actor: CurrentActor, packId: string, locale: string) {
+    async createTopUpOrder(actor: CurrentActor, packId: string, locale: string, continuation?: WalletTopUpContinuationRequestV1) {
       const pack = walletTopUpPack(packId);
       if (pack === undefined) return { ok: false as const, code: "TOP_UP_PACK_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);
@@ -1089,6 +1094,8 @@ export function createDatabaseCommerceRepository(
         const ownerLockKey = `commerce:topup:${actor.userId}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${ownerLockKey}))`);
 
+        const acceptedContinuation = continuation === undefined ? undefined : await validateTopUpContinuation(transaction, actor.userId, selectedLocale, continuation);
+        if (acceptedContinuation === null) return { ok: false as const, code: "TOP_UP_CONTINUATION_INVALID" };
         const currentNow = getNow();
         const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
         const pendingOrders = await transaction.select().from(commerceOrders)
@@ -1102,8 +1109,10 @@ export function createDatabaseCommerceRepository(
           .for("update");
         for (const pending of pendingOrders) {
           if (!isWalletTopUpOrder(pending)) continue;
+          const [binding] = await transaction.select().from(walletTopUpContinuations).where(eq(walletTopUpContinuations.orderId, pending.id)).limit(1);
           if (pending.createdAt.getTime() > cutoff.getTime() && pending.locale === selectedLocale) {
-            return { ok: true as const, value: pending, reused: true };
+            if (matchesTopUpContinuation(binding, acceptedContinuation)) return { ok: true as const, value: pending, reused: true };
+            continue;
           }
           await transaction.update(commerceOrders)
             .set({ status: "expired" })
@@ -1129,6 +1138,11 @@ export function createDatabaseCommerceRepository(
           }).onConflictDoNothing({ target: commerceOrders.paymentCode }).returning();
           if (created !== undefined) {
             if (!isWalletTopUpOrder(created)) throw new Error("TOP_UP_ORDER_SHAPE_INVALID");
+            if (acceptedContinuation) await transaction.insert(walletTopUpContinuations).values({
+              orderId: created.id, ownerId: actor.userId, purchaseIntentId: acceptedContinuation.purchaseIntentId,
+              intentStateVersion: acceptedContinuation.expectedIntentVersion, confirmedPriceLa: acceptedContinuation.confirmedPriceLa,
+              returnTab: acceptedContinuation.returnTab, returnOpen: acceptedContinuation.returnOpen ?? null, createdAt: currentNow,
+            });
             return { ok: true as const, value: created, reused: false };
           }
         }
@@ -1163,6 +1177,7 @@ export function createDatabaseCommerceRepository(
       return {
         order,
         creditedLa: grant !== undefined && pack !== undefined ? pack.purchasedLa + pack.promotionalLa : null,
+        continuation: await readTopUpContinuation(database, order.id, actor.userId),
       };
     },
 
