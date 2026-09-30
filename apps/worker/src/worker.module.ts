@@ -1,3 +1,4 @@
+import { createMembershipExpiryReminderService, membershipReminderAllowed } from "@lasoviet/backend";
 import { calculateIztroReportSnapshot } from "@lasoviet/engine-adapters";
 import { Module } from "@nestjs/common";
 import { randomUUID } from "node:crypto";
@@ -91,6 +92,7 @@ export function createMaintenanceRunner() {
     preferenceChecker: preferenceStore,
     delayedUnlockEligibility: delayedUnlock.isEligible,
     nurtureEligibility: nurture.isEligible,
+    membershipReminderAllowed: (request, now) => membershipReminderAllowed(database, request, now),
   });
   const telegramAlert = createTelegramAlertProvider({
     botToken: environment.value.telegram?.botToken,
@@ -116,6 +118,7 @@ export function createMaintenanceRunner() {
     retryAuthEmail: async (limit) => {
       await nurture.scanAndEnqueue(limit);
       await delayedUnlock.scan((request) => email.send(request), limit);
+      await createMembershipExpiryReminderService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret ?? "" }).scanAndEnqueue(limit);
       return email.retryDue(limit);
     },
     reconciliation,

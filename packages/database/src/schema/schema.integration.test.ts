@@ -3646,6 +3646,7 @@ describe("database schema integration", () => {
     await client`DROP TABLE IF EXISTS wallet_spend_allocations`;
     await client`DROP TABLE IF EXISTS wallet_ledger_entries`;
     await client`DROP TABLE IF EXISTS wallet_credit_lots`;
+    await client`DROP TABLE IF EXISTS membership_subscriptions`;
     await client`DROP TABLE IF EXISTS daily_reading_unlocks`;
     await client`DROP TABLE IF EXISTS guarantee_claims`;
     await client`DROP TABLE IF EXISTS part_feedbacks`;

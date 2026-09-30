@@ -3,7 +3,7 @@ import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } 
 import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
 import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { reportReservationAuthority } from "../reports/natal-report-authority.js";
-import { reserveNatalReport } from "../reports/natal-report-reservation.js";
+import { reservePaidReport } from "../reports/natal-report-reservation.js";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
@@ -86,6 +86,7 @@ export type CommerceRepositoryOptions = {
   paymentCodeFactory?: () => string;
   beforeClaimLockedRequery?: () => Promise<void>;
   reportVersionResolver?: ReportVersionResolver;
+  resolveMonthlyPeriodKey?: (asOfDate: string) => string;
 };
 
 export type OwnedOrderProjection = {
@@ -142,6 +143,7 @@ export function createDatabaseCommerceRepository(
     now: getNow,
     reportVersionResolver,
     dailyReadingWriter: options.dailyReadingWriter,
+    resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey,
   });
   const guaranteeFeedback = createGuaranteeFeedbackService(database, {
     now: getNow,
@@ -346,7 +348,7 @@ export function createDatabaseCommerceRepository(
       requestId: input.providerEventId,
       traceId: input.traceId,
     });
-    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver, dailyReadingWriter: options.dailyReadingWriter });
+    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver, dailyReadingWriter: options.dailyReadingWriter, resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey });
     await options.beforePaymentCommit?.();
     return { ok: true, replayed: false };
   }
@@ -1687,7 +1689,7 @@ export function createDatabaseCommerceRepository(
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
-        await reserveNatalReport(transaction, {
+        await reservePaidReport(transaction, {
           entitlement, chartVersionId: paidOrder.chartVersionId, evidenceVersionId: evidence.id,
           locale: paidOrder.locale as "vi" | "en", versions: reportVersions, readingContextRevisionId,
           now: currentNow, traceId: input.traceId, aggregateType: "order", aggregateId: paidOrder.id,
@@ -2166,7 +2168,7 @@ export function createDatabaseCommerceRepository(
 
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
 
-        const { reservation: sharedReservation } = await reserveNatalReport(transaction, {
+        const { reservation: sharedReservation } = await reservePaidReport(transaction, {
           entitlement, chartVersionId: paidOrder.chartVersionId, evidenceVersionId: evidence.id,
           locale: paidOrder.locale as "vi" | "en", versions: reportVersions, readingContextRevisionId,
           now: currentNow, traceId: actor.requestId, aggregateType: "order", aggregateId: paidOrder.id,

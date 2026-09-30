@@ -1,4 +1,6 @@
 import { isSinglePalaceSku } from "./la-catalog.js";
+import { ZiweiPeriodReadingPublicContentV1Schema } from "./ziwei-period-reading-public-v1.js";
+import { ZiweiTopicDeepDivePublicContentV1Schema } from "./ziwei-topic-deep-dive-v1.js";
 import { z } from "zod";
 import { ReportChartSnapshotV1Schema } from "./report-chart-snapshot-v1.js";
 import {
@@ -183,13 +185,15 @@ export const ReportSafeProvenanceV1Schema = z.object({
 }).strict();
 export type ReportSafeProvenanceV1 = z.infer<typeof ReportSafeProvenanceV1Schema>;
 
+export const PaidReportSkuSchema = z.union([CommerceSkuSchema, z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"])]);
+
 export const ReportPendingViewV1Schema = z.object({
   version: z.literal(1),
   state: z.literal("pending"),
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: z.union([CommerceSkuSchema, z.string().refine(isSinglePalaceSku)]),
+  sku: z.union([PaidReportSkuSchema, z.string().refine(isSinglePalaceSku)]),
   fulfillmentStatus: z.enum(REPORT_PENDING_STATUSES),
   refreshAfterMs: z.literal(5000),
 }).strict();
@@ -801,8 +805,25 @@ export const ReportPalacesReadyViewV1Schema = baseReportReadyViewV1Schema.extend
 }).strict();
 export type ReportPalacesReadyViewV1 = z.infer<typeof ReportPalacesReadyViewV1Schema>;
 
+export const ReportTopicReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei.topic-deep-dive.v1"),
+  locale: z.literal("vi"),
+  sku: z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0"]),
+  content: ZiweiTopicDeepDivePublicContentV1Schema,
+}).strict();
+export type ReportTopicReadyViewV1 = z.infer<typeof ReportTopicReadyViewV1Schema>;
+
+export const ReportPeriodReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  contentVersion: z.literal("ziwei.period-reading.v1"), locale: z.literal("vi"),
+  sku: z.enum(["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"]),
+  content: ZiweiPeriodReadingPublicContentV1Schema,
+}).strict();
+export type ReportPeriodReadyViewV1 = z.infer<typeof ReportPeriodReadyViewV1Schema>;
+
 export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
   ReportPalacesReadyViewV1Schema,
+  ReportPeriodReadyViewV1Schema,
+  ReportTopicReadyViewV1Schema,
   ReportLegacyReadyViewV1Schema,
   ReportComprehensiveReadyViewV1Schema,
   ReportComprehensiveV2ReadyViewV1Schema,
@@ -810,6 +831,8 @@ export const ReportReadyViewV1Schema = z.discriminatedUnion("contentVersion", [
 ]);
 export type ReportReadyViewV1 =
   | ReportPalacesReadyViewV1
+  | ReportPeriodReadyViewV1
+  | ReportTopicReadyViewV1
   | ReportLegacyReadyViewV1
   | ReportComprehensiveReadyViewV1
   | ReportComprehensiveV2ReadyViewV1
@@ -821,7 +844,7 @@ export const ReportFailedViewV1Schema = z.object({
   reportId: z.string().trim().min(1),
   reportVersionId: z.string().trim().min(1),
   locale: z.enum(["vi", "en"]),
-  sku: z.union([CommerceSkuSchema, z.string().refine(isSinglePalaceSku)]),
+  sku: z.union([PaidReportSkuSchema, z.string().refine(isSinglePalaceSku)]),
   fulfillmentStatus: z.literal("terminal_failure"),
   invoiceNumber: z.string().trim().min(1),
   paymentReceivedAt: z.iso.datetime({ offset: true }),

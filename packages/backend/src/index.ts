@@ -796,3 +796,31 @@ export type {
 export { createPersonalDailyReadingService, createDatabaseDailyReadingAccess, type DailyReadingService, type DailyReadingGrant } from "./commerce/personal-daily-reading.service.js";
 
 export { acknowledgeTopUpPresence, createDelayedUnlockCompletionService, DELAYED_UNLOCK_WAIT_MS } from "./notifications/delayed-unlock-completion.js";
+export * from "./commerce/membership.service.js";
+
+export * from "./notifications/membership-expiry.service.js";
+export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
+export {
+  DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG,
+  TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES,
+  validateZiweiTopicDeepDiveQualityV4,
+} from "./reports/topic-deep-dive-quality-v4.js";
+export type {
+  TopicDeepDiveQualityConfig,
+  TopicDeepDiveQualityFinding,
+  TopicDeepDiveQualityFindingCode,
+  TopicDeepDiveQualityResult,
+} from "./reports/topic-deep-dive-quality-v4.js";
+
+export {
+  REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1,
+  writeZiweiTopicDeepDiveV4,
+  generateZiweiTopicDeepDiveWithQualityLoopV4,
+} from "./reports/topic-deep-dive-writer-v4.js";
+export type {
+  ZiweiTopicDeepDiveWriterInput,
+  ZiweiTopicDeepDiveWriterResult,
+  ZiweiTopicDeepDiveWriterRewrite,
+} from "./reports/topic-deep-dive-writer-v4.js";

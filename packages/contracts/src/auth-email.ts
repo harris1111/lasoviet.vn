@@ -143,7 +143,16 @@ export type UnsubscribeTokenClaims = z.infer<
   typeof UnsubscribeTokenClaimsSchema
 >;
 
+export const MembershipExpiryEmailRequestSchema = z.object({
+  version: z.literal(1), kind: z.literal("membership_expiry"),
+  idempotencyKey: nonEmpty, recipient: z.email().transform((value) => value.trim().toLowerCase()),
+  locale: z.enum(["vi", "en"]), actionUrl: z.url(), unsubscribeUrl: z.url(), requestId: nonEmpty,
+  userId: nonEmpty, subscriptionId: z.uuid(), expiresAt: z.iso.datetime(),
+}).strict();
+export type MembershipExpiryEmailRequest = z.infer<typeof MembershipExpiryEmailRequestSchema>;
+
 export const PersistedEmailDeliveryRequestSchema = z.discriminatedUnion("kind", [
+  MembershipExpiryEmailRequestSchema,
   NurtureVerifiedSignInEmailRequestSchema,
   HanMonthReminderEmailRequestSchema,
   DelayedUnlockCompletedEmailRequestSchema,
@@ -168,6 +177,8 @@ export function canonicalizeEmailDeliveryRequest(
     actionUrl: request.actionUrl,
     requestId: request.requestId.trim(),
   };
+
+  if (request.kind === "membership_expiry") return JSON.stringify({ ...base, userId: request.userId, subscriptionId: request.subscriptionId, expiresAt: request.expiresAt, unsubscribeUrl: request.unsubscribeUrl });
 
   if (request.kind === "report_failed") {
     return JSON.stringify({

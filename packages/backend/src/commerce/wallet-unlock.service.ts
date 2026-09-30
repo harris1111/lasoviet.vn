@@ -1,10 +1,14 @@
+import { membershipPrice, readActiveMembership } from "./membership.service.js";
 import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
 import { calculateBonusExpiry } from "@lasoviet/contracts";
+import { periodKindForSku, periodReportVersions, purchasePeriodKey as resolvePurchasePeriodKey } from "../reports/period-report-config.js";
+import { topicIdForSku, topicReportVersions } from "../reports/topic-report-config.js";
+import { randomUUID } from "node:crypto";
 
 import { alias } from "drizzle-orm/pg-core";
 import { reportReservationAuthority } from "../reports/natal-report-authority.js";
-import { reserveNatalReport } from "../reports/natal-report-reservation.js";
-import { and, desc, eq, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
+import { reservePaidReport } from "../reports/natal-report-reservation.js";
+import { and, desc, eq, gt, inArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import {
   calculateRolloverCredit,
   findLaProduct,
@@ -46,6 +50,7 @@ import {
 } from "../wallet/wallet.repository.js";
 import {
   currentReportVersions,
+  deriveReportTimingLineage,
   type ReportVersionResolver,
 } from "../reports/identity-report-config.js";
 
@@ -267,10 +272,22 @@ async function price(
   chartId: string,
   sku: string,
   now: Date,
+  periodKey: string,
 ): Promise<PriceResult> {
   const product = findLaProduct(sku);
   if (!product || product.availability !== "active") return { ok: false, code: "WALLET_INTENT_INVALID" };
 
+  const member = await readActiveMembership(database, ownerId, now);
+  if (sku === "ZIWEI-MONTHLY-P0" && !member) {
+    // An expired membership grant must not prevent an explicit standalone purchase for the same month.
+    const freeSpends = database.select({ id: walletTransactions.id }).from(walletTransactions)
+      .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
+      .where(and(eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.priceLa, 0)));
+    await database.update(commerceEntitlements).set({ revokedAt: now, revocationReason: "membership_expired" }).where(and(
+      eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId), eq(commerceEntitlements.sku, sku),
+      eq(commerceEntitlements.periodKey, periodKey), isNull(commerceEntitlements.revokedAt), inArray(commerceEntitlements.ledgerSpendId, freeSpends),
+    ));
+  }
   const [sameSku] = await database.select({ id: commerceEntitlements.id })
     .from(commerceEntitlements)
     .leftJoin(walletTransactions, eq(walletTransactions.id, commerceEntitlements.ledgerSpendId))
@@ -280,6 +297,9 @@ async function price(
       or(eq(commerceEntitlements.sku, sku),
         ...(sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)
           ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
+      eq(commerceEntitlements.periodKey, periodKey),
+      isNull(commerceEntitlements.revokedAt),
+      or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, now)),
       or(
         isNotNull(commerceEntitlements.orderId),
         and(
@@ -291,13 +311,15 @@ async function price(
     .limit(1);
   if (sameSku !== undefined) return { ok: false, code: "WALLET_ENTITLEMENT_EXISTS" };
 
+  if (sku === "ZIWEI-MONTHLY-P0" && member) return { ok: true, amountLa: 0 };
+
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
     const rollover = calculateRolloverCredit({ spends, now });
-    return { ok: true as const, amountLa: rollover.effectivePriceLa };
+    return { ok: true as const, amountLa: membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member) };
   }
 
-  return { ok: true as const, amountLa: product.priceLa };
+  return { ok: true as const, amountLa: membershipPrice(product.priceLa, undefined, !!member) };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
@@ -306,7 +328,8 @@ function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
   if (intent.sku === "ZIWEI-IDENTITY-P0") {
     return intent.priceLa >= 0 && intent.priceLa <= 960;
   }
-  return intent.priceLa === product.priceLa;
+  if (intent.sku === "ZIWEI-MONTHLY-P0" && intent.priceLa === 0) return true;
+  return intent.priceLa === product.priceLa || intent.priceLa === membershipPrice(product.priceLa, undefined, true);
 }
 
 function hasUnlockOutboxLineage(
@@ -391,6 +414,7 @@ async function verifyLineageAndRespond(
     lineage.entitlement.ledgerSpendId !== lineage.spend.id ||
     lineage.entitlement.chartId !== lineage.intent.chartId ||
     lineage.entitlement.sku !== lineage.intent.sku ||
+    lineage.intent.periodKey !== lineage.entitlement.periodKey ||
     lineage.reservation.chartVersionId !== lineage.intent.chartVersionId ||
     lineage.reservation.evidenceVersionId !== lineage.evidence.id ||
     lineage.evidence.chartVersionId !== lineage.intent.chartVersionId ||
@@ -422,9 +446,10 @@ async function verifyLineageAndRespond(
 export function createWalletUnlockService(
   database: Database,
   wallet: WalletService,
-  options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver; dailyReadingWriter?: DailyReadingWriter } = {},
+  options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver; dailyReadingWriter?: DailyReadingWriter; resolveMonthlyPeriodKey?: (asOfDate: string) => string } = {},
 ) {
   const now = options.now ?? (() => new Date());
+  const purchasePeriodKey = (sku: string, time: Date) => resolvePurchasePeriodKey(sku, time, options.resolveMonthlyPeriodKey);
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
   const daily = createDailyWalletUnlockService(database, wallet, { now, writer: options.dailyReadingWriter });
 
@@ -437,9 +462,11 @@ export function createWalletUnlockService(
       const product = findLaProduct(request.sku);
       if (
         !product ||
+        (request.sku === "ZIWEI-MONTHLY-P0" && !options.resolveMonthlyPeriodKey) ||
         product.availability !== "active" ||
         !supportedLocale(request.locale) ||
         !product.locales.includes(request.locale) ||
+        ((topicIdForSku(request.sku) !== null || periodKindForSku(request.sku) !== null) && request.locale !== "vi") ||
         !nonEmptyId(request.chartId) ||
         !nonEmptyId(request.chartVersionId)
       ) {
@@ -448,15 +475,17 @@ export function createWalletUnlockService(
       if (isSinglePalaceSku(request.sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(request.locale).family)) {
         return failed("WALLET_INTENT_INVALID");
       }
+      const quoteNow = now();
       const sku = request.sku;
       const locale = request.locale;
+      if (sku === "ZIWEI-YEAR-2026-P0" && deriveReportTimingLineage(quoteNow).targetYear !== 2026) return failed("WALLET_INTENT_INVALID");
 
       return database.transaction(async (transaction) => {
         if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`wallet-intent:${ownerId}:${request.chartId}:${sku}`}))`);
         if (await ownedChart(transaction, ownerId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
         if (await evidenceFor(transaction, request.chartVersionId) === undefined) return failed("WALLET_EVIDENCE_MISSING");
-        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, now());
+        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow));
         if (!selectedPrice.ok) return selectedPrice;
         const [pending] = await transaction.select().from(walletPurchaseIntents)
           .where(and(
@@ -471,7 +500,8 @@ export function createWalletUnlockService(
           if (
             pending.chartVersionId === request.chartVersionId &&
             pending.locale === locale &&
-            pending.priceLa === selectedPrice.amountLa
+            pending.priceLa === selectedPrice.amountLa &&
+            pending.periodKey === purchasePeriodKey(sku, quoteNow)
           ) {
             return { ok: true as const, value: projectIntent(pending), reused: true };
           }
@@ -495,7 +525,8 @@ export function createWalletUnlockService(
           sku,
           locale,
           priceLa: selectedPrice.amountLa,
-          createdAt: now(),
+          periodKey: purchasePeriodKey(sku, quoteNow),
+          createdAt: quoteNow,
         }).returning();
         if (created === undefined) throw new Error("WALLET_INTENT_CREATE_FAILED");
         return { ok: true as const, value: projectIntent(created), reused: false };
@@ -571,7 +602,7 @@ export function createWalletUnlockService(
 
       // Dedicated zero-cost unlock path when effective price is 0 (100% rollover credit)
       if (intent.priceLa === 0) {
-        return database.transaction(async (transaction) => {
+        const zeroResult = await database.transaction(async (transaction) => {
           const currentNow = now();
           const [initialIntent] = await transaction.select().from(walletPurchaseIntents)
             .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
@@ -600,9 +631,11 @@ export function createWalletUnlockService(
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null) && lockedIntent.locale !== "vi")) {
             return failed("WALLET_INTENT_INVALID");
           }
+          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow)) return failed("WALLET_INTENT_VERSION_CONFLICT");
+          if (lockedIntent.sku === "ZIWEI-YEAR-2026-P0" && deriveReportTimingLineage(currentNow).targetYear !== 2026) return failed("WALLET_INTENT_INVALID");
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
@@ -611,7 +644,7 @@ export function createWalletUnlockService(
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return failed("WALLET_INTENT_INVALID");
 
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow);
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
@@ -648,7 +681,7 @@ export function createWalletUnlockService(
           }).returning();
           if (zeroTx === undefined) throw new Error("WALLET_TRANSACTION_CREATE_FAILED");
 
-          const reportVersions = reportVersionResolver(locale);
+          const reportVersions = periodKindForSku(sku) ? periodReportVersions() : topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
           const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
             .from(ziweiCharts)
             .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))
@@ -659,6 +692,7 @@ export function createWalletUnlockService(
             orderId: null,
             ledgerSpendId: zeroTx.id,
             chartId: lockedIntent.chartId,
+            periodKey: lockedIntent.periodKey,
             sku,
             ownerId: actor.userId,
             scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
@@ -667,7 +701,7 @@ export function createWalletUnlockService(
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
 
-          const { reservation, event } = await reserveNatalReport(transaction, {
+          const { reservation, event } = await reservePaidReport(transaction, {
             entitlement, chartVersionId: lockedIntent.chartVersionId, evidenceVersionId: evidence.id,
             locale, versions: reportVersions, readingContextRevisionId: readingContext?.revisionId ?? null,
             now: currentNow, traceId: actor.requestId,
@@ -743,6 +777,13 @@ export function createWalletUnlockService(
             continuation,
           );
         });
+        if (!zeroResult.ok && zeroResult.code === "WALLET_INTENT_VERSION_CONFLICT") {
+          const [completed] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, intent.id)).limit(1);
+          // A simultaneous identical zero-price command may have completed while this transaction waited.
+          // Re-enter only the completed-intent receipt path, which checks the immutable fingerprint.
+          if (completed?.status === "completed") return createWalletUnlockService(database, wallet, options).unlock(actor, request);
+        }
+        return zeroResult;
       }
 
       const result = await wallet.spend<UnlockContinuation>({
@@ -781,9 +822,11 @@ export function createWalletUnlockService(
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale)) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null) && lockedIntent.locale !== "vi")) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
+          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow)) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          if (lockedIntent.sku === "ZIWEI-YEAR-2026-P0" && deriveReportTimingLineage(currentNow).targetYear !== 2026) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
@@ -791,11 +834,11 @@ export function createWalletUnlockService(
           }
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow);
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
-          const reportVersions = reportVersionResolver(locale);
+          const reportVersions = periodKindForSku(sku) ? periodReportVersions() : topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
           const [readingContext] = await transaction.select({ revisionId: birthProfileReadingContexts.currentRevisionId })
             .from(ziweiCharts)
             .leftJoin(birthProfileReadingContexts, eq(birthProfileReadingContexts.profileId, ziweiCharts.profileId))
@@ -805,6 +848,7 @@ export function createWalletUnlockService(
             orderId: null,
             ledgerSpendId: metadata.spendTransactionId,
             chartId: lockedIntent.chartId,
+            periodKey: lockedIntent.periodKey,
             sku,
             ownerId: actor.userId,
             scope: resolveEntitlementScopeForSku(sku, reportVersions.family),
@@ -812,7 +856,7 @@ export function createWalletUnlockService(
             createdAt: currentNow,
           }).returning();
           if (entitlement === undefined) throw new Error("WALLET_ENTITLEMENT_CREATE_FAILED");
-          const { reservation, event } = await reserveNatalReport(transaction, {
+          const { reservation, event } = await reservePaidReport(transaction, {
             entitlement, chartVersionId: lockedIntent.chartVersionId, evidenceVersionId: evidence.id,
             locale, versions: reportVersions, readingContextRevisionId: readingContext?.revisionId ?? null,
             now: currentNow, traceId: actor.requestId,

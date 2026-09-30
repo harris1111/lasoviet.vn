@@ -107,8 +107,9 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
   const product = findLaProduct(sku);
-  if (!product || !["natal", "palace"].includes(product.category) || !Number.isSafeInteger(priceLa)) return false;
-  return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa;
+  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
+  return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }
 
 export function createDatabaseReportGenerationSourceRepository(dependencies: {
@@ -245,6 +246,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           row.intent.chartId !== entitlement.chartId ||
           row.intent.chartVersionId !== row.reservation.chartVersionId ||
           row.intent.sku !== entitlement.sku ||
+          row.intent.periodKey !== entitlement.periodKey ||
           row.intent.sku !== row.reservation.sku ||
           row.intent.locale !== row.reservation.locale ||
           !validWalletPrice(row.intent.sku, row.intent.priceLa)
@@ -426,6 +428,16 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           return invalid();
         }
 
+        let paidPeriodKey: string | undefined;
+        if (snapshotRecord.snapshot.periodReading) {
+          const [authority] = await dependencies.database.select({periodKey: commerceEntitlements.periodKey, chartId: commerceEntitlements.chartId})
+            .from(reportReservations).innerJoin(commerceEntitlements, eq(commerceEntitlements.id, reportReservations.entitlementId))
+            .where(eq(reportReservations.reportVersionId, input.reportVersionId)).limit(1);
+          if (!authority || authority.periodKey !== snapshotRecord.snapshot.periodReading.periodKey ||
+              authority.chartId !== snapshotRecord.snapshot.periodReading.chartId) return invalid();
+          paidPeriodKey = authority.periodKey;
+        }
+
         const sourceSnapshot = {
           version: 1 as const,
           reportId: snapshotRecord.reportId,
@@ -523,6 +535,8 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
           knowledgePassages: aggregatedPassages,
           comprehensiveFacts: factsV4.natal,
           comprehensiveFactsV4: factsV4,
+          periodReadingFacts: snapshotRecord.snapshot.periodReading,
+          paidPeriodKey,
           knowledgePacks,
           readingContext,
         };

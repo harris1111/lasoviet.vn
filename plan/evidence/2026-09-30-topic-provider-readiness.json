@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "campaignId": "08d32c42-c103-4976-884a-79a0645febba",
+  "asOfDate": "2026-09-30",
+  "selectedTopics": [
+    "relationship_marriage",
+    "career_wealth"
+  ],
+  "requestedRuns": 20,
+  "source": "synthetic profiles calculated by Iztro; real configured provider required for acceptance",
+  "status": "blocked",
+  "acceptedTopics": [],
+  "evidence": [],
+  "reason": "CONFIGURED_PROVIDER_DATABASE_AND_APPROVED_PRODUCTION_GATE_REQUIRED"
+}

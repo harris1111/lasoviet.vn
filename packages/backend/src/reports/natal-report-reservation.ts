@@ -13,14 +13,14 @@ export async function reserveNatalReport(database: Database, input: {
   chartVersionId: string;
   evidenceVersionId: string;
   locale: "vi" | "en";
-  versions: ReportVersionSelection;
+  versions: { family: ReportVersionSelection["family"]; knowledgeVersion: string; promptVersion: string; reportConfigVersion: string; timingRuleVersion?: string; sensitivityRuleVersion?: string };
   readingContextRevisionId: string | null;
   now: Date;
   traceId: string;
   aggregateType?: "order" | "report";
   aggregateId?: string;
 }) {
-  const { entitlement, versions, now } = input;
+  const { entitlement, now } = input;
   if (!NATAL_REPORT_SKUS.includes(entitlement.sku)) throw new Error("NATAL_REPORT_SKU_UNSUPPORTED");
   await database.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`commerce:chart:${entitlement.chartId}`}))`);
   const [existing] = await database.select({ reservation: reportReservations })
@@ -60,6 +60,18 @@ export async function reserveNatalReport(database: Database, input: {
     await database.insert(reportEntitlementLinks).values({ entitlementId: entitlement.id, reservationId: existing.reservation.id, createdAt: now });
     return { reservation: existing.reservation, event };
   }
+  return reserveDedicatedReport(database, input);
+}
+
+/** Topic and period purchases keep independent generation provenance. */
+export async function reservePaidReport(database: Database, input: Parameters<typeof reserveNatalReport>[1]) {
+  if (NATAL_REPORT_SKUS.includes(input.entitlement.sku)) return reserveNatalReport(database, input);
+  if (!["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(input.entitlement.sku)) throw new Error("REPORT_SKU_UNSUPPORTED");
+  return reserveDedicatedReport(database, input);
+}
+
+async function reserveDedicatedReport(database: Database, input: Parameters<typeof reserveNatalReport>[1]) {
+  const { entitlement, versions, now } = input;
   const timing = versions.family === "v4" || versions.family === "v4_1"
     ? deriveReportTimingLineage(now, { timingRuleVersion: versions.timingRuleVersion }) : null;
   const [reservation] = await database.insert(reportReservations).values({

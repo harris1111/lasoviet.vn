@@ -300,6 +300,14 @@
     "timeline_read_full": "Read this cycle in full",
     "timeline_read_palace": "Read the {palace} palace"
   },
+  "topicReader": {
+    "eyebrow": "Topic deep dive",
+    "navigation": "Reading navigation",
+    "library": "Your library",
+    "print": "Print reading",
+    "actions": "Practical actions",
+    "avoid": "Avoid:"
+  },
   "feedback": {
     "question": "Does this part reflect your experience?",
     "accurate": "Accurate",
@@ -316,5 +324,28 @@
     "claim": "Request a Lá refund and lock this part",
     "restored": "{amount} Lá restored. This reading is now locked.",
     "related": "Explore {palace}"
+  },
+  "membership": {
+    "title": "Membership",
+    "activeUntil": "Membership is active until {date}.",
+    "inactive": "Membership is not active.",
+    "manualRenewal": "Manual renewal adds time to your remaining period. We never renew or spend Lá automatically.",
+    "benefitsPending": "Monthly readings and personalized tools: coming soon. Comprehensive reports are purchased separately. The 20% price is compared with rollover credit; the lower price applies without stacking.",
+    "signIn": "Sign in to view membership",
+    "renew": "Renew {days} days · {price} Lá",
+    "purchase": "Join for {days} days · {price} Lá",
+    "monthly": "Monthly membership",
+    "yearly": "Annual membership",
+    "confirmTitle": "Confirm membership",
+    "confirm": "Confirm Lá payment",
+    "confirmAfterTopup": "After topping up, return to Membership to confirm your purchase or renewal.",
+    "loading": "Loading membership status…",
+    "error": "Membership status could not be loaded. Please try again."
+  },
+  "periodReader": {
+    "calendar": "Lunar calendar reading",
+    "overview": "Overview",
+    "periods": "Reading periods",
+    "cautions": "Things to consider"
   }
 }

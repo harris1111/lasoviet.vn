@@ -63,7 +63,7 @@ export default async function TopUpPage({
       <div className="container">
         <PaidTopicSelector
           locale={locale}
-          initialTab="nap-la"
+          initialTab={query?.tab === "hoi-vien" ? "hoi-vien" : "nap-la"}
           initialPackId={initialPackId}
           topUpContinuation={continuation}
           topUpReturnPath={topUpReturnPath}

@@ -840,6 +840,33 @@ export type {
   DailyReadingAccessStatus,
   DailyReadingAccessEvaluationV1,
 } from "./time-limited-entitlement-v1.js";
+export {
+  ZIWEI_TOPIC_DEEP_DIVE_IDS,
+  ZIWEI_TOPIC_SKU_MAP,
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI,
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_EN,
+  TOPIC_PALACE_SCOPES,
+  ZiweiTopicDeepDiveIdSchema,
+  ZiweiTopicOverviewSchema,
+  ZiweiTopicPalaceAnchorSchema,
+  ZiweiTopicThematicDimensionSchema,
+  ZiweiTopicDecadalTimingActiveSchema,
+  ZiweiTopicDecadalTimingNotStartedSchema,
+  ZiweiTopicDecadalTimingSchema,
+  ZiweiTopicActionItemSchema,
+  ZiweiTopicDeepDiveContentV1Schema,
+} from "./ziwei-topic-deep-dive-v1.js";
+export type {
+  ZiweiTopicDeepDiveId,
+  ZiweiTopicOverview,
+  ZiweiTopicPalaceAnchor,
+  ZiweiTopicThematicDimension,
+  ZiweiTopicDecadalTimingActive,
+  ZiweiTopicDecadalTimingNotStarted,
+  ZiweiTopicDecadalTiming,
+  ZiweiTopicActionItem,
+  ZiweiTopicDeepDiveContentV1,
+} from "./ziwei-topic-deep-dive-v1.js";
 
 export {
   PartFeedbackRatingSchema,
@@ -871,3 +898,11 @@ export {
   type ReportChartStarV1,
   type ReportDecadalCycleV1,
 } from "./report-chart-snapshot-v1.js";
+
+export { MembershipExpiryEmailRequestSchema, type MembershipExpiryEmailRequest } from "./auth-email.js";
+export { ZiweiPeriodFactV1Schema, ZiweiPeriodReadingFactsV1Schema, ZiweiPeriodReadingContentV1Schema, type ZiweiPeriodReadingFactsV1, type ZiweiPeriodReadingContentV1 } from "./ziwei-period-reading-v1.js";
+export { ZiweiTopicDeepDivePublicContentV1Schema, projectTopicDeepDivePublicContent, type ZiweiTopicDeepDivePublicContentV1 } from "./ziwei-topic-deep-dive-v1.js";
+export { ReportTopicReadyViewV1Schema, PaidReportSkuSchema, type ReportTopicReadyViewV1 } from "./identity-report-v1.js";
+
+export { ZiweiPeriodReadingPublicContentV1Schema, projectPeriodReadingPublicContent, type ZiweiPeriodReadingPublicContentV1 } from "./ziwei-period-reading-public-v1.js";
+export { ReportPeriodReadyViewV1Schema, type ReportPeriodReadyViewV1 } from "./identity-report-v1.js";

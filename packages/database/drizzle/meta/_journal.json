@@ -362,6 +362,20 @@
     {
       "idx": 51,
       "version": "7",
+      "when": 1790813820000,
+      "tag": "0051_membership_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1790813880000,
+      "tag": "0052_period_reading_purchase_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
       "when": 1790813940000,
       "tag": "0053_delayed_unlock_presence",
       "breakpoints": true

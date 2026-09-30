@@ -102,6 +102,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   chartVersionId: text("chart_version_id").notNull(),
   sku: text("sku").notNull(),
   locale: text("locale").notNull(),
+  periodKey: text("period_key").notNull().default("lifetime"),
   priceLa: integer("price_la").notNull(),
   status: text("status").notNull().default("pending"),
   stateVersion: integer("state_version").notNull().default(1),
@@ -110,17 +111,17 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
 }, (table) => [
   uniqueIndex("wallet_purchase_intents_owner_chart_sku_pending_unique").on(table.ownerId, table.chartId, table.sku).where(sql`${table.status} = 'pending'`),
   check("wallet_purchase_intents_valid", sql`(
-    (${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} = 240)
+    (${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} IN (240, 192))
     OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} >= 0 AND ${table.priceLa} <= 960)
-    OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
-    OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
+    OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
+    OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
-    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 300)
-    OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 480)
-    OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1300)
+    OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240, 0))
+    OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
+    OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040))
     OR (${table.sku} IN ('MEMBERSHIP-MONTHLY-P0', 'MEMBERSHIP-MONTHLY-1500') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1500)
     OR (${table.sku} IN ('MEMBERSHIP-YEARLY-P0', 'MEMBERSHIP-YEARLY-8000') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 8000)
-    OR (${table.sku} LIKE 'ZIWEI-PALACE-%' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 120)
+    OR (${table.sku} LIKE 'ZIWEI-PALACE-%' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (120, 96))
   ) AND ${table.status} IN ('pending', 'completed', 'cancelled', 'expired') AND ${table.stateVersion} > 0`),
 ]);
 

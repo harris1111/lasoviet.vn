@@ -76,6 +76,7 @@ export function WalletUnlockDialog({
   labels,
 }: WalletUnlockDialogProps) {
   const t = useTranslations("reports");
+  const membership = sku === "MEMBERSHIP-MONTHLY-P0" || sku === "MEMBERSHIP-YEARLY-P0";
   const [state, setState] = useState<DialogState>({ step: "loading" });
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -88,10 +89,10 @@ export function WalletUnlockDialog({
     async function load() {
       try {
         const [intentResponse, balanceResponse] = await Promise.all([
-          fetch("/api/commerce/wallet/purchase-intents", {
+          fetch(membership ? "/api/commerce/membership/intents" : "/api/commerce/wallet/purchase-intents", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ chartId, chartVersionId, sku, locale }),
+            body: JSON.stringify(membership ? { sku, locale } : { chartId, chartVersionId, sku, locale }),
           }),
           fetch("/api/commerce/wallet/balance"),
         ]);
@@ -157,7 +158,7 @@ export function WalletUnlockDialog({
     const data: ConfirmData = state;
     setState({ step: "confirming", ...data });
     try {
-      const response = await fetch("/api/commerce/wallet/unlock", {
+      const response = await fetch(membership ? "/api/commerce/membership/purchase" : "/api/commerce/wallet/unlock", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -178,7 +179,7 @@ export function WalletUnlockDialog({
       }
       const value = (await response.json()) as { reportId: string | null };
       onOpenChange(false);
-      onUnlocked(value.reportId);
+      onUnlocked(value.reportId ?? null);
     } catch {
       setState({ step: "error", message: labels.genericError });
     }
@@ -190,7 +191,7 @@ export function WalletUnlockDialog({
   const gap = shortBalance ? shortBalance.priceLa - shortBalance.balance : 0;
   const coveringPack = shortBalance ? findSmallestCoveringPack(gap) : LA_TOP_UP_PACKS[0]!;
   const topUpParams = new URLSearchParams({ pack: coveringPack.id });
-  if (shortBalance) {
+  if (shortBalance && !membership) {
     topUpParams.set("intent", shortBalance.intentId);
     topUpParams.set("intentVersion", String(shortBalance.intentVersion));
     topUpParams.set("price", String(shortBalance.priceLa));
@@ -267,7 +268,7 @@ export function WalletUnlockDialog({
           <div className="wallet-unlock-dialog-short-balance">
             <h3>{labels.shortBalanceTitle}</h3>
             <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>
-            <p>{t("selection.unlockAfterTopupConsent", { item: itemName, price: shortBalance.priceLa })}</p>
+            <p>{membership ? t("membership.confirmAfterTopup") : t("selection.unlockAfterTopupConsent", { item: itemName, price: shortBalance.priceLa })}</p>
             <a className="button button-primary" href={topUpHref}>
               {t("selection.unlockDialogTopupAction", {
                 pack: coveringPack.name[locale],

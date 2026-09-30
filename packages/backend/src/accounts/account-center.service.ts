@@ -1,3 +1,5 @@
+import { ZiweiPeriodReadingContentV1Schema, projectPeriodReadingPublicContent, type ZiweiPeriodReadingPublicContentV1 } from "@lasoviet/contracts";
+import { ZiweiTopicDeepDiveContentV1Schema, projectTopicDeepDivePublicContent, type ZiweiTopicDeepDivePublicContentV1 } from "@lasoviet/contracts";
 import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import type {
@@ -753,8 +755,14 @@ export function createAccountCenterService(
         }
 
         const parsedReport = IdentityReportV1Schema.safeParse(ver.structuredContent);
-        let content: IdentityReportContentV1 | ZiweiComprehensiveReportContentV1;
-        if (parsedReport.success) {
+        let content: IdentityReportContentV1 | ZiweiComprehensiveReportContentV1 | ZiweiTopicDeepDivePublicContentV1 | ZiweiPeriodReadingPublicContentV1;
+        const topic = ZiweiTopicDeepDiveContentV1Schema.safeParse(ver.structuredContent);
+        const period = ZiweiPeriodReadingContentV1Schema.safeParse(ver.structuredContent);
+        if (period.success) {
+          content = projectPeriodReadingPublicContent(period.data);
+        } else if (topic.success) {
+          content = projectTopicDeepDivePublicContent(topic.data);
+        } else if (parsedReport.success) {
           content = {
             sections: parsedReport.data.sections,
             reflectionQuestions: parsedReport.data.reflectionQuestions,

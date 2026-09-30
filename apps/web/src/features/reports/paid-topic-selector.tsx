@@ -1,3 +1,4 @@
+import { MembershipPanel } from "../commerce/membership-panel";
 import type { WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -519,6 +520,7 @@ export function PaidTopicSelector({
             })}
           </div>
           <p className="pack-note">{t("selection.membershipNotice")}</p>
+          <MembershipPanel locale={locale} />
         </section>
 
       {/* Tab 3: Nạp Lá (FD-066: VND appears here) */}

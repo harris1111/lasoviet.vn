@@ -113,3 +113,4 @@ export {
 } from "./schema/feedback-guarantee.js";
 
 export { notificationVerifiedSignins } from "./schema/notifications.js";
+export * from "./schema/membership.js";
