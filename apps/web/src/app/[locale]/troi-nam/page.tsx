@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 
 import { SiteFooter } from "../../../components/site-footer";
 import { SiteHeader } from "../../../components/site-header";
+import { TroiNamCompare } from "../../../features/troi-nam/troi-nam-compare";
 import { TroiNamExplore } from "../../../features/troi-nam/troi-nam-explore";
 import { TroiNamHero } from "../../../features/troi-nam/troi-nam-hero";
+import { TroiNamNeeds } from "../../../features/troi-nam/troi-nam-needs";
 import { TroiNamStory } from "../../../features/troi-nam/troi-nam-story";
+import { TroiNamTestimonials } from "../../../features/troi-nam/troi-nam-testimonials";
 import { TroiNamTicker } from "../../../features/troi-nam/troi-nam-ticker";
+import { TroiNamUsp } from "../../../features/troi-nam/troi-nam-usp";
 
 type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
 
@@ -31,6 +35,18 @@ export default async function Page({ params }: PageProps) {
         </section>
         <section className="tn-section" data-troi-nam-block="explore">
           <TroiNamExplore locale={locale} />
+        </section>
+        <section className="tn-section" data-troi-nam-block="needs">
+          <TroiNamNeeds locale={locale} />
+        </section>
+        <section className="tn-section" data-troi-nam-block="compare">
+          <TroiNamCompare />
+        </section>
+        <section className="tn-section" data-troi-nam-block="testimonials">
+          <TroiNamTestimonials />
+        </section>
+        <section className="tn-section" data-troi-nam-block="usp">
+          <TroiNamUsp />
         </section>
       </main>
       <SiteFooter locale={locale} />

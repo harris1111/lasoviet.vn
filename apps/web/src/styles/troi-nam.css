@@ -495,3 +495,620 @@
   }
 }
 
+
+/* ---- PLAN2-B: Needs, Compare ---- */
+.tn .tn-needs.hv3,
+.tn .tn-compare.hv3 {
+  position: relative;
+  max-width: var(--tn-max);
+  margin-inline: auto;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-needs {
+  scroll-margin-top: var(--tn-section-y);
+}
+
+.tn .tn-needs .hv3-container,
+.tn .tn-compare .hv3-container {
+  position: relative;
+  max-width: var(--tn-max);
+  min-width: 0;
+  padding: 0;
+}
+
+.tn .tn-needs .hv3-h2,
+.tn .tn-compare .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-needs .hv3-lead,
+.tn .tn-needs .hv3-muted,
+.tn .tn-compare .hv3-lead {
+  color: var(--tn-text-muted);
+}
+
+.tn .tn-needs .hv3-link,
+.tn .tn-compare .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-needs :focus-visible,
+.tn .tn-compare :focus-visible {
+  outline-color: var(--tn-gold-light);
+}
+
+/* Needs: add decorative plates to the original four buttons. */
+.tn .tn-needs .hv3-needs-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-needs .hv3-need-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-needs .hv3-need {
+  position: relative;
+  overflow: hidden;
+  flex-direction: column;
+  min-width: 0;
+  gap: calc(var(--tn-gutter) / 2);
+  padding: calc(clamp(10rem, 22vw, 14rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  color: var(--tn-text);
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-need::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(10rem, 22vw, 14rem);
+  background-size: cover;
+  background-position: center 44%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.tn .tn-needs .hv3-need[aria-pressed="true"] {
+  padding: calc(clamp(10rem, 22vw, 14rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  border: 1px solid var(--tn-gold-light);
+  background: var(--lacquer-700);
+  box-shadow: inset 0 0 0 1px var(--tn-gold-light);
+}
+
+.tn .tn-needs .hv3-need-icon {
+  background-color: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+  background-size: 34px 34px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tn .tn-needs .hv3-need-question {
+  color: var(--tn-text-muted);
+}
+
+.tn .tn-needs .hv3-need-detail {
+  padding: var(--tn-gutter);
+  min-width: 0;
+  gap: var(--tn-gutter);
+  color: var(--tn-text);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-need-art {
+  height: clamp(14rem, 45vw, 22rem);
+  margin: calc(-1 * var(--tn-gutter)) calc(-1 * var(--tn-gutter)) 0;
+  background-color: var(--lacquer-800);
+  background-position: center 44%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Decorative detail image follows aria-pressed via the wrapper's asset rules. */
+.tn .tn-needs .hv3-need-art img {
+  display: none;
+}
+
+.tn .tn-needs .hv3-chips span {
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-btn {
+  color: var(--tn-ink) !important;
+  background: var(--tn-gold-light);
+}
+
+.tn .tn-needs .hv3-btn:hover {
+  background: var(--tn-gold);
+}
+
+/* Keep all existing discipline links and artwork, with the Trời Nam palette. */
+.tn .tn-needs .hv3-lens-head {
+  margin-top: var(--tn-section-y);
+  scroll-margin-top: var(--tn-section-y);
+}
+
+.tn .tn-needs .hv3-disciplines {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-needs .hv3-disc-slot-flagship {
+  grid-column: auto;
+}
+
+.tn .tn-needs .hv3-disc,
+.tn .tn-needs .hv3-disc-flagship {
+  color: var(--tn-text) !important;
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-disc-flagship {
+  flex-direction: column;
+}
+
+.tn .tn-needs .hv3-disc-art,
+.tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art,
+.tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
+  flex: none;
+  aspect-ratio: 4 / 3;
+  background: var(--lacquer-900);
+  border: 0;
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-disc:hover,
+.tn .tn-needs .hv3-disc:focus-visible {
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-needs .hv3-mask {
+  background: var(--tn-gold);
+}
+
+.tn .tn-needs .hv3-disc-cta {
+  color: var(--tn-gold-light);
+}
+
+/* Compare: subtle paper texture behind the existing disclosure and data. */
+.tn .tn-compare {
+  isolation: isolate;
+}
+
+.tn .tn-compare-texture {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.tn .tn-compare .hv3-compare-head {
+  padding: var(--tn-gutter);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-points {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-compare .hv3-compare-points span {
+  padding: var(--tn-gutter);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-points svg {
+  color: var(--tn-gold);
+}
+
+.tn .tn-compare .hv3-compare-details {
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-details > summary {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-compare .hv3-tabs {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+.tn .tn-compare .hv3-tabs button {
+  flex: 1 1 auto;
+  white-space: normal;
+  padding-block: calc(var(--tn-gutter) / 4);
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-tabs button[aria-pressed="true"] {
+  background: var(--tn-gold-light);
+  color: var(--tn-ink);
+  border-color: var(--tn-gold-light);
+}
+
+.tn .tn-compare .hv3-cmp-card {
+  color: var(--tn-text);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-cmp-top {
+  background: var(--lacquer-700);
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-compare .hv3-cmp-card-title,
+.tn .tn-compare .hv3-cmp-value {
+  color: var(--tn-text);
+}
+
+.tn .tn-compare .hv3-cmp-axis,
+.tn .tn-compare .hv3-cmp-fix strong {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-compare .hv3-cmp-fix {
+  color: var(--tn-text-muted);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-table th,
+.tn .tn-compare .hv3-compare-table td {
+  color: var(--tn-text-muted);
+  border-color: var(--lacquer-line);
+  overflow-wrap: anywhere;
+}
+
+.tn .tn-compare .hv3-compare-table thead th,
+.tn .tn-compare .hv3-compare-table tbody th {
+  color: var(--tn-text);
+}
+
+.tn .tn-compare .hv3-compare-table [data-col="lsv"] {
+  color: var(--tn-text);
+  background: var(--lacquer-700);
+  border-color: var(--lacquer-line);
+  box-shadow: inset 3px 0 0 var(--tn-gold);
+}
+
+.tn .tn-compare .hv3-cmp-mark {
+  color: var(--son);
+}
+
+.tn .tn-compare .hv3-cmp-mark[data-strength="true"],
+.tn .tn-compare .hv3-cmp-mark[data-lsv="true"] {
+  color: var(--tn-gold-light);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-needs .hv3-needs-body {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .tn .tn-needs .hv3-need-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tn .tn-needs .hv3-disciplines {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tn .tn-needs .hv3-disc-slot-flagship {
+    grid-column: 1 / -1;
+  }
+
+  .tn .tn-needs .hv3-disc-flagship {
+    flex-direction: row;
+  }
+
+  .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
+    flex: 0 0 34%;
+    aspect-ratio: 4 / 5;
+    border-bottom: 0;
+    border-right: 1px solid var(--lacquer-line);
+  }
+
+  .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art {
+    aspect-ratio: 4 / 5;
+  }
+
+  .tn .tn-compare .hv3-compare-points {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Preserve v3's 1180px table threshold; cards remain at narrow desktops. */
+  .tn .tn-compare .hv3-compare-head {
+    max-width: 60rem;
+  }
+}
+
+
+
+/* ---- PLAN2-C: Testimonials, Usp ---- */
+/* Append only. Original v3 components, reader data and avatar rendering stay intact. */
+.tn .tn-testimonials.hv3,
+.tn .tn-usp.hv3 {
+  max-width: var(--tn-max);
+  margin-inline: auto;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-testimonials .hv3-container,
+.tn .tn-usp .hv3-container {
+  max-width: var(--tn-max);
+  padding: 0;
+}
+
+.tn .tn-testimonials .hv3-h2,
+.tn .tn-usp .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-testimonials :focus-visible,
+.tn .tn-usp :focus-visible {
+  outline: 2px solid var(--tn-gold-light) !important;
+  outline-offset: 3px;
+}
+
+/* Keep the v3 768/1024px visibility rules: its rotation hook uses those breakpoints.
+ * Keep the 16px row gap: the original swipe/auto-scroll calculation depends on it.
+ * No transform, containment or clipping on the wrapper: the fixed dialog needs the viewport.
+ */
+.tn .tn-testimonials .hv3-tt-head {
+  gap: var(--tn-gutter);
+  margin-bottom: var(--tn-gutter);
+}
+
+.tn .tn-testimonials .hv3-eyebrow,
+.tn .tn-testimonials .hv3-tt-label,
+.tn .tn-testimonials .hv3-tt-attrib {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-testimonials .hv3-tt-lead {
+  max-width: 42ch;
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-testimonials .hv3-tt-card {
+  padding: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+  border-radius: 16px;
+  background: var(--lacquer-800);
+  color: var(--tn-text);
+}
+
+.tn .tn-testimonials .hv3-tt-card:hover,
+.tn .tn-testimonials .hv3-tt-card:focus-within {
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-testimonials .hv3-tt-mark {
+  left: var(--tn-gutter);
+  background: var(--son);
+}
+
+.tn .tn-testimonials .hv3-tt-quote {
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-testimonials .hv3-tt-foot {
+  gap: 0 calc(var(--tn-gutter) / 2);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-testimonials .hv3-tt-who {
+  max-width: 100%;
+}
+
+.tn .tn-testimonials .hv3-tt-who > div {
+  min-width: 0;
+}
+
+.tn .tn-testimonials .hv3-tt-name {
+  color: var(--tn-text);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tn .tn-testimonials .hv3-tt-city {
+  color: var(--tn-text-muted);
+}
+
+/* Avatar element and its sprite/monogram styling are intentionally untouched. */
+
+.tn .tn-testimonials .hv3-tt-read,
+.tn .tn-testimonials .hv3-tt-more,
+.tn .tn-testimonials .hv3-tt-start {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-testimonials .hv3-tt-row {
+  margin-inline: 0;
+  padding-inline: 0;
+  scroll-padding-inline: 0;
+}
+
+.tn .tn-testimonials .hv3-tt-actions {
+  margin-top: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-testimonials .hv3-tt-arrows button,
+.tn .tn-testimonials .hv3-tt-pause,
+.tn .tn-testimonials .hv3-tt-filters button,
+.tn .tn-testimonials .hv3-tt-dialog-head button {
+  border-color: var(--lacquer-line);
+  color: var(--tn-text);
+  background: var(--lacquer-800);
+}
+
+.tn .tn-testimonials .hv3-tt-filters button[aria-pressed="true"] {
+  border-color: var(--tn-gold-light);
+  background: var(--tn-gold-light);
+  color: var(--tn-ink);
+}
+
+.tn .tn-testimonials .hv3-tt-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-testimonials .hv3-tt-dialog {
+  padding: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+  background: var(--lacquer-800);
+  color: var(--tn-text);
+}
+
+/* USP: replace decorative photos and icons through wrapper-scoped CSS only.
+ * The P02 URL is supplied by troiNamAsset; --tn-usp-motifs is an image reference,
+ * not a new color, typography or spacing token. All copy and links remain in v3.
+ */
+.tn .tn-usp .hv3-usp-head {
+  gap: var(--tn-gutter);
+  padding-top: 0;
+}
+
+.tn .tn-usp .hv3-usp-lead {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+  text-shadow: none;
+}
+
+.tn .tn-usp .hv3-usp-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+  margin-top: var(--tn-gutter);
+}
+
+.tn .tn-usp .hv3-usp-card {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+  border-radius: 16px;
+  background: var(--lacquer-800);
+  color: var(--tn-text);
+}
+
+.tn .tn-usp .hv3-usp-photo,
+.tn .tn-usp .hv3-usp-scrim,
+.tn .tn-usp .hv3-usp-icon {
+  display: none;
+}
+
+.tn .tn-usp .hv3-usp-body {
+  position: relative;
+  inset: auto;
+  padding: 0;
+}
+
+/* P02 is a 640x427 sheet, inspected before choosing these decorative windows.
+ * No extra img/text/accessibility node is inserted into the original cards.
+ */
+.tn .tn-usp .hv3-usp-body::before {
+  content: "";
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: calc(var(--tn-gutter) / 2);
+  background-image: var(--tn-usp-motifs);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* n1: chim Lac — continuity; window x=0,y=50,220x185.
+ * The stepped crop excludes the neighboring standing bird below the beak.
+ */
+.tn .tn-usp .hv3-usp-dark .hv3-usp-body::before {
+  height: 5.04545rem;
+  background-size: 290.909% auto;
+  background-position: 0% 20.661%;
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 78% 42%, 78% 100%, 0 100%);
+}
+
+/* n2: star — an individual center; window x=480,y=70,160x160. */
+.tn .tn-usp .hv3-usp-paper .hv3-usp-body::before {
+  background-size: 400% auto;
+  background-position: 100% 26.217%;
+}
+
+/* n3: paired spirals — relationships; window x=210,y=285,140x90. */
+.tn .tn-usp .hv3-usp-ink .hv3-usp-body::before {
+  height: 3.85714rem;
+  background-size: 457.143% auto;
+  background-position: 42% 84.570%;
+}
+
+/* n4: boat — a journey at one's own pace; window x=0,y=235,210x140. */
+.tn .tn-usp .hv3-usp-son .hv3-usp-body::before {
+  height: 4rem;
+  background-size: 304.762% auto;
+  background-position: 0% 81.881%;
+}
+
+.tn .tn-usp .hv3-usp-card h3 {
+  margin-top: 0;
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-usp .hv3-usp-card p {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-usp .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-testimonials .hv3-tt-head,
+  .tn .tn-usp .hv3-usp-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .tn .tn-testimonials .hv3-tt-card,
+  .tn .tn-testimonials .hv3-tt-dialog,
+  .tn .tn-usp .hv3-usp-card {
+    padding: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-testimonials .hv3-tt-mark {
+    left: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-testimonials .hv3-tt-list,
+  .tn .tn-usp .hv3-usp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--tn-gutter) / 2);
+  }
+}
