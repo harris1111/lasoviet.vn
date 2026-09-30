@@ -70,3 +70,13 @@ describe("report chart visuals", () => {
     expect(html).not.toMatch(/is-good|is-bad|is-risk/);
   });
 });
+
+it("draws only frozen triad/opposite connections and gives interactive charts one tab stop", () => {
+  const html = renderToStaticMarkup(<ReportChart snapshot={snapshot} selectedPalaceId="ziwei.palace.life" t={t} onSelect={() => undefined} />);
+  expect(html).toContain('class="report-chart-lines"');
+  expect(html).toContain('<polygon points="12.5,37.5 62.5,87.5 87.5,12.5"');
+  expect(html).toContain('<line x1="12.5" y1="37.5" x2="87.5" y2="62.5"');
+  expect(html.match(/tabindex="0"/g)).toHaveLength(1);
+  expect(html.match(/tabindex="-1"/g)).toHaveLength(11);
+  expect(html).not.toContain("ziwei.palace.");
+});

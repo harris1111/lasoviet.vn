@@ -20,6 +20,7 @@ import {
   ReportStarChips,
 } from "./report-chart-visuals";
 import { computePalaceScores } from "./report-palace-score";
+import { ReportChartSheet } from "./report-chart-sheet";
 import { ReportNarrative } from "./report-narrative";
 import { splitLeadSentence, splitNarrative } from "./report-paragraphs";
 import { resolveActiveSectionIndex } from "./report-reading-position";
@@ -51,6 +52,7 @@ export function ComprehensiveReportReader({
 
   const [fontIdx, setFontIdx] = useState<number>(1);
   const [activeSectionIdx, setActiveSectionIdx] = useState<number>(0);
+  const [chartOpen, setChartOpen] = useState(false);
   const [tocOpen, setTocOpen] = useState<boolean>(false);
   const [progressPct, setProgressPct] = useState<number>(0);
   const [readSectionIds, setReadSectionIds] = useState<Set<string>>(new Set());
@@ -95,11 +97,13 @@ export function ComprehensiveReportReader({
     () => chartSnapshot?.palaces.find((p) => p.isLife)?.palaceId ?? "ziwei.palace.life",
   );
   const openPalaceById = (palaceId: string) => {
+    if (!isTier2) { scrollToUpgrade(); return; }
     setSelectedPalaceId(palaceId);
     setPalaceOpen(palaceId, true);
     const el = document.getElementById(`palace-${palaceId.replace("ziwei.palace.", "")}`);
     if (el) {
-      el.scrollIntoView({ block: "start" });
+      el.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      el.querySelector("summary")?.focus({ preventScroll: true });
     }
   };
 
@@ -129,15 +133,26 @@ export function ComprehensiveReportReader({
     );
   };
 
+  const printingRef = useRef(false);
   // Printing and PDF export must include every palace.
   useEffect(() => {
+    let previouslyOpen: HTMLDetailsElement[] = [];
     const openAll = () => {
+      if (printingRef.current) return;
+      printingRef.current = true;
+      previouslyOpen = Array.from(document.querySelectorAll<HTMLDetailsElement>(".report-palace-card[open]"));
       document.querySelectorAll<HTMLDetailsElement>(".report-palace-card").forEach((card) => {
         card.open = true;
       });
     };
+    const restore = () => {
+      if (!printingRef.current) return;
+      printingRef.current = false;
+      document.querySelectorAll<HTMLDetailsElement>(".report-palace-card").forEach((card) => { card.open = previouslyOpen.includes(card); });
+    };
     window.addEventListener("beforeprint", openAll);
-    return () => window.removeEventListener("beforeprint", openAll);
+    window.addEventListener("afterprint", restore);
+    return () => { window.removeEventListener("beforeprint", openAll); window.removeEventListener("afterprint", restore); };
   }, []);
 
   const tocSections = useMemo(() => {
@@ -291,6 +306,20 @@ export function ComprehensiveReportReader({
       if (idx < 0) return;
       const section = tocSections[idx]!;
       setActiveSectionIdx(idx);
+      if (chartSnapshot) {
+        if (section.id === "section-palace-readings" && isTier2Content(report.content)) {
+          const palaceTops = report.content.palaceReadings.map((palace) => document.getElementById(`palace-${palace.palaceId.replace("ziwei.palace.", "")}`)?.getBoundingClientRect().top ?? Infinity);
+          const palaceIndex = resolveActiveSectionIndex(palaceTops, window.innerHeight, false);
+          const palace = report.content.palaceReadings[palaceIndex];
+          if (palace) setSelectedPalaceId(palace.palaceId);
+        } else {
+          const target = section.id === "section-core-axis" ? chartSnapshot.palaces.find((palace) => palace.isBody)?.palaceId
+            : section.id === "section-overview" ? chartSnapshot.palaces.find((palace) => palace.isLife)?.palaceId
+            : section.id === "section-annual-snapshot" ? chartSnapshot.annual.palaceId
+            : section.id === "section-current-decadal" ? chartSnapshot.decadal.cycles.find((cycle) => cycle.ordinal === chartSnapshot.decadal.currentOrdinal)?.palaceId : undefined;
+          if (target) setSelectedPalaceId(target);
+        }
+      }
       setReadSectionIds((prev) => {
         if (prev.has(section.id)) return prev;
         const next = new Set(prev);
@@ -315,7 +344,7 @@ export function ComprehensiveReportReader({
       window.removeEventListener("resize", schedule);
       if (frame !== 0) cancelAnimationFrame(frame);
     };
-  }, [tocSections, report.reportId]);
+  }, [tocSections, report.reportId, chartSnapshot, report.content]);
 
   // Mobile TOC Dialog Keyboard Lifecycle
   useEffect(() => {
@@ -582,6 +611,12 @@ export function ComprehensiveReportReader({
         <div className="report-reader-layout">
           {/* LEFT TOC SIDEBAR (Desktop) */}
           <nav className="report-toc-sidebar report-toc-rail" aria-label={t("reader.toc_title")}>
+            {chartSnapshot && (
+              <div className="report-navigation-chart">
+                <ReportChart snapshot={chartSnapshot} selectedPalaceId={selectedPalaceId} variant="compact" t={t} onSelect={openPalaceById} />
+                <p className="report-chart-help">{t("reader.chart_navigation_help")}</p>
+              </div>
+            )}
             <p className="report-toc-count">
               {t("reader.read_progress_count", { read: readCount, total: totalCount })}
             </p>
@@ -776,7 +811,7 @@ export function ComprehensiveReportReader({
                             id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`}
                             className="report-subcard report-palace-card"
                             open={openPalaces.has(palace.palaceId)}
-                            onToggle={(event) => setPalaceOpen(palace.palaceId, event.currentTarget.open)}
+                            onToggle={(event) => { if (!printingRef.current) setPalaceOpen(palace.palaceId, event.currentTarget.open); }}
                           >
                             <summary className="report-palace-summary">
                               {chartSnapshot && (
@@ -992,6 +1027,18 @@ export function ComprehensiveReportReader({
           </main>
         </div>
       </div>
+
+      {chartSnapshot && (
+        <nav className="report-chart-mobile-bar" aria-label={t("reader.chart_navigation")}>
+          <button type="button" onClick={() => { setTocOpen(false); setChartOpen(true); }} aria-haspopup="dialog" aria-expanded={chartOpen}>{t("reader.open_chart")}</button>
+          <button type="button" onClick={() => setTocOpen(true)} aria-haspopup="dialog" aria-expanded={tocOpen}>{t("reader.open_toc")}</button>
+          <span aria-label={t("reader.read_progress")}>{Math.round(progressPct)}%</span>
+        </nav>
+      )}
+      {chartOpen && chartSnapshot && (
+        <ReportChartSheet snapshot={chartSnapshot} selectedPalaceId={selectedPalaceId} t={t}
+          meta={{ targetYear: chartSnapshot.annual.targetYear }} onClose={() => setChartOpen(false)} onSelect={openPalaceById} />
+      )}
 
       {/* MOBILE TOC SHEET (Modal / Dialog) */}
       {tocOpen && (
