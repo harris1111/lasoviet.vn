@@ -1,0 +1,15 @@
+{
+  "unsubscribe": {
+    "page_title": "Hủy đăng ký nhận thông báo",
+    "title": "Hủy đăng ký nhận email tin tức & gợi ý",
+    "description": "Bạn có chắc chắn muốn hủy đăng ký nhận các email tin tức, gợi ý và thông báo chăm sóc từ Lá Số Việt không? Bạn vẫn sẽ nhận được các email giao dịch thiết yếu như xác nhận đơn hàng, đặt lại mật khẩu và thông báo khi báo cáo hoàn thành.",
+    "confirm_button": "Xác nhận hủy đăng ký",
+    "submitting": "Đang xử lý...",
+    "success_title": "Đã hủy đăng ký thành công",
+    "success_message": "Bạn đã được hủy đăng ký nhận các email tin tức và gợi ý. Các email giao dịch thiết yếu vẫn sẽ tiếp tục được gửi bình thường.",
+    "error_title": "Không thể xử lý yêu cầu",
+    "error_invalid_or_expired": "Liên kết hủy đăng ký không hợp lệ hoặc đã hết hạn.",
+    "error_no_token": "Không tìm thấy mã xác nhận hủy đăng ký hợp lệ.",
+    "back_to_home": "Về trang chủ"
+  }
+}

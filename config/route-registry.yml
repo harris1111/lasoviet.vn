@@ -920,6 +920,24 @@ routes:
     intent: private.account.privacy
     template: account-privacy
 
+  - locale_behavior: vi_default_en_explicit
+    locale_owners: [vi, en]
+    owner: product
+    indexing: noindex_nofollow
+    canonical: self
+    robots: noindex,nofollow
+    schema_types: [WebPage]
+    redirect: { disposition: none }
+    priority: p1
+    status: live_noindex
+    sitemap: false
+    private: false
+    purchasable: false
+    id: notification.unsubscribe
+    path: /thong-bao/huy-dang-ky
+    intent: notification.unsubscribe
+    template: notification-unsubscribe
+
   - <<: *archived_defaults
     id: redirect.legacy-privacy
     path: /bao-mat-du-lieu

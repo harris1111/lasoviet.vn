@@ -123,4 +123,23 @@ describe("Phase 01 maintenance runner", () => {
     });
     expect(analyticsRetention.purgeExpired).toHaveBeenCalledWith(fixedNow, 25);
   });
+  it("keeps notification dispatch and nurture scanning disabled in maintenance runner", async () => {
+    const accountDeletion = { purgeExpired: vi.fn().mockResolvedValue([]) };
+    const anonymousRetention = { purgeExpired: vi.fn().mockResolvedValue([]) };
+    const retryAuthEmail = vi.fn().mockResolvedValue(0);
+
+    const runner = createPhaseOneMaintenanceRunner({
+      accountDeletion,
+      anonymousRetention,
+      retryAuthEmail,
+    });
+
+    const result = await runner.runOnce();
+    expect(result).not.toHaveProperty("nurture");
+    expect(result).toEqual({
+      accountPurges: 0,
+      anonymousPurges: 0,
+      retries: 0,
+    });
+  });
 });

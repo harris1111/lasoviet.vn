@@ -219,6 +219,22 @@ describe("route registry", () => {
       purchasable: false,
     });
   });
+  it("registers notification.unsubscribe as public, live_noindex, and excluded from sitemaps", () => {
+    const unsubRoute = routeRegistry.find((route) => route.id === "notification.unsubscribe");
+    expect(unsubRoute).toBeDefined();
+    expect(unsubRoute).toMatchObject({
+      id: "notification.unsubscribe",
+      path: "/thong-bao/huy-dang-ky",
+      intent: "notification.unsubscribe",
+      template: "notification-unsubscribe",
+      status: "live_noindex",
+      robots: "noindex,nofollow",
+      indexing: "noindex_nofollow",
+      sitemap: false,
+      private: false,
+      purchasable: false,
+    });
+  });
 });
 
 it("keeps the authenticated daily reading API private and out of search indexes", () => {
