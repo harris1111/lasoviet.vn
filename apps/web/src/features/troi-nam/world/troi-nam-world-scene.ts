@@ -1,18 +1,37 @@
 import * as THREE from "three";
 
 import { clampProgress } from "../troi-nam-motion-math";
+import { createKarstLayers } from "./troi-nam-world-terrain";
+import { createDawnLight } from "./troi-nam-world-light";
+import { createWater } from "./troi-nam-world-water";
 import type { WorldHandle, WorldOptions } from "./troi-nam-world-types";
 
 /**
- * Task 1 harness only: a lit ground plane standing in for the karst/water
- * scene, just to prove the factory's render/resize/active/dispose lifecycle
- * is clean before any real geometry lands (Task 2+). `quality`/`seed` from
- * `WorldOptions` and `setChartTarget` are part of the contract but stay
- * unused here — nothing is seeded or chart-projected yet.
+ * A fixed FOV/position frames the mountain range well on a wide desktop
+ * viewport but crops it down to one peak on a narrow phone portrait — so
+ * FOV and camera distance interpolate with aspect ratio instead of staying
+ * constant. Tuned by eye at 390×844 and 1440×900 per the effects contract.
+ */
+function applyResponsiveFraming(camera: THREE.PerspectiveCamera, aspect: number): void {
+  const t = THREE.MathUtils.clamp((aspect - 0.45) / (1.6 - 0.45), 0, 1);
+  camera.fov = THREE.MathUtils.lerp(66, 40, t);
+  camera.position.z = THREE.MathUtils.lerp(10, 6, t);
+  camera.position.y = THREE.MathUtils.lerp(1.1, 1.4, t);
+  camera.aspect = aspect;
+  camera.lookAt(0, 0.4, -6);
+  camera.updateProjectionMatrix();
+}
+
+/**
+ * Task 2 scope: the dawn composition (karst silhouettes + water + sun rays
+ * + mist), matched against L01/L03/L13. Camera/phase transitions (dusk →
+ * night → stars→chart) are Task 3 — `setProgress`/`setChartTarget` are
+ * accepted and clamped per the WorldHandle contract but don't drive
+ * anything visual yet; the scene always renders its dawn pose.
  */
 export function createTroiNamWorld(
   canvas: HTMLCanvasElement,
-  { onFailure }: WorldOptions,
+  { quality, seed, onFailure }: WorldOptions,
 ): Promise<WorldHandle> {
   return new Promise((resolve, reject) => {
     let renderer: THREE.WebGLRenderer;
@@ -26,36 +45,28 @@ export function createTroiNamWorld(
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    camera.position.set(0, 1.4, 6);
-    camera.lookAt(0, 0, 0);
+    applyResponsiveFraming(camera, 1);
 
-    const groundGeometry = new THREE.PlaneGeometry(20, 20);
-    const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x1a140a, roughness: 1 });
-    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
-    scene.add(ground);
-
-    const sun = new THREE.DirectionalLight(0xf2dca0, 2.2);
-    sun.position.set(-4, 3, 2);
-    scene.add(sun);
-    scene.add(new THREE.AmbientLight(0xc9a44d, 0.35));
+    const karst = createKarstLayers(scene, { quality, seed });
+    const light = createDawnLight(scene, { quality });
+    const water = createWater(scene, { quality });
 
     let disposed = false;
     let active = true;
     let rafId: number | null = null;
-    let progress = 0;
+    let lastFrameTime = 0;
 
-    const renderFrame = () => {
-      // Placeholder motion proving `progress` reaches the scene end-to-end;
-      // Task 2/3 replace this with real phase-driven camera/scene changes.
-      ground.rotation.z = progress * (Math.PI / 24);
+    const renderFrame = (now: number) => {
+      const dt = lastFrameTime ? Math.min((now - lastFrameTime) / 1000, 0.1) : 0;
+      lastFrameTime = now;
+      water.update(dt);
       renderer.render(scene, camera);
     };
 
-    const loop = () => {
+    const loop = (now: number) => {
       rafId = null;
       if (disposed || !active) return;
-      renderFrame();
+      renderFrame(now);
       rafId = requestAnimationFrame(loop);
     };
 
@@ -64,12 +75,15 @@ export function createTroiNamWorld(
         cancelAnimationFrame(rafId);
         rafId = null;
       }
+      lastFrameTime = 0; // next resume starts with dt=0 instead of a large jump
     };
 
     const handle: WorldHandle = {
       setProgress(value: number) {
+        // No phase-driven scene state to update until Task 3; still clamp so
+        // a non-finite caller value can never reach this handle unnoticed.
         if (disposed) return;
-        progress = clampProgress(value);
+        clampProgress(value);
       },
       setChartTarget() {
         // No projection target until Task 3's star buffer exists.
@@ -78,26 +92,22 @@ export function createTroiNamWorld(
         if (disposed || width <= 0 || height <= 0) return;
         renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height, false);
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-        if (active) renderFrame();
+        applyResponsiveFraming(camera, width / height);
+        if (active) renderFrame(performance.now());
       },
       setActive(next: boolean) {
         if (disposed || active === next) return;
         active = next;
-        if (active) {
-          stopLoop();
-          rafId = requestAnimationFrame(loop);
-        } else {
-          stopLoop();
-        }
+        stopLoop();
+        if (active) rafId = requestAnimationFrame(loop);
       },
       dispose() {
         if (disposed) return;
         disposed = true;
         stopLoop();
-        groundGeometry.dispose();
-        groundMaterial.dispose();
+        karst.dispose();
+        light.dispose();
+        water.dispose();
         renderer.dispose();
       },
     };
@@ -105,7 +115,7 @@ export function createTroiNamWorld(
     // First-frame readiness: render once synchronously so the Promise only
     // resolves after a real frame exists, then start the RAF loop.
     try {
-      renderFrame();
+      renderFrame(performance.now());
     } catch (error) {
       handle.dispose();
       onFailure();
