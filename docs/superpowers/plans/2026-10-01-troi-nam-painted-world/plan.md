@@ -1,14 +1,20 @@
 ---
-title: "Troi Nam painted scroll world"
-description: "Dựng lại hiệu ứng cuộn trang chủ Trời Nam từ tranh/ảnh đã gen thay vì hình khối vẽ bằng code, áp dụng bộ skill 3d của MengTo/Skills"
+title: Troi Nam painted scroll world
+description: >-
+  Dựng lại hiệu ứng cuộn trang chủ Trời Nam từ tranh/ảnh đã gen thay vì hình
+  khối vẽ bằng code, áp dụng bộ skill 3d của MengTo/Skills
 status: pending
 priority: P1
-branch: "feat/troi-nam-homepage"
-tags: [troi-nam, 3d, assets, homepage]
+branch: feat/troi-nam-homepage
+tags:
+  - troi-nam
+  - 3d
+  - assets
+  - homepage
 blockedBy: []
 blocks: []
-created: "2026-09-30T23:39:28.336Z"
-createdBy: "ck:plan"
+created: '2026-09-30T23:39:28.336Z'
+createdBy: 'ck:plan'
 source: skill
 ---
 
@@ -145,7 +151,7 @@ Phase 3 (nguồn gen ở độ phân giải thấp rồi phóng to; W07 gần nh
 |---|---|---|---|
 | 1 | `overflow: hidden` khiến sticky không bám viewport | **ĐÚNG** — đo được, canvas trôi tới −2402px | Phase 1 |
 | 2 | Bật reduced-motion lúc đang tải Three.js vẫn khởi tạo 3D | **ĐÚNG** — `onReducedMotionChange` không đặt `cancelled = true` | Phase 1 |
-| 3 | Sao không hội tụ đúng vào lá số khi cuộn | **ĐÚNG** — `setChartTarget` chiếu theo camera tại thời điểm gọi; cuộn đổi cả camera lẫn vị trí lá số nhưng không chiếu lại | Phase 1 (hạ tầng), Phase 5 (hiệu ứng thật) |
+| 3 | Sao không hội tụ đúng vào lá số khi cuộn | **ĐÚNG** — `setChartTarget` chiếu theo camera tại thời điểm gọi; cuộn đổi cả camera lẫn vị trí lá số nhưng không chiếu lại | Completed |
 | 4 | Tier "low" không giới hạn 30fps | **ĐÚNG** — bỏ mỗi RAF thứ hai chỉ cho 30fps trên màn 60Hz; màn 120/144Hz vẫn chạy 60/72fps | Phase 1 |
 | 5 | Builder lỗi giữa chừng không giải phóng tài nguyên đã tạo | **ĐÚNG** — 4 lệnh `create*` không nằm trong try/catch | Phase 1 |
 | 6 | Lỗi render sau frame đầu không lùi về ảnh tĩnh | **ĐÚNG** — chỉ frame đầu có try/catch | Phase 1 |
@@ -173,7 +179,7 @@ vào Phase 1.
 |-------|------|--------|
 | 1 | [foundation-fixes](./phase-01-foundation-fixes.md) | Pending |
 | 2 | [asset-generation](./phase-02-asset-generation.md) | **Ảnh đã giao — còn khâu nhập kho** |
-| 3 | [painted-layer-world](./phase-03-painted-layer-world.md) | Pending |
+| 3 | [painted-layer-world](./phase-03-painted-layer-world.md) | Completed |
 | 4 | [rays-and-atmosphere](./phase-04-rays-and-atmosphere.md) | Pending |
 | 5 | [chart-handoff-and-qa](./phase-05-chart-handoff-and-qa.md) | Pending |
 

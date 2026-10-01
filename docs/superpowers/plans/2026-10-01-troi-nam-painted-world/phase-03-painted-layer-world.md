@@ -1,10 +1,12 @@
 ---
 phase: 3
-title: "painted-layer-world"
+title: painted-layer-world
 status: completed
 priority: P1
-effort: "2d"
-dependencies: [1, 2]
+effort: 2d
+dependencies:
+  - 1
+  - 2
 ---
 
 > **Đã triển khai 2026-10-01.** Kết quả thật và một thay đổi so với kế hoạch gốc: xem
