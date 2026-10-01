@@ -26,7 +26,7 @@
     "nameLabel": "Tên người xem",
     "nameOptional": "(để ghi dấu trên lá số)",
     "namePlaceholder": "Ví dụ: An Nhiên",
-    "submit": "Khai mở lá số riêng của bạn",
+    "submit": "Tiếp tục lập lá số",
     "errors": {
       "dateEmpty": "Vui lòng nhập đủ ngày, tháng và năm sinh (năm gồm 4 chữ số).",
       "dateImpossible": "Ngày này không có trên lịch thực tế. Bạn hãy kiểm tra lại nhé.",
@@ -190,7 +190,7 @@
       "tuvi": {
         "name": "Tử Vi Đẩu Số",
         "desc": "Bản đồ 12 cung và hơn 100 tinh tú, giải mã toàn diện tính cách, nhân duyên và từng bước ngoặt đời người.",
-        "cta": "Lập lá số ngay"
+        "cta": "Tìm hiểu Tử Vi"
       },
       "batu": {
         "name": "Bát Tự (Tứ Trụ)",

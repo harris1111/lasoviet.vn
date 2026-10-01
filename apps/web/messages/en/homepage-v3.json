@@ -26,7 +26,7 @@
     "nameLabel": "Reader's name",
     "nameOptional": "(to mark this chart)",
     "namePlaceholder": "e.g. An Nhien",
-    "submit": "Reveal your own chart",
+    "submit": "Continue creating your chart",
     "errors": {
       "dateEmpty": "Please enter the full day, month and year (4-digit year).",
       "dateImpossible": "This date does not exist on the calendar. Please check it again.",
@@ -190,7 +190,7 @@
       "tuvi": {
         "name": "Zi Wei Dou Shu",
         "desc": "A map of 12 palaces and over 100 stars, fully decoding your character, relationships and every turning point in life.",
-        "cta": "Build your chart now"
+        "cta": "Explore Zi Wei"
       },
       "batu": {
         "name": "BaZi (Four Pillars)",
