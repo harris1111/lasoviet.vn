@@ -114,7 +114,12 @@ export function createTroiNamWorld(
     // single GC pause doesn't trip it. `slowSince` resets whenever a frame
     // comes in under budget, and again after each step so the *next* tier
     // gets its own 2s to prove itself before degrading further.
-    let qualityStep: 0 | 1 = 0;
+    // Fix: a caller-requested "low" quality (coarse pointer) must start
+    // capped at 30fps immediately — the old code always started at tier 0
+    // (uncapped) and only reached the cap after a sustained slow-frame
+    // streak degraded it there, so low-tier devices briefly rendered at full
+    // refresh rate before the scheduler caught up.
+    let qualityStep: 0 | 1 = quality === "low" ? 1 : 0;
     let slowSince: number | null = null;
     // Fix #4: the low tier's 30fps cap must be an elapsed-time gate, not
     // "skip every other RAF" — the latter yields 30fps only on a 60Hz

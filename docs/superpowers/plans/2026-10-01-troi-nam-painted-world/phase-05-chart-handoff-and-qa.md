@@ -32,6 +32,19 @@ Thay cho 12 cụm chấm sáng vẽ bằng code ở bản cũ — đúng nguyên
 
 ## Architecture
 
+> **Sửa 2026-10-01 (nghiệm thu ChatGPT):**
+> - Vòng P05 phải **giữ đúng tỉ lệ gốc của tranh**, khớp tâm và khung dự định với `.hv3-chart`
+>   theo một "chính sách fit" ghi rõ (contain hay cover), **không** kéo méo hình tròn thành hình
+>   chữ nhật để "cho khớp khung" — nếu khung không vuông, chừa viền chứ không méo.
+> - Phải **gỡ hoặc ẩn vòng CSS thủ công cũ** (nếu còn) đúng lúc P05 hiện ra — hai vòng chồng
+>   nhau cùng lúc là lỗi, không phải hiệu ứng.
+> - 12 icon cung (I01) phải khớp **đúng theo ngữ nghĩa cung số** (thứ tự 12 cung thật), không
+>   giả định khớp theo thứ tự file trong sheet ảnh hay thứ tự DOM hiện có — kiểm tra từng icon
+>   đúng tên cung trước khi coi là xong.
+> - Chiếu lại `aTarget`/vòng P05 phải làm **sau khi world matrix của camera đã cập nhật** cho tư
+>   thế mới của frame đó — xác minh lại thứ tự này khi viết code, không chỉ dựa vào ghi chú cũ
+>   rằng "camera đã ổn định".
+
 ### Sao tụ về vòng (thay logic cũ)
 
 Giữ nguyên buffer sao seeded + morph trên GPU (kiến trúc này đúng, chỉ phần hiển thị sai):
@@ -86,6 +99,17 @@ mình. Canvas luôn `pointer-events: none` nên không bao giờ chặn bấm.
 4. Canvas mờ dần khi `chart` ≥ 0.9.
 5. Thêm icon I01 vào 12 ô, **kiểm tra trang chủ `/` không đổi** (component dùng chung).
 6. Chạy full QA matrix bên dưới.
+
+> **Sửa 2026-10-01:** bảng phân bổ ảnh bắt buộc ở `plan.md` §4.2 ghi T10 cho About nhưng wrapper
+> hiện tại đang dùng T04; L13 được gán cho beat "mở khoá" nhưng chưa thấy tham chiếu ở đâu. Đóng
+> hai chỗ lệch này (đổi đúng ảnh hoặc cập nhật lại bảng phân bổ) trước khi báo "không còn ảnh bắt
+> buộc nào nằm không dùng" — tiêu chí §4.2 chưa đạt nếu còn lệch.
+
+> **Sửa 2026-10-01:** Phase 5 mới này hoàn tất riêng phần P05/W11/I01 + QA hình ảnh — **không
+> thay thế** các cổng phát hành cũ ở `docs/superpowers/plans/2026-09-30-troi-nam-plan-5-readiness.md`
+> (kiểm bàn phím/form/dialog, khớp VI/EN, theme/zoom, LCP/CLS, build production, chuyển
+> root/canonical/robots/sitemap, rollback, smoke test triển khai). Giữ nguyên các cổng đó, không
+> coi Phase 5 ở đây là đủ để phát hành.
 
 ## Nghiệm thu toàn diện (bắt buộc trước khi báo xong)
 

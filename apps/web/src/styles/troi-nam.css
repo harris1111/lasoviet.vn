@@ -333,6 +333,15 @@
   display: none;
 }
 
+/* `.hv3` carries the chart's `--hc-*` color tokens, but it also paints its
+   own opaque page background/text color — both wrong here, where the slot
+   sits over the hero's painted backdrop. Same override pattern as
+   `.tn-hero-form.hv3` above. */
+.tn-hero-chart-slot.hv3 {
+  background: none;
+  color: inherit;
+}
+
 @media (min-width: 880px) {
   .tn-hero-content {
     flex-direction: row;

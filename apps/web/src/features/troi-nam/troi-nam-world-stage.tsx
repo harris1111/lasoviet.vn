@@ -136,21 +136,29 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
     root.addEventListener("troi-nam:progress", onProgress);
     reducedMotionQuery?.addEventListener?.("change", onReducedMotionChange);
 
-    void import("./world/troi-nam-world-scene").then(({ createTroiNamWorld }) =>
-      createTroiNamWorld(canvas!, { quality, seed: 1, onFailure: handleFailure }),
-    ).then(
-      (nextHandle) => {
-        // Re-check live: `cancelled` (unmount, or reduced-motion toggled on
-        // while three.js was loading) can be set after this promise resolved
-        // but before this callback runs, and `reducedMotionQuery.matches`
-        // can flip true in that same window without going through
-        // `onReducedMotionChange` if the listener itself hasn't fired yet.
+    void import("./world/troi-nam-world-scene")
+      .then(({ createTroiNamWorld }) => {
+        // Fix: check cancellation/reduced-motion BEFORE invoking the factory,
+        // not after — the old code always allocated the renderer, builders
+        // and first frame, then disposed them one tick later. A reduced-
+        // motion toggle or unmount while this chunk was still loading must
+        // never touch the GPU at all.
+        if (cancelled || reducedMotionQuery?.matches) return null;
+        return createTroiNamWorld(canvas!, { quality, seed: 1, onFailure: handleFailure });
+      })
+      .then((nextHandle) => {
+        if (!nextHandle) return;
+        // Re-check live: `cancelled` or `reducedMotionQuery.matches` can
+        // still flip between the factory call above and this callback.
         if (cancelled || reducedMotionQuery?.matches) {
           nextHandle.dispose();
           return;
         }
         handle = nextHandle;
         resizeCanvas();
+        // `resizeCanvas` can itself fail and call `handleFailure` (nulling
+        // the outer `handle`) synchronously before this callback continues.
+        if (!handle) return;
         updateChartTarget();
         // Catch up on scroll state the stage missed while the module loaded
         // (see createTroiNamProgress: it stores the latest snapshot here).
@@ -158,9 +166,13 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
         handle.setProgress(Number.isFinite(stored) ? stored : 0);
         updateActive(); // sync the active/inactive state reached while loading
         markReady(true);
-      },
-      handleFailure,
-    );
+      })
+      // Covers a rejected import/factory promise AND any exception thrown
+      // inside the success handlers above (e.g. a null handle dereferenced
+      // after a mid-chain failure) — a bare `.then(success, failure)` only
+      // catches the former, which is exactly how a failed resize used to
+      // surface as an unhandled rejection instead of falling back cleanly.
+      .catch(handleFailure);
 
     return () => {
       cancelled = true;

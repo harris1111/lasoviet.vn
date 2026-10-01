@@ -43,25 +43,68 @@ hoa đăng đêm — tất cả từ ảnh đã gen.
 
 Không cần gen thêm gì cho Phase 4.
 
+> **Sửa 2026-10-01:** bảng phân bổ ảnh ở `plan.md` §4.2 có gán T07 (mây khảm xà cừ) cho Phase 4,
+> nhưng các bước triển khai bên dưới chưa có việc nào dùng T07. Chốt: **hoãn T07 sang một bước
+> sau nếu có nhu cầu**, không âm thầm bỏ — nếu không dùng, cập nhật lại bảng phân bổ ở plan.md
+> cho khớp để không còn ảnh "được giao nhưng không gắn vào đâu".
+
+> **Sửa 2026-10-01 (mục P2 nghiệm thu):** `loadWorldTexture` hiện gọi
+> `TextureLoader.load(url)` không có callback thành công/lỗi — factory resolve xong một khung
+> hình đồng bộ trong khi texture có thể vẫn trống. Trước khi thêm hiệu ứng phụ thuộc vào toàn bộ
+> canvas hiển thị đúng (ví dụ ray pass dùng mặt nạ từ các lớp núi), phải quyết định rõ: texture
+> chưa tải xong thì mặt nạ tính sao (coi là "hở" tạm thời, hay trì hoãn bật ray pass tới khi tải
+> xong)? Việc này phải kiểm bằng request thật bị làm chậm (slow-3G) hoặc bị chặn, không suy
+> đoán — xem thêm nợ kỹ thuật đã ghi ở phase-03.
+
 ## Architecture
 
 ### God-ray (theo `3d-sky-rays`)
 
-Điểm mấu chốt: **mặt nạ trời**. Ta có lợi thế hiếm — các lớp núi đã là PNG alpha, nên mặt nạ
-gần như cho không:
+> **Sửa 2026-10-01 (nghiệm thu ChatGPT, mục P1):** bản trước mô tả quy ước mặt nạ mâu thuẫn
+> với chính nó (yêu cầu núi trắng-trên-đen ở bước 1, rồi định nghĩa kết quả là "trời hở = trắng,
+> núi che = đen" — hai quy ước ngược nhau). Chốt lại **một quy ước duy nhất, đặt tên rõ**, và
+> debug-view mặt nạ trước khi viết ray march, không đoán.
 
-1. Render một pass riêng chỉ có các lớp núi/tiền cảnh, material trắng đặc trên nền đen →
-   ra `skyMask` (trắng = trời hở, đen = bị núi che). Vì lớp là alpha-test, mép lá được giữ
-   đúng, không biến thành hình chữ nhật đặc.
-2. Chiếu vị trí mặt trời (từ chapter ledger) ra NDC → UV. **Loại bỏ khi mặt trời ở sau camera**
-   trước khi dùng toạ độ chiếu.
-3. March từ mỗi pixel về phía UV mặt trời, cộng dồn `skyMask × độ sáng` có suy giảm, chia cho
-   tổng trọng số (để đổi số mẫu không đổi độ sáng).
-4. Cộng **additive vào màu tuyến tính trước** bước tone-map/output cuối.
-5. Trên bề mặt tiền cảnh đục (W06, W08) giảm mạnh overlay để đá và lá giữ được tương phản.
+Điểm mấu chốt: **mặt nạ `skyVisibility`**. Ta có lợi thế hiếm — các lớp núi đã là PNG alpha, nên
+mặt nạ gần như cho không:
 
-Ngưỡng bắt đầu: 28 mẫu, buffer 0.5×, decay 0.95, cường độ thấp rồi tăng dần. **Trắng xoá
-nghĩa là mặt nạ sai hoặc cường độ quá tay, không phải thiếu bloom.**
+1. Định nghĩa `skyVisibility`: **1.0 = trời hở (không bị che), 0.0 = bị núi/tán lá che**.
+2. Render một pass riêng: xoá nền **trắng** (`skyVisibility = 1` mặc định), rồi vẽ **chỉ các
+   lớp núi/tiền cảnh đục** (W04, W05, W06, W08 — không phải T11 sương, không phải W10 mặt trời,
+   không phải hoa đăng/vụn vàng, những thứ này không che trời) bằng material **đen đặc**, dùng
+   alpha-test từ chính texture của chúng (giữ đúng mép lá/đá, không thành hình chữ nhật) và tôn
+   trọng UV đã lật của W08. Kết quả: trắng = hở, đen = che — khớp định nghĩa ở bước 1.
+3. Chiếu vị trí mặt trời (từ **chapter ledger** — cùng một nguồn ánh sáng dùng chung cho sprite
+   mặt trời W10, hướng tia, tint cảnh, và hướng phản chiếu trên nước; vị trí hardcode hiện tại
+   của W10 **chưa** phải bộ điều phối ánh sáng duy nhất này, phải nâng lên ledger trước khi
+   Phase 4 bắt đầu) ra NDC → UV. **Loại bỏ khi mặt trời ở sau camera** trước khi dùng toạ độ
+   chiếu.
+4. March từ mỗi pixel về phía UV mặt trời, cộng dồn `skyVisibility × độ sáng` có suy giảm, chia
+   cho tổng trọng số (để đổi số mẫu không đổi độ sáng).
+5. Render vào **một target màu tuyến tính trung gian** (không phải mặt sau cùng), cộng
+   **additive**, rồi áp dụng colorspace/tone-map **một lần duy nhất** ở bước output cuối cùng —
+   không chuyển đổi màu nhiều lần qua các pass.
+6. Trên bề mặt tiền cảnh đục (W06, W08) giảm mạnh overlay để đá và lá giữ được tương phản.
+
+Ngưỡng bắt đầu: 28 mẫu, buffer 0.5× **kích thước drawing-buffer thật** (không phải CSS size —
+xem mục Retina bên dưới), decay 0.95, cường độ thấp rồi tăng dần. **Trắng xoá nghĩa là mặt nạ
+sai hoặc cường độ quá tay, không phải thiếu bloom.**
+
+**Thứ tự triển khai bắt buộc (nghiệm thu ChatGPT):** render mặt nạ ra màn hình để mắt kiểm tra
+trước → ray pass cường độ thấp → kiểm tắt êm khi mặt trời sau camera → chụp ảnh cuộn thật trên
+trang (không chỉ canvas cô lập) → đo chi phí. Số đo trên renderer phần mềm (SwiftShader, môi
+trường Claude) là **chẩn đoán, không phải nghiệm thu thiết bị thật**.
+
+**Bậc chất lượng dùng chung:** ray pass, hạt (vụn vàng/hoa đăng), và sương phải đọc **cùng một
+trạng thái bậc chất lượng đã chốt** (xem `qualityStep` ở Phase 1/`troi-nam-world-scene.ts`) —
+hạ DPR/FPS không tự động tắt ray pass hay giảm chi tiết particle. Tier thấp và tier đã suy
+giảm (degraded-high) đều phải tắt hẳn ray pass, không chỉ giảm mẫu.
+
+**Nơi tia thật sự hiển thị trên trang thật:** CSS hiện tại cố ý giữ ảnh hero và các mặt
+story/ticker/explore đục, world chỉ lộ qua khe hở giữa các section (quyết định thiết kế đã có,
+không phải lỗi). Vì vậy việc "tia bị núi cắt" phải được xác nhận bằng ảnh chụp cuộn thật trên
+trang (`/vi/troi-nam`), không chỉ ảnh canvas cô lập — canvas cô lập không chứng minh được trải
+nghiệm cuộn thật.
 
 ### Sương (T11 — đã có, alpha thật, 3 dải rời)
 

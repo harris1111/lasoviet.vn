@@ -138,7 +138,7 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
 
         {/* Reused verbatim from the live homepage: the chart reveals as the same
             birth-form values are typed, so it must read `state.hero`, not a copy. */}
-        <div className="tn-hero-chart-slot">
+        <div className="tn-hero-chart-slot hv3">
           <HomepageV3HeroChart hero={state.hero} locale={locale} />
         </div>
       </div>

@@ -35,6 +35,10 @@ const fragmentShader = /* glsl */ `
     vec3 nightTone = tex.rgb * vec3(0.22, 0.26, 0.4) * 0.6;
     vec3 color = mix(tex.rgb, nightTone, uNightWeight);
     gl_FragColor = vec4(color, tex.a);
+    // A custom ShaderMaterial bypasses the automatic sRGB output conversion
+    // that MeshBasicMaterial applies to the surrounding painted layers —
+    // without this, W07 renders too dark/washed relative to them.
+    #include <colorspace_fragment>
   }
 `;
 

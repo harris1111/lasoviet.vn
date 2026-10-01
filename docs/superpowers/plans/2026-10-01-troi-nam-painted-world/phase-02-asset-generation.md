@@ -1,9 +1,9 @@
 ---
 phase: 2
-title: "asset-generation"
-status: in-progress
+title: asset-generation
+status: completed
 priority: P1
-effort: "0.5d Claude + thời gian gen của founder"
+effort: 0.5d Claude + thời gian gen của founder
 dependencies: []
 ---
 
@@ -408,3 +408,55 @@ Lệnh: `node scripts/build-troi-nam-assets.mjs ~/Downloads/lasoviet-3D-elements
 - [ ] Hạ cỡ theo bảng ở Phase 3 **trong script**, không hạ thủ công
 - [ ] Chạy script, commit ảnh + manifest
 - [ ] Kiểm: `troiNamAsset("W04")` trả về đúng đường dẫn, không ném lỗi
+
+---
+
+## Đợt bổ sung — nối dài trời phía trên núi (tuỳ chọn, vá viền sau Phase 3)
+
+> **Bối cảnh (2026-10-01):** Rà soát ảnh cho Phase 4/5 — kết luận **không cần gen gì mới**,
+> mọi ảnh cần dùng đã có sẵn (xem bảng "Ảnh đã có" ở phase-04 và phần "Dùng nốt ảnh còn lại" ở
+> phase-05). Việc duy nhất thật sự đáng giao cho ChatGPT lúc này không thuộc Phase 4/5 mà là vá
+> một giới hạn đã biết của Phase 3: khi camera nghiêng lên ở các mốc hoàng hôn/đêm, mép trên của
+> các lớp núi/tiền cảnh (W04/W05/W06/W08) có thể hở ra một đường ráp nhỏ với tấm trời phía sau,
+> vì phương án "đệm thêm vùng đệm" bị bỏ do gây lỗi hiển thị riêng của môi trường render thử
+> nghiệm (xem phase-03, mục "Kết quả thật"). Cách vá sạch nhất, không đụng code, là **có sẵn
+> nhiều trời/sương hơn ngay trong ảnh gốc**.
+>
+> **Không gấp — không chặn Phase 4 hay Phase 5.** Làm khi founder rảnh, rồi Claude nhập kho và
+> đổi 4 dòng toạ độ trong `troi-nam-world-layers.ts`.
+
+### Cách làm — mở trong ĐÚNG đoạn chat đã sinh W04/W05/W06/W08
+
+Không mở hội thoại mới (sẽ lệch màu/ánh sáng). Trong đoạn chat cũ, gửi từng ảnh kèm yêu cầu:
+
+```
+Extend this exact image upward only. Add roughly 2.5x more canvas height above the current
+top edge, filled with sky/haze/cloud that continues the exact same lighting, color temperature,
+and atmospheric perspective already visible at the top of the image. Do not change, crop, or
+regenerate anything below the current top edge — the mountain/foreground silhouette and
+everything below it must stay pixel-identical. No new elements, no sun disk, no birds, no text.
+
+[STYLE PREAMBLE]
+```
+
+Lặp lại cho cả 4 ảnh: **W04, W05, W06, W08**. Nếu công cụ chỉ cho tỉ lệ khung cố định (không
+tự do chọn 2.5x), dùng tỉ lệ dọc gần nhất có sẵn (9:16 hoặc 2:3) rồi Claude sẽ cắt bớt khi nhập
+kho — thà dư còn hơn thiếu.
+
+### Kiểm tra trước khi gửi lại cho Claude
+
+- [ ] Phần núi/tiền cảnh phía dưới **giống hệt bản cũ** (so cạnh nhau, không bị vẽ lại)
+- [ ] Không có đường ráp màu/sáng ở chỗ nối vùng cũ và vùng mới
+- [ ] Không xuất hiện mặt trời, chim, chữ, hay chi tiết mới nào ở vùng trời thêm
+- [ ] Vẫn giữ alpha thật (nền trong suốt), không có viền trắng/đen quanh mép núi
+
+### File đặt tên (nối hậu tố `-mo-rong` theo quy ước SEO)
+
+| Gốc | File mới |
+|---|---|
+| W04 | `nui-da-voi-lop-xa-mo-rong-trang-chu.png` |
+| W05 | `nui-da-voi-lop-giua-mo-rong-trang-chu.png` |
+| W06 | `nui-da-voi-lop-gan-mo-rong-trang-chu.png` |
+| W08 | `khung-tien-canh-vach-da-tan-la-mo-rong-trang-chu.png` |
+
+Giao đủ 4 file là xong — không cần bản alt, không cần gen lại 2 lần.

@@ -77,8 +77,20 @@ export function createDawnLight(scene: THREE.Scene): DawnLight {
     // way a rock texture does, unlike the karst layers' clamp-to-edge trick).
     const { fov } = referenceDawnFraming(aspect);
     const halfFovRad = THREE.MathUtils.degToRad(fov / 2);
-    const height = 2 * SKY_DISTANCE * Math.tan(halfFovRad) * 1.15;
-    const width = height * SKY_TEXTURE_ASPECT;
+    const margin = 1.15;
+    const frustumHeight = 2 * SKY_DISTANCE * Math.tan(halfFovRad) * margin;
+    const frustumWidth = frustumHeight * aspect;
+    // Cover-fit (not stretch): the old code sized width as `height *
+    // SKY_TEXTURE_ASPECT` regardless of viewport aspect, which only covers
+    // the frustum up to ~2.044:1 — past that (e.g. 2560x1080) the plate left
+    // bare canvas on both sides before foreground occlusion. This keeps the
+    // texture's own proportions and crops instead of stretching.
+    let width = frustumHeight * SKY_TEXTURE_ASPECT;
+    let height = frustumHeight;
+    if (width < frustumWidth) {
+      width = frustumWidth;
+      height = frustumWidth / SKY_TEXTURE_ASPECT;
+    }
     for (const mesh of Object.values(skyMeshes)) mesh.scale.set(width, height, 1);
   }
   resize(1);

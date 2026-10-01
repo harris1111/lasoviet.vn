@@ -1,9 +1,9 @@
 ---
 phase: 1
-title: "foundation-fixes"
-status: pending
+title: foundation-fixes
+status: completed
 priority: P1
-effort: "1d"
+effort: 1d
 dependencies: []
 ---
 
