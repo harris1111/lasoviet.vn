@@ -62,8 +62,16 @@ vi.mock("next-intl", () => {
   };
 });
 
-describe("Task #45: Homepage QA on real devices & accessibility verification", () => {
-  it("Requirement 1: HH/MM and date inputs have numeric keypad triggers (inputMode and pattern) for mobile Safari and Android", () => {
+// These are static-markup and CSS-source string assertions (renderToStaticMarkup + fs.readFileSync),
+// not real-browser, real-device or assistive-technology runs. No focus movement, no computed
+// contrast, no viewport layout and no actual screen reader is exercised here. They catch
+// regressions in the specific attributes/rules asserted below; they are not evidence that
+// mobile Safari, Android TalkBack, VoiceOver or real-device keyboards behave correctly
+// (2026-10-01 audit, F9 — the previous describe/it names claimed real-device coverage this
+// file never provided). See docs/qa/2026-10-01-troi-nam-audit-remediation.md for the actual
+// device-testing status.
+describe("Task #45: homepage markup/CSS assertions (not real-device or AT testing)", () => {
+  it("Requirement 1: date/HH/MM inputs render inputMode=numeric and a numeric pattern (markup only — not run against a physical mobile keyboard)", () => {
     const html = renderToStaticMarkup(createElement(HomepageV3Hero, { locale: "vi" }));
 
     // Date inputs
@@ -78,7 +86,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
     expect(html).toContain('placeholder="MM"');
   });
 
-  it("Requirement 2: Keyboard and ARIA state in FAQ, comparison tabs, and theme toggle controls", () => {
+  it("Requirement 2: FAQ/comparison markup renders the expected ARIA state attributes (markup only — not an actual keyboard run)", () => {
     const compareHtml = renderToStaticMarkup(createElement(HomepageV3Compare));
     expect(compareHtml).toContain("<details class=\"hv3-compare-details\">");
     expect(compareHtml).toContain('role="group"');
@@ -90,7 +98,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
     expect(faqHtml).toContain('aria-controls="hv3-faq-q1"');
   });
 
-  it("Requirement 3: VoiceOver and TalkBack semantics — live region, table semantics, hero art group, and USP cards", () => {
+  it("Requirement 3: hero chart, comparison table and USP cards render the expected ARIA roles/labels (markup only — not verified with VoiceOver or TalkBack)", () => {
     // 3a. Hero chart is one labelled image; the date/name/branch text overlaid on it is decorative (aria-hidden)
     // and there is no live region, so nothing is announced on every keystroke.
     const heroHtml = renderToStaticMarkup(createElement(HomepageV3Hero, { locale: "vi" }));
@@ -122,7 +130,7 @@ describe("Task #45: Homepage QA on real devices & accessibility verification", (
     expect(uspHtml).toContain('id="hv3-usp-n4-title"');
   });
 
-  it("Requirement 4 & 5: CSS rules ensure WCAG AA contrast scrims, 320px responsive containment, focus rings, and reduced motion", () => {
+  it("Requirement 4 & 5: stylesheet source contains the expected contrast-scrim, 320px-containment, focus-ring and reduced-motion rules (string match on CSS source — not a measured/rendered check)", () => {
     const cssPath = path.resolve(__dirname, "../../styles/homepage-v3.css");
     const css = fs.readFileSync(cssPath, "utf8");
 
