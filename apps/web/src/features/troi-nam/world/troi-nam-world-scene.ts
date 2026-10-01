@@ -91,10 +91,40 @@ export function createTroiNamWorld(
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
 
-    const karst = createKarstLayers(scene, { quality, seed });
-    const light = createDawnLight(scene, { quality });
-    const water = createWater(scene, { quality });
-    const stars = createStars(scene, { quality, seed });
+    // Definite-assignment assertions: every path past this try/catch either
+    // returns (the catch block) or has assigned all four, so later code
+    // (disposeInternal/applyPose/renderFrame) can use them unconditionally.
+    let karst!: ReturnType<typeof createKarstLayers>;
+    let light!: ReturnType<typeof createDawnLight>;
+    let water!: ReturnType<typeof createWater>;
+    let stars!: ReturnType<typeof createStars>;
+    {
+      // Partial builders (created before one throws) still hold live GPU
+      // resources — a throw mid-sequence must not leak them.
+      let partialKarst: ReturnType<typeof createKarstLayers> | undefined;
+      let partialLight: ReturnType<typeof createDawnLight> | undefined;
+      let partialWater: ReturnType<typeof createWater> | undefined;
+      let partialStars: ReturnType<typeof createStars> | undefined;
+      try {
+        partialKarst = createKarstLayers(scene, { quality, seed });
+        partialLight = createDawnLight(scene, { quality });
+        partialWater = createWater(scene, { quality });
+        partialStars = createStars(scene, { quality, seed });
+        karst = partialKarst;
+        light = partialLight;
+        water = partialWater;
+        stars = partialStars;
+      } catch (error) {
+        partialKarst?.dispose();
+        partialLight?.dispose();
+        partialWater?.dispose();
+        partialStars?.dispose();
+        renderer.dispose();
+        onFailure();
+        reject(error instanceof Error ? error : new Error("World builder init failed"));
+        return;
+      }
+    }
 
     let disposed = false;
     let active = true;
@@ -105,6 +135,12 @@ export function createTroiNamWorld(
     let canvasWidth = 0;
     let canvasHeight = 0;
     let requestedPixelRatio = 1;
+    // Fix #3: the chart's on-screen rect, re-projected into world space every
+    // frame (inside `applyPose`, after the camera has moved) instead of once
+    // at call time — scrolling changes both the camera pose and the chart's
+    // viewport position, and nothing fires `setChartTarget` again while the
+    // user is just scrolling (ResizeObserver doesn't see that).
+    let chartRect: WorldChartTarget | null = null;
 
     // Active-only degradation: high -> low (halve target FPS, drop DPR to 1)
     // -> static, each step gated on ~2s of sustained bad frame times so a
@@ -113,7 +149,12 @@ export function createTroiNamWorld(
     // gets its own 2s to prove itself before degrading further.
     let qualityStep: 0 | 1 = 0;
     let slowSince: number | null = null;
-    let frameParity = 0;
+    // Fix #4: the low tier's 30fps cap must be an elapsed-time gate, not
+    // "skip every other RAF" — the latter yields 30fps only on a 60Hz
+    // display and ~60fps on a 120Hz one, since it's counting RAF callbacks,
+    // not time.
+    let lastRenderTime = 0;
+    const MIN_FRAME_MS: Record<0 | 1, number> = { 0: 0, 1: 1000 / 30 };
 
     const disposeInternal = () => {
       if (disposed) return;
@@ -160,6 +201,14 @@ export function createTroiNamWorld(
       water.setNightWeight(phases.night);
       stars.setNightWeight(phases.night);
       stars.setChartWeight(phases.chart);
+
+      // Re-project the chart target now that the camera is in its final
+      // pose for this frame (see the `chartRect` comment above).
+      if (chartRect && canvasWidth > 0 && canvasHeight > 0) {
+        stars.setTargets(projectChartTarget(camera, chartRect, canvasWidth, canvasHeight));
+      } else if (!chartRect) {
+        stars.setTargets(null);
+      }
     };
 
     const renderFrame = (now: number) => {
@@ -194,10 +243,25 @@ export function createTroiNamWorld(
     const loop = (now: number) => {
       rafId = null;
       if (disposed || !active) return;
-      // The "low" quality step also halves the target frame rate (skip
-      // every other RAF) instead of only dropping DPR.
-      frameParity ^= 1;
-      if (qualityStep === 0 || frameParity === 0) renderFrame(now);
+      // The "low" quality step also caps the target frame rate at 30fps,
+      // gated on elapsed time rather than RAF count so it holds on both a
+      // 60Hz and a 120Hz display.
+      if (now - lastRenderTime >= MIN_FRAME_MS[qualityStep]) {
+        lastRenderTime = now;
+        // Fix #6: a render error at any point (not just the first frame)
+        // must drop back to the static plate, not keep looping on a
+        // half-broken scene.
+        try {
+          renderFrame(now);
+        } catch {
+          degradeToStatic();
+          return;
+        }
+      }
+      // `renderFrame` can itself call `degradeToStatic` (the sustained-slow
+      // -frame budget) without throwing — re-check before re-arming the RAF
+      // loop so a disposed scene never schedules another frame.
+      if (disposed) return;
       rafId = requestAnimationFrame(loop);
     };
 
@@ -208,7 +272,7 @@ export function createTroiNamWorld(
       }
       lastFrameTime = 0; // next resume starts with dt=0 instead of a large jump
       slowSince = null; // don't judge the next tier's first frames on a pre-pause streak
-      frameParity = 0;
+      lastRenderTime = 0;
     };
 
     const handle: WorldHandle = {
@@ -218,11 +282,9 @@ export function createTroiNamWorld(
       },
       setChartTarget(rect: WorldChartTarget | null) {
         if (disposed) return;
-        if (!rect || canvasWidth <= 0 || canvasHeight <= 0) {
-          stars.setTargets(null);
-          return;
-        }
-        stars.setTargets(projectChartTarget(camera, rect, canvasWidth, canvasHeight));
+        // Store the rect only; `applyPose` (run every frame) does the actual
+        // projection, after the camera has moved for that frame.
+        chartRect = rect;
       },
       resize(width: number, height: number, pixelRatio: number) {
         if (disposed || width <= 0 || height <= 0) return;
@@ -234,7 +296,13 @@ export function createTroiNamWorld(
         canvasWidth = width;
         canvasHeight = height;
         aspect = width / height;
-        if (active) renderFrame(performance.now());
+        if (active) {
+          try {
+            renderFrame(performance.now());
+          } catch {
+            degradeToStatic();
+          }
+        }
       },
       setActive(next: boolean) {
         if (disposed || active === next) return;

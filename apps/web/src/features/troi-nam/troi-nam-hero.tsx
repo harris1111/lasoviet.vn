@@ -21,6 +21,8 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   const desktop = troiNamAsset("L01");
   const mobile = troiNamAsset("L02");
   const dusk = troiNamAsset("L03");
+  const night = troiNamAsset("L04");
+  const nightMobile = troiNamAsset("L05");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -95,6 +97,25 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
           aria-hidden="true"
           decoding="async"
         />
+        {/* L04/L05 (Hạ Long, Milky Way): unlike L03 above, L05 has a phone crop,
+            so the night plate crossfades on mobile too — see CSS for the <880px
+            source swap. `loading="lazy"` since it's the last plate reached and
+            fetchPriority stays reserved for the dawn plate (LCP). */}
+        <picture className="tn-hero-plate-night">
+          <source media={MOBILE} srcSet={nightMobile.srcSet} sizes="100vw" />
+          <img
+            className="tn-hero-plate"
+            src={night.src}
+            srcSet={night.srcSet}
+            sizes="100vw"
+            width={night.width}
+            height={night.height}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </div>
       <div className="tn-hero-scrim" aria-hidden="true" />
       <div className="tn-hero-scrim-night" aria-hidden="true" />

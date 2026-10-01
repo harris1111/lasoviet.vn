@@ -79,11 +79,20 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       if (!handle) return;
       const detail = (event as CustomEvent<ProgressDetail>).detail;
       handle.setProgress(detail.progress);
+      // Fix #3: the chart's viewport position moves every frame while
+      // scrolling, but nothing else fires here — re-measure and hand the
+      // rect to the handle on the same cadence as progress itself (already
+      // the progress controller's own rAF, so this adds no new loop).
+      updateChartTarget();
     }
 
     function onReducedMotionChange() {
       if (!reducedMotionQuery?.matches) return;
       // Live OS-level toggle mid-session: drop back to the static plates.
+      // Also cancel an in-flight init (three.js chunk still loading, or
+      // loaded but the handle not yet assigned) so it never completes and
+      // flips the world on after the user has already opted out.
+      cancelled = true;
       handle?.dispose();
       handle = null;
       markReady(false);
@@ -131,8 +140,13 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       createTroiNamWorld(canvas!, { quality, seed: 1, onFailure: handleFailure }),
     ).then(
       (nextHandle) => {
-        if (cancelled) {
-          nextHandle.dispose(); // unmounted (or reduced-motion toggled on) while three.js was loading
+        // Re-check live: `cancelled` (unmount, or reduced-motion toggled on
+        // while three.js was loading) can be set after this promise resolved
+        // but before this callback runs, and `reducedMotionQuery.matches`
+        // can flip true in that same window without going through
+        // `onReducedMotionChange` if the listener itself hasn't fired yet.
+        if (cancelled || reducedMotionQuery?.matches) {
+          nextHandle.dispose();
           return;
         }
         handle = nextHandle;

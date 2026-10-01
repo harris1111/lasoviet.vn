@@ -37,8 +37,13 @@
  * as that content, and `.tn-world-sticky` pins the actual canvas to 100svh
  * while the stage scrolls past, i.e. the canvas stays on screen for the
  * whole hero→explore span instead of scrolling away with the hero alone.
- * `overflow: hidden` on the backdrop clips the sticky child to the stage's
- * own width so it can't cause horizontal scroll.
+ * `overflow: clip` on the backdrop clips the sticky child to the stage's
+ * own width so it can't cause horizontal scroll — `hidden` would do the same
+ * clipping, but per spec it also makes this element a scroll container,
+ * which breaks `position: sticky` on `.tn-world-sticky` inside it (the
+ * child then sticks to ITS scroll container, not the viewport). `clip`
+ * cuts overflow without creating a scroll container, so sticky keeps
+ * tracking the viewport across the whole hero→explore span.
  */
 .tn-world-stage {
   position: relative;
@@ -48,7 +53,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
+  overflow: clip;
   pointer-events: none;
 }
 
@@ -163,6 +168,20 @@
   pointer-events: none;
 }
 
+/*
+ * Night plate (L04 desktop / L05 phone crop — unlike L03 above, L05 exists,
+ * so this crossfade runs at every width, not just >=880px). `.tn-hero-plate`
+ * on the inner <img> reuses the same sizing/object-fit as the dawn plate;
+ * this wrapper only owns position + opacity, mirroring `.tn-hero-media picture`.
+ */
+.tn-hero-plate-night {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  opacity: var(--tn-hero-night, 0);
+}
+
 /* Keeps ivory text legible over the plate's brightest band. */
 .tn-hero-scrim {
   position: absolute;
@@ -177,16 +196,23 @@
 }
 
 /*
- * Extra darkening for the `night` phase, layered above `.tn-hero-scrim`.
- * Stays off below 880px along with `.tn-hero-plate-dusk`: without that photo
- * swap this would just be a plain black fade over the unchanged dawn plate.
+ * Extra darkening for the `night` phase, layered above `.tn-hero-scrim` and
+ * `.tn-hero-plate-night`. Now active at every width: L05 (unlike L03) has a
+ * phone crop, so the night photo swap it's darkening over is real on mobile
+ * too, not just >=880px.
+ *
+ * Capped at 0.55 rather than going to full opacity at night=1: before the
+ * night photo existed, a flat black fade AT opacity 1 stood in for "night"
+ * over the unchanged dawn plate. Now `.tn-hero-plate-night` carries a real
+ * Milky Way photo underneath — a fully opaque scrim would black it out
+ * completely, defeating the whole point of wiring it in.
  */
 .tn-hero-scrim-night {
   position: absolute;
   inset: 0;
   z-index: -1;
   background: #050403;
-  opacity: 0;
+  opacity: calc(var(--tn-hero-night, 0) * 0.55);
   pointer-events: none;
 }
 
@@ -342,11 +368,15 @@
     display: block;
     object-fit: cover;
     object-position: 70% 50%;
-    opacity: var(--tn-hero-dusk, 0);
+    /* Effects-contract weights: dawn 1-dusk, dusk dusk*(1-night), night
+       night. Without the (1-night) factor, dusk would stay fully opaque
+       underneath the night plate once night rises, fighting it instead of
+       handing off cleanly. */
+    opacity: calc(var(--tn-hero-dusk, 0) * (1 - var(--tn-hero-night, 0)));
   }
 
-  .tn-hero-scrim-night {
-    opacity: var(--tn-hero-night, 0);
+  .tn-hero-plate-night .tn-hero-plate {
+    object-position: 70% 50%;
   }
 
   .tn-hero-scrim {

@@ -16,6 +16,7 @@
 
   .tn .tn-explore .hv3-chart-wrap::before,
   .tn .tn-hero-plate-dusk,
+  .tn .tn-hero-plate-night,
   .tn .tn-hero-scrim-night {
     opacity: 0 !important;
   }
