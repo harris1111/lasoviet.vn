@@ -21,7 +21,8 @@ export type HomepageV3BirthValues = {
 };
 
 export type HomepageV3Interest = "self_understanding" | "career" | "love";
-const INTERESTS: readonly string[] = ["self_understanding", "career", "love"];
+export const HOMEPAGE_V3_INTERESTS: readonly HomepageV3Interest[] = ["self_understanding", "career", "love"];
+const INTERESTS: readonly string[] = HOMEPAGE_V3_INTERESTS;
 
 const BRANCHES: readonly string[] = [
   "zi", "chou", "yin", "mao", "chen", "si", "wu", "wei", "shen", "you", "xu", "hai",
@@ -48,15 +49,47 @@ function hasValidBirthDate(values: HomepageV3BirthValues, now: Date): boolean {
   return validateWizardDate(day, month, year, { referenceDate: now, calendarType: values.calendarType }).valid;
 }
 
-export function toHomepageV3Draft(values: HomepageV3BirthValues, now: Date = new Date()): BirthProfileDraftInput | null {
+/**
+ * `existing` is the draft already on disk (if any) before this submission. The V3 hero form
+ * only ever collects birth fields, gender and an optional top concern — it has no UI for
+ * "who is this for" or life stage, so a bare `toHomepageV3Draft(values)` used to hardcode
+ * `forWhom: "self", consentOther: false` on every save. Since `saveBirthProfileDraft` replaces
+ * the stored draft wholesale (not a deep merge), that silently reassigned an in-progress
+ * "someone else" chart back to "self" the moment the hero form was resubmitted (2026-10-01
+ * audit, Review Focus #1). Carrying `existing` forward preserves forWhom/consentOther/place
+ * and the life-stage half of readingContext across that resubmit.
+ */
+export function toHomepageV3Draft(
+  values: HomepageV3BirthValues,
+  now: Date = new Date(),
+  existing?: Pick<BirthProfileDraftInput, "forWhom" | "consentOther" | "place" | "readingContext"> | null,
+): BirthProfileDraftInput | null {
   const timeState = getTimeState(values);
   if (!timeState || !values.gender || !hasValidBirthDate(values, now)) return null;
+
+  const existingContext = existing?.readingContext;
+  // An explicit non-null concern from this submission overrides topConcern and marks it
+  // answered; otherwise keep whatever readingContext already existed (including a prior
+  // topConcern) untouched rather than inventing or erasing one.
+  const readingContext =
+    values.topConcern && INTERESTS.includes(values.topConcern)
+      ? {
+          ...(existingContext?.lifeStage !== undefined ? { lifeStage: existingContext.lifeStage } : {}),
+          topConcern: values.topConcern,
+          skippedQuestions: {
+            lifeStage: existingContext?.skippedQuestions?.lifeStage ?? false,
+            topConcern: false,
+          },
+        }
+      : existingContext;
+
   return {
     // Land on step 1 so the visitor can still choose "for someone else" before reviewing.
     step: 1,
     displayName: values.displayName.trim().slice(0, 80),
-    forWhom: "self",
-    consentOther: false,
+    forWhom: existing?.forWhom ?? "self",
+    consentOther: existing?.consentOther ?? false,
+    ...(existing?.place !== undefined ? { place: existing.place } : {}),
     gender: values.gender,
     calendarType: values.calendarType,
     isLeapMonth: values.calendarType === "lunar" && values.isLeapMonth,
@@ -64,14 +97,7 @@ export function toHomepageV3Draft(values: HomepageV3BirthValues, now: Date = new
     month: values.month.trim(),
     year: values.year.trim(),
     timeState,
-    ...(values.topConcern && INTERESTS.includes(values.topConcern)
-      ? {
-          readingContext: {
-            topConcern: values.topConcern,
-            skippedQuestions: { lifeStage: false, topConcern: false },
-          },
-        }
-      : {}),
+    ...(readingContext ? { readingContext } : {}),
   };
 }
 
