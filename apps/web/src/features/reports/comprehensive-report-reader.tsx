@@ -52,7 +52,7 @@ export function ComprehensiveReportReader({
 }: ComprehensiveReportReaderProps) {
   const t = useTranslations("reports");
   const feedback = (partId: string) => report.chartId
-    ? <PartFeedback locale={locale} chartId={report.chartId} reportId={report.reportId} partId={partId} paid />
+    ? <PartFeedback locale={locale} chartId={report.chartId} reportId={report.reportId} partId={partId} sku={report.sku} paid />
     : null;
 
   const [fontIdx, setFontIdx] = useState<number>(1);

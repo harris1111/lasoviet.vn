@@ -12,9 +12,16 @@ import {
   trackWelcomeGrant,
   trackPartFeedback,
   trackGuaranteeClaimed,
+  deterministicAnalyticsKey,
 } from "./funnel-analytics";
 
 describe("funnel-analytics helpers", () => {
+  it("creates stable opaque telemetry keys without exposing input values", () => {
+    const first = deterministicAnalyticsKey("feedback", "chart-1", "insight-1");
+    expect(first).toBe(deterministicAnalyticsKey("feedback", "chart-1", "insight-1"));
+    expect(first).not.toContain("chart-1");
+    expect(first).not.toContain("insight-1");
+  });
   describe("sanitizeAnalyticsProperties (FD-053/FD-080/FD-081 privacy boundaries)", () => {
     it("strips forbidden properties including chart_id, birth data, user_id, and report content", () => {
       const input = {
