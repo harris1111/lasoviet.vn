@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { SiteFooter } from "../../../components/site-footer";
 import { SiteHeader } from "../../../components/site-header";
+import { HomepageV3ConcernProvider } from "../../../features/homepage-v3/homepage-v3-concern-context";
 import { TroiNamAbout } from "../../../features/troi-nam/troi-nam-about";
 import { troiNamAsset } from "../../../features/troi-nam/troi-nam-assets";
 import { TroiNamFaq } from "../../../features/troi-nam/troi-nam-faq";
@@ -47,41 +48,50 @@ export default async function Page({ params }: PageProps) {
   return (
     <div className="tn">
       <SiteHeader locale={locale} currentPath={locale === "en" ? "/en/troi-nam" : "/troi-nam"} />
-      <main>
-        <TroiNamWorldStage>
-          <TroiNamHero locale={locale} />
-          <section className="tn-section" data-troi-nam-block="story">
-            <TroiNamStory />
+      {/*
+        Page-scoped only (2026-10-01 audit F2): the shared `/` homepage mounts no provider,
+        so useHomepageV3Concern() there stays null and keeps its prior behavior exactly.
+        This wraps a server-rendered subtree in a client provider — standard RSC composition,
+        not a client-ification of the page; everything below remains server-rendered content
+        passed through as `children`.
+      */}
+      <HomepageV3ConcernProvider>
+        <main>
+          <TroiNamWorldStage>
+            <TroiNamHero locale={locale} />
+            <section className="tn-section" data-troi-nam-block="story">
+              <TroiNamStory />
+            </section>
+            <section className="tn-section" data-troi-nam-block="ticker">
+              <TroiNamTicker />
+            </section>
+            <section className="tn-section" data-troi-nam-block="explore">
+              <TroiNamExplore locale={locale} />
+            </section>
+          </TroiNamWorldStage>
+          <section className="tn-section" data-troi-nam-block="needs">
+            <TroiNamNeeds locale={locale} />
           </section>
-          <section className="tn-section" data-troi-nam-block="ticker">
-            <TroiNamTicker />
+          <section className="tn-section" data-troi-nam-block="compare">
+            <TroiNamCompare locale={locale} />
           </section>
-          <section className="tn-section" data-troi-nam-block="explore">
-            <TroiNamExplore locale={locale} />
+          <section className="tn-section" data-troi-nam-block="testimonials">
+            <TroiNamTestimonials />
           </section>
-        </TroiNamWorldStage>
-        <section className="tn-section" data-troi-nam-block="needs">
-          <TroiNamNeeds locale={locale} />
-        </section>
-        <section className="tn-section" data-troi-nam-block="compare">
-          <TroiNamCompare locale={locale} />
-        </section>
-        <section className="tn-section" data-troi-nam-block="testimonials">
-          <TroiNamTestimonials />
-        </section>
-        <section className="tn-section" data-troi-nam-block="usp">
-          <TroiNamUsp />
-        </section>
-        <section className="tn-section" data-troi-nam-block="value">
-          <TroiNamValue locale={locale} />
-        </section>
-        <section className="tn-section" data-troi-nam-block="faq">
-          <TroiNamFaq locale={locale} />
-        </section>
-        <section className="tn-section" data-troi-nam-block="about">
-          <TroiNamAbout locale={locale} />
-        </section>
-      </main>
+          <section className="tn-section" data-troi-nam-block="usp">
+            <TroiNamUsp />
+          </section>
+          <section className="tn-section" data-troi-nam-block="value">
+            <TroiNamValue locale={locale} />
+          </section>
+          <section className="tn-section" data-troi-nam-block="faq">
+            <TroiNamFaq locale={locale} />
+          </section>
+          <section className="tn-section" data-troi-nam-block="about">
+            <TroiNamAbout locale={locale} />
+          </section>
+        </main>
+      </HomepageV3ConcernProvider>
       <SiteFooter locale={locale} />
     </div>
   );

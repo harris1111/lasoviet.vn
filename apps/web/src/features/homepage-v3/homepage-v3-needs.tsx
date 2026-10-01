@@ -4,6 +4,7 @@ import { useState, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 
 import { localizedPath } from "../homepage/homepage-utilities";
+import { concernForNeed, useHomepageV3Concern } from "./homepage-v3-concern-context";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
 import { DISCIPLINES, HOMEPAGE_V3_IMAGE_ROOT, NEEDS, TUVI_ART } from "./homepage-v3-data";
 
@@ -17,10 +18,23 @@ const NEED_ART = {
 export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
   const t = useTranslations("homepage-v3.needs");
   const [active, setActive] = useState(0);
+  const concernCtx = useHomepageV3Concern();
   const need = NEEDS[active] ?? NEEDS[0];
   const chipKeys = Array.from({ length: need.chips }, (_, i) => `c${i + 1}`);
   const secondaryHref = "secondaryHref" in need ? need.secondaryHref : undefined;
   const directHref = "href" in need ? need.href : undefined;
+  const needConcern = concernForNeed(need.id);
+
+  // An explicit card click sets the shared concern immediately; the default-highlighted
+  // first card on mount must not (spec "Experience decisions" #4 — otherwise merely opening
+  // the page would silently override a concern already restored from a saved draft).
+  function selectNeed(index: number) {
+    setActive(index);
+    const picked = NEEDS[index];
+    if (!picked) return;
+    const concern = concernForNeed(picked.id);
+    if (concern) concernCtx?.setTopConcern(concern);
+  }
 
   return (
     <div className="hv3-container">
@@ -32,7 +46,7 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
       <div className="hv3-needs-body">
         <div role="group" aria-label={t("groupLabel")} className="hv3-need-list">
           {NEEDS.map((item, index) => (
-            <button key={item.id} type="button" className="hv3-need" aria-pressed={active === index} onClick={() => setActive(index)}>
+            <button key={item.id} type="button" className="hv3-need" aria-pressed={active === index} onClick={() => selectNeed(index)}>
               <span className="hv3-need-icon">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon}`} alt="" width={34} height={34} />
@@ -60,7 +74,7 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
             {directHref ? (
               <a href={localizedPath(locale, directHref)} className="hv3-btn">{t(`items.${need.id}.cta`)}</a>
             ) : (
-              <HomepageV3GoWizard className="hv3-btn">{t(`items.${need.id}.cta`)}</HomepageV3GoWizard>
+              <HomepageV3GoWizard className="hv3-btn" topConcern={needConcern ?? undefined}>{t(`items.${need.id}.cta`)}</HomepageV3GoWizard>
             )}
             {secondaryHref ? (
               <a href={localizedPath(locale, secondaryHref)} className="hv3-link">{t(`items.${need.id}.secondary`)} →</a>

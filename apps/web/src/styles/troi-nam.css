@@ -329,6 +329,30 @@
   color: var(--tn-text);
 }
 
+/* Visible proof, not another claim — a real sample reading, reachable before
+   the visitor fills in anything (2026-10-01 audit F1). */
+.tn-hero-sample-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+  color: var(--tn-gold-light);
+  font-size: var(--tn-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tn-hero-sample-cta:hover {
+  color: var(--tn-gold);
+}
+
+.tn-hero-handoff-note {
+  margin: 0.75rem 0 0;
+  color: var(--tn-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
 /*
  * The form itself is the unmodified wizard card from the live homepage
  * (`.hv3-form` in homepage-v3.css): raised surface, hairline border, shadow,

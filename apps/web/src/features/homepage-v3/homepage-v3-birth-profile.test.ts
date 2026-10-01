@@ -114,4 +114,54 @@ describe("homepage v3 birth profile adapter", () => {
     }
     expect(toHomepageV3Draft({ ...base, topConcern: null })?.readingContext).toBeUndefined();
   });
+
+  describe("existing draft ownership/consent/lifeStage (2026-10-01 audit, Review Focus #1)", () => {
+    it("preserves an in-progress other-person draft's forWhom/consentOther/place across a hero resubmit", () => {
+      const existing = { forWhom: "other" as const, consentOther: true, place: "Hà Nội" };
+      const draft = toHomepageV3Draft(base, new Date(), existing);
+      expect(draft?.forWhom).toBe("other");
+      expect(draft?.consentOther).toBe(true);
+      expect(draft?.place).toBe("Hà Nội");
+    });
+
+    it("defaults to self/no-consent/no place when there is no existing draft", () => {
+      const draft = toHomepageV3Draft(base, new Date(), null);
+      expect(draft?.forWhom).toBe("self");
+      expect(draft?.consentOther).toBe(false);
+      expect(draft?.place).toBeUndefined();
+    });
+
+    it("preserves an existing lifeStage and its skippedQuestions.lifeStage when a new topConcern is chosen", () => {
+      const existing = {
+        readingContext: {
+          lifeStage: "established_career" as const,
+          topConcern: "love" as const,
+          skippedQuestions: { lifeStage: false, topConcern: false },
+        },
+      };
+      const draft = toHomepageV3Draft({ ...base, topConcern: "career" }, new Date(), existing);
+      expect(draft?.readingContext).toEqual({
+        lifeStage: "established_career",
+        topConcern: "career",
+        skippedQuestions: { lifeStage: false, topConcern: false },
+      });
+    });
+
+    it("leaves the existing readingContext untouched when this submission carries no topConcern", () => {
+      const existing = {
+        readingContext: {
+          lifeStage: "established_career" as const,
+          topConcern: "love" as const,
+          skippedQuestions: { lifeStage: false, topConcern: false },
+        },
+      };
+      const draft = toHomepageV3Draft({ ...base, topConcern: null }, new Date(), existing);
+      expect(draft?.readingContext).toEqual(existing.readingContext);
+    });
+
+    it("never invents a readingContext from an existing draft that had none", () => {
+      const draft = toHomepageV3Draft({ ...base, topConcern: null }, new Date(), {});
+      expect(draft?.readingContext).toBeUndefined();
+    });
+  });
 });

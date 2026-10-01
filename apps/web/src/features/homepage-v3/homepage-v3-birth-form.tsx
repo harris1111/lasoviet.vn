@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { validateWizardDate } from "../birth-profile/birth-wizard-state";
 import { saveBirthProfileDraft, readBirthProfileDraft } from "../birth-profile/birth-profile-draft";
 import {
   CANONICAL_BRANCH_IDS,
@@ -13,7 +12,14 @@ import {
   type CanonicalBranchId,
 } from "../birth-profile/homepage-birth-prefill";
 import { localizedPath } from "../homepage/homepage-utilities";
+import { useHomepageV3Concern } from "./homepage-v3-concern-context";
 import { HERO_LENSES } from "./homepage-v3-data";
+import {
+  reconcileHomepageV3Errors,
+  validateHomepageV3BirthValues,
+  type HomepageV3FormErrors,
+  type HomepageV3ValidationErrorKey,
+} from "./homepage-v3-form-validation";
 import { deriveHeroStage } from "./homepage-v3-hero-stage";
 import {
   toHomepageV3Draft,
@@ -22,7 +28,7 @@ import {
 } from "./homepage-v3-birth-profile";
 
 type Locale = "en" | "vi";
-type Errors = Partial<Record<"date" | "time" | "gender" | "storage", string>>;
+type Errors = HomepageV3FormErrors;
 
 const INITIAL: HomepageV3BirthValues = {
   displayName: "",
@@ -52,8 +58,12 @@ export type HomepageV3BirthFormState = ReturnType<typeof useHomepageV3BirthForm>
 export function useHomepageV3BirthForm(locale: Locale) {
   const t = useTranslations("homepage-v3.hero");
   const router = useRouter();
+  const concernCtx = useHomepageV3Concern();
   const [values, setValues] = useState<HomepageV3BirthValues>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
+  // Armed right before a failing setErrors so the effect below knows to move focus; left
+  // false for every reconcile-on-keystroke setErrors so typing never steals focus back.
+  const shouldFocusRef = useRef(false);
 
   // Restore a draft saved by this form or by the wizard so the exact minute survives a round trip.
   useEffect(() => {
@@ -79,62 +89,74 @@ export function useHomepageV3BirthForm(locale: Locale) {
     });
   }, []);
 
-  function patch(next: Partial<HomepageV3BirthValues>) {
-    setValues((current) => ({ ...current, ...next }));
-    setErrors({});
+  function message(key: HomepageV3ValidationErrorKey): string {
+    return t(`errors.${key}`);
   }
 
-  function validate(now: Date): Errors {
-    const found: Errors = {};
-    const { day, month, year, calendarType } = values;
-    if (!/^\d{1,2}$/.test(day) || !/^\d{1,2}$/.test(month) || !/^\d{4}$/.test(year)) {
-      found.date = t("errors.dateEmpty");
-    } else {
-      const result = validateWizardDate(day, month, year, { referenceDate: now, calendarType });
-      if (!result.valid) {
-        const outOfRange = Number(year) < 1920 || Number(year) > now.getFullYear();
-        found.date =
-          result.error === "FUTURE_DATE"
-            ? t("errors.dateFuture")
-            : outOfRange
-              ? t("errors.dateRange")
-              : t("errors.dateImpossible");
-      } else if (calendarType === "lunar" && Number(year) > now.getFullYear()) {
-        found.date = t("errors.dateRange");
-      }
-    }
-    if (!values.timeUnknown && values.timeMode === "exact_minute") {
-      const { hour, minute } = values;
-      if (!/^\d{1,2}$/.test(hour) || !/^\d{1,2}$/.test(minute) || Number(hour) > 23 || Number(minute) > 59) {
-        found.time = t("errors.time");
-      }
-    }
-    if (!values.timeUnknown && values.timeMode === "branch_only" && !values.branch) {
-      found.time = t("errors.branch");
-    }
-    if (!values.gender) found.gender = t("errors.gender");
-    return found;
+  function patch(next: Partial<HomepageV3BirthValues>) {
+    const updated = { ...values, ...next };
+    setValues(updated);
+    const revalidated = validateHomepageV3BirthValues(updated, new Date(), message);
+    setErrors((current) => reconcileHomepageV3Errors(current, revalidated, next));
   }
+
+  // Moves focus to the first invalid group once its error has actually rendered — only when
+  // armed by a failed submit (shouldFocusRef), never on an ordinary reconcile-on-keystroke
+  // setErrors. Priority date -> time -> gender -> storage; storage's own <p> is the target
+  // since there's no single control to blame for a failed save.
+  useEffect(() => {
+    if (!shouldFocusRef.current) return;
+    shouldFocusRef.current = false;
+    if (errors.date) {
+      document.getElementById("hv3-day")?.focus();
+      return;
+    }
+    if (errors.time) {
+      const targetId = values.timeUnknown ? null : values.timeMode === "exact_minute" ? "hv3-hour" : "hv3-branch";
+      if (targetId) document.getElementById(targetId)?.focus();
+      return;
+    }
+    if (errors.gender) {
+      document.getElementById("hv3-gender-male")?.focus();
+      return;
+    }
+    if (errors.storage) {
+      document.getElementById("hv3-storage-error")?.focus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errors]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const now = new Date();
-    const found = validate(now);
+    const found = validateHomepageV3BirthValues(values, now, message);
     if (Object.keys(found).length > 0) {
+      shouldFocusRef.current = true;
       setErrors(found);
       return;
     }
-    const draft = toHomepageV3Draft(values, now);
+    const existing = readBirthProfileDraft();
+    // The provider's concern (set by an explicit needs-card/CTA click) wins when present;
+    // otherwise fall back to whatever this form instance already holds (e.g. restored from
+    // an earlier draft). Outside a provider (shared `/` homepage) concernCtx is null and this
+    // is exactly the old `values.topConcern` behavior.
+    const effectiveValues: HomepageV3BirthValues = {
+      ...values,
+      topConcern: concernCtx?.topConcern ?? values.topConcern,
+    };
+    const draft = toHomepageV3Draft(effectiveValues, now, existing);
     if (!draft) {
+      shouldFocusRef.current = true;
       setErrors({ date: t("errors.dateImpossible") });
       return;
     }
     // The draft is what the wizard restores first, so it must be saved before we navigate.
     if (!saveBirthProfileDraft(draft)) {
+      shouldFocusRef.current = true;
       setErrors({ storage: t("errors.storage") });
       return;
     }
-    const prefill = toHomepageV3Prefill(values);
+    const prefill = toHomepageV3Prefill(effectiveValues);
     if (prefill) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
     router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
   }
@@ -163,6 +185,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
                 id="hv3-day"
                 aria-label={t("day")}
                 aria-invalid={Boolean(errors.date)}
+                aria-describedby={errors.date ? "hv3-date-error" : undefined}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 autoComplete="off"
@@ -183,6 +206,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
                 id="hv3-month"
                 aria-label={t("month")}
                 aria-invalid={Boolean(errors.date)}
+                aria-describedby={errors.date ? "hv3-date-error" : undefined}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 autoComplete="off"
@@ -208,6 +232,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
                 id="hv3-year"
                 aria-label={t("year")}
                 aria-invalid={Boolean(errors.date)}
+                aria-describedby={errors.date ? "hv3-date-error" : undefined}
                 inputMode="numeric"
                 pattern="[0-9]*"
                 autoComplete="off"
@@ -229,7 +254,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
                 {t("leap")}
               </label>
             ) : null}
-            {errors.date ? <p role="alert" className="hv3-error">{errors.date}</p> : null}
+            {errors.date ? <p id="hv3-date-error" role="alert" className="hv3-error">{errors.date}</p> : null}
           </div>
 
           <div className="hv3-field">
@@ -250,6 +275,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
                   placeholder="HH"
                   disabled={timeDisabled}
                   aria-invalid={Boolean(errors.time)}
+                  aria-describedby={errors.time ? "hv3-time-error" : undefined}
                   value={values.hour}
                   onChange={(e) => {
                     const val = digits(e.target.value, 2);
@@ -271,6 +297,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
                   placeholder="MM"
                   disabled={timeDisabled}
                   aria-invalid={Boolean(errors.time)}
+                  aria-describedby={errors.time ? "hv3-time-error" : undefined}
                   value={values.minute}
                   onChange={(e) => patch({ minute: digits(e.target.value, 2) })}
                   onKeyDown={(e) => {
@@ -284,7 +311,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
             ) : (
               <>
                 <label htmlFor="hv3-branch" className="hv3-sr">{t("branchSr")}</label>
-                <select id="hv3-branch" disabled={timeDisabled} aria-invalid={Boolean(errors.time)} value={values.branch} onChange={(e) => patch({ branch: e.target.value as CanonicalBranchId | "" })} className="hv3-input">
+                <select id="hv3-branch" disabled={timeDisabled} aria-invalid={Boolean(errors.time)} aria-describedby={errors.time ? "hv3-time-error" : undefined} value={values.branch} onChange={(e) => patch({ branch: e.target.value as CanonicalBranchId | "" })} className="hv3-input">
                   <option value="">{t("branchPlaceholder")}</option>
                   {CANONICAL_BRANCH_IDS.map((id) => (
                     <option key={id} value={id}>{getBranchOptionLabel(id, locale)}</option>
@@ -296,15 +323,15 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
               <input type="checkbox" checked={values.timeUnknown} onChange={() => patch({ timeUnknown: !values.timeUnknown })} />
               {t("unknown")}
             </label>
-            {errors.time ? <p role="alert" className="hv3-error">{errors.time}</p> : null}
+            {errors.time ? <p id="hv3-time-error" role="alert" className="hv3-error">{errors.time}</p> : null}
           </div>
 
           <div className="hv3-row">
-            <div role="group" aria-label={t("genderLabel")} className="hv3-field hv3-grow-sm">
+            <div role="group" aria-label={t("genderLabel")} aria-describedby={errors.gender ? "hv3-gender-error" : undefined} className="hv3-field hv3-grow-sm">
               <span className="hv3-label">{t("genderLabel")}</span>
               <div className="hv3-seg">
-                <button type="button" aria-pressed={values.gender === "male"} onClick={() => patch({ gender: "male" })}>{t("male")}</button>
-                <button type="button" aria-pressed={values.gender === "female"} onClick={() => patch({ gender: "female" })}>{t("female")}</button>
+                <button id="hv3-gender-male" type="button" aria-pressed={values.gender === "male"} onClick={() => patch({ gender: "male" })}>{t("male")}</button>
+                <button id="hv3-gender-female" type="button" aria-pressed={values.gender === "female"} onClick={() => patch({ gender: "female" })}>{t("female")}</button>
               </div>
             </div>
             <label className="hv3-field hv3-grow">
@@ -312,8 +339,8 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
               <input type="text" autoComplete="given-name" maxLength={80} placeholder={t("namePlaceholder")} value={values.displayName} onChange={(e) => patch({ displayName: e.target.value })} className="hv3-input" />
             </label>
           </div>
-          {errors.gender ? <p role="alert" className="hv3-error">{errors.gender}</p> : null}
-          {errors.storage ? <p role="alert" className="hv3-error">{errors.storage}</p> : null}
+          {errors.gender ? <p id="hv3-gender-error" role="alert" className="hv3-error">{errors.gender}</p> : null}
+          {errors.storage ? <p id="hv3-storage-error" role="alert" tabIndex={-1} className="hv3-error">{errors.storage}</p> : null}
 
           <button type="submit" className="hv3-cta">{t("submit")}</button>
         </form>
