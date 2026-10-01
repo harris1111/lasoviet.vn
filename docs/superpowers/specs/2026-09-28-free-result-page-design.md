@@ -1,7 +1,7 @@
 # Free Result Page ("Lá số của bạn") — Mobile-First Design Spec
 
 **Date:** 2026-09-28
-**Status:** Rebuilt 2026-09-28 after the founder's design review. FD-109 replaces the beat order and the whole selling model of the first draft: read first, ask once, one door. No production UI code until the founder signs off the prototype (§10).
+**Status:** Founder confirmed the baseline and approved simple implementation on 2026-10-01. FD-109 replaces the beat order and the whole selling model of the first draft: read first, ask once, one door. UI/projection/cache may proceed; new free AI calls remain gated by the durable controls in §2a.
 **Owner:** An (implementation). Lãm/Harris (acceptance, FD-056 visual sign-off).
 **Page:** `/la-so/[chartId]` (`apps/web/src/app/[locale]/la-so/[chartId]/page.tsx`, `apps/web/src/features/ziwei/`).
 **Governing rules, in order of precedence:**
@@ -74,6 +74,61 @@ all four offers. The first draft rebuilt that page inside the free result page.
 | Palace readings, advice, month names, decadal text | AI | Paid |
 
 The structural layer (chart, scores, counts) is the cheapest persuasion we own: it is specific to the person and costs no AI. The page leans on it. Free palace scores confirmed by the founder 2026-09-28.
+
+### 2a. Simple delivery and delegated AI ceiling (owner approval 2026-10-01)
+
+This section supersedes §2's suggestion to generate a full report for title lines,
+§7's old offer ladder in the left rail, and §8's allowance for prices on this page.
+Ship UI/projection/cache first. Select one concern-matched palace per frozen chart
+version, then reuse that selection and cached reading. Do not generate a full paid
+report solely as a gift or make separate AI calls for the other eleven palaces.
+Their map uses existing deterministic facts and scores; reuse authorised clipped
+excerpts only when already available. Preserve the server-side secure-blur boundary.
+
+Read-only staging DB evidence on 2026-10-01:
+
+| Measure | Recorded value |
+|---|---|
+| Report calls | 424, including 76 without resolved cost |
+| Resolved report call cost | Median 491 VND; mean 772 VND; p95 3,113 VND; maximum 4,257 VND |
+| Rewrite calls | 75; resolved mean 756 VND |
+| Paid orders | 64 staging orders; 5,017,000 VND nominal, **not real revenue** |
+| Generated preview requests | 0 |
+
+These calls cover different historical models and sections, not a measured
+standalone free-palace campaign. The ceilings below are conservative policy
+choices, not a cost forecast or a no-loss guarantee. The existing 3,000 VND
+preview ceiling is retained; some historical calls would exceed it.
+
+- **Chart-version ceiling:** 3,000 VND across all free AI, including existing
+  free insights and any failed attempts; not another 3,000 VND just for the palace.
+- **Global ceiling:** 50,000 VND per UTC day across free AI. This is an explicit
+  staging/pilot spend allowance, not a budget funded by historical test orders.
+  It bounds exposure to 1,500,000 VND over thirty fully used days.
+- **Rolling 24-hour quotas:** one new eligible palace for a guest, three for a
+  verified account. Cached views are free and do not consume new-generation quota.
+  Use server-side counters and an abuse-resistant guest identity; linking a guest
+  to an account must not reset already consumed usage.
+- **Attempts:** one provider attempt for the new free gift, with no automatic
+  retry/rewrite. Paid-report retry rules and quality gates remain unchanged.
+- **Reservation before provider call:** reserve the worst-case input and maximum
+  output cost under a frozen active pricing/model snapshot, atomically against
+  both chart-version and day ceilings. Persist quota, reservation and single-flight
+  state; a concurrent request must not charge or generate twice.
+- **Cache:** reuse a frozen selection and versioned artifact keyed by chart version,
+  concern, locale, prompt/rules/knowledge version, provider/model and contract.
+  Changing technical versions must not grant a second free allowance for the same
+  chart version. Check cache before charging; reconcile unused reservation only
+  after resolved usage is known. Unknown cost retains its reservation.
+- **Fallback:** if pricing/cost is unknown, no reservation is available, the cap
+  is reached, or the call fails quality, serve the truthful structural preview.
+  Do not label it a full AI reading, invent advice or bypass validation.
+
+No new paid provider calls may be enabled until these durable controls and a
+focused free-palace preflight pass. A settings/documentation change alone is not
+enforcement. No additional founder input is required for this bounded scope.
+Before scaling traffic, replace staging assumptions with real paid conversion
+and contribution-margin evidence; do not automatically raise the cap.
 
 ## 3. Page order (FD-109)
 
