@@ -8,6 +8,7 @@ export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
   // unmodified HomepageV3Value and can't take real injected children.
   const leafFront = troiNamAsset("E01.la-vang-mat-truoc-1");
   const leafBack = troiNamAsset("E01.la-vang-mat-sau-2");
+  const sunlitValley = troiNamAsset("L13");
 
   return (
     <div className="hv3 tn-value">
@@ -22,6 +23,11 @@ export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
       ))}
       <style>
         {`
+          .tn .tn-value .hv3-steps li[data-step="3"] {
+            background-image: linear-gradient(rgb(16 14 12 / 0.8), rgb(16 14 12 / 0.92)), url("${sunlitValley.src}");
+            background-size: cover;
+            background-position: center;
+          }
           .tn .tn-value .hv3-steps li[data-step="3"]::before {
             background-image: url("${leafFront.src}");
           }

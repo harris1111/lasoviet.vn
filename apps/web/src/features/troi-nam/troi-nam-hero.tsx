@@ -48,11 +48,11 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
         section.style.setProperty("--tn-hero-night", "0");
         return;
       }
-      // `snapshot.progress` spans the whole hero->explore "world" range (Plan 4's
-      // job to make that visible via a pinned scene). Until then, re-derive a
-      // progress local to the hero's own height so the crossfade actually
-      // finishes while the plate is still on screen, instead of off-screen by
-      // the time it reaches dusk/night.
+      // Shared `snapshot.progress` now spans hero -> the Explore chart reaching
+      // viewport centre (Phase 5's handoff point), much longer than the hero
+      // section itself — re-derive a progress local to the hero's own height
+      // so the crossfade actually finishes while the plate is still on
+      // screen, instead of off-screen by the time it reaches dusk/night.
       const scrolledPast = snapshot.progress * (snapshot.range.end - snapshot.range.start);
       const heroHeight = section.offsetHeight || 1;
       const local = clampProgress(scrolledPast / heroHeight);

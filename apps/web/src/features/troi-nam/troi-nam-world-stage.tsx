@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { initializeWorld } from "./world/troi-nam-world-runtime";
+
 import type { WorldHandle, WorldQuality } from "./world/troi-nam-world-types";
 
 type ProgressDetail = { progress: number; reducedMotion: boolean };
@@ -40,6 +42,10 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
     }
 
     let cancelled = false;
+    let failed = false;
+    const abort = new AbortController();
+    const diagnostics = new URLSearchParams(window.location.search).get("troiNamWorldDebug") === "1";
+    const debugWindow = window as Window & { __troiNamWorld?: WorldHandle };
     let handle: WorldHandle | null = null;
 
     const quality: WorldQuality = coarsePointerQuery?.matches ? "low" : "high";
@@ -47,7 +53,7 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
 
     function markReady(ready: boolean) {
       if (ready) root!.setAttribute("data-troi-nam-world-ready", "");
-      else root!.removeAttribute("data-troi-nam-world-ready");
+      else { root!.removeAttribute("data-troi-nam-world-ready"); root!.style.setProperty("--tn-world-opacity", "1"); }
     }
 
     function resizeCanvas() {
@@ -93,6 +99,8 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       // loaded but the handle not yet assigned) so it never completes and
       // flips the world on after the user has already opted out.
       cancelled = true;
+      abort.abort();
+      if (diagnostics) delete debugWindow.__troiNamWorld;
       handle?.dispose();
       handle = null;
       markReady(false);
@@ -101,14 +109,17 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
     function handleFailure() {
       // Called on init failure, and again later on context loss or sustained
       // bad frame times (createTroiNamWorld disposes itself first either way).
+      failed = true;
+      handle?.dispose();
       handle = null;
+      if (diagnostics) delete debugWindow.__troiNamWorld;
       markReady(false);
     }
 
     // Pause the render loop (and its RAF cost) while the tab is hidden or the
     // whole hero→explore span has scrolled out of view — resumed with a
     // fresh delta (see stopLoop's reset) rather than a jump.
-    let visible = true;
+    let visible = document.visibilityState === "visible";
     let intersecting = true;
     function updateActive() {
       const next = visible && intersecting;
@@ -127,8 +138,8 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     const resizeObserver = new ResizeObserver(() => {
-      resizeCanvas();
       updateChartTarget();
+      resizeCanvas();
     });
     resizeObserver.observe(sticky);
     if (exploreChart) resizeObserver.observe(exploreChart);
@@ -136,46 +147,36 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
     root.addEventListener("troi-nam:progress", onProgress);
     reducedMotionQuery?.addEventListener?.("change", onReducedMotionChange);
 
-    void import("./world/troi-nam-world-scene")
-      .then(({ createTroiNamWorld }) => {
-        // Fix: check cancellation/reduced-motion BEFORE invoking the factory,
-        // not after — the old code always allocated the renderer, builders
-        // and first frame, then disposed them one tick later. A reduced-
-        // motion toggle or unmount while this chunk was still loading must
-        // never touch the GPU at all.
-        if (cancelled || reducedMotionQuery?.matches) return null;
-        return createTroiNamWorld(canvas!, { quality, seed: 1, onFailure: handleFailure });
-      })
-      .then((nextHandle) => {
-        if (!nextHandle) return;
-        // Re-check live: `cancelled` or `reducedMotionQuery.matches` can
-        // still flip between the factory call above and this callback.
-        if (cancelled || reducedMotionQuery?.matches) {
-          nextHandle.dispose();
-          return;
-        }
+    void initializeWorld({
+      load: async () => {
+        const { createTroiNamWorld } = await import("./world/troi-nam-world-scene");
+        return () => createTroiNamWorld(canvas, {
+          quality, seed: 1, onFailure: handleFailure, signal: abort.signal, diagnostics,
+          onOpacity: (value) => root.style.setProperty("--tn-world-opacity", String(value)),
+        });
+      },
+      cancelled: () => cancelled || failed || reducedMotionQuery?.matches === true,
+      prepare: (nextHandle) => {
         handle = nextHandle;
-        resizeCanvas();
-        // `resizeCanvas` can itself fail and call `handleFailure` (nulling
-        // the outer `handle`) synchronously before this callback continues.
-        if (!handle) return;
         updateChartTarget();
-        // Catch up on scroll state the stage missed while the module loaded
-        // (see createTroiNamProgress: it stores the latest snapshot here).
-        const stored = Number(root!.dataset.troiNamProgress);
-        handle.setProgress(Number.isFinite(stored) ? stored : 0);
-        updateActive(); // sync the active/inactive state reached while loading
+        const stored = Number(root.dataset.troiNamProgress);
+        nextHandle.setProgress(Number.isFinite(stored) ? stored : 0);
+        updateActive();
+        // The first revealed render must use the stored scroll pose and chart rect.
+        // resize can invoke onFailure synchronously; do not dereference handle afterward.
+        resizeCanvas();
+      },
+      ready: (nextHandle) => {
+        if (diagnostics) debugWindow.__troiNamWorld = nextHandle;
         markReady(true);
-      })
-      // Covers a rejected import/factory promise AND any exception thrown
-      // inside the success handlers above (e.g. a null handle dereferenced
-      // after a mid-chain failure) — a bare `.then(success, failure)` only
-      // catches the former, which is exactly how a failed resize used to
-      // surface as an unhandled rejection instead of falling back cleanly.
-      .catch(handleFailure);
+      },
+      failure: handleFailure,
+    });
 
     return () => {
       cancelled = true;
+      abort.abort();
+      if (diagnostics) delete debugWindow.__troiNamWorld;
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);

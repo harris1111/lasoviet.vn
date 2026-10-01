@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 import { troiNamAsset } from "../troi-nam-assets";
 import { fillFootprint, makeReferenceCamera, unprojectToPlane } from "./troi-nam-world-chapters";
-import { loadWorldTexture } from "./troi-nam-world-textures";
+import { loadWorldTexture, type WorldTextures } from "./troi-nam-world-textures";
 
 /**
  * The painted karst/mist/foreground layers — flat image planes at different
@@ -23,9 +23,21 @@ import { loadWorldTexture } from "./troi-nam-world-textures";
 
 export type PaintedWorldPhase = { dusk: number; night: number };
 
+/** A god-ray occluder: `map` is the alpha source the mask pass alpha-tests
+ * against (keeping real leaf/rock edges instead of a rectangular silhouette);
+ * `map: null` means the mesh occludes its full geometry with no cutout —
+ * used for water, which has no alpha but must still read as "not open sky"
+ * so the ray pass doesn't wash the whole lake in flat light (see Phase 4/5
+ * integration review 2026-10-01). */
+export type RayOccluder = { mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>; map: THREE.Texture | null };
+
 export type PaintedWorld = {
   group: THREE.Group;
   setPhase(phase: PaintedWorldPhase): void;
+  setProgress(progress: number): void;
+  setQuality(quality: "low" | "high"): void;
+  occluders: RayOccluder[];
+  sun: THREE.Vector3;
   resize(aspect: number): void;
   dispose(): void;
 };
@@ -55,12 +67,17 @@ type SpriteLayer = {
   duskFade: boolean; // fades out across the dusk interval (the sun itself, gone once the sky turns to night)
 };
 
-export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "low" | "high" }): PaintedWorld {
+export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { quality: "low" | "high"; textures: WorldTextures }): PaintedWorld {
   const group = new THREE.Group();
   const disposables: Array<{ dispose(): void }> = [];
   const sharedGeometry = new THREE.PlaneGeometry(1, 1);
   disposables.push(sharedGeometry);
 
+  const occluders: RayOccluder[] = [];
+  const mistLayers: FillLayer[] = [];
+  let cloudLayer: FillLayer | undefined;
+  const sun = new THREE.Vector3(7, 7.5, -24);
+  let currentQuality = quality;
   const fillLayers: FillLayer[] = [];
   const spriteLayers: SpriteLayer[] = [];
 
@@ -75,9 +92,15 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
     renderOrder: number;
     blending?: THREE.Blending;
     opacity?: number;
+    crop?: [number, number, number, number];
   }): void {
     const asset = troiNamAsset(spec.id);
-    const texture = loadWorldTexture(asset.src);
+    const texture = loadWorldTexture(asset.src, textures);
+    if (spec.crop) {
+      const [x, y, width, height] = spec.crop;
+      texture.offset.set(x, 1 - y - height);
+      texture.repeat.set(width, height);
+    }
     if (spec.flip) {
       // Horizontal mirror without re-exporting the file: W08's foliage frames
       // the top+left in the source, which sits directly over the hero copy
@@ -97,19 +120,22 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
     const mesh = new THREE.Mesh(sharedGeometry, material);
     mesh.renderOrder = spec.renderOrder;
     group.add(mesh);
-    disposables.push(material, texture);
+    disposables.push(material);
 
+    if (["W04", "W05", "W06", "W08"].includes(spec.id)) occluders.push({ mesh, map: texture });
     fillLayers.push({
       mesh,
       material,
       z: spec.z,
       overscan: spec.overscan,
-      textureAspect: (asset.width ?? 16) / (asset.height ?? 9),
+      textureAspect: (asset.width ?? 16) / (asset.height ?? 9) * (spec.crop ? spec.crop[2] / spec.crop[3] : 1),
       anchor: spec.anchor,
       bottomOffsetFrac: spec.bottomOffsetFrac,
       nightTint: spec.nightTint ?? 0,
       baseOpacity: spec.opacity ?? 1,
     });
+    if (spec.id === "T11") mistLayers.push(fillLayers[fillLayers.length - 1]!);
+    if (spec.id === "T07") cloudLayer = fillLayers[fillLayers.length - 1]!;
   }
 
   function addSpriteLayer(spec: {
@@ -122,7 +148,7 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
     blending?: THREE.Blending;
   }): void {
     const asset = troiNamAsset(spec.id);
-    const texture = loadWorldTexture(asset.src);
+    const texture = loadWorldTexture(asset.src, textures);
     const aspect = (asset.width ?? 1) / (asset.height ?? 1);
     const material = new THREE.MeshBasicMaterial({
       map: texture,
@@ -136,9 +162,17 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
     mesh.scale.set(aspect >= 1 ? spec.size * aspect : spec.size, aspect >= 1 ? spec.size : spec.size / aspect, 1);
     mesh.renderOrder = spec.renderOrder;
     group.add(mesh);
-    disposables.push(material, texture);
+    disposables.push(material);
     spriteLayers.push({ mesh, material, baseOpacity: spec.opacity, duskFade: spec.duskFade ?? false });
   }
+
+  // A faint painted mother-of-pearl cloud plate appears only in the high-tier dusk sky.
+  // overscan 1.5 (not 1.05): at 1.05 the plane's own rectangular edge became
+  // visible during camera tilt (found in the 2026-10-01 Phase 4/5 review) —
+  // this layer is purely decorative (opacity 0.14, not anchored to the
+  // waterline like the karst layers), so there's no placement-law reason to
+  // keep it tight.
+  if (quality === "high") addFillLayer({ id: "T07", z: -32, overscan: 1.5, anchor: "frameCenter", bottomOffsetFrac: -0.3, renderOrder: 0, opacity: 0.14 });
 
   // ---- Karst (Luật 2: overscan is the only real size control) ----
   // bottomOffsetFrac -0.01: the bottom edge dips 1% of its own height below
@@ -147,13 +181,10 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
   addFillLayer({ id: "W05", z: -15, overscan: 1.06, anchor: "waterline", bottomOffsetFrac: -0.01, nightTint: 0.85, renderOrder: 3 });
   addFillLayer({ id: "W06", z: -6, overscan: 1.28, anchor: "waterline", bottomOffsetFrac: -0.01, nightTint: 0.85, renderOrder: 5 });
 
-  // ---- Mist bands (T11, real alpha wisps) between the karst layers ----
-  // Low tier skips the second band: two overlapping full-width transparent
-  // layers are the cheapest thing here to cut for a GPU that's struggling.
-  addFillLayer({ id: "T11", z: -20, overscan: 1.3, anchor: "waterline", bottomOffsetFrac: 0.15, nightTint: 0.3, renderOrder: 2, opacity: 0.55 });
-  if (quality === "high") {
-    addFillLayer({ id: "T11", z: -8, overscan: 1.3, anchor: "waterline", bottomOffsetFrac: 0.15, nightTint: 0.3, renderOrder: 4, opacity: 0.45 });
-  }
+  // Three separate alpha islands from the authored T11 atlas, not three copies of the whole sheet.
+  addFillLayer({ id: "T11", z: -18, overscan: 1.3, anchor: "waterline", bottomOffsetFrac: 0.15, nightTint: 0.3, renderOrder: 2, opacity: 0.4, crop: [0, 0.13, 1, 0.33] });
+  addFillLayer({ id: "T11", z: -9, overscan: 1.25, anchor: "waterline", bottomOffsetFrac: 0.1, nightTint: 0.3, renderOrder: 4, opacity: 0.3, crop: [0.08, 0.47, 0.49, 0.34] });
+  addFillLayer({ id: "T11", z: -3, overscan: 1.2, anchor: "waterline", bottomOffsetFrac: 0.08, nightTint: 0.3, renderOrder: 6, opacity: 0.2, crop: [0.58, 0.73, 0.4, 0.23] });
 
   // ---- Foreground frame (W08, flipped so its foliage clears the copy) ----
   // bottomOffsetFrac -0.43: the designed rect's center sits 7% of its own
@@ -165,10 +196,10 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
   addSpriteLayer({ id: "W09.thuy-dinh-co", position: new THREE.Vector3(1.8, 0, -10), size: 1.6, renderOrder: 6, opacity: 0.9 });
   addSpriteLayer({ id: "W09.thuyen-nan-tren-nuoc", position: new THREE.Vector3(-2.4, -0.3, -9), size: 0.9, renderOrder: 6, opacity: 0.85 });
 
-  // ---- Sun: a small additive glow, gone by the end of dusk (Phase 4 adds real occlusion rays from the same asset) ----
+  // W10 and the occlusion ray pass share this exact sun source.
   addSpriteLayer({
     id: "W10",
-    position: new THREE.Vector3(7, 7.5, -24),
+    position: sun,
     size: 6,
     renderOrder: 0,
     opacity: 0.8,
@@ -196,7 +227,23 @@ export function createPaintedWorld(scene: THREE.Scene, { quality }: { quality: "
 
   return {
     group,
+    occluders,
+    sun,
+    setQuality(next) { currentQuality = next; },
+    setProgress(progress) {
+      if (cloudLayer) {
+        cloudLayer.mesh.visible = currentQuality === "high";
+        cloudLayer.mesh.position.x = Math.sin(progress * Math.PI * 2) * cloudLayer.mesh.scale.x * 0.02;
+      }
+      // One complete excursion per 60 equivalent seconds, entirely scroll-derived.
+      mistLayers.forEach((layer, index) => {
+        layer.mesh.visible = currentQuality === "high" || index === 0;
+        layer.mesh.position.x = Math.sin(progress * Math.PI * 2 + index * 1.7) * layer.mesh.scale.x * 0.045 * (index % 2 ? -1 : 1);
+        layer.material.opacity *= 1 - 0.75 * Math.max(0, (progress - 0.6) / 0.4);
+      });
+    },
     setPhase({ dusk, night }) {
+      if (cloudLayer) cloudLayer.material.opacity = cloudLayer.baseOpacity * dusk * (1 - night);
       for (const layer of fillLayers) {
         if (layer.nightTint <= 0) continue;
         const weight = night * layer.nightTint;

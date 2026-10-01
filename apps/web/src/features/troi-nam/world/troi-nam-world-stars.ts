@@ -1,164 +1,106 @@
 import * as THREE from "three";
-
+import { troiNamAsset } from "../troi-nam-assets";
 import { mulberry32 } from "./troi-nam-world-rng";
-
-/**
- * A fixed-size star buffer that morphs (on the GPU, via `uChartWeight`)
- * from a scattered night starfield toward a decorative twelve-cell motif —
- * the effects contract's "P01/P05-inspired intermediate ring... project
- * toward Explore's rectangular grid target when supplied". Positions are
- * precomputed once at creation/`setTargets`; the render loop only advances
- * a time uniform, so revisiting the same seed/p/viewport always reproduces
- * the same composition.
- *
- * The twelve targets mirror the real `.tn-explore .hv3-chart` layout: a
- * 4×4 grid with the center 2×2 empty (12 outer "palace" cells), not a
- * circle — `setTargets(null)` uses a centered version of that same layout
- * as the fallback when no chart rect has been measured yet.
- */
-
-export type Stars = {
-  points: THREE.Points;
-  setNightWeight(weight: number): void;
-  setChartWeight(weight: number): void;
-  setTargets(worldPositions: Float32Array | null): void;
-  update(dt: number): void;
-  dispose(): void;
-};
+import type { WorldTextures } from "./troi-nam-world-textures";
 
 const vertexShader = /* glsl */ `
-  attribute vec3 aStart;
   attribute vec3 aTarget;
   attribute float aPhase;
   attribute float aSize;
+  attribute float aVariant;
   uniform float uChartWeight;
   uniform float uTime;
+  uniform float uPixelRatio;
   varying float vTwinkle;
+  varying float vVariant;
   void main() {
-    vec3 pos = mix(aStart, aTarget, uChartWeight);
+    vec3 pos = mix(position, aTarget, uChartWeight);
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mvPosition;
-    gl_PointSize = clamp(aSize * (90.0 / max(-mvPosition.z, 0.1)), 1.0, 9.0);
-    vTwinkle = 0.55 + 0.45 * sin(uTime * 1.6 + aPhase);
+    gl_PointSize = clamp(aSize * (100.0 / max(-mvPosition.z, 0.1)), 2.0, 14.0) * uPixelRatio;
+    vTwinkle = 0.65 + 0.35 * sin(uTime * 1.6 + aPhase);
+    vVariant = aVariant;
   }
 `;
-
 const fragmentShader = /* glsl */ `
-  precision mediump float;
+  uniform sampler2D uStar0;
+  uniform sampler2D uStar1;
+  uniform sampler2D uStar2;
+  uniform sampler2D uStar3;
+  uniform sampler2D uStar4;
+  uniform sampler2D uStar5;
   uniform float uNightWeight;
   varying float vTwinkle;
+  varying float vVariant;
   void main() {
-    vec2 uv = gl_PointCoord - 0.5;
-    float alpha = smoothstep(0.5, 0.0, length(uv)) * uNightWeight * vTwinkle;
-    if (alpha <= 0.002) discard;
-    gl_FragColor = vec4(0.97, 0.87, 0.62, alpha);
+    vec2 uv = vec2(gl_PointCoord.x, 1.0 - gl_PointCoord.y);
+    vec4 art;
+    if (vVariant < 0.5) art = texture2D(uStar0, uv);
+    else if (vVariant < 1.5) art = texture2D(uStar1, uv);
+    else if (vVariant < 2.5) art = texture2D(uStar2, uv);
+    else if (vVariant < 3.5) art = texture2D(uStar3, uv);
+    else if (vVariant < 4.5) art = texture2D(uStar4, uv);
+    else art = texture2D(uStar5, uv);
+    gl_FragColor = vec4(art.rgb, art.a * uNightWeight * vTwinkle);
+    if (gl_FragColor.a < 0.002) discard;
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
   }
 `;
 
-/** 12 outer cells of a centered 4x4 grid (skipping the middle 2x2) — the
- * decorative fallback used until a real chart rect is measured. */
-function fallbackGridTargets(): Float32Array {
-  const positions = new Float32Array(12 * 3);
-  const cellW = 0.95;
-  const cellH = 0.78;
-  const originX = (-3 / 2) * cellW;
-  const originY = 3.4 + (3 / 2) * cellH;
-  let i = 0;
-  for (let row = 0; row < 4; row++) {
-    for (let col = 0; col < 4; col++) {
-      if (row >= 1 && row <= 2 && col >= 1 && col <= 2) continue;
-      positions[i * 3 + 0] = originX + col * cellW;
-      positions[i * 3 + 1] = originY - row * cellH;
-      positions[i * 3 + 2] = -3;
-      i++;
-    }
-  }
-  return positions;
-}
-
-export function createStars(scene: THREE.Scene, { quality, seed }: { quality: "low" | "high"; seed: number }): Stars {
+export function createStars(scene: THREE.Scene, { quality, seed, textures }: { quality: "low" | "high"; seed: number; textures: WorldTextures }) {
   const count = quality === "high" ? 1200 : 400;
-  // A different subsequence than terrain's rng (same seed would otherwise
-  // correlate star scatter with ridge shape) but still deterministic.
   const rng = mulberry32(seed * 2 + 7);
-
-  const aStart = new Float32Array(count * 3);
-  const aTarget = new Float32Array(count * 3);
-  const aPhase = new Float32Array(count);
-  const aSize = new Float32Array(count);
-  const jitter = new Float32Array(count * 3);
-
+  const start = new Float32Array(count * 3);
+  const targets = new Float32Array(count * 3);
+  const phase = new Float32Array(count);
+  const size = new Float32Array(count);
+  const variant = new Float32Array(count);
   for (let i = 0; i < count; i++) {
-    aStart[i * 3 + 0] = (rng() - 0.5) * 50;
-    aStart[i * 3 + 1] = 2 + rng() * 16;
-    aStart[i * 3 + 2] = -4 - rng() * 34;
-    aPhase[i] = rng() * Math.PI * 2;
-    aSize[i] = 1 + rng() * 2.2;
-    jitter[i * 3 + 0] = (rng() - 0.5) * 0.56;
-    jitter[i * 3 + 1] = (rng() - 0.5) * 0.46;
-    jitter[i * 3 + 2] = (rng() - 0.5) * 0.3;
+    start[i * 3] = (rng() - 0.5) * 50;
+    start[i * 3 + 1] = 2 + rng() * 16;
+    start[i * 3 + 2] = -4 - rng() * 34;
+    phase[i] = rng() * Math.PI * 2;
+    size[i] = 1 + rng() * 2.2;
+    variant[i] = i % 6;
   }
-
-  const fallback = fallbackGridTargets();
-  const applyTargets = (base: Float32Array) => {
-    for (let i = 0; i < count; i++) {
-      const cell = i % 12; // 0..11: always in bounds for a 12-cell (36-value) base buffer
-      aTarget[i * 3 + 0] = base[cell * 3 + 0]! + jitter[i * 3 + 0]!;
-      aTarget[i * 3 + 1] = base[cell * 3 + 1]! + jitter[i * 3 + 1]!;
-      aTarget[i * 3 + 2] = base[cell * 3 + 2]! + jitter[i * 3 + 2]!;
-    }
-  };
-  applyTargets(fallback);
-
+  targets.set(start);
   const geometry = new THREE.BufferGeometry();
-  const targetAttribute = new THREE.BufferAttribute(aTarget, 3);
-  // Three's non-indexed draw call reads its vertex count from the
-  // "position" attribute even though this shader never reads it directly
-  // (it mixes aStart/aTarget instead) — without it here, nothing draws.
-  geometry.setAttribute("position", new THREE.BufferAttribute(aStart, 3));
-  geometry.setAttribute("aStart", new THREE.BufferAttribute(aStart, 3));
+  const targetAttribute = new THREE.BufferAttribute(targets, 3).setUsage(THREE.DynamicDrawUsage);
+  geometry.setAttribute("position", new THREE.BufferAttribute(start, 3));
   geometry.setAttribute("aTarget", targetAttribute);
-  geometry.setAttribute("aPhase", new THREE.BufferAttribute(aPhase, 1));
-  geometry.setAttribute("aSize", new THREE.BufferAttribute(aSize, 1));
-
+  geometry.setAttribute("aPhase", new THREE.BufferAttribute(phase, 1));
+  geometry.setAttribute("aSize", new THREE.BufferAttribute(size, 1));
+  geometry.setAttribute("aVariant", new THREE.BufferAttribute(variant, 1));
   const uniforms = {
-    uChartWeight: { value: 0 },
-    uNightWeight: { value: 0 },
-    uTime: { value: 0 },
+    uChartWeight: { value: 0 }, uNightWeight: { value: 0 }, uTime: { value: 0 }, uPixelRatio: { value: 1 },
+    ...Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`uStar${i}`, { value: textures.load(troiNamAsset(`W11.hat-sao-${i + 1}`).src) }])),
   };
-  const material = new THREE.ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    uniforms,
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-  });
-
+  const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   const points = new THREE.Points(geometry, material);
-  points.frustumCulled = false; // no "position" attribute to derive bounds from
+  points.frustumCulled = false;
   points.renderOrder = 30;
   scene.add(points);
-
+  let targetUploads = 0;
   return {
     points,
-    setNightWeight(weight: number) {
-      uniforms.uNightWeight.value = weight;
-    },
-    setChartWeight(weight: number) {
-      uniforms.uChartWeight.value = weight;
-    },
-    setTargets(worldPositions: Float32Array | null) {
-      applyTargets(worldPositions && worldPositions.length === 36 ? worldPositions : fallback);
+    get targetUploads() { return targetUploads; },
+    setQuality(tier: "high" | "low") { geometry.setDrawRange(0, tier === "low" ? Math.min(400, count) : count); },
+    setNightWeight(weight: number) { uniforms.uNightWeight.value = weight; points.visible = weight > 0; },
+    setChartWeight(weight: number) { uniforms.uChartWeight.value = weight; },
+    setPixelRatio(ratio: number) { uniforms.uPixelRatio.value = ratio; },
+    setTargets(base: Float32Array) {
+      for (let i = 0; i < count; i++) {
+        const target = (i % 12) * 3;
+        targets[i * 3] = base[target]!;
+        targets[i * 3 + 1] = base[target + 1]!;
+        targets[i * 3 + 2] = base[target + 2]!;
+      }
       targetAttribute.needsUpdate = true;
+      targetUploads++;
     },
-    update(dt: number) {
-      uniforms.uTime.value += dt;
-    },
-    dispose() {
-      scene.remove(points);
-      geometry.dispose();
-      material.dispose();
-    },
+    update(time: number) { uniforms.uTime.value = time; },
+    dispose() { scene.remove(points); geometry.dispose(); material.dispose(); },
   };
 }
+export type Stars = ReturnType<typeof createStars>;

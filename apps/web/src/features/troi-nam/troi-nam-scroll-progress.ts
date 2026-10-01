@@ -17,6 +17,17 @@ export type TroiNamProgressController = {
 const owners = new WeakMap<HTMLElement, TroiNamProgressController>();
 const ATTRIBUTE = "data-troi-nam-progress";
 
+/** Layout coordinates stay stable while decorative transforms/crossfades change. */
+function layoutTop(element: HTMLElement): number {
+  let top = element.offsetTop;
+  let parent = element.offsetParent as HTMLElement | null;
+  while (parent) {
+    top += parent.offsetTop + parent.clientTop;
+    parent = parent.offsetParent as HTMLElement | null;
+  }
+  return top;
+}
+
 /** Opt-in measurement only: no scroll interception, hidden styles, renderer or continuous RAF. */
 export function createTroiNamProgress(root: HTMLElement): TroiNamProgressController | null {
   if (owners.has(root)) throw new Error("Trời Nam progress already has an owner for this root.");
@@ -24,7 +35,8 @@ export function createTroiNamProgress(root: HTMLElement): TroiNamProgressControl
   const view = doc.defaultView;
   const hero = root.querySelector<HTMLElement>('[data-troi-nam-block="hero"]');
   const explore = root.querySelector<HTMLElement>('[data-troi-nam-block="explore"]');
-  if (!view || !hero || !explore) return null;
+  const chart = root.querySelector<HTMLElement>(".tn-explore .hv3-chart");
+  if (!view || !hero || !explore || !chart) return null;
 
   const previous = root.getAttribute(ATTRIBUTE);
   const media = view.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -40,8 +52,8 @@ export function createTroiNamProgress(root: HTMLElement): TroiNamProgressControl
     if (disposed) return;
     if (needsMeasure) {
       range = {
-        start: hero!.getBoundingClientRect().top + view!.scrollY,
-        end: explore!.getBoundingClientRect().top + view!.scrollY,
+        start: layoutTop(hero!),
+        end: layoutTop(chart!) + chart!.offsetHeight / 2 - view!.innerHeight / 2,
       };
       needsMeasure = false;
     }
@@ -119,6 +131,7 @@ export function createTroiNamProgress(root: HTMLElement): TroiNamProgressControl
   observer?.observe(root);
   observer?.observe(hero);
   observer?.observe(explore);
+  observer?.observe(chart);
   void doc.fonts?.ready.then(refresh, () => {});
   return controller;
 }

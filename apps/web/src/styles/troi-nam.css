@@ -1,6 +1,7 @@
 /* Trời Nam — homepage visual system. Tokens first, then the hero. */
 
 .tn {
+  --tn-world-opacity: 1;
   --tn-ink: var(--lacquer-950);
   --tn-gold: var(--gold-500);
   --tn-gold-light: var(--gold-400);
@@ -67,6 +68,15 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.tn .tn-world-canvas {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tn[data-troi-nam-world-ready] .tn-world-canvas {
+  opacity: var(--tn-world-opacity, 1);
 }
 
 .tn-world-content {
@@ -506,6 +516,10 @@
 .tn .tn-explore {
   isolation: isolate;
   scroll-margin-top: var(--tn-section-y);
+  /* Ready/fallback changes must expose the correct layer immediately — a
+     fade here would show the wrong background for a beat on every failure
+     or context-loss transition. */
+  transition: none;
 }
 
 .tn .tn-explore-texture {
@@ -568,11 +582,10 @@
 }
 
 /*
- * Decorative "twelve-cung" ring shown before the real grid resolves into
- * view on scroll-in — plain geometry (12 evenly spaced ticks), never real
- * palace/star data (see troi-nam-explore.tsx). `--tn-ring` and
- * `--tn-grid-reveal` default to the safe static state — ring off, grid
- * fully visible — without JS or under prefers-reduced-motion.
+ * Legacy decorative ring remains off in the static fallback. The painted
+ * WebGL ring (P05, Phase 5) owns the stars-converge handoff; it must not be
+ * duplicated by this pseudo-layer once the world is ready (see the
+ * `[data-troi-nam-world-ready]` rule further down, which hides this).
  */
 .tn .tn-explore .hv3-chart-wrap::before {
   content: "";
@@ -596,9 +609,38 @@
   order: initial;
   overflow: visible;
   aspect-ratio: 1;
-  opacity: var(--tn-grid-reveal, 1);
-  transform: scale(calc(0.94 + 0.06 * var(--tn-grid-reveal, 1)));
-  transition: opacity 200ms ease, transform 200ms ease;
+  opacity: 1;
+  transform: none;
+}
+
+/* Reveal the painted world through Explore only after its first successful
+   frame; removing `data-troi-nam-world-ready` (failure, context loss, no-JS)
+   restores every one of these to their safe static default immediately. */
+.tn[data-troi-nam-world-ready] .tn-explore.hv3 {
+  background: transparent;
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore-texture {
+  opacity: calc(0.14 * (1 - var(--tn-world-opacity)));
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart-wrap::before {
+  display: none;
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart {
+  opacity: calc(1 - var(--tn-world-opacity));
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart:focus-within {
+  opacity: 1;
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts,
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
+  background: rgb(16 14 12 / 0.85);
+  border-radius: 0.75rem;
 }
 
 .tn .tn-explore .hv3-cell {
@@ -606,6 +648,19 @@
   color: var(--tn-text);
   border-color: var(--lacquer-line);
   background: var(--lacquer-700);
+}
+
+.tn .tn-explore .hv3-cell::before {
+  content: "";
+  position: absolute;
+  width: clamp(16px, 1.9vw, 26px);
+  aspect-ratio: 1;
+  bottom: 6px;
+  left: 6px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 
 .tn .tn-explore .hv3-cell[data-state="trine"] {
@@ -636,7 +691,10 @@
 }
 
 .tn .tn-explore .hv3-cell-glyph {
-  color: var(--tn-gold-light);
+  /* The painted palace icon (`.hv3-cell::before`) occupies this glyph's
+     visual footprint; the Hán branch character stays in the accessible DOM
+     (still read by assistive tech / selectable text) but isn't painted. */
+  color: transparent;
 }
 
 .tn .tn-explore .hv3-chart-core {
@@ -769,6 +827,11 @@
 
   .tn .tn-explore .hv3-cell {
     padding: 10px 12px;
+  }
+
+  .tn .tn-explore .hv3-cell::before {
+    bottom: 10px;
+    left: 12px;
   }
 
   .tn .tn-explore .hv3-panel {

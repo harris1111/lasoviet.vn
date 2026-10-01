@@ -2,7 +2,7 @@ import { HomepageV3About } from "../homepage-v3/homepage-v3-static-sections";
 import { troiNamAsset } from "./troi-nam-assets";
 
 export function TroiNamAbout({ locale }: { locale: "en" | "vi" }) {
-  const lacquer = troiNamAsset("T04");
+  const lacquer = troiNamAsset("T10");
   const lanterns = troiNamAsset("L06");
   const mobileLanterns = troiNamAsset("L07");
   // Two floating hoa đăng drift in the closing CTA, on .hv3-final-cta itself —
