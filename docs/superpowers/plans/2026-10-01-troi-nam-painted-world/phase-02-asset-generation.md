@@ -360,11 +360,14 @@ nguyên khung thì nước **che sạch W04/W05** — Claude đã dựng thử v
 **3. W01/W02 có dải sáng ở đáy khung** trông như ánh sáng phía chân trời. Không phải silhouette
 nên vẫn đạt mục i, nhưng **phải luôn nằm khuất sau lớp núi/nước**, không bao giờ để lộ.
 
-### Chọn bản chính hay alt
+### Chọn bản chính hay alt — ĐÃ CHỐT: **bản chính**
 
-`group-a-qa/manifest.json` ghi `"recommendedSet": "alt"` cho bộ núi. Chưa quyết — Phase 3 bước
-0 phải dựng **cả hai bộ cạnh nhau ở cùng khung p=0** rồi founder chọn bằng mắt. Các nhóm khác
-chưa có khuyến nghị; mặc định dùng bản chính trừ khi so sánh cho kết quả khác.
+`group-a-qa/manifest.json` khuyến nghị `"alt"`, nhưng Claude đã ghép thử **cả hai bộ ở cùng
+khung p=0 với cùng thông số đặt lớp** và founder chọn **bản chính** (2026-10-01). Bản chính
+nhiều sương và chiều sâu khí quyển hơn; bản alt lộ trời nhiều hơn nhưng núi gần đè mạnh hơn.
+
+→ Nhập kho **chỉ bản chính** (`Wxx.png`). Giữ `Wxx-alt.png` trong thư mục nguồn làm dự phòng,
+**không** đưa vào repo.
 
 ### Nhập kho (việc còn lại của Phase 2)
 
