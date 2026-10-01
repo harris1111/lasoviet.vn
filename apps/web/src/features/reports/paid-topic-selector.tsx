@@ -433,6 +433,35 @@ export function PaidTopicSelector({
                     </p>
                   )}
 
+                  {isSelected &&
+                    offer.ownership.kind === "unowned" &&
+                    topics?.chartId &&
+                    resolveActiveSkuFromPublicOfferKey(offer.offerKey) && (
+                      <div className="topic-card-action">
+                        <WalletUnlockButton
+                          buttonLabel={`${t("selection.unlockFullReading")}: ${neededLa} Lá`}
+                          chartId={topics.chartId}
+                          chartVersionId={topics.chartVersionId}
+                          itemName={offer.shortTitle[locale]}
+                          labels={{
+                            title: t("selection.unlockDialogTitle"),
+                            itemLabel: t("selection.unlockDialogItemLabel"),
+                            priceLabel: t("selection.unlockDialogPriceLabel"),
+                            balanceLabel: t("selection.unlockDialogBalanceLabel"),
+                            balanceAfterLabel: t("selection.unlockDialogBalanceAfterLabel"),
+                            confirm: t("selection.unlockDialogConfirm"),
+                            confirming: t("selection.unlockDialogConfirming"),
+                            cancel: t("selection.unlockDialogCancel"),
+                            shortBalanceTitle: t("selection.unlockDialogShortBalanceTitle"),
+                            topUpNote: t("selection.unlockDialogTopupNote"),
+                            genericError: t("selection.unlockDialogGenericError"),
+                          }}
+                          locale={locale}
+                          sku={resolveActiveSkuFromPublicOfferKey(offer.offerKey) as WalletUnlockDialogSku}
+                        />
+                      </div>
+                    )}
+
                   {offer.offerKey === "ziwei-natal-excerpt" && (
                     <div className="offer-upgrade-bar">
                       <span>

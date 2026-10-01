@@ -20,7 +20,7 @@ test.beforeAll(async () => {
         import {useState} from "react";
         import {createRoot} from "react-dom/client";
         import {NextIntlClientProvider} from "next-intl";
-        import {WalletUnlockDialog} from "./src/features/commerce/wallet-unlock-dialog";
+        import {WalletUnlockButton} from "./src/features/commerce/wallet-unlock-button";
         import reports from "./messages/vi/reports.json";
         const s = reports.selection;
         const labels = {
@@ -32,17 +32,14 @@ test.beforeAll(async () => {
           topUpNote: s.unlockDialogTopupNote, genericError: s.unlockDialogGenericError
         };
         function Fixture() {
-          const [open, setOpen] = useState(false);
           return <NextIntlClientProvider locale="vi" timeZone="Asia/Ho_Chi_Minh"
             messages={{reports}}>
             <main style={{height: 2400}}>Isolated wallet dialog layout fixture</main>
             <div className="paybar"><div className="container"><div className="paybar-btn">
-              <button type="button" className="button" onClick={() => setOpen(true)}>
-                Open fixture dialog
-              </button>
-              {open && <WalletUnlockDialog open onOpenChange={setOpen}
-                onUnlocked={() => {}} chartId="fixture-chart" chartVersionId="fixture-version"
-                sku="ZIWEI-IDENTITY-P0" locale="vi" itemName="Toàn diện" labels={labels}/>}
+              <WalletUnlockButton
+                buttonLabel="Mở luận giải đầy đủ: 960 Lá"
+                chartId="fixture-chart" chartVersionId="fixture-version"
+                sku="ZIWEI-IDENTITY-P0" locale="vi" itemName="Toàn diện" labels={labels}/>
             </div></div></div>
           </NextIntlClientProvider>;
         }
@@ -56,6 +53,19 @@ test.beforeAll(async () => {
     alias: {
       "@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts"),
     },
+    plugins: [{
+      name: "next-navigation-mock",
+      setup(buildContext) {
+        buildContext.onResolve({ filter: /^next\/navigation$/ }, () => ({
+          path: "next-navigation-mock",
+          namespace: "next-navigation-mock",
+        }));
+        buildContext.onLoad({ filter: /.*/, namespace: "next-navigation-mock" }, () => ({
+          contents: "export function useRouter() { return { push() {}, refresh() {} }; }",
+          loader: "js",
+        }));
+      },
+    }],
     write: false,
     format: "iife",
     platform: "browser",
@@ -71,6 +81,12 @@ async function mountFixture(page: Page, balance = 2200) {
   await page.route("**/*", async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/commerce/wallet/purchase-intents") {
+      expect(route.request().postDataJSON()).toEqual({
+        chartId: "fixture-chart",
+        chartVersionId: "fixture-version",
+        sku: "ZIWEI-IDENTITY-P0",
+        locale: "vi",
+      });
       await route.fulfill({ json: { id: "11111111-1111-4111-8111-111111111111", amountLa: 960, stateVersion: 1 } });
     } else if (path === "/api/commerce/wallet/balance") {
       await route.fulfill({ json: { totalLa: balance, stateVersion: 7 } });
@@ -89,7 +105,7 @@ async function mountFixture(page: Page, balance = 2200) {
   await page.goto("http://wallet-layout.test/");
   await page.addStyleTag({ content: stylesheet });
   await page.addScriptTag({ content: bundle });
-  await expect(page.getByRole("button", { name: "Open fixture dialog" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 1000));
   return unlocks;
 }
@@ -103,7 +119,7 @@ for (const viewport of [
   test(`wallet confirmation stays within viewport ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     const unlocks = await mountFixture(page);
-    await page.getByRole("button", { name: "Open fixture dialog" }).click();
+    await page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" }).click();
     const overlay = page.locator("body > .wallet-unlock-dialog-overlay");
     const dialog = page.getByRole("dialog", { name: "Mở luận giải này" });
     await expect(overlay).toBeVisible();
@@ -139,7 +155,7 @@ for (const viewport of [
 test("Escape, cancel, and backdrop dismiss without spending", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const unlocks = await mountFixture(page);
-  const trigger = page.getByRole("button", { name: "Open fixture dialog" });
+  const trigger = page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" });
   const dialog = page.getByRole("dialog", { name: "Mở luận giải này" });
   await page.evaluate(() => { document.body.style.overflow = "auto"; });
   await trigger.click();
@@ -166,7 +182,7 @@ test("short-balance dialog can scroll to its actions on a short viewport", async
   await page.setViewportSize({ width: 667, height: 280 });
   const unlocks = await mountFixture(page, 0);
   await page.evaluate(() => history.replaceState(null, "", "/la-so/fixture-chart?tab=palaces&open=life"));
-  await page.getByRole("button", { name: "Open fixture dialog" }).click();
+  await page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" }).click();
   const dialog = page.getByRole("dialog", { name: "Mở luận giải này" });
   const topUp = dialog.locator('a[href^="/nap-la?pack=LA-START-1100&intent="]');
   const destination = new URL((await topUp.getAttribute("href"))!, "http://wallet-layout.test");
