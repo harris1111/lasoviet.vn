@@ -1,0 +1,24 @@
+
+Running 17 tests using 1 worker
+
+(node:4041343) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 360px without early money ask (3.1s)
+  ✓   2 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 390px without early money ask (2.8s)
+  ✓   3 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 430px without early money ask (2.7s)
+  ✓   4 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 768px without early money ask (3.1s)
+  ✓   5 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 1023px without early money ask (3.0s)
+  ✓   6 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 1024px without early money ask (3.0s)
+  ✓   7 tests/e2e/free-result-read-first.spec.ts:11:9 › vi FD109 read-first result fits 1280px without early money ask (3.1s)
+  ✓   8 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 360px without early money ask (2.6s)
+  ✓   9 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 390px without early money ask (2.3s)
+  ✓  10 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 430px without early money ask (2.5s)
+  ✓  11 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 768px without early money ask (3.1s)
+  ✓  12 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 1023px without early money ask (3.1s)
+  ✓  13 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 1024px without early money ask (2.9s)
+  ✓  14 tests/e2e/free-result-read-first.spec.ts:11:9 › en FD109 read-first result fits 1280px without early money ask (3.3s)
+  ✓  15 tests/e2e/free-result-read-first.spec.ts:58:5 › FD109 locked preview keeps one destination and restores focus (8.6s)
+  ✓  16 tests/e2e/free-result-read-first.spec.ts:78:5 › FD109 retains the private-route 404 boundary before query redirects (309ms)
+  ✓  17 tests/e2e/free-result-read-first.spec.ts:83:5 › FD109 URL history and direct preview links restore modal and keyboard state (8.7s)
+
+  17 passed (59.5s)
