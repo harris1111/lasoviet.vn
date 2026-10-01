@@ -414,20 +414,20 @@
   "W01": {
     "src": "/images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-1920w.webp",
     "srcSet": "/images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-960w.webp 960w, /images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-1440w.webp 1440w, /images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-1920w.webp 1920w",
-    "width": 2560,
-    "height": 1440
+    "width": 1920,
+    "height": 1080
   },
   "W02": {
     "src": "/images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-1920w.webp",
     "srcSet": "/images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-960w.webp 960w, /images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-1440w.webp 1440w, /images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-1920w.webp 1920w",
-    "width": 2560,
-    "height": 1440
+    "width": 1920,
+    "height": 1080
   },
   "W03": {
     "src": "/images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-1920w.webp",
     "srcSet": "/images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-960w.webp 960w, /images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-1440w.webp 1440w, /images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-1920w.webp 1920w",
-    "width": 2560,
-    "height": 1440
+    "width": 1920,
+    "height": 1080
   },
   "W04": {
     "src": "/images/troi-nam/the-gioi/nui-da-voi-lop-xa-trang-chu.webp",

@@ -1,16 +1,32 @@
 import * as THREE from "three";
 
+import { troiNamAsset } from "../troi-nam-assets";
+import { referenceDawnFraming } from "./troi-nam-world-chapters";
+import { loadWorldTexture } from "./troi-nam-world-textures";
+
 /**
- * Sky gradient, sun-shaft planes and mist bands — everything in the scene
- * that isn't karst rock, water or stars. All unlit/additive: cheap, and
- * this scene has no real point/directional light to cast (a stylized
- * lacquer painting, not a physically lit render).
+ * The sky: three painted plates (W01 dawn / W02 dusk / W03 night — real
+ * Milky Way photography, not a procedural gradient) cross-faded by opacity
+ * per `setPhase`, using the effects contract's exact weight formula
+ * (`1-dusk`, `dusk*(1-night)`, `night`). Locked to the camera's position
+ * every frame (`followCamera`) so it never visibly translates — only the
+ * karst/water/foreground layers in front of it carry parallax.
  *
- * Dawn/dusk/night are three stacked, pre-baked sky gradients cross-fading
- * by opacity (`setPhase`) rather than one shader recomputed every frame —
- * matches the effects contract's exact weight formula
- * (`1-dusk`, `dusk*(1-night)`, `night`) and mirrors how the DOM hero
- * already crossfades its dawn/dusk plates.
+ * Sun rays and mist moved to troi-nam-world-layers.ts (mist) and are
+ * deferred to Phase 4 (real occlusion-masked god rays, not a placeholder
+ * fan) — see phase-04-rays-and-atmosphere.md. A cheap gradient used to
+ * stand in here before the photo plates existed; it's gone now that there's
+ * real art to show immediately (TextureLoader renders a plate as fully
+ * transparent, i.e. the scene's dark background, until it decodes — no
+ * jarring flash against this dark a palette).
+ *
+ * `followCamera` billboards the sky (position AND rotation), unlike the
+ * karst/water/foreground layers which stay fixed in world orientation for
+ * real parallax. These single authored vistas aren't a panorama meant to be
+ * looked around inside, so a billboard is simpler and cheaper than oversizing
+ * a fixed-orientation plane to cover the camera's tilt across phases — see
+ * fillFootprint's doc comment for why that oversizing approach was dropped
+ * for the karst/foreground layers too.
  */
 
 export type DawnLightPhase = { dusk: number; night: number };
@@ -18,71 +34,28 @@ export type DawnLightPhase = { dusk: number; night: number };
 export type DawnLight = {
   group: THREE.Group;
   setPhase(phase: DawnLightPhase): void;
+  resize(aspect: number): void;
   dispose(): void;
 };
 
-function verticalGradientTexture(stops: Array<[number, string]>): THREE.CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 8;
-  canvas.height = 256;
-  const ctx = canvas.getContext("2d")!;
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  for (const [offset, color] of stops) gradient.addColorStop(offset, color);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
+const SKY_DISTANCE = 60; // z offset behind the camera, in view space, along -look
+const SKY_TEXTURE_ASPECT = 16 / 9; // close enough for a cloud/star photo — unlike rock, mild stretch here is imperceptible
 
-function radialFalloffTexture(): THREE.CanvasTexture {
-  const size = 128;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
-  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  gradient.addColorStop(0, "rgba(255,255,255,1)");
-  gradient.addColorStop(1, "rgba(255,255,255,0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, size, size);
-  return new THREE.CanvasTexture(canvas);
-}
-
-export function createDawnLight(scene: THREE.Scene, { quality }: { quality: "low" | "high" }): DawnLight {
+export function createDawnLight(scene: THREE.Scene): DawnLight {
   const group = new THREE.Group();
   const disposables: Array<{ dispose(): void }> = [];
+  const sharedGeometry = new THREE.PlaneGeometry(1, 1);
+  disposables.push(sharedGeometry);
 
-  // Sky: three stacked gradient planes (dawn/dusk/night), cross-faded by
-  // setPhase. Tiny z offsets give the depth test a stable draw order
-  // between coplanar transparent quads instead of z-fighting.
-  const skyGeometry = new THREE.PlaneGeometry(140, 60);
-  disposables.push(skyGeometry);
-  const skyStops: Record<"dawn" | "dusk" | "night", Array<[number, string]>> = {
-    dawn: [
-      [0, "#0b0705"],
-      [0.55, "#241708"],
-      [0.82, "#7a4a1e"],
-      [1, "#f2c37a"],
-    ],
-    dusk: [
-      [0, "#06040a"],
-      [0.5, "#1a0f1c"],
-      [0.8, "#4a2a22"],
-      [1, "#8a4a2a"],
-    ],
-    night: [
-      [0, "#020203"],
-      [0.6, "#05050a"],
-      [1, "#0e0c16"],
-    ],
-  };
   const skyMeshes: Record<"dawn" | "dusk" | "night", THREE.Mesh> = {} as never;
   (["dawn", "dusk", "night"] as const).forEach((key, i) => {
-    const texture = verticalGradientTexture(skyStops[key]);
+    const asset = troiNamAsset(key === "dawn" ? "W01" : key === "dusk" ? "W02" : "W03");
+    const texture = loadWorldTexture(asset.src);
     const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
-    const mesh = new THREE.Mesh(skyGeometry, material);
-    mesh.position.set(4, 8, -34 - i * 0.02);
+    const mesh = new THREE.Mesh(sharedGeometry, material);
+    // Tiny per-plate z offset gives the depth test a stable draw order
+    // between otherwise-coplanar transparent quads instead of z-fighting.
+    mesh.position.z = -SKY_DISTANCE - i * 0.02;
     mesh.renderOrder = i;
     group.add(mesh);
     skyMeshes[key] = mesh;
@@ -93,87 +66,42 @@ export function createDawnLight(scene: THREE.Scene, { quality }: { quality: "low
   (skyMeshes.dusk.material as THREE.MeshBasicMaterial).opacity = 0;
   (skyMeshes.night.material as THREE.MeshBasicMaterial).opacity = 0;
 
-  // Sun rays: a small fan of tapered, additive gold beams from the glow
-  // behind the peaks (upper-right, matching L01) down toward the water.
-  // Recede through dusk — gone by the time night starts (setPhase).
-  const rayTexture = verticalGradientTexture([
-    [0, "rgba(242,220,160,0)"],
-    [0.15, "rgba(242,220,160,0.9)"],
-    [1, "rgba(242,220,160,0)"],
-  ]);
-  const rayCount = quality === "high" ? 5 : 3;
-  const rayOrigin = new THREE.Vector3(6.5, 7.5, -18);
-  const rayMaterials: THREE.MeshBasicMaterial[] = [];
-  const rayBaseOpacity = 0.22;
-  for (let i = 0; i < rayCount; i++) {
-    const spread = (i / (rayCount - 1) - 0.5) * 0.9; // -0.45..0.45 rad fan
-    const length = 20 + (i % 2) * 3;
-    const rayGeometry = new THREE.PlaneGeometry(0.6, length);
-    const rayMaterial = new THREE.MeshBasicMaterial({
-      map: rayTexture,
-      transparent: true,
-      opacity: rayBaseOpacity,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-    const ray = new THREE.Mesh(rayGeometry, rayMaterial);
-    ray.position.copy(rayOrigin);
-    ray.position.x += spread * 4;
-    ray.rotation.z = -0.55 + spread * 0.5;
-    ray.renderOrder = 20 + i;
-    group.add(ray);
-    rayMaterials.push(rayMaterial);
-    disposables.push(rayGeometry, rayMaterial);
+  function resize(aspect: number): void {
+    // Not `fillFootprint`: that helper measures distance as (reference
+    // camera z) - (world-space planeZ), but the sky's plane follows the
+    // camera (`followCamera`) so its distance from the camera is always
+    // exactly SKY_DISTANCE, not SKY_DISTANCE plus the camera's own z. No
+    // tilt margin needed here — see the billboard note above — so this is
+    // just "big enough to fill the frustum at this distance", stretched
+    // directly (a sky photo has no fixed real-world scale to protect the
+    // way a rock texture does, unlike the karst layers' clamp-to-edge trick).
+    const { fov } = referenceDawnFraming(aspect);
+    const halfFovRad = THREE.MathUtils.degToRad(fov / 2);
+    const height = 2 * SKY_DISTANCE * Math.tan(halfFovRad) * 1.15;
+    const width = height * SKY_TEXTURE_ASPECT;
+    for (const mesh of Object.values(skyMeshes)) mesh.scale.set(width, height, 1);
   }
-  disposables.push(rayTexture);
-
-  // Mist: a couple of soft, wide translucent bands sitting between the
-  // karst layers so the flat silhouettes read as depth/haze, not cutouts.
-  const mistTexture = radialFalloffTexture();
-  const mistBands = [
-    { y: 0.4, z: -14, width: 60, height: 6, opacity: 0.16 },
-    { y: 0.1, z: -22, width: 70, height: 8, opacity: 0.14 },
-  ];
-  const mistLayers: Array<{ material: THREE.MeshBasicMaterial; baseOpacity: number }> = [];
-  for (const band of mistBands) {
-    const mistGeometry = new THREE.PlaneGeometry(band.width, band.height);
-    const mistMaterial = new THREE.MeshBasicMaterial({
-      map: mistTexture,
-      color: 0xcbb489,
-      transparent: true,
-      opacity: band.opacity,
-      depthWrite: false,
-    });
-    const mist = new THREE.Mesh(mistGeometry, mistMaterial);
-    mist.position.set(0, band.y, band.z);
-    mist.renderOrder = 15;
-    group.add(mist);
-    mistLayers.push({ material: mistMaterial, baseOpacity: band.opacity });
-    disposables.push(mistGeometry, mistMaterial);
-  }
-  disposables.push(mistTexture);
+  resize(1);
 
   scene.add(group);
 
   return {
     group,
     setPhase({ dusk, night }) {
-      const dawnWeight = 1 - dusk;
-      const duskWeight = dusk * (1 - night);
-      (skyMeshes.dawn.material as THREE.MeshBasicMaterial).opacity = dawnWeight;
-      (skyMeshes.dusk.material as THREE.MeshBasicMaterial).opacity = duskWeight;
+      (skyMeshes.dawn.material as THREE.MeshBasicMaterial).opacity = 1 - dusk;
+      (skyMeshes.dusk.material as THREE.MeshBasicMaterial).opacity = dusk * (1 - night);
       (skyMeshes.night.material as THREE.MeshBasicMaterial).opacity = night;
-
-      const rayWeight = Math.max(0, 1 - dusk); // gone by the end of the dusk interval
-      for (const material of rayMaterials) material.opacity = rayBaseOpacity * rayWeight;
-
-      const mistWeight = 1 - night * 0.5;
-      for (const layer of mistLayers) layer.material.opacity = layer.baseOpacity * mistWeight;
     },
+    resize,
     dispose() {
       scene.remove(group);
       disposables.forEach((d) => d.dispose());
     },
   };
+}
+
+/** Billboards the sky to the camera (position and rotation) so it always exactly fills the frame regardless of the camera's tilt — call once per frame after the camera's pose is set. */
+export function followCamera(light: DawnLight, camera: THREE.Camera): void {
+  light.group.position.copy(camera.position);
+  light.group.quaternion.copy(camera.quaternion);
 }

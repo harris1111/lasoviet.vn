@@ -1,11 +1,19 @@
 ---
 phase: 3
 title: "painted-layer-world"
-status: pending
+status: completed
 priority: P1
 effort: "2d"
 dependencies: [1, 2]
 ---
+
+> **Đã triển khai 2026-10-01.** Kết quả thật và một thay đổi so với kế hoạch gốc: xem
+> [§ Kết quả thật](#kết-quả-thật-2026-10-01) ở cuối file. Tóm tắt: **bỏ cơ chế đệm chống lộ
+> mép khi camera nghiêng** (mục "Luật 3"/`CAMERA_TILT_MARGIN_DEG` trong bản thảo) — cả hai cách
+> thử (texture repeat>1 lẫn geometry 3-hàng-đỉnh tự viết) đều gây lỗi dựng hình thật (sọc dọc)
+> trên renderer phần mềm của môi trường này. Thay vào đó dùng kích thước đúng-như-thiết-kế,
+> chấp nhận một đường nối nhẹ giữa núi và trời ở pha hoàng hôn/đêm — đã nhìn thấy, chấp nhận
+> được, không phải lỗi dựng hình.
 
 # Phase 3: Thế giới lớp tranh
 
@@ -194,3 +202,54 @@ Tương tự, vệt phản chiếu vàng trong W07 phải mờ theo `night` (uni
 | **Sai không gian màu** (ảnh bợt hoặc cháy) | Chụp texture gốc và khung render cạnh nhau, so histogram |
 | **Vượt bộ nhớ GPU** | Bảng kích thước đã tính 86 MB; có số đo `renderer.info.memory` trong tiêu chí |
 | **Ảnh phóng to lộ nhoè ở màn lớn** | Chi tiết thật chỉ ~1672px; nếu 1440px lộ nhoè, đành chấp nhận hoặc gen lại ở độ phân giải gốc cao hơn |
+
+## Kết quả thật (2026-10-01)
+
+Đã dựng đủ: 3 tấm trời (billboard theo camera), 3 lớp núi, 2 dải sương T11, khung tiền cảnh W08
+(lật ngang), 2 vật thể nổi W09, mặt trời W10, mặt nước W07 (thay toàn bộ shader màu phẳng cũ).
+Xoá `troi-nam-world-terrain.ts`. Không còn hàm nào sinh hình học trang trí bằng code.
+
+### Thay đổi so với bản thảo: bỏ cơ chế đệm chống lộ mép khi nghiêng camera
+
+Bản thảo đặt `CAMERA_TILT_MARGIN_DEG=16°` để phóng to mọi mặt phẳng, phòng camera ngẩng lên
+~11° qua các pha mà không lộ mép. Thử hai cách:
+
+1. `texture.repeat.y > 1` + `ClampToEdgeWrapping` (map ảnh vào phần dưới mặt phẳng, phần đệm
+   phía trên lặp lại pixel mép trên).
+2. Hình học tự viết 6 đỉnh/3 hàng (hàng dưới V=0, hàng giữa V=1, hàng trên cũng V=1 — nội suy
+   phẳng, không bao giờ lấy mẫu UV ngoài [0,1]).
+
+**Cả hai đều gây lỗi dựng hình thật**: sọc dọc lặp lại phủ kín vùng trời phía trên núi, tái hiện
+ổn định mỗi lần tải lại trang (không phải cache cũ — đã xoá `.next` và khởi động lại nhiều lần).
+Cô lập bằng cách ép `repeat.y=1` (tắt đệm, giữ nguyên scale lớn) → hết sọc ngay. Billboard hoá
+bầu trời (trước đó nghi là nguyên nhân) cũng không liên quan — bật billboard mà vẫn giữ đệm thì
+sọc vẫn còn. Kết luận: **lỗi nằm ở chính cơ chế đệm**, nhiều khả năng là lỗi driver của
+SwiftShader (renderer phần mềm dùng trong môi trường này), không phải lỗi logic.
+
+**Quyết định:** bỏ hẳn phần đệm, dùng đúng kích thước thiết kế (`fillFootprint` chỉ còn trả
+`designedWidth`/`designedHeight`, không còn `paddedHeight`). Hệ quả nhìn thấy: ở pha hoàng
+hôn/đêm (camera ngẩng lên nhiều nhất), đỉnh các lớp núi/tiền cảnh cắt ngang bằng một đường nối
+nhẹ với tấm trời phía sau — **cả hai bên đều hiện đúng nội dung** (không phải lỗi/khung trống),
+chỉ là chuyển tiếp không mượt tuyệt đối. Đã nhìn ảnh chụp ở 390 và 1440, cả pha hoàng hôn
+(p≈0.375) lẫn đêm (p≈0.625) — chấp nhận được, không phải lỗi chặn. Để Phase 4/5 xử lý tiếp nếu
+cần (lúc đó có thêm sao/tia sáng che bớt vùng này).
+
+### Đối chiếu tiêu chí
+
+- [x] p=0 so với L01: núi/nước/sương/tiền cảnh đều là tranh thật, không thua ảnh gốc
+- [x] Đã chọn bản chính (ghi ở phase-02, không lặp lại ở đây)
+- [x] Chiều sâu parallax rõ khi cuộn (lớp núi xa/giữa/gần ở z khác nhau, neo theo đường nước)
+- [x] Ba chân núi chạm cùng đường nước ở p=0, mọi cỡ màn hình (viewport scale theo fov/aspect)
+- [x] p=0.9: núi ngả màu đêm (`nightTint`), không còn "núi hoàng hôn dưới trời sao"
+- [x] Chặn test: xoá hẳn cơ chế đệm sau khi phát hiện lỗi — world vẫn chạy ổn định
+- [x] Không còn file/hàm sinh hình học trang trí bằng code (`troi-nam-world-terrain.ts` đã xoá)
+- [x] Ảnh chụp 4 mốc p ở 390 và 1440 — xem trong báo cáo gửi founder
+- [ ] **Không đạt, chấp nhận có điều kiện:** "không mốc p nào lộ dải sáng đáy trời thành đường
+      ngang lơ lửng" — đường nối núi/trời mô tả ở trên là hệ quả trực tiếp của việc bỏ đệm;
+      không phải "dải sáng lơ lửng" như lo ngại ban đầu, nhưng vẫn là một đường nối nhìn thấy
+      được. Founder xem ảnh và quyết định có cần xử lý thêm ở Phase 4 không
+- [ ] **Chưa đo:** `renderer.info` draw call/triangle/bộ nhớ chưa đo bằng số — suy luận từ số
+      lớp dựng (14 draw call: 3 trời + 6 lớp đệm + 2 vật thể + 1 mặt trời + 1 nước + 1 sao) chắc
+      chắn dưới ngân sách 40, nhưng chưa có số đo `renderer.info` thật
+- [ ] **Chưa test:** mạng chậm 3G / chặn 1 file texture — world vẫn chạy khi ảnh chưa tải xong
+      về mặt lý thuyết (texture bắt đầu trong suốt), nhưng chưa test bằng throttle thật

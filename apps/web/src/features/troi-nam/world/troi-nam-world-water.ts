@@ -1,53 +1,40 @@
 import * as THREE from "three";
 
+import { troiNamAsset } from "../troi-nam-assets";
+import { applyAnisotropy, loadWorldTexture } from "./troi-nam-world-textures";
+
 /**
- * One broad water plane: a small vertex-shader ripple plus a stylized gold
- * reflection streak in the fragment shader, not a real planar-reflection
- * render pass (budget in the effects contract explicitly rules that out as
- * the default). `update(dt)` only advances a time uniform — the shader has
- * no per-frame CPU/JS work.
+ * W07 (mat-nuoc-tinh-phan-chieu-vang): a painted still-water plate with its
+ * own gold reflection streak already in the artwork, not a procedurally
+ * drawn one — the old version computed the streak in the fragment shader
+ * because there was no photo to sample. A small vertex-shader ripple is all
+ * that's left to do live; `update(dt)` only advances a time uniform, no
+ * per-frame CPU work.
  */
 
 const vertexShader = /* glsl */ `
-  varying vec3 vWorldPos;
+  varying vec2 vUv;
   uniform float uTime;
   void main() {
     vec3 pos = position;
     pos.z += sin(pos.x * 0.8 + uTime * 0.6) * 0.035 + sin(pos.y * 1.3 - uTime * 0.4) * 0.02;
-    vWorldPos = (modelMatrix * vec4(pos, 1.0)).xyz;
+    vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
 `;
 
 const fragmentShader = /* glsl */ `
-  varying vec3 vWorldPos;
-  uniform float uTime;
-  uniform vec3 uColorDeep;
-  uniform vec3 uColorGold;
+  varying vec2 vUv;
+  uniform sampler2D uMap;
   uniform float uNightWeight;
 
   void main() {
-    // A soft reflection path under the sun, narrow far away and wider near
-    // the camera (world z close to the camera's +z) — a stylized stand-in
-    // for a mirrored sun path, not a real reflection. Broken into ripple
-    // segments along its length instead of one solid triangle of light.
-    // The sun's gone by night, so uNightWeight fades the streak out.
-    float streakCenter = 1.6;
-    float bandWidth = clamp(0.22 + (vWorldPos.z + 22.0) * 0.045, 0.18, 1.4);
-    float dist = abs(vWorldPos.x - streakCenter);
-    float streak = smoothstep(bandWidth, 0.0, dist);
-    float ripple = smoothstep(0.1, 0.9, 0.5 + 0.5 * sin(vWorldPos.z * 14.0 + uTime * 1.8));
-    streak *= mix(0.12, 1.0, ripple) * (1.0 - uNightWeight * 0.9);
-
-    vec3 horizonGlow = vec3(0.42, 0.26, 0.11);
-    float nearHorizon = smoothstep(-8.0, -22.0, vWorldPos.z);
-    vec3 base = mix(uColorDeep, horizonGlow, nearHorizon * 0.4 * (1.0 - uNightWeight));
-    vec3 nightBase = vec3(0.02, 0.025, 0.05);
-    base = mix(base, nightBase, uNightWeight);
-
-    vec3 color = mix(base, uColorGold, clamp(streak, 0.0, 1.0) * 0.85);
-    float fade = smoothstep(-24.0, -4.0, vWorldPos.z);
-    gl_FragColor = vec4(color, mix(0.55, 0.92, fade));
+    vec4 tex = texture2D(uMap, vUv);
+    // The sun's reflection in the painting fades and cools toward a flat
+    // moonlit tone as night rises — the same move the karst layers make.
+    vec3 nightTone = tex.rgb * vec3(0.22, 0.26, 0.4) * 0.6;
+    vec3 color = mix(tex.rgb, nightTone, uNightWeight);
+    gl_FragColor = vec4(color, tex.a);
   }
 `;
 
@@ -58,18 +45,18 @@ export type Water = {
   dispose(): void;
 };
 
-export function createWater(scene: THREE.Scene, { quality }: { quality: "low" | "high" }): Water {
+export function createWater(scene: THREE.Scene, { quality, renderer }: { quality: "low" | "high"; renderer: THREE.WebGLRenderer }): Water {
   const segments = quality === "high" ? 48 : 16;
-  // Plane geometry is authored in XY (not XZ) so the shaders above can work
+  const asset = troiNamAsset("W07");
+  const texture = loadWorldTexture(asset.src);
+  applyAnisotropy(texture, renderer); // the one plane viewed at a shallow angle
+
+  // Plane geometry is authored in XY (not XZ) so the shader above can work
   // in the plane's own local space before the mesh is rotated flat.
-  // Deep and wide enough that its near edge still reaches past the camera
-  // on a narrow/close phone framing (see applyResponsiveFraming) instead of
-  // leaving a gap of bare canvas at the bottom of the frame.
-  const geometry = new THREE.PlaneGeometry(100, 50, segments, segments);
+  const geometry = new THREE.PlaneGeometry(100, 40, segments, segments);
   const uniforms = {
     uTime: { value: 0 },
-    uColorDeep: { value: new THREE.Color(0x0c0b12) },
-    uColorGold: { value: new THREE.Color(0xf2dca0) },
+    uMap: { value: texture },
     uNightWeight: { value: 0 },
   };
   const material = new THREE.ShaderMaterial({
@@ -81,8 +68,11 @@ export function createWater(scene: THREE.Scene, { quality }: { quality: "low" | 
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.rotation.x = -Math.PI / 2;
-  mesh.position.set(0, -1, -8);
-  mesh.renderOrder = 100;
+  // z/position chosen so the painted plate's own fading top 15% (see
+  // phase-03's "W07 gần như đục" note) lands on the painted-layers'
+  // waterline instead of hard-cutting against the karst bases.
+  mesh.position.set(0, -1.3, -6);
+  mesh.renderOrder = 7;
   scene.add(mesh);
 
   return {
@@ -97,6 +87,7 @@ export function createWater(scene: THREE.Scene, { quality }: { quality: "low" | 
       scene.remove(mesh);
       geometry.dispose();
       material.dispose();
+      texture.dispose();
     },
   };
 }

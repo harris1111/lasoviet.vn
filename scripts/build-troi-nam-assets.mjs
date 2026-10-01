@@ -369,17 +369,27 @@ async function run() {
     mkdirSync(outDir, { recursive: true });
     const meta = await sharp(input).metadata();
     const use = widths.filter((w) => w <= meta.width);
+    let largestOutput;
     for (const w of use) {
+      largestOutput = join(outDir, `${base}-${w}w.webp`);
       await sharp(input)
         .resize({ width: w, withoutEnlargement: true })
         .webp({ quality: 78, effort: 6 })
-        .toFile(join(outDir, `${base}-${w}w.webp`));
+        .toFile(largestOutput);
     }
+    // Manifest width/height must describe the file `src` actually points at
+    // (the largest *served* variant), not the source PNG — those only
+    // coincided for every prior row because `widths`' max happened to equal
+    // the source's native width. W01-W03 cap at 1920 while their source is
+    // 2560 (upscaled by the image tool past real detail, see phase-03 of
+    // the painted-world plan), so this would otherwise silently report a
+    // wrong intrinsic size to anything using it for <img> width/height.
+    const servedMeta = await sharp(largestOutput).metadata();
     manifest[id] = {
       src: `/images/troi-nam/${folder}/${base}-${use[use.length - 1]}w.webp`,
       srcSet: use.map((w) => `/images/troi-nam/${folder}/${base}-${w}w.webp ${w}w`).join(", "),
-      width: meta.width,
-      height: meta.height,
+      width: servedMeta.width,
+      height: servedMeta.height,
     };
     console.log(`  ${id} → ${base} (${use.join(", ")}w)`);
   }

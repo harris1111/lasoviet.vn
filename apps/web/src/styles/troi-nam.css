@@ -55,17 +55,6 @@
   z-index: 0;
   overflow: clip;
   pointer-events: none;
-  /*
-   * TEMPORARY (2026-10-01), remove once Phase 3 of the painted-world plan
-   * ships: fixing the sticky/overflow bug above means this backdrop no
-   * longer scrolls off-screen immediately, which means the old flat vector-
-   * silhouette karst (the thing the founder rejected) is now visible behind
-   * the hero photo instead of hidden by the same bug that broke sticky.
-   * Hiding it keeps the page looking like the approved photo-only hero
-   * while the engine underneath (progress, lifecycle, degradation) stays
-   * intact for Phase 3 to build on.
-   */
-  visibility: hidden;
 }
 
 .tn-world-sticky {
@@ -86,15 +75,17 @@
 }
 
 /*
- * Deliberately NOT dimming `.tn-hero-media` here. The effects contract's
- * plan was to replace the photo with the 3D world once ready; rendered and
- * reviewed live, the flat vector-silhouette karst reads as noticeably
- * cheaper than the real Tràng An photography next to the hero's otherwise
- * refined typography/form — a regression, not an upgrade (founder call,
- * 2026-10-01). The photo stays the hero's real background; the world still
- * renders behind it (harmless, fully covered) so the scroll-driven Explore
- * choreography and Task 1–5 engine stay intact for a future redesign pass
- * that uses it as a supplementary effect instead of a replacement.
+ * Deliberately NOT dimming `.tn-hero-media` here. The original effects
+ * contract replaced the hero photo with a code-drawn vector world once
+ * ready — rendered and reviewed live, that read as noticeably cheaper than
+ * the real Tràng An photography next to the hero's refined typography/form
+ * (founder call, 2026-10-01). The painted-world rebuild
+ * (docs/superpowers/plans/2026-10-01-troi-nam-painted-world/) replaces every
+ * code-drawn shape with reviewed artwork, but the hero photo still wins that
+ * comparison at p=0, so it stays the hero's real background. The world
+ * keeps rendering behind it either way; whether it shows through anywhere
+ * else down the page depends on each section's own background, not this
+ * rule.
  */
 
 /* ---- Hero ---- */
