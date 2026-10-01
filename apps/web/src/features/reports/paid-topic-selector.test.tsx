@@ -130,9 +130,28 @@ describe("PaidTopicSelector", () => {
     expect(html).not.toContain("ZIWEI-IDENTITY-P0");
     expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
 
-    // Exactly one active purchase CTA button for this single-offer view (opens the Lá unlock dialog)
+    // The full reading is directly actionable from the offer card and the sticky paybar.
     const ctaMatches = (html.match(/Mở khóa: 960 Lá/g) || []).length;
     expect(ctaMatches).toBe(1);
+    expect(html).toContain("Mở luận giải đầy đủ: 960 Lá");
+    expect(activeCardHtml).toContain("Mở luận giải đầy đủ: 960 Lá");
+  });
+
+  it("wires the card CTA to the comprehensive wallet unlock entry point", () => {
+    const elementTree = PaidTopicSelector({ locale: "vi", topics: mockTopics });
+    const unlockButton = findElementInTree(
+      elementTree,
+      (element) => typeof element.type === "function" && element.type.name === "WalletUnlockButton",
+    );
+
+    expect(unlockButton).not.toBeNull();
+    expect(unlockButton?.props).toMatchObject({
+      buttonLabel: "Mở luận giải đầy đủ: 960 Lá",
+      chartId: "chart-123",
+      chartVersionId: "version-456",
+      sku: "ZIWEI-IDENTITY-P0",
+      locale: "vi",
+    });
   });
 
   it("renders English offer title and equivalent scope without promising V3 delivery", () => {
@@ -148,6 +167,7 @@ describe("PaidTopicSelector", () => {
       expect(html).toContain("Estimated report length of approximately 2,200–3,200 words.");
       expect(html).toContain("960");
       expect(html).toContain("Lá");
+      expect(html).toContain("Unlock full reading: 960 Lá");
     } finally {
       mockLocale = "vi";
     }
@@ -222,6 +242,22 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain('href="/bao-cao/rep-123"');
     expect(html).toContain("Xem bản mẫu");
     expect(html).not.toContain("Chọn Luận giải toàn diện");
+    expect(
+      findElementInTree(
+        PaidTopicSelector({
+          locale: "vi",
+          ownershipByOfferKey: {
+            "ziwei-comprehensive": {
+              kind: "readable",
+              reportId: "rep-123",
+              readUrl: "/bao-cao/rep-123",
+            },
+          },
+          topics: mockTopics,
+        }),
+        (element) => typeof element.type === "function" && element.type.name === "WalletUnlockButton",
+      ),
+    ).toBeNull();
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(0);
     expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
