@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import type { NormalizedZiweiChartV1, ZiweiEvidenceViewV1 } from "@lasoviet/contracts";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportScoreExplainer } from "../reports/report-chart-visuals";
+import { PartFeedback } from "../reports/part-feedback";
 import { ZiweiChart } from "./ziwei-chart";
 import type { FreeResultModel } from "./ziwei-free-result-model";
 import type { ZiweiPresentationLocale } from "./ziwei-presentation";
@@ -135,6 +136,7 @@ export function ZiweiFreeResult({
             {model.insights.map((insight) => (
               <article key={insight.id}>
                 <h3>{insight.title}</h3><p>{insight.description}</p>
+                <PartFeedback locale={locale} chartId={chartId} partId={insight.id} sku="free-result" />
                 <EvidenceDrawer chart={chart} chartId={chartId} locale={locale}
                   evidenceId={insight.evidenceId} loadEvidence={loadEvidence} isOpen={false}
                   onOpenChange={(open) => {

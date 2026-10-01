@@ -32,7 +32,7 @@ export function TopicReportReader({ report }: { report: ReportTopicReadyViewV1 }
           <p><strong>{t("topicReader.avoid")}</strong> {action.avoid}</p>
         </li>)}</ol>
       </section>
-      {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} partId={report.sku} locale="vi" paid />}
+      {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} partId={report.sku} sku={report.sku} locale="vi" paid />}
     </article>
   </main>;
 }

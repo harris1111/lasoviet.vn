@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { GuaranteeClaimResultV1Schema, PartFeedbackResultV1Schema, type PartFeedbackRating } from "@lasoviet/contracts";
 import { ziweiPresentation } from "../ziwei/ziwei-presentation";
+import { deterministicAnalyticsKey, trackGuaranteeClaimed, trackPartFeedback } from "../analytics/funnel-analytics";
 
-export function PartFeedback({ chartId, partId, reportId, paid = false, locale = "vi", onClaimed }: { chartId: string; partId: string; reportId?: string; paid?: boolean; locale?: "vi" | "en"; onClaimed?: () => void }) {
+export function PartFeedback({ chartId, partId, reportId, sku, paid = false, locale = "vi", onClaimed }: { chartId: string; partId: string; reportId?: string; sku?: string; paid?: boolean; locale?: "vi" | "en"; onClaimed?: () => void }) {
   const t = useTranslations("reports.feedback");
   const router = useRouter();
   const [rating, setRating] = useState<PartFeedbackRating>();
@@ -39,6 +40,12 @@ export function PartFeedback({ chartId, partId, reportId, paid = false, locale =
         setClaimed(true);
         setRelatedPalaceId(result.data.relatedPalaceSuggestion.palaceId);
         setMessage(t("restored", { amount: result.data.amountLaRestored }));
+        void trackGuaranteeClaimed({
+          sku: sku ?? (paid ? "paid-report" : "free-result"),
+          amount_restored: result.data.amountLaRestored,
+          reason: "inaccurate",
+          section_id: partId,
+        }, { idempotencyKey: claimKey.current ?? undefined });
         onClaimed?.();
         router.refresh();
       } else {
@@ -47,6 +54,21 @@ export function PartFeedback({ chartId, partId, reportId, paid = false, locale =
         setRelatedPalaceId(result.data.relatedPalaceSuggestion?.palaceId);
         setRating(nextRating);
         setMessage(t("thanks"));
+        void trackPartFeedback({
+          section_id: partId,
+          feedback: nextRating,
+          sku,
+          is_free: !paid,
+        }, {
+          idempotencyKey: deterministicAnalyticsKey(
+            "part-feedback",
+            chartId,
+            reportId ?? "",
+            sku ?? "",
+            partId,
+            nextRating,
+          ),
+        });
       }
     } catch { setMessage(t("error")); }
     finally { inFlight.current = false; setBusy(false); }

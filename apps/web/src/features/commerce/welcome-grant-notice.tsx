@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authClient } from "../../auth/auth-client";
+import { deterministicAnalyticsKey, trackWelcomeGrant } from "../analytics/funnel-analytics";
 
 export function WelcomeGrantNotice({ locale }: { locale: "vi" | "en" }) {
   const { data: session } = authClient.useSession();
@@ -19,6 +20,9 @@ export function WelcomeGrantNotice({ locale }: { locale: "vi" | "en" }) {
         try { if (localStorage.getItem(key)) return; } catch { /* Storage may be unavailable. */ }
         if (controller.signal.aborted) return;
         setVisibleFor(ownerId);
+        void trackWelcomeGrant({ amount: 60 }, {
+          idempotencyKey: deterministicAnalyticsKey("welcome-grant", ownerId),
+        });
         try { localStorage.setItem(key, "1"); } catch { /* A receipt still permits the notice. */ }
       } catch { /* The next authenticated visit retries. */ }
     })();

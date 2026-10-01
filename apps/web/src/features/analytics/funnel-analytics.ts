@@ -96,6 +96,16 @@ export function sanitizeAnalyticsProperties(
   return sanitized;
 }
 
+/** Stable opaque key for idempotent browser telemetry without logging identifiers. */
+export function deterministicAnalyticsKey(prefix: string, ...parts: string[]): string {
+  let hash = 2166136261;
+  for (const character of parts.join("\u001f")) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${prefix}:${(hash >>> 0).toString(16)}`;
+}
+
 // ==========================================
 // 1. TOP-UP & PACK SELECTION (#50)
 // ==========================================

@@ -25,7 +25,7 @@ export function PeriodReportReader({ report }: { report: ReportPeriodReadyViewV1
         <h3>{t("topicReader.actions")}</h3><ul>{period.recommendations.map((text, i) => <li key={i}>{text}</li>)}</ul>
         <h3>{t("periodReader.cautions")}</h3><ul>{period.cautions.map((text, i) => <li key={i}>{text}</li>)}</ul>
       </section>)}
-      {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} partId={report.sku} locale="vi" paid />}
+      {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} partId={report.sku} sku={report.sku} locale="vi" paid />}
     </article>
   </main>;
 }
