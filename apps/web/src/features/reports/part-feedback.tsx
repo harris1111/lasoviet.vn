@@ -59,7 +59,16 @@ export function PartFeedback({ chartId, partId, reportId, sku, paid = false, loc
           feedback: nextRating,
           sku,
           is_free: !paid,
-        }, { idempotencyKey: deterministicAnalyticsKey("part-feedback", chartId, partId, nextRating) });
+        }, {
+          idempotencyKey: deterministicAnalyticsKey(
+            "part-feedback",
+            chartId,
+            reportId ?? "",
+            sku ?? "",
+            partId,
+            nextRating,
+          ),
+        });
       }
     } catch { setMessage(t("error")); }
     finally { inFlight.current = false; setBusy(false); }
