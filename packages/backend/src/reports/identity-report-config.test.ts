@@ -28,6 +28,7 @@ import {
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_SENSITIVITY,
@@ -54,6 +55,7 @@ import {
   REPORT_PROMPT_VERSION_V2,
   REPORT_RENDER_VERSION_V1,
   REPORT_TEMPLATE_VERSION_V1,
+  v4_2BeginnerReportVersions,
 } from "./identity-report-config.js";
 import { validateKnowledgeManifest } from "../knowledge/knowledge-ingestion.service.js";
 
@@ -78,9 +80,9 @@ describe("identity report config", () => {
     expect(REPORT_CONTENT_VERSION_COMPREHENSIVE_V1).toBe("ziwei-comprehensive.v1");
   });
 
-  it("currentReportVersions returns exact V4.1.2 sensitivity tuple for Vietnamese and V2 for English", () => {
+  it("currentReportVersions returns exact V4.2 beginner tuple for Vietnamese and V2 for English", () => {
     const viVersions = currentReportVersions("vi");
-    expect(viVersions).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    expect(viVersions).toEqual(v4_2BeginnerReportVersions("vi"));
 
     const enVersions = currentReportVersions("en");
     expect(enVersions).toEqual({
@@ -202,8 +204,8 @@ describe("identity report config", () => {
       timingRuleVersion: "ziwei.timing.v1",
     });
 
-    // Vietnamese comprehensive reports use the current V4.1.2 sensitivity selection.
-    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    // Vietnamese comprehensive reports use the current V4.2 beginner selection.
+    expect(currentReportVersions("vi")).toEqual(v4_2BeginnerReportVersions("vi"));
 
     // Regression check: legacy V3 constants remain available for existing reports
     expect(REPORT_KNOWLEDGE_VERSION_V3).toBe("ziwei.comprehensive.knowledge.v3");
@@ -224,9 +226,9 @@ describe("identity report config", () => {
       timingRuleVersion: "ziwei.timing.v1",
     });
 
-    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_2BeginnerReportVersions("vi"));
     expect(currentReportVersions("vi").promptVersion).toBe(
-      REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+      REPORT_PROMPT_VERSION_V4_2_BEGINNER,
     );
   });
 
@@ -247,7 +249,7 @@ describe("identity report config", () => {
     expect(() => resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4)).toThrow(
       "REPORT_RUNTIME_POLICY_UNKNOWN_CONFIG",
     );
-    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_2BeginnerReportVersions("vi"));
   });
 
   it("provides the dormant V4.1 sensitivity tuple and matching runtime policy", () => {
@@ -265,7 +267,7 @@ describe("identity report config", () => {
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
     });
-    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_2BeginnerReportVersions("vi"));
   });
 
   it("provides the additive V4.1.1 sensitivity tuple without remapping V4.1", () => {
@@ -286,7 +288,7 @@ describe("identity report config", () => {
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
     });
-    expect(currentReportVersions("vi")).toEqual(v4_1_2SensitivityReportVersions("vi"));
+    expect(currentReportVersions("vi")).toEqual(v4_2BeginnerReportVersions("vi"));
   });
 
   it("adds the key-configuration prompt tuple without changing the durable V4.1.1 resolver", () => {
