@@ -1,0 +1,179 @@
+{
+  "recordedAt": "2026-10-01T10:29:04.544Z",
+  "origin": "https://lasoviet.net",
+  "services": [
+    {
+      "service": "web",
+      "revision": "8d483fc49200b43fdf94762aa3dca39a2bc0bde6",
+      "health": "healthy"
+    },
+    {
+      "service": "api",
+      "revision": "8d483fc49200b43fdf94762aa3dca39a2bc0bde6",
+      "health": "healthy"
+    },
+    {
+      "service": "worker",
+      "revision": "8d483fc49200b43fdf94762aa3dca39a2bc0bde6",
+      "health": "healthy"
+    }
+  ],
+  "checks": [
+    {
+      "name": "FD109 verified vi",
+      "status": "PASS"
+    },
+    {
+      "name": "welcome notice vi",
+      "status": "PASS"
+    },
+    {
+      "name": "account/top-up page availability vi",
+      "status": "PASS"
+    },
+    {
+      "name": "FD109 verified en",
+      "status": "PASS"
+    },
+    {
+      "name": "welcome notice en",
+      "status": "PASS"
+    },
+    {
+      "name": "account/top-up page availability en",
+      "status": "PASS"
+    },
+    {
+      "name": "real free feedback vi 390",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "actualNumber": 403,
+      "expectedNumber": 200
+    },
+    {
+      "name": "real free feedback vi 1280",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "actualNumber": 403,
+      "expectedNumber": 200
+    },
+    {
+      "name": "real free feedback en 390",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "actualNumber": 403,
+      "expectedNumber": 200
+    },
+    {
+      "name": "real free feedback en 1280",
+      "status": "FAIL",
+      "errorType": "AssertionError",
+      "actualNumber": 403,
+      "expectedNumber": 200
+    },
+    {
+      "name": "browser-only feedback fault injection 401",
+      "status": "PASS"
+    },
+    {
+      "name": "browser-only feedback fault injection 422",
+      "status": "PASS"
+    },
+    {
+      "name": "browser-only feedback fault injection 200",
+      "status": "PASS"
+    },
+    {
+      "name": "feedback leaves wallet and real guarantees unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "existing welcome grant durable replay",
+      "status": "PASS"
+    },
+    {
+      "name": "anonymous wallet denied",
+      "status": "PASS"
+    },
+    {
+      "name": "owned reader navigation/print 390",
+      "status": "PASS"
+    },
+    {
+      "name": "owned reader navigation/print 1440",
+      "status": "PASS"
+    },
+    {
+      "name": "private report anonymous denied",
+      "status": "PASS"
+    },
+    {
+      "name": "no new recorded AI calls/report jobs",
+      "status": "PASS"
+    }
+  ],
+  "blockers": [
+    "welcome_grant: repeated browser event conflicts at ingest; persisted prior event is not successful replay acceptance"
+  ],
+  "overall": "BLOCKED",
+  "boundary": "Real deployed services; existing verified staging account. Normal welcome-grant and analytics side effects permitted. No orders/unlocks/refunds requested. SQL read-only; AI/job counters checked. Free-feedback writes permitted through the real application; error cases use explicitly labeled browser-only fault injection. No real guarantee claims.",
+  "routing": {
+    "publishedLoopback": "3000/tcp -> 127.0.0.1:63423",
+    "matchingBuildAssetCount": 25,
+    "assetSetHash": "53b30349b83dd4d8a80181ed50f6a9a0c5dfe03582bd9bde79617a507e07c66c"
+  },
+  "feedbackCommands": [
+    {
+      "locale": "vi",
+      "width": 390,
+      "rating": "accurate",
+      "status": 403,
+      "code": "REQUEST_ORIGIN_INVALID"
+    },
+    {
+      "locale": "vi",
+      "width": 1280,
+      "rating": "accurate",
+      "status": 403,
+      "code": "REQUEST_ORIGIN_INVALID"
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "rating": "accurate",
+      "status": 403,
+      "code": "REQUEST_ORIGIN_INVALID"
+    },
+    {
+      "locale": "en",
+      "width": 1280,
+      "rating": "accurate",
+      "status": 403,
+      "code": "REQUEST_ORIGIN_INVALID"
+    }
+  ],
+  "telemetryDelivery": [
+    {
+      "event": "welcome_grant",
+      "status": 409,
+      "persisted": true
+    },
+    {
+      "event": "welcome_grant",
+      "status": 409,
+      "persisted": true
+    }
+  ],
+  "aiJobCounters": {
+    "before": {
+      "aicalls": 521,
+      "queuejobs": 130,
+      "reservations": 76
+    },
+    "after": {
+      "aicalls": 521,
+      "queuejobs": 130,
+      "reservations": 76
+    }
+  }
+}
