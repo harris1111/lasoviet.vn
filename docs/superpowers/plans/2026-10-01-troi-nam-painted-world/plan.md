@@ -3,7 +3,7 @@ title: Troi Nam painted scroll world
 description: >-
   Dựng lại hiệu ứng cuộn trang chủ Trời Nam từ tranh/ảnh đã gen thay vì hình
   khối vẽ bằng code, áp dụng bộ skill 3d của MengTo/Skills
-status: pending
+status: completed
 priority: P1
 branch: feat/troi-nam-homepage
 tags:
@@ -152,8 +152,8 @@ Phase 3 (nguồn gen ở độ phân giải thấp rồi phóng to; W07 gần nh
 | 1 | `overflow: hidden` khiến sticky không bám viewport | **ĐÚNG** — đo được, canvas trôi tới −2402px | Completed |
 | 2 | Bật reduced-motion lúc đang tải Three.js vẫn khởi tạo 3D | **ĐÚNG** — `onReducedMotionChange` không đặt `cancelled = true` | Completed |
 | 3 | Sao không hội tụ đúng vào lá số khi cuộn | **ĐÚNG** — `setChartTarget` chiếu theo camera tại thời điểm gọi; cuộn đổi cả camera lẫn vị trí lá số nhưng không chiếu lại | Completed |
-| 4 | Tier "low" không giới hạn 30fps | **ĐÚNG** — bỏ mỗi RAF thứ hai chỉ cho 30fps trên màn 60Hz; màn 120/144Hz vẫn chạy 60/72fps | Phase 1 |
-| 5 | Builder lỗi giữa chừng không giải phóng tài nguyên đã tạo | **ĐÚNG** — 4 lệnh `create*` không nằm trong try/catch | Phase 1 |
+| 4 | Tier "low" không giới hạn 30fps | **ĐÚNG** — bỏ mỗi RAF thứ hai chỉ cho 30fps trên màn 60Hz; màn 120/144Hz vẫn chạy 60/72fps | Completed |
+| 5 | Builder lỗi giữa chừng không giải phóng tài nguyên đã tạo | **ĐÚNG** — 4 lệnh `create*` không nằm trong try/catch | Completed |
 | 6 | Lỗi render sau frame đầu không lùi về ảnh tĩnh | **ĐÚNG** — chỉ frame đầu có try/catch | Phase 1 |
 
 Cả 6 lỗi nằm ở phần **engine được giữ lại**, nên phải sửa dù chọn chế độ A hay B. Gom hết
@@ -180,8 +180,8 @@ vào Phase 1.
 | 1 | [foundation-fixes](./phase-01-foundation-fixes.md) | Completed |
 | 2 | [asset-generation](./phase-02-asset-generation.md) | Completed |
 | 3 | [painted-layer-world](./phase-03-painted-layer-world.md) | Completed |
-| 4 | [rays-and-atmosphere](./phase-04-rays-and-atmosphere.md) | Pending |
-| 5 | [chart-handoff-and-qa](./phase-05-chart-handoff-and-qa.md) | Pending |
+| 4 | [rays-and-atmosphere](./phase-04-rays-and-atmosphere.md) | Completed |
+| 5 | [chart-handoff-and-qa](./phase-05-chart-handoff-and-qa.md) | Completed |
 
 **Điểm dừng quyết định:** cuối Phase 1 trang đã đẹp hơn hiện tại và hết lỗi. Founder xem rồi
 mới quyết có đi tiếp Phase 3–5 hay không.

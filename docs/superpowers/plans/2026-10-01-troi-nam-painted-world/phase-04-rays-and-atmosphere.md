@@ -1,10 +1,11 @@
 ---
 phase: 4
-title: "rays-and-atmosphere"
-status: pending
+title: rays-and-atmosphere
+status: completed
 priority: P2
-effort: "1.5d"
-dependencies: [3]
+effort: 1.5d
+dependencies:
+  - 3
 ---
 
 # Phase 4: Tia nắng & khí quyển
@@ -165,3 +166,24 @@ section dưới — tạo mạch liên tục cho cả trang.
 - **Mask sai → tia xuyên qua núi:** kiểm bằng cách render riêng mask ra màn hình, không đoán.
 - **Chồng nhiều lớp alpha + additive → overdraw:** giới hạn tối đa 3 lớp full-screen blend
   cùng lúc (ngân sách của `build-threejs-scroll-worlds`).
+
+## Kết quả thật (2026-10-01)
+
+Triển khai bởi ChatGPT, nghiệm thu và vá lỗi bởi Claude trước khi nhập kho (xem
+`troi-nam-world-rays.ts`, `troi-nam-world-particles.ts`). Mặt nạ dùng đúng một quy ước
+`skyVisibility` (trắng=hở, đen=che), có debug mode (`?troiNamWorldDebug=1`) để xem mặt nạ riêng.
+
+**Lỗi tìm thấy khi nghiệm thu, đã vá trước khi nhập kho:**
+- Mặt nước không nằm trong danh sách vật che → tia phủ sáng đều cả mặt hồ thay vì bị núi cắt.
+  Đã thêm mặt nước vào danh sách che (không cắt theo alpha, che toàn bộ mặt phẳng).
+- Lớp mây T07 lộ cạnh thẳng lúc camera nghiêng (overscan quá sát viewport). Đã nới overscan.
+- Đường chéo (anti-alias) bị mất ở tier cao khi tia bật, do render-to-texture không giữ MSAA.
+  Đã bật `samples: 4` cho render target.
+
+**Đã xác minh:** không còn hiện tượng phủ sáng đều mặt nước; không lỗi console/shader qua
+Playwright (desktop 1440, mobile 390, cuộn lui/tới); tia tắt đúng lúc p≥0.6; tier thấp không
+chạy ray pass.
+
+**Chưa xác minh (cần máy thật, giữ nguyên yêu cầu cũ):** chi phí ms/frame bật/tắt ray pass trên
+GPU thật, độ mạnh tia theo cảm nhận thị giác trên thiết bị thật — môi trường này chỉ có
+SwiftShader (renderer phần mềm), số đo ở đây chỉ mang tính chẩn đoán.

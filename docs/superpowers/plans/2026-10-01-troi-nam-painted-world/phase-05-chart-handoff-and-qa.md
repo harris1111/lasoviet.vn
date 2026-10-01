@@ -1,10 +1,11 @@
 ---
 phase: 5
-title: "chart-handoff-and-qa"
-status: pending
+title: chart-handoff-and-qa
+status: completed
 priority: P2
-effort: "1.5d"
-dependencies: [4]
+effort: 1.5d
+dependencies:
+  - 4
 ---
 
 # Phase 5: Bàn giao lá số + nghiệm thu
@@ -147,3 +148,21 @@ lập GPU (SwiftShader), số đo ở đó **không dùng để kết luận**. 
 - **Vòng P05 lệch khung lá số trên mobile:** rect nhỏ, sai số chiếu lớn hơn. Kiểm riêng ở 390.
 - **Cao trào "quá nhiều thứ":** sao + vòng + trống đồng + sương cùng lúc dễ rối. Nếu rối, bỏ
   P01, giữ P05.
+
+## Kết quả thật (2026-10-01)
+
+Triển khai bởi ChatGPT, nghiệm thu và vá lỗi bởi Claude trước khi nhập kho. P01 (trống đồng)
+được bỏ qua như phương án dự phòng trong plan (chỉ dùng P05) — tránh "quá nhiều thứ" ở cao trào.
+
+**Đã xác minh (Playwright, desktop 1440 + mobile 390):** sao hội tụ đúng vào vòng P05; vòng bám
+đúng khung `.tn-explore .hv3-chart` thật khi cuộn (chiếu lại mỗi frame chỉ khi progress/aspect/
+chartRect đổi — nợ kỹ thuật từ Phase 1 đã được trả ở đây); canvas mờ dần đúng lúc khung lá số
+tới giữa màn hình, bảng lá số DOM bấm được ngay; 12 icon cung hiện đúng cung (đối chiếu
+`palaceOnBranch` — thứ tự cung thật, không theo thứ tự file); bấm cung hoạt động bình thường;
+không lỗi console/shader qua suốt vòng cuộn lui/tới; rút gọn chuyển động (`prefers-reduced-
+motion`) vẫn chặn WebGL hoàn toàn, không khởi tạo.
+
+**Chưa xác minh (cần máy thật, giữ nguyên yêu cầu cũ ở bảng nghiệm thu toàn diện phía trên):**
+p95 frame time desktop/mobile, CLS/LCP trước-sau, chuyển tab thật (chỉ giả lập được sự kiện
+visibility, chưa phải chuyển tab thật), độ phủ thiết bị/trình duyệt thực tế. Môi trường này chỉ
+có SwiftShader — số đo ms/frame ở đây không dùng để kết luận, theo đúng ghi chú đã có.
