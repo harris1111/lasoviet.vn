@@ -1,7 +1,7 @@
 // Owner-authorized staging smoke. Never logs credentials or report/profile prose.
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createHmac, createHash, randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,12 @@ const origin = process.env.STAGING_ORIGIN ?? "https://lasoviet.net";
 assert.equal(origin, "https://lasoviet.net", "Only the approved canonical origin may receive the session cookie");
 const expected = process.env.EXPECTED_RELEASE_SHA;
 assert.match(expected ?? "", /^[a-f0-9]{40}$/, "EXPECTED_RELEASE_SHA is required");
+const feedbackSmoke = process.env.RUN_FEEDBACK_SMOKE === "1";
+const outputFile = new URL(process.env.SMOKE_OUTPUT_FILE ?? "./runtime-smoke.json", import.meta.url);
+if (feedbackSmoke) {
+  assert.ok(process.env.SMOKE_OUTPUT_FILE, "Feedback smoke requires a separate evidence output file");
+  assert.ok(!existsSync(outputFile), "Feedback smoke must not overwrite existing evidence");
+}
 const services = ["web", "api", "worker"].map((service) => {
   const name = `lasoviet-mvp-${service}-1`;
   const data = JSON.parse(execFileSync("docker", ["inspect", name], { encoding: "utf8" }))[0];
@@ -44,6 +50,31 @@ const evidence = {
 };
 let browser;
 let countersBefore;
+const telemetryDelivery = [];
+function telemetryResponse(page, name) {
+  return page.waitForResponse(response => {
+    const request = response.request();
+    return request.url().endsWith("/api/analytics/events") && request.method() === "POST"
+      && request.postDataJSON()?.event?.name === name;
+  }, { timeout: 10_000 }).catch(() => null);
+}
+async function auditTelemetry(response, name, properties, ownerId) {
+  assert.ok(response, "Expected browser telemetry was not observed");
+  const payload = response.request().postDataJSON();
+  assert.deepEqual(payload.event, { name, properties });
+  assert.match(payload.idempotencyKey, /^(welcome-grant|part-feedback):[a-f0-9]+$/);
+  assert.ok(response.ok() || response.status() === 409);
+  const rows = await sql`select name,properties,user_id from analytics_events where idempotency_key=${payload.idempotencyKey}`;
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].name, name);
+  assert.equal(rows[0].user_id, ownerId);
+  assert.deepEqual(rows[0].properties, properties);
+  telemetryDelivery.push({ event: name, status: response.status(), persisted: true });
+  if (response.status() === 409) {
+    const blocker = `${name}: repeated browser event conflicts at ingest; persisted prior event is not successful replay acceptance`;
+    if (!evidence.blockers.includes(blocker)) evidence.blockers.push(blocker);
+  }
+}
 const counters = async () => {
   const [row] = await sql`select
     (select count(*)::int from ai_call_attempts) as aiCalls,
@@ -58,7 +89,9 @@ async function check(name, run) {
     console.log(`${name}: PASS`);
   } catch (error) {
     // Do not persist exception messages that may include private URLs/response data.
-    evidence.checks.push({ name, status: "FAIL", errorType: error.name });
+    evidence.checks.push({ name, status: "FAIL", errorType: error.name,
+      ...(typeof error.actual === "number" && typeof error.expected === "number"
+        ? { actualNumber: error.actual, expectedNumber: error.expected } : {}) });
     console.log(`${name}: FAIL (${error.name})`);
   }
 }
@@ -127,10 +160,14 @@ try {
       try {
         await fresh.addCookies(await context.cookies());
         const freshPage = await fresh.newPage();
+        const welcomeEvent = feedbackSmoke ? telemetryResponse(freshPage, "welcome_grant") : null;
         await freshPage.goto(`${prefix}/la-so/${chart.id}`);
         const notice = freshPage.locator(".welcome-grant-notice");
         await expect(notice).toBeVisible();
         await expect(notice).toContainText("60");
+        if (welcomeEvent) await auditTelemetry(await welcomeEvent, "welcome_grant", {
+          amount: 60, grant_type: "welcome_verified_account",
+        }, session.owner_id);
         await notice.getByRole("button").click();
         await expect(notice).toHaveCount(0);
         await freshPage.reload();
@@ -143,6 +180,83 @@ try {
         await expect(page.locator(`[data-pack-id="${pack}"]`)).toBeVisible();
       }
       assert.equal((await page.goto(`${prefix}/tai-khoan`)).status(), 200);
+    });
+  }
+  if (feedbackSmoke) {
+    evidence.boundary += " Free-feedback writes permitted through the real application; error cases use explicitly labeled browser-only fault injection. No real guarantee claims.";
+    const walletBefore = await (await context.request.get("/api/commerce/wallet/balance")).json();
+    const claimsBefore = await sql`select count(*)::int as count from guarantee_claims where account_id=${session.owner_id}`;
+    evidence.feedbackCommands = [];
+    for (const locale of ["vi", "en"]) {
+      await context.addCookies([{ name: "NEXT_LOCALE", value: locale, url: origin }]);
+      for (const width of [390, 1280]) {
+        await check(`real free feedback ${locale} ${width}`, async () => {
+          await page.setViewportSize({ width, height: 900 });
+          assert.equal((await page.goto(`${locale === "en" ? "/en" : ""}/la-so/${chart.id}?tab=overview`)).status(), 200);
+          const cards = page.locator('[data-free-result-block="insights"] article .part-feedback');
+          await expect(cards).toHaveCount(2);
+          for (const [index, rating] of [[0, "accurate"], [1, "partially_accurate"]]) {
+            const card = cards.nth(index);
+            const event = telemetryResponse(page, "part_feedback");
+            const command = page.waitForResponse(response => response.url().endsWith("/api/commerce/feedback/parts")
+              && response.request().method() === "POST");
+            const button = card.locator(".part-feedback-actions button").nth(index);
+            await button.click();
+            const result = await command;
+            const responseBody = await result.json();
+            evidence.feedbackCommands.push({ locale, width, rating, status: result.status(),
+              ...(!result.ok() && /^[A-Z][A-Z0-9_]{0,80}$/.test(responseBody?.code ?? "")
+                ? { code: responseBody.code } : {}) });
+            assert.equal(result.status(), 200);
+            const data = responseBody;
+            assert.equal(data.feedback.rating, rating);
+            await expect(button).toHaveAttribute("aria-pressed", "true");
+            await expect(card.locator(".part-feedback-guarantee")).toHaveCount(0);
+            const rows = await sql`select chart_id,user_id,part_id,rating from part_feedbacks where id=${data.feedback.id}`;
+            assert.equal(rows.length, 1);
+            assert.equal(rows[0].chart_id, chart.id);
+            assert.equal(rows[0].user_id, session.owner_id);
+            assert.equal(rows[0].part_id, data.feedback.partId);
+            assert.equal(rows[0].rating, rating);
+            await auditTelemetry(await event, "part_feedback", {
+              section_id: data.feedback.partId, feedback: rating, sku: "free-result", is_free: true,
+            }, session.owner_id);
+          }
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        });
+      }
+    }
+    for (const status of [401, 422, 200]) {
+      await check(`browser-only feedback fault injection ${status}`, async () => {
+        await page.goto(`/en/la-so/${chart.id}?tab=overview`);
+        let emitted = 0;
+        const listener = request => {
+          if (request.url().endsWith("/api/analytics/events") && request.method() === "POST"
+            && request.postDataJSON()?.event?.name === "part_feedback") emitted++;
+        };
+        const pattern = "**/api/commerce/feedback/parts";
+        page.on("request", listener);
+        await page.route(pattern, route => route.fulfill({
+          status, contentType: "application/json", body: JSON.stringify({ code: "SYNTHETIC_CLIENT_FAULT" }),
+        }));
+        try {
+          const card = page.locator('[data-free-result-block="insights"] article .part-feedback').first();
+          await card.locator(".part-feedback-actions button").first().click();
+          await expect(card.getByRole("status")).not.toBeEmpty();
+          await expect(card.locator(".part-feedback-actions button").first()).toBeEnabled();
+          await expect(card.locator('.part-feedback-actions button[aria-pressed="true"]')).toHaveCount(0);
+          await page.waitForTimeout(150);
+          assert.equal(emitted, 0);
+        } finally {
+          await page.unroute(pattern);
+          page.off("request", listener);
+        }
+      });
+    }
+    evidence.telemetryDelivery = telemetryDelivery;
+    await check("feedback leaves wallet and real guarantees unchanged", async () => {
+      assert.deepEqual(await (await context.request.get("/api/commerce/wallet/balance")).json(), walletBefore);
+      assert.deepEqual(await sql`select count(*)::int as count from guarantee_claims where account_id=${session.owner_id}`, claimsBefore);
     });
   }
   await check("existing welcome grant durable replay", async () => {
@@ -306,6 +420,6 @@ try {
   await sql.end();
   evidence.overall = evidence.blockers.length ? "BLOCKED"
     : evidence.checks.some(check => check.status === "FAIL") ? "FAIL" : "PASS";
-  writeFileSync(new URL("./runtime-smoke.json", import.meta.url), `${JSON.stringify(evidence, null, 2)}\n`);
+  writeFileSync(outputFile, `${JSON.stringify(evidence, null, 2)}\n`);
 }
 process.exitCode = evidence.overall === "PASS" ? 0 : 1;

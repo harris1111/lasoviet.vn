@@ -137,11 +137,13 @@ export function ZiweiFreeResult({
               <article key={insight.id}>
                 <h3>{insight.title}</h3><p>{insight.description}</p>
                 <PartFeedback locale={locale} chartId={chartId} partId={insight.id} sku="free-result" />
-                <EvidenceDrawer chart={chart} chartId={chartId} locale={locale}
-                  evidenceId={insight.evidenceId} loadEvidence={loadEvidence} isOpen={false}
-                  onOpenChange={(open) => {
-                    if (open) navigate("evidence", CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId]);
-                  }} />
+                {insight.evidenceId && (
+                  <EvidenceDrawer chart={chart} chartId={chartId} locale={locale}
+                    evidenceId={insight.evidenceId} loadEvidence={loadEvidence} isOpen={false}
+                    onOpenChange={(open) => {
+                      if (open) navigate("evidence", CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId!]);
+                    }} />
+                )}
               </article>
             ))}
             {model.isGuest && <div className="fd109-save">

@@ -73,11 +73,119 @@ describe("FD109 server-side free-result projection", () => {
   it("has no invented annual data if the engine is unavailable", () => {
     expect(buildFreeResultModel({ ...input, horoscope: undefined }).annual).toBeNull();
   });
-  it("does not serialize unmarked Vietnamese API prose into the English view", () => {
-    const model = buildFreeResultModel({ ...input, locale: "en", isGuest: false });
+  it("does not serialize unmarked Vietnamese API prose into the English view and falls back to mapped concern", () => {
+    const model = buildFreeResultModel({ ...input, locale: "en", isGuest: false, preview: { ...preview, topConcern: "career" } });
     expect(model.insights).toHaveLength(2);
     expect(JSON.stringify(model)).not.toContain("VISIBLE");
     expect(JSON.stringify(model)).not.toContain("SECOND_PROSE_SECRET");
-    expect(model.insights[1]?.id).toBe("body-palace");
+    expect(model.insights[1]?.id).toBe("top-concern");
+    expect(model.insights[1]?.title).toBe("Career Palace");
+    expect(model.insights[1]?.description).toContain("Zi Wei");
+    expect(model.insights[1]?.evidenceId).toBeUndefined();
+  });
+
+  describe("minimal #53 concern fallback behavior", () => {
+    it.each([
+      ["career", "Career Palace"],
+      ["money", "Wealth Palace"],
+      ["love", "Spouse Palace"],
+      ["family", "Parents Palace"],
+      ["wellbeing", "Fortune Palace"],
+      ["self_understanding", "Career Palace"], // chart.bodyPalaceId is career
+    ] as const)("falls back to localized structural facts for concern %s in EN without prose", (topConcern, expectedTitle) => {
+      const model = buildFreeResultModel({
+        chart,
+        preview: { topConcern } as FreeIdentityPreviewV1,
+        isGuest: false,
+        locale: "en",
+      });
+      expect(model.insights).toHaveLength(2);
+      expect(model.insights[1]?.id).toBe("top-concern");
+      expect(model.insights[1]?.title).toBe(expectedTitle);
+      expect(model.insights[1]?.description).toBe(model.palaces.find((p) => p.name === expectedTitle)!.facts);
+      expect(model.insights[1]?.description).toContain("Zi Wei");
+      expect(model.insights[1]?.evidenceId).toBeUndefined();
+    });
+
+    it("falls back to body palace if topConcern maps to a palace not present in chart", () => {
+      const incompleteChart = {
+        ...chart,
+        palaces: chart.palaces.filter((p) => p.id !== "ziwei.palace.spouse"),
+      };
+      const model = buildFreeResultModel({
+        chart: incompleteChart,
+        preview: { topConcern: "love" } as FreeIdentityPreviewV1,
+        isGuest: false,
+        locale: "en",
+      });
+      expect(model.insights).toHaveLength(2);
+      expect(model.insights[1]?.id).toBe("body-palace");
+      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.body-palace");
+    });
+
+    it("falls back to body palace when topConcern is absent and no authorized second prose exists", () => {
+      const model = buildFreeResultModel({
+        chart,
+        preview: {} as FreeIdentityPreviewV1,
+        isGuest: false,
+        locale: "en",
+      });
+      expect(model.insights).toHaveLength(2);
+      expect(model.insights[1]?.id).toBe("body-palace");
+      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.body-palace");
+    });
+
+    it("keeps only 1 insight for guest even if topConcern is provided", () => {
+      const model = buildFreeResultModel({
+        chart,
+        preview: { topConcern: "career" } as FreeIdentityPreviewV1,
+        isGuest: true,
+        locale: "en",
+      });
+      expect(model.insights).toHaveLength(1);
+      expect(model.insights[0]?.id).toBe("life-palace");
+    });
+
+    it("preserves authorized Vietnamese concern prose and its evidenceId when usable", () => {
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        locale: "vi",
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            { id: "top-concern", title: "Quan tâm", description: "Luận giải sự nghiệp", evidenceId: "ziwei.identity.career-preview", isLocked: false },
+          ],
+          topConcern: "career",
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      expect(model.insights).toHaveLength(2);
+      expect(model.insights[1]?.id).toBe("top-concern");
+      expect(model.insights[1]?.title).toBe("Quan tâm");
+      expect(model.insights[1]?.description).toBe("Luận giải sự nghiệp");
+      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.career-preview");
+    });
+
+    it("prevents locked or private prose leak and uses structural fallback instead", () => {
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        locale: "vi",
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            { id: "top-concern", title: "SECRET_TITLE", description: "SECRET_LOCKED_PROSE", evidenceId: "ziwei.identity.career-preview", isLocked: true },
+          ],
+          topConcern: "career",
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      expect(model.insights).toHaveLength(2);
+      expect(model.insights[1]?.id).toBe("top-concern");
+      expect(model.insights[1]?.title).toBe("Cung Quan Lộc");
+      expect(model.insights[1]?.evidenceId).toBeUndefined();
+      const serialized = JSON.stringify(model);
+      expect(serialized).not.toContain("SECRET_TITLE");
+      expect(serialized).not.toContain("SECRET_LOCKED_PROSE");
+    });
   });
 });
