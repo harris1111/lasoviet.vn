@@ -991,7 +991,12 @@
   flex-direction: column;
   min-width: 0;
   gap: calc(var(--tn-gutter) / 2);
-  padding: calc(clamp(10rem, 22vw, 14rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  /* Was clamp(10rem,22vw,14rem) (160-224px) — four of these stacked 2x2
+     nearly doubled the whole needs section's height versus the live
+     homepage's plain text-row buttons (2026-10-01 CX review: "section cao
+     quá mức cần thiết"). Still a real decorative plate, just not a page-
+     length one. */
+  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   color: var(--tn-text);
   background: var(--lacquer-800);
   border: 1px solid var(--lacquer-line);
@@ -1001,7 +1006,7 @@
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: clamp(10rem, 22vw, 14rem);
+  height: clamp(6.5rem, 13vw, 8.5rem);
   background-size: cover;
   background-position: center 44%;
   background-repeat: no-repeat;
@@ -1009,7 +1014,7 @@
 }
 
 .tn .tn-needs .hv3-need[aria-pressed="true"] {
-  padding: calc(clamp(10rem, 22vw, 14rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   border: 1px solid var(--tn-gold-light);
   background: var(--lacquer-700);
   box-shadow: inset 0 0 0 1px var(--tn-gold-light);
