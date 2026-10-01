@@ -55,6 +55,17 @@
   z-index: 0;
   overflow: clip;
   pointer-events: none;
+  /*
+   * TEMPORARY (2026-10-01), remove once Phase 3 of the painted-world plan
+   * ships: fixing the sticky/overflow bug above means this backdrop no
+   * longer scrolls off-screen immediately, which means the old flat vector-
+   * silhouette karst (the thing the founder rejected) is now visible behind
+   * the hero photo instead of hidden by the same bug that broke sticky.
+   * Hiding it keeps the page looking like the approved photo-only hero
+   * while the engine underneath (progress, lifecycle, degradation) stays
+   * intact for Phase 3 to build on.
+   */
+  visibility: hidden;
 }
 
 .tn-world-sticky {
