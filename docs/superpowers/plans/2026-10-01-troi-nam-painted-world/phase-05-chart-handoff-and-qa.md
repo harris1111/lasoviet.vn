@@ -50,6 +50,13 @@ Dùng hạ tầng Phase 1: stage đo `.tn-explore .hv3-chart` mỗi lần có `t
 chiếu lại **sau** khi camera cập nhật, trong `renderFrame`. Vòng P05 và 12 điểm đích lấy từ
 cùng một phép chiếu → luôn khớp dù cuộn hay resize.
 
+**Nợ kỹ thuật cần trả ở phase này:** bản Phase 1 chiếu lại **mỗi frame vô điều kiện**, nghĩa là
+mỗi frame đều cấp phát một `Float32Array(36)` mới, ghi lại toàn bộ 1200×3 giá trị `aTarget` rồi
+đẩy cả buffer lên GPU (~14 KB/frame, ~860 KB/s ở 60fps). Đúng về mặt kết quả nhưng trái với yêu
+cầu "không cấp phát mỗi frame" của hợp đồng hiệu ứng. Khi viết lại phần sao ở phase này, thêm
+cổng chặn: chỉ chiếu lại khi `progress`, `aspect`, `chartRect` **hoặc** kích thước canvas đổi,
+và bỏ qua hoàn toàn khi `chart` weight = 0 (p < 0.75) vì lúc đó sao chưa morph về đích.
+
 Khi `chart` weight ≥ 0.9: giảm opacity toàn canvas về 0 trong ~400ms, để biểu đồ thật đứng một
 mình. Canvas luôn `pointer-events: none` nên không bao giờ chặn bấm.
 
