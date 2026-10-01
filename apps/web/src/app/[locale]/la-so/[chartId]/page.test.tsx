@@ -1,4 +1,5 @@
-import type { FreeIdentityPreviewV1 } from "@lasoviet/contracts";
+import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1 } from "@lasoviet/contracts";
+import { CANONICAL_BRANCH_SEQUENCE } from "../../../../features/ziwei/ziwei-chart-relations";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -151,7 +152,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
       chart: {
         version: 1,
         systemId: "ziwei",
-        palaces: [],
+        palaces: ZIWEI_PALACE_IDS.map((id, index) => ({
+          id, earthlyBranchId: CANONICAL_BRANCH_SEQUENCE[index]!,
+          stars: [{ id: "ziwei.star.ziwei", category: "major" as const, brightness: "ziwei.brightness.exalted" as const }],
+        })),
         transformations: [],
         soulPalaceId: "ziwei.palace.life",
         bodyPalaceId: "ziwei.palace.career",
@@ -273,59 +277,37 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     vi.mocked(loadZiweiChart.loadChart).mockResolvedValue(mockChartSuccess as never);
     vi.mocked(loadZiweiChart.loadHoroscope).mockResolvedValue({ ok: false } as never);
     vi.mocked(freeIdentityPreviewLoader.loadPreview).mockResolvedValue(mockPreviewSuccess as never);
-    vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "account", userId: "u1" } as never);
+    vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "account", userId: "u1", emailVerified: true } as never);
   });
 
-  it("renders synchronized Vietnamese offer title and avoids lifetime forecasting promises in paid CTA", async () => {
+  it("renders FD109 read-first completion without the old paid offer section", async () => {
     const page = await ZiweiChartResultPage({
       params: Promise.resolve({ chartId, locale: "vi" }),
     });
     const html = renderToStaticMarkup(page);
 
-    // Paid report CTA assertions
-    expect(html).toContain("Đọc sâu hơn lá số của bạn");
-    expect(html).toContain("Từ 3 điểm hôm nay, đến toàn bộ 12 cung");
-    expect(html).toContain("Bạn vừa đọc 3 điểm nổi bật từ Cung Mệnh.");
-    expect(html).toContain("Chọn luận giải phù hợp");
+    expect(html).toContain("Bạn đã đọc xong phần miễn phí");
+    expect(html).toContain("Xem các gói luận giải");
+    expect(html).toContain("chưa phải bản luận giải đầy đủ");
     expect(html).toContain("/la-so/chart-test-123/chon-luan-giai");
-    expect(html).toContain("/bao-cao-mau/tu-vi");
-
-    // Must not contain legacy titles or destiny forecasting promises in the CTA
-    const ctaMatch = html.match(/<section[^>]*class="result-paid-report-cta"[^>]*>([\s\S]*?)<\/section>/);
-    expect(ctaMatch).not.toBeNull();
-    const ctaHtml = ctaMatch![1]!;
-    expect(ctaHtml).not.toContain("79.000 ₫");
-    expect(ctaHtml).not.toContain("Bản mệnh &amp; Tiềm năng");
-    expect(ctaHtml).not.toContain("Bản mệnh & Tiềm năng");
-    expect(ctaHtml).not.toContain("Destiny Report");
-    expect(ctaHtml).not.toContain("trọn đời");
-    expect(ctaHtml).not.toContain("vận trình thời gian");
+    expect(html).not.toContain("result-paid-report-cta");
+    expect(html).not.toContain("79.000 ₫");
+    expect(html).not.toContain("240 Lá");
 
     // Must not expose raw internal SKU identifiers
     expect(html).not.toContain("ZIWEI-IDENTITY-P0");
     expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
   });
 
-  it("renders synchronized English offer title in English locale", async () => {
+  it("uses the localized English offer destination without the old paid section", async () => {
     const page = await ZiweiChartResultPage({
       params: Promise.resolve({ chartId, locale: "en" }),
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Go deeper into your chart");
-    expect(html).toContain("From today&#x27;s 3 highlights to all 12 palaces");
-    expect(html).toContain("You just read three highlights from your Life Palace.");
-    expect(html).toContain("Choose a reading");
     expect(html).toContain("/en/la-so/chart-test-123/chon-luan-giai");
-    expect(html).toContain("/en/bao-cao-mau/tu-vi");
-
-    // Must not contain legacy titles in the CTA
-    const ctaMatch = html.match(/<section[^>]*class="result-paid-report-cta"[^>]*>([\s\S]*?)<\/section>/);
-    expect(ctaMatch).not.toBeNull();
-    const ctaHtml = ctaMatch![1]!;
-    expect(ctaHtml).not.toContain("79,000 VND");
-    expect(ctaHtml).not.toContain("Life Potential &amp; Destiny Report");
-    expect(ctaHtml).not.toContain("Full Lifetime Report");
+    expect(html).not.toContain("result-paid-report-cta");
+    expect(html).not.toContain("79,000 VND");
   });
 
   it("triggers notFound when chart loader fails", async () => {
@@ -334,6 +316,29 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     await expect(
       ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) })
     ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+
+  it.each([false, undefined])("redacts the second insight when account verification is %s", async (emailVerified) => {
+    vi.mocked(resolveCurrentActor).mockResolvedValue({ kind: "account", userId: "u1", emailVerified } as never);
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockResolvedValue({
+      ...mockPreviewSuccess,
+      value: {
+        ...mockPreviewSuccess.value,
+        audience: "verified",
+        insightDetails: [
+          { id: "life-palace", numeral: "01", title: "Visible", tagline: "Visible", description: "VISIBLE_FIRST",
+            evidenceId: "ziwei.identity.life-palace", isLocked: false },
+          { id: "top-concern", numeral: "02", title: "SECOND_SECRET_TITLE", tagline: "SECOND_SECRET_TAG",
+            description: "SECOND_SECRET_PROSE", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+        ],
+      },
+    });
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    const html = renderToStaticMarkup(page);
+    expect(html).toContain("VISIBLE_FIRST");
+    expect(html).not.toContain("SECOND_SECRET");
+    expect(html).toContain("Lưu lá số miễn phí");
+    expect(html).toMatch(/data-testid="fd109-sticky" hidden=""/);
   });
 
   it("triggers notFound when preview loader fails", async () => {
@@ -412,7 +417,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     ).rejects.toThrow("NEXT_REDIRECT");
   });
 
-  it("renders 'Năm nay' tab with caution months badge and tab panel when horoscope is available", async () => {
+  it("renders aggregate year counts without serializing locked months or daily prose", async () => {
     const chartId = "chart-test-123";
     const mockHoroscope = {
       version: 1,
@@ -467,13 +472,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    // Tab button with count badge
-    expect(html).toContain("2 tháng hạn");
     expect(html).toContain("Năm nay");
-
-    // Annual tab panel
-    expect(html).toContain("Năm Bính Ngọ của bạn");
-    expect(html).toContain("35 tuổi âm · lưu niên tại cung Quan Lộc");
-    expect(html).toContain("Năm nay có 2 tháng cần chú ý và 3 tháng thuận.");
-    expect(html).toContain("Ngày Kỷ Hợi chạm cung Tử Tức của bạn. Mở mỗi sáng trong gói Hội viên.");
+    expect(html).toContain("<strong>2</strong>tháng cần chú ý");
+    expect(html).toContain("<strong>3</strong>tháng thuận");
+    expect(html).not.toContain("Tháng hạn, mở để xem");
+    expect(html).not.toContain("Tháng 12");
+    expect(html).not.toContain("Ngày Kỷ Hợi");
   });

@@ -11,7 +11,7 @@ const labels = {
     hour: "Giờ",
     minute: "Phút",
     gender: "Nam",
-    consent: "Tôi đồng ý để Lá Số Việt xử lý thông tin sinh nhằm lập lá số này.",
+    consent: "Tôi đồng ý để Lá Số Việt xử lý thông tin sinh để lập lá số",
     submit: "Lập lá số",
   },
   en: {
@@ -22,7 +22,7 @@ const labels = {
     hour: "Hour",
     minute: "Minute",
     gender: "Male",
-    consent: "I agree that Lá Số Việt may process this birth information to create this chart.",
+    consent: "I agree that Lá Số Việt may process birth information to create this chart",
     submit: "Create chart",
   },
 } as const;
@@ -44,9 +44,9 @@ export async function createAnonymousChart(page: Page, locale: Locale) {
   await page.goto(`${prefix}/tao-la-so/tu-vi`);
   await page.getByRole("radio", { name: copy.gender, exact: true }).check();
   await page.getByRole("button", { name: copy.continue }).click();
-  await page.getByRole("textbox", { name: copy.day, exact: true }).fill("01");
-  await page.getByRole("textbox", { name: copy.month, exact: true }).fill("01");
-  await page.getByRole("textbox", { name: copy.year, exact: true }).fill("1990");
+  await page.getByRole("combobox", { name: copy.day, exact: true }).selectOption({ label: "01" });
+  await page.getByRole("combobox", { name: copy.month, exact: true }).selectOption({ label: "01" });
+  await page.getByRole("combobox", { name: copy.year, exact: true }).selectOption("1990");
   await page.getByLabel(copy.hour, { exact: true }).fill("09");
   await page.getByLabel(copy.minute, { exact: true }).fill("30");
   await page.getByRole("button", { name: copy.continue }).click();

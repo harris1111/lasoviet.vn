@@ -1,4 +1,5 @@
-import type { ReportChartPalaceV1, ReportChartSnapshotV1 } from "@lasoviet/contracts";
+import type { NormalizedZiweiChartV1, ReportChartPalaceV1, ReportChartSnapshotV1 } from "@lasoviet/contracts";
+import { getPalaceRelations } from "../ziwei/ziwei-chart-relations";
 
 // "Độ mạnh cấu trúc" của từng cung (FD-107).
 //
@@ -95,7 +96,7 @@ export function scoreBand(score: number): PalaceScoreBandKey {
   return "kho";
 }
 
-export function computePalaceScores(snapshot: ReportChartSnapshotV1): Map<string, PalaceScore> {
+export function computePalaceScores(snapshot: Pick<ReportChartSnapshotV1, "palaces">): Map<string, PalaceScore> {
   const byId = new Map(snapshot.palaces.map((p) => [p.palaceId, p]));
   const own = new Map<string, number>();
   for (const palace of snapshot.palaces) {
@@ -120,4 +121,27 @@ export function computePalaceScores(snapshot: ReportChartSnapshotV1): Map<string
     });
   }
   return result;
+}
+
+/** Use the same published formula without inventing annual or decadal timing. */
+export function computeNormalizedPalaceScores(chart: NormalizedZiweiChartV1): Map<string, PalaceScore> {
+  const transformations = new Map(chart.transformations.map((item) => [item.starId, item.id]));
+  const palaces: ReportChartPalaceV1[] = chart.palaces.map((palace) => {
+    const relations = getPalaceRelations(palace.id, chart.palaces);
+    return {
+      palaceId: palace.id,
+      earthlyBranchId: palace.earthlyBranchId,
+      isLife: palace.id === chart.soulPalaceId,
+      isBody: palace.id === chart.bodyPalaceId,
+      oppositePalaceId: (relations.oppositeId ?? palace.id) as ReportChartPalaceV1["palaceId"],
+      triadPalaceIds: relations.trineIds as ReportChartPalaceV1["triadPalaceIds"],
+      stars: palace.stars.map((star) => ({
+        starId: star.id,
+        kind: star.category === "major" ? "main" : "aux",
+        brightnessId: star.brightness,
+        transformationId: transformations.get(star.id),
+      })),
+    };
+  });
+  return computePalaceScores({ palaces });
 }
