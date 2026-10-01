@@ -11,131 +11,186 @@ dependencies: [1, 2]
 
 ## Overview
 
-Thay toàn bộ hình học vector bằng **các mặt phẳng dán tranh** đặt ở độ sâu khác nhau. Camera
-đi qua chúng sinh parallax thật. Trời là ảnh pha trộn theo tiến độ cuộn. Không còn pixel nào
-do code tô màu.
+Thay toàn bộ hình học vector bằng **các mặt phẳng dán tranh W01–W11** đặt ở độ sâu khác nhau.
+Camera đi qua chúng sinh parallax thật. Không còn pixel nào do code tô màu.
 
-Áp dụng `3d-sky-background` (trời bằng ảnh, trọng số liên tục, màu đúng chuẩn, có dự phòng)
-và `3d-high-resolution-textures` (mật độ texel, mipmap, anisotropy, tải tăng dần, ngân sách
-GPU).
+Kế hoạch này viết **sau khi đã đo thật từng file ảnh được giao** (2026-10-01), nên mọi con số
+dưới đây là số đo, không phải ước lượng.
 
-## Requirements
+## Luật hình học — đọc trước, nếu không sẽ đặt lớp sai
 
-**Functional**
-- Bố cục p=0 phải **ngang ngửa hoặc hơn** ảnh L01 khi đặt cạnh nhau. Nếu không đạt → dừng, giữ Phase 1.
-- Cuộn sinh parallax: lớp gần dịch nhiều hơn lớp xa, rõ mắt nhưng không chóng mặt.
-- Trời chuyển bình minh → hoàng hôn → đêm liên tục, không nháy, không lộ đường cắt.
-- Ảnh chưa tải xong → vẫn có nền dùng được, không phải khung đen.
+### Luật 1 (bất biến): khoảng cách KHÔNG đổi độ lớn nhìn thấy
 
-**Non-functional**
-- Tổng texture tải ở màn hình đầu ≤ 2.5 MB; toàn cảnh ≤ 6 MB.
-- Draw call ≤ 40; triangle ≤ 20k (lớp phẳng nên rất rẻ).
-- Bộ nhớ GPU ước tính ≤ 120 MB (tính cả mip chain).
+Một mặt phẳng phủ kín khung hình thì **kích thước biểu kiến của nội dung trong nó là cố định**,
+bất kể đặt xa hay gần — vì muốn phủ kín khung ở xa thì phải phóng to đúng tỉ lệ ấy. Khoảng
+cách `z` **chỉ điều khiển tốc độ parallax**, không điều khiển độ lớn.
 
-## Architecture
+→ Hệ quả: chỉnh `z` để sửa "núi to quá" là **vô ích**. Phải chỉnh **tỉ lệ mặt phẳng**.
 
-### Sơ đồ lớp (z trong world, camera ở z ≈ +6)
+### Luật 2 (độ lớn): tỉ lệ silhouette đã đo được
 
-| z | Lớp | Nguồn | Parallax |
-|---|---|---|---|
-| −60 | Trời (3 tấm chồng, pha theo trọng số) | W01/W02/W03 | 0 (khoá theo camera) |
-| −34 | Đĩa mặt trời + quầng | W10 | rất nhỏ |
-| −28 | Núi lớp xa | W04 | 0.15 |
-| −18 | Sương dải 1 | T11 (đã có) | 0.3 |
-| −14 | Núi lớp giữa | W05 | 0.35 |
-| −9 | Sương dải 2 | T11 | 0.5 |
-| −7 | Thuỷ đình + thuyền nan | W09 | 0.6 |
-| −5 | Núi lớp gần | W06 | 0.75 |
-| −1 | Mặt nước | W07 | 1.0 |
-| +3 | Khung tiền cảnh | W08 | 1.6 (gần camera nhất) |
+Mỗi ảnh có phần ăn mực chiếm một tỉ lệ cố định chiều cao khung của chính nó:
 
-Parallax **không** tự code bằng tay — nó là hệ quả của phối cảnh thật: đặt đúng z rồi cho
-camera dịch là ra. Chỉ nhân thêm hệ số khi cần cường điệu.
+| Ảnh | Hộp bao (y) | **Tỉ lệ silhouette `f`** |
+|---|---|---:|
+| W04 núi xa | 1113–1439 / 1440 | **0.227** |
+| W05 núi giữa | 756–1439 / 1440 | **0.475** |
+| W06 núi gần | 99–1439 / 1440 | **0.931** |
 
-### Trời (theo `3d-sky-background`)
+Công thức đặt lớp:
 
-- Ba `PlaneGeometry` phẳng lớn, khoá vị trí theo camera (`sky.position.copy(camera.position)`
-  mỗi frame, chỉ dịch z) để trời không bao giờ trôi khỏi khung.
-- `material.opacity` = đúng công thức đặc tả: dawn `1-dusk`, dusk `dusk*(1-night)`, night `night`.
-- **Màu:** texture ảnh màu → `texture.colorSpace = THREE.SRGBColorSpace`. Tính toán giữ tuyến
-  tính, đổi màu đầu ra **một lần** ở cuối. Đây là lỗi thầm lặng hay gặp nhất khi dùng ảnh.
-- **Dự phòng:** vẽ ngay một gradient CanvasTexture rẻ tiền (cùng 4 nấc màu với W01) rồi mới
-  nạp ảnh thật và pha vào. Ảnh lỗi → vẫn còn trời dùng được, không bao giờ để khung trống.
-
-### Lớp núi/vật thể (theo `3d-high-resolution-textures`)
-
-- `MeshBasicMaterial({ map, transparent: true, depthWrite: false })` — lớp tranh không cần
-  chiếu sáng PBR, ánh sáng đã vẽ sẵn trong tranh.
-- `map.colorSpace = SRGBColorSpace`; `generateMipmaps = true`; `minFilter = LinearMipmapLinearFilter`.
-- `anisotropy = min(4, renderer.capabilities.getMaxAnisotropy())` — chỉ cho lớp nước (góc tà),
-  các lớp khác nhìn vuông góc không cần.
-- **Mật độ texel:** lớp gần (W06, W08) chiếm nhiều pixel màn hình nhất → giữ 2560px; lớp xa
-  (W04) chỉ cần 1440px. Không rải 2560 cho tất cả.
-- **Viền alpha:** loang màu mép vào vùng trong suốt trước khi nén (pipeline làm ở khâu build),
-  nếu không mip sẽ sinh viền tối quanh lá cây.
-- **Tải tăng dần:** nạp theo thứ tự trời → núi xa → núi giữa → núi gần → nước → tiền cảnh →
-  sương/vật thể. Chỉ `resolve()` handle sau khi nhóm bắt buộc (trời + 3 lớp núi + nước) xong.
-
-### Chapter ledger (theo `build-threejs-scroll-worlds`)
-
-Lưu thành **dữ liệu**, không rải ngưỡng khắp render loop:
-
-```ts
-const chapters = [
-  { id: "binh-minh", p: 0.00, camera: { pos: [0, 1.4, 6], look: [0, 0.4, -6], fov: 40 },
-    sky: { dawn: 1, dusk: 0, night: 0 }, rays: 1.0, mist: 1.0 },
-  { id: "hoang-hon", p: 0.50, camera: { pos: [0, 1.8, 6.5], look: [0, 2.6, -9], fov: 42 },
-    sky: { dawn: 0, dusk: 1, night: 0 }, rays: 0.15, mist: 0.9 },
-  { id: "dem-sao",  p: 0.75, camera: { pos: [0, 2.2, 7], look: [0, 6.5, -16], fov: 46 },
-    sky: { dawn: 0, dusk: 0, night: 1 }, rays: 0, mist: 0.5 },
-  { id: "la-so",    p: 1.00, camera: { pos: [0, 3.0, 5], look: [0, 3.2, -3], fov: 40 },
-    sky: { dawn: 0, dusk: 0, night: 1 }, rays: 0, mist: 0.3 },
-];
 ```
-Có bản `mobile` đè riêng cho `pos`/`fov` (màn dọc hẹp cần lùi xa + mở góc — đã làm ở
-`applyResponsiveFraming`, giữ nguyên cách tính đó).
+d          = cameraZ − planeZ                    // khoảng cách
+visibleH   = 2 · d · tan(fov/2)                  // chiều cao khung tại d
+visibleW   = visibleH · aspect
+
+planeW     = overscan · visibleW                 // overscan ≥ 1.0, biên dự phòng khi camera dịch
+planeH     = planeW / textureAspect              // textureAspect = 16/9 (W04–W06, W08), 2.5 (W07)
+
+// chiều cao biểu kiến của núi TÍNH TỪ ĐƯỜNG NƯỚC:
+apparentAboveWater = f · planeH / visibleH = f · overscan
+```
+
+**Cảnh báo (Claude đã mắc rồi sửa):** vì W04–W06 cùng tỉ lệ 16:9 với khung hình, mặt phẳng vừa
+khít khung thì **không thể làm núi thấp hơn `f`**. Muốn núi xa chỉ cao 15% khung là bất khả thi
+với `f = 0.227` — thu nhỏ sẽ hở hai bên. Giá trị tự nhiên chính là `f`, và núm chỉnh duy nhất
+là `overscan` (phóng to) cộng với việc **neo đáy xuống dưới đường nước** (dìm bớt chân núi).
+
+### Luật 3 (căn chỉnh): mọi chân núi phải chạm cùng một đường nước
+
+Đặt một hằng số nghệ thuật duy nhất `WATERLINE_SCREEN = 0.50` (50% tính từ đáy khung ở p=0).
+Neo **đáy mặt phẳng** của cả ba lớp núi xuống dưới đường này ~1% chiều cao khung, rồi mặt nước
+W07 phủ từ đó xuống (mép fade của W07 trùng đường nước). Không anchor theo world-y cố định — ba
+lớp có tỉ lệ khác nhau nên anchor chung world-y sẽ cho ba đường chân núi lệch nhau.
+
+## Bảng đặt lớp khởi điểm — đã kiểm bằng render thử
+
+Camera p=0 (giữ nguyên `applyResponsiveFraming` hiện có): `pos (0, 1.4, 6)`, `look (0, 0.4, −6)`,
+`fov 40°` desktop. `tan(20°) = 0.3640`.
+
+Các giá trị `overscan` dưới đây **không phải suy luận** — Claude đã ghép thử hai vòng bằng Sharp
+ở khung 1600×900 rồi soi mắt. Vòng 1 (overscan 1.17/1.31/1.62, waterline 0.42) cho núi quá to,
+che gần hết trời, và tiền cảnh lấp mất vùng trái dành cho chữ hero. Vòng 2 dưới đây đạt.
+
+| # | Lớp | Ảnh | z | d | **overscan** | Neo | Parallax |
+|---|---|---|---:|---:|---:|---|---|
+| 1 | Trời | W01/W02/W03 | −60 | 66 | phủ kín | khoá theo camera | 0 |
+| 2 | Mặt trời | W10 | −40 | 46 | sprite ~Ø8 | theo hướng sáng | rất nhỏ |
+| 3 | Núi xa | W04 | −26 | 32 | **1.00** | đáy = waterline +1% | chậm |
+| 4 | Sương 1 | T11 | −20 | 26 | 1.3 | — | |
+| 5 | Núi giữa | W05 | −15 | 21 | **1.06** | đáy = waterline +1% | vừa |
+| 6 | Thuỷ đình + thuyền | W09 | −10 | 16 | sprite | trên đường nước | |
+| 7 | Sương 2 | T11 | −8 | 14 | 1.3 | — | |
+| 8 | Núi gần | W06 | −6 | 12 | **1.28** | đáy = waterline +1% | nhanh |
+| 9 | Mặt nước | W07 | −2 | 8 | **1.20** | mép fade = waterline | nhanh |
+| 10 | Khung tiền cảnh | W08 | +3.2 | 2.8 | **1.00**, **lật ngang** | lệch lên ~7% khung | nhanh nhất |
+
+**W08 phải lật ngang (`flop`).** Bản gốc có tán lá ở mép **trên + trái**, đè đúng vào vùng chữ
+hero và form. Lật lại thì khung lá ôm mép **trên + phải**, chừa nửa trái tối cho chữ — đúng
+yêu cầu "chừa ≥40% vùng tối" của `docs/22-art-direction.md`. Đây là ảnh trang trí, lật không
+vi phạm luật thương hiệu (luật cấm lật chỉ áp cho logomark).
+
+### Trời bị che ở p=0 là **có chủ ý**
+
+Ở bố cục này núi + tán lá chiếm gần hết phần trên, trời chỉ hở vài mảng. Đó là đúng: p=0 là
+khung nhìn gần mặt nước, thân mật. Trời lộ dần khi camera ngẩng lên theo chapter ledger
+(`look.y` đi từ 0.4 → 2.6 → 6.5), nên **dải Ngân Hà W03 chỉ mở ra trọn vẹn ở cảnh đêm** — đó
+chính là cao trào thị giác của hành trình, không phải lỗi bố cục.
+
+## Kích thước texture cuối
+
+**Căn cứ:** ChatGPT khai báo nguồn Imagegen là 1672×941 (W01–W03, W08), 1983×793 (W07), rồi
+Sharp phóng lên 2560. Chi tiết thật chỉ tới ~1672px. Giao 2560 chỉ tốn bộ nhớ, không thêm
+chi tiết (`3d-high-resolution-textures`: *"Upscaling a small source cannot invent captured detail"*).
+
+| Ảnh | Giao ở | Lý do | GPU (RGBA + mip) |
+|---|---|---|---:|
+| W01–W03 trời | 1920×1080 | tần số thấp, 3 tấm chồng | 11.1 MB × 3 |
+| W04 núi xa | 1280×720 | mờ, tương phản thấp, ở xa | 4.9 MB |
+| W05 núi giữa | 1600×900 | chi tiết trung bình | 7.7 MB |
+| W06 núi gần | 1920×1080 | chiếm khung nhiều nhất | 11.1 MB |
+| W07 nước | 1920×768 | nguồn thật 1983 | 7.9 MB |
+| W08 tiền cảnh | 1920×1080 | gần camera nhất, mép lá quan trọng | 11.1 MB |
+| W09 vật thể | 768×768 mỗi cái | nhỏ trên màn hình | 3.1 MB × 2 |
+| W10 mặt trời | 512×512 | gradient xuyên tâm | 1.4 MB |
+| W11 hạt sao | 256×256 mỗi hạt | vài pixel trên màn hình | 0.35 MB × 6 |
+| | | **Tổng** | **≈ 86 MB** |
+
+Nếu giao nguyên 2560 cho tất cả: **≈ 177 MB** — vượt xa ngân sách 120 MB mà không đẹp hơn.
+
+**Hạ cỡ trong `build-troi-nam-assets.mjs`**, không hạ thủ công.
+
+## Mạch sáng phải nhất quán (bắt buộc)
+
+Các lớp núi được vẽ với **ánh sáng hoàng hôn nướng sẵn** (W04 opaqueMeanLuma 131.7, W05 63).
+Khi trời đổi sang đêm W03, núi vẫn sáng như hoàng hôn → sai khí quyển, `3d-sky-background`
+cảnh báo đúng chỗ này.
+
+→ Giữ lại cơ chế `setNightWeight` của bản cũ (nó đúng, chỉ phần hình học là sai): nhân màu lớp
+núi dần về `#060812` theo trọng số `night`, và giảm opacity nhẹ. Kiểm bằng cách chụp p=0.9 rồi
+soi: viền vàng trên đá phải tắt gần hết.
+
+Tương tự, vệt phản chiếu vàng trong W07 phải mờ theo `night` (uniform đã có sẵn ở bản cũ).
+
+## Hai ràng buộc từ ảnh thật
+
+1. **Dải sáng đáy W01/W02** — trông như ánh chân trời. Phải luôn khuất sau núi/nước. Kiểm ở
+   cả 390 và 1440: không mốc p nào để lộ dải này thành một đường ngang lơ lửng.
+2. **W07 gần như đục** (alphaMean 235.8, chỉ fade 15% mép trên). Nó **che sạch** mọi thứ phía
+   sau nếu đặt sai — Claude đã dựng thử và tái hiện đúng lỗi này. Mép fade phải trùng waterline.
 
 ## Related Code Files
 
-- Create: `apps/web/src/features/troi-nam/world/troi-nam-world-layers.ts` (lớp tranh + parallax)
-- Create: `apps/web/src/features/troi-nam/world/troi-nam-world-textures.ts` (nạp, colorSpace, mipmap, anisotropy, tải tăng dần, dispose)
-- Create: `apps/web/src/features/troi-nam/world/troi-nam-world-chapters.ts` (ledger)
-- Modify: `apps/web/src/features/troi-nam/world/troi-nam-world-scene.ts` (dùng layers thay terrain/light/water)
-- Modify: `apps/web/src/features/troi-nam/world/troi-nam-world-light.ts` (bỏ gradient vẽ tay, chuyển sang ảnh trời + giữ dự phòng)
-- Delete: `apps/web/src/features/troi-nam/world/troi-nam-world-terrain.ts` (hình học vector — thứ founder bác)
-- Modify: `apps/web/src/features/troi-nam/world/troi-nam-world-water.ts` (dán W07 thay vì màu phẳng; giữ gợn sóng shader nhẹ)
-- Modify: `prototype/revamp-2026-09/troi-nam-world/` (harness kiểm tra trước khi lên trang thật)
+- Create: `apps/web/src/features/troi-nam/world/troi-nam-world-layers.ts` — dựng 10 lớp theo bảng, `setPhase(weights)`
+- Create: `apps/web/src/features/troi-nam/world/troi-nam-world-textures.ts` — nạp texture: `colorSpace`, mipmap, anisotropy, hàng đợi ưu tiên, `disposeAll()`
+- Create: `apps/web/src/features/troi-nam/world/troi-nam-world-chapters.ts` — ledger chapter (đã phác ở bản trước)
+- Modify: `troi-nam-world-scene.ts` — dùng layers thay terrain/light/water
+- Modify: `troi-nam-world-light.ts` — bỏ gradient vẽ tay, chuyển sang 3 tấm trời + giữ gradient làm **dự phòng** khi ảnh lỗi
+- Modify: `troi-nam-world-water.ts` — dán W07; giữ gợn sóng vertex nhẹ và uniform `uNightWeight`
+- **Delete:** `troi-nam-world-terrain.ts` — hình học vector, thứ founder bác
+- Modify: `prototype/revamp-2026-09/troi-nam-world/` — harness thử trước khi lên trang thật
 
 ## Implementation Steps
 
-1. **Trước khi code:** gọi skill `3d-sky-background` và `3d-high-resolution-textures` để lấy
-   hướng dẫn đầy đủ (kế hoạch này chỉ tóm tắt).
-2. Viết `troi-nam-world-textures.ts`: hàm nạp texture có `colorSpace`, mipmap, anisotropy,
-   hàng đợi ưu tiên, và `disposeAll()`.
-3. Viết `troi-nam-world-layers.ts`: dựng 10 lớp theo bảng z ở trên từ manifest, mỗi lớp là một
-   plane đúng tỉ lệ ảnh, có `setPhase(weights)` để đổi opacity/tint.
-4. Chuyển trời sang 3 tấm ảnh + gradient dự phòng.
-5. Chuyển nước sang W07 + giữ gợn sóng vertex nhẹ (đã có, chỉ đổi màu nền thành texture).
+> **Bước 0 — chọn bộ ảnh.** `group-a-qa/manifest.json` ghi `recommendedSet: "alt"`. Dựng
+> **cả bản chính và alt ở cùng khung p=0**, xuất 2 ảnh cạnh nhau, founder chọn. Không tự quyết.
+
+1. Gọi skill `3d-sky-background` và `3d-high-resolution-textures` đọc đầy đủ trước khi viết code.
+2. `troi-nam-world-textures.ts`:
+   - `texture.colorSpace = THREE.SRGBColorSpace` cho **mọi** ảnh màu (lỗi thầm lặng hay gặp nhất).
+   - `generateMipmaps = true`, `minFilter = LinearMipmapLinearFilter`.
+   - `anisotropy = min(4, maxAnisotropy)` **chỉ cho W07** (góc tà); các lớp khác nhìn gần vuông góc.
+   - Hàng đợi 2 mức: *bắt buộc* (W01, W04–W08) và *hoãn* (W02, W03, W09–W11, T11).
+3. `troi-nam-world-layers.ts`: dựng theo bảng đặt lớp, dùng công thức Luật 2/3 — **không
+   hardcode kích thước mặt phẳng**, tính từ `fov`/`aspect`/`z` để đổi viewport vẫn đúng.
+4. Trời: 3 tấm, opacity theo công thức đặc tả (`1-dusk`, `dusk*(1-night)`, `night`), khoá vị
+   trí theo camera. Gradient CanvasTexture rẻ tiền vẽ ngay từ frame đầu, ảnh thật pha vào sau.
+5. Nước: W07, mép fade trùng waterline, giữ gợn sóng + `uNightWeight`.
 6. Xoá `troi-nam-world-terrain.ts` và mọi tham chiếu.
-7. Nối ledger chapter vào `applyPose`.
-8. **Chụp ảnh p=0 đặt cạnh L01 để so.** Đây là cổng quyết định — không đạt thì dừng.
+7. Nối ledger chapter vào `applyPose` (camera + trọng số lớp cùng một nguồn).
+8. **Chụp p=0 đặt cạnh ảnh L01 để so.** Đây là cổng quyết định — không đạt thì dừng, giữ Phase 1.
 9. Chạy trong harness prototype trước, rồi mới bật trên `/troi-nam`.
 
 ## Success Criteria
 
-- [ ] Ảnh so sánh cạnh nhau: world p=0 vs ảnh L01 — world **không thua** về độ sang
-- [ ] Cuộn thấy chiều sâu rõ (lớp gần trượt nhanh hơn lớp xa), không giật, đảo chiều đúng
-- [ ] Bắt mạng chậm 3G: có trời dự phòng ngay, ảnh vào dần, không khung đen
-- [ ] Chặn 1 file texture → world vẫn chạy, không vỡ
-- [ ] `renderer.info`: draw call ≤ 40, triangle ≤ 20k
+- [ ] Ảnh so sánh cạnh nhau: world p=0 vs L01 — world **không thua** về độ sang (founder duyệt)
+- [ ] So bản chính vs alt, founder chọn, ghi lại lựa chọn vào manifest
+- [ ] Cuộn thấy chiều sâu rõ: lớp gần trượt nhanh hơn lớp xa, không giật, đảo chiều đúng
+- [ ] Ba chân núi chạm **cùng một** đường nước ở mọi cỡ màn hình (390, 768, 1440)
+- [ ] Không mốc p nào lộ dải sáng đáy trời thành đường ngang lơ lửng
+- [ ] p=0.9: viền vàng trên đá đã tắt (núi đã ngả màu đêm), không còn "núi hoàng hôn dưới trời sao"
+- [ ] Mạng chậm 3G: có trời dự phòng ngay, ảnh vào dần, không khung đen
+- [ ] Chặn 1 file texture → world vẫn chạy
+- [ ] `renderer.info`: draw call ≤ 40, triangle ≤ 20k; bộ nhớ texture ước tính ≤ 120 MB
 - [ ] Không còn file/hàm nào sinh hình học trang trí bằng code
 - [ ] Ảnh chụp 4 mốc p ở 390 và 1440
 
 ## Risk Assessment
 
-- **"Sân khấu giấy bồi":** lớp phẳng lộ ra khi camera dịch ngang nhiều. Giảm thiểu: biên độ
-  camera nhỏ (≤1.5 đơn vị ngang), luôn có sương xen giữa hai lớp kề nhau, lớp gần luôn tối hơn.
-- **Sai không gian màu:** ảnh bị bợt hoặc quá tương phản. Kiểm bằng cách chụp texture gốc và
-  khung render cạnh nhau, so histogram.
-- **Bộ nhớ GPU:** 2560×1440 RGBA + mip ≈ 19 MB/lớp. 10 lớp ≈ 190 MB → **vượt ngân sách**. Bắt
-  buộc hạ cỡ theo bảng mật độ texel (lớp xa 1440, sương/vật thể 1024) và cân nhắc KTX2.
+| Rủi ro | Giảm thiểu |
+|---|---|
+| **"Sân khấu giấy bồi"** khi camera dịch nhiều | Biên độ ngang ≤1.5 đơn vị; luôn có sương xen giữa hai lớp kề; lớp gần luôn tối hơn lớp xa |
+| **Overscan không đủ** → lộ mép mặt phẳng | Đã gặp thật khi dựng thử bản alt: `overscan 1.00` + lệch lên 60px làm mép dưới W08 lộ thành **một đường ngang cứng** ở góc phải. Luật: `overscan` phải bù cả độ lệch neo lẫn biên parallax, không chỉ biên parallax. Thêm assert lúc dev: mọi mép mặt phẳng phải nằm ngoài khung ở **mọi** mốc p |
+| **Sai không gian màu** (ảnh bợt hoặc cháy) | Chụp texture gốc và khung render cạnh nhau, so histogram |
+| **Vượt bộ nhớ GPU** | Bảng kích thước đã tính 86 MB; có số đo `renderer.info.memory` trong tiêu chí |
+| **Ảnh phóng to lộ nhoè ở màn lớn** | Chi tiết thật chỉ ~1672px; nếu 1440px lộ nhoè, đành chấp nhận hoặc gen lại ở độ phân giải gốc cao hơn |

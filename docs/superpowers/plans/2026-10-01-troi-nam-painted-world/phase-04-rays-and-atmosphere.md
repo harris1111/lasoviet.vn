@@ -30,6 +30,19 @@ hoa đăng đêm — tất cả từ ảnh đã gen.
 - Ray pass ở nửa độ phân giải, 24–32 mẫu. Tier low: tắt hẳn.
 - Chi phí tăng thêm của ray pass ≤ 4ms/frame trên desktop, đo được (bật/tắt để so).
 
+## Ảnh đã có (xác nhận 2026-10-01)
+
+| Ảnh | Đo được | Dùng cho |
+|---|---|---|
+| W10 | 1024×1024, alpha thật, **đối xứng xuyên tâm tuyệt đối** (sai lệch RGBA khi xoay 90° = 0), alpha=0 toàn mép | Đĩa mặt trời + quầng; **tâm sprite = nguồn tia**, dùng chung một hướng với trời |
+| W04/W05/W06 | alpha thật, min=0 max=255 | **Mặt nạ che** — mép lá/đá giữ đúng vì là alpha-test, không thành hình chữ nhật |
+| W08 | alpha thật, mép trên + trái | Vừa là mặt nạ, vừa là bề mặt đục cần **giảm mạnh overlay** để đá/lá giữ tương phản |
+| T11 | có sẵn từ kho cũ, 3 dải sương rời có alpha | Sương xen giữa các lớp |
+| T03 | có sẵn, vụn vàng lá có alpha | Hạt vàng rơi |
+| E02 | có sẵn, 4 hoa đăng có alpha | Hoa đăng đêm |
+
+Không cần gen thêm gì cho Phase 4.
+
 ## Architecture
 
 ### God-ray (theo `3d-sky-rays`)

@@ -38,7 +38,10 @@ Giữ nguyên buffer sao seeded + morph trên GPU (kiến trúc này đúng, ch�
 - `aStart` = vị trí rải trong vòm sao (như cũ).
 - `aTarget` = 12 điểm trên **vòng tròn P05 đã chiếu ra world**, phân bố đều 30° — khớp với 12
   vạch chia của chính tấm tranh P05.
-- Hạt dùng texture W11 (6 biến thể) thay vì chấm vẽ bằng shader.
+- Hạt dùng texture W11 thay vì chấm vẽ bằng shader. **Đã giao 2026-10-01:** ChatGPT tách sẵn
+  thành 6 file riêng `hat-sao-{1..6}` (512×512, alpha thật, mỗi hạt scale về 480px + 16px đệm
+  trong suốt). Giao ở 256×256 là đủ — hạt chỉ chiếm vài pixel trên màn hình. Gán biến thể theo
+  `index % 6` để giữ tính tái lập.
 - Vòng P05: một plane alpha, opacity theo `chart` weight, xoay rất chậm (≤2°/s).
 
 ### Bám đúng lá số

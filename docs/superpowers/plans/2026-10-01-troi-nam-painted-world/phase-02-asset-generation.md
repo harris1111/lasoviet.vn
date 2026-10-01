@@ -1,13 +1,19 @@
 ---
 phase: 2
 title: "asset-generation"
-status: pending
+status: in-progress
 priority: P1
 effort: "0.5d Claude + thời gian gen của founder"
 dependencies: []
 ---
 
 # Phase 2: Sinh ảnh bổ sung (founder chạy ChatGPT)
+
+> **ĐÃ GIAO 2026-10-01** — toàn bộ W01–W11 (bản chính + alt) nằm ở
+> `/Users/admin/Downloads/lasoviet-3D-elements` (6 file zip, kèm QA.md, manifest.json,
+> SHA256SUMS, WebP đã chuyển sẵn, preview ghép thử). Kết quả kiểm chứng độc lập và các bước
+> nhập kho còn lại: xem [§ Nghiệm thu đợt giao](#nghiệm-thu-đợt-giao-2026-10-01) ở cuối file.
+> Phần prompt bên dưới giữ nguyên làm hồ sơ nguồn gốc.
 
 ## Overview
 
@@ -313,3 +319,89 @@ nhìn thấy. Nếu phải dùng phương án này: chỉ dùng làm mặt nạ,
 - **Ba lớp núi không khớp nhau:** bắt buộc gen liên tiếp một hội thoại. Nếu lệch, gen lại cả
   bộ 3 chứ không sửa lẻ một lớp.
 - **Alpha giả (vẽ ca-rô vào ảnh):** lệnh kiểm ở trên bắt được ngay, không để lọt vào repo.
+
+---
+
+## Nghiệm thu đợt giao 2026-10-01
+
+### Kiểm chứng độc lập (Claude tự đo, không dựa vào báo cáo của ChatGPT)
+
+| ID | Kích thước | Alpha | alphaMean | Hộp bao silhouette (y) | Ghi chú |
+|---|---|---|---:|---|---|
+| W01/W02/W03 | 2560×1440 | opaque | — | — | Không có núi/nước/đường chân trời cứng ✔ |
+| W04 | 2560×1440 | **thật** (0–255) | 33.4 | 1113–1439 = **77.3%→100%** | Silhouette cao **22.7%** khung |
+| W05 | 2560×1440 | **thật** | 62.5 | 756–1439 = **52.5%→100%** | Silhouette cao **47.5%** khung |
+| W06 | 2560×1440 | **thật** | 54.3 | 99–1439, x 1744–2559 | Khối phải, cao **93%**, đáy rộng 32% |
+| W07 | 2560×1024 | **thật** | 235.8 | fade 154 hàng (15%) rồi đặc | Gần như kín khung — che mọi thứ phía sau |
+| W08 | 2560×1440 | **thật** | 60.6 | mép trên + trái, đáy rộng 11% | Khung tiền cảnh ✔ |
+| W09 | 2048×1024 | **thật** | 38.7 | — | Đã tách sẵn 2 file: thuỷ đình, thuyền nan |
+| W10 | 1024×1024 | **thật** | 52.1 | — | Đối xứng xuyên tâm, alpha=0 ở mép ✔ |
+| W11 | 1536×1024 | **thật** | 6.9 | — | Đã tách sẵn 6 file `hat-sao-{1..6}` |
+
+Toàn bộ alpha đều thật (min=0, max=253–255), không có nền ca-rô vẽ vào ảnh. Bảng QA a–j của
+ChatGPT khớp với số đo của Claude. **Đạt.**
+
+### Ba điều phát hiện thêm, ảnh hưởng trực tiếp tới Phase 3
+
+**1. Nguồn gen ở độ phân giải thấp hơn rồi phóng to.** ChatGPT khai báo rõ trong QA: nguồn
+Imagegen là 1672×941 (W01–W03, W08), 1983×793 (W07), rồi Sharp phóng lên 2560. Nghĩa là
+**chi tiết thật chỉ ~1672px**, phần còn lại là nội suy. Theo skill `3d-high-resolution-textures`:
+*"Upscaling a small source cannot invent captured detail"*. Giao texture 2560 chỉ tốn gấp 2.3
+lần bộ nhớ GPU mà không thêm chi tiết nào.
+
+→ **Quyết định: hạ cỡ khi nhập kho.** Bảng cỡ cuối ở [phase-03](./phase-03-painted-layer-world.md#kích-thước-texture-cuối).
+Ước tính bộ nhớ GPU: 2560 cho tất cả ≈ **142 MB** (vượt ngân sách 120 MB); theo bảng đã hạ ≈
+**74 MB**. Không mất chi tiết nhìn thấy được.
+
+**2. W07 (nước) gần như đục hoàn toàn** (alphaMean 235.8, chỉ fade 15% ở mép trên). Xếp chồng
+nguyên khung thì nước **che sạch W04/W05** — Claude đã dựng thử và tái hiện đúng lỗi này.
+→ Vị trí/tỉ lệ từng lớp là bắt buộc, không được xếp chồng "full canvas". Luật đặt lớp ở Phase 3.
+
+**3. W01/W02 có dải sáng ở đáy khung** trông như ánh sáng phía chân trời. Không phải silhouette
+nên vẫn đạt mục i, nhưng **phải luôn nằm khuất sau lớp núi/nước**, không bao giờ để lộ.
+
+### Chọn bản chính hay alt
+
+`group-a-qa/manifest.json` ghi `"recommendedSet": "alt"` cho bộ núi. Chưa quyết — Phase 3 bước
+0 phải dựng **cả hai bộ cạnh nhau ở cùng khung p=0** rồi founder chọn bằng mắt. Các nhóm khác
+chưa có khuyến nghị; mặc định dùng bản chính trừ khi so sánh cho kết quả khác.
+
+### Nhập kho (việc còn lại của Phase 2)
+
+Nguồn đã có sẵn WebP đúng tên SEO, nhưng **không dùng trực tiếp** — phải đi qua
+`scripts/build-troi-nam-assets.mjs` để manifest, srcset và quy ước thư mục nhất quán với 78
+ảnh cũ. Các dòng cần thêm:
+
+```js
+// PHOTOS — bầu trời (opaque, responsive)
+["W01", "canh", "bau-troi-binh-minh-son-mai-trang-chu",  [960, 1440, 1920]],
+["W02", "canh", "bau-troi-hoang-hon-son-mai-trang-chu",  [960, 1440, 1920]],
+["W03", "canh", "bau-troi-dem-ngan-ha-son-mai-trang-chu",[960, 1440, 1920]],
+
+// OVERLAYS — lớp thế giới (alpha)
+["W04", "the-gioi", "nui-da-voi-lop-xa-trang-chu",            "photo"],
+["W05", "the-gioi", "nui-da-voi-lop-giua-trang-chu",          "photo"],
+["W06", "the-gioi", "nui-da-voi-lop-gan-trang-chu",           "photo"],
+["W07", "the-gioi", "mat-nuoc-tinh-phan-chieu-vang-trang-chu","photo"],
+["W08", "the-gioi", "khung-tien-canh-vach-da-tan-la-trang-chu","photo"],
+["W10", "the-gioi", "dia-mat-troi-quang-sang-vang-trang-chu", "photo"],
+
+// GRIDS — đã tách sẵn, chỉ cần copy vào đúng thư mục + ghi manifest
+["W09", "vat-the/trung-canh", ["thuy-dinh-co", "thuyen-nan-tren-nuoc"]],
+["W11", "vat-the/hat-sao",    ["hat-sao-1","hat-sao-2","hat-sao-3","hat-sao-4","hat-sao-5","hat-sao-6"]],
+```
+
+**Lưu ý:** W09/W11 ChatGPT đã tách rời sẵn thành file riêng, nên **không chạy qua nhánh
+`GRIDS`** (vốn tách theo hộp bao alpha từ một tấm lưới). Thêm một nhánh nhỏ `PRESPLIT` trong
+script, hoặc xử lý như `OVERLAYS` từng file. Chọn cách nào cũng được, miễn manifest ra đúng
+dạng `W09.thuy-dinh-co`, `W11.hat-sao-1`.
+
+Lệnh: `node scripts/build-troi-nam-assets.mjs ~/Downloads/lasoviet-3D-elements/<đã-giải-nén>`
+
+### Việc còn lại
+
+- [ ] Giải nén 6 zip vào một thư mục phẳng theo quy ước `Wxx.png` / `Wxx-alt.png`
+- [ ] Thêm các dòng trên vào `scripts/build-troi-nam-assets.mjs` (kèm nhánh `PRESPLIT`)
+- [ ] Hạ cỡ theo bảng ở Phase 3 **trong script**, không hạ thủ công
+- [ ] Chạy script, commit ảnh + manifest
+- [ ] Kiểm: `troiNamAsset("W04")` trả về đúng đường dẫn, không ném lỗi

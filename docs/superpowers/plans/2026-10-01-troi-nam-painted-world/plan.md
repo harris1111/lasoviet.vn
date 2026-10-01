@@ -118,11 +118,26 @@ Vấn đề là **code chỉ gọi tới một phần**. Bảng dưới là kế
 Sau kế hoạch này: **0 ảnh nằm không** trong nhóm bắt buộc; nhóm "tuỳ chọn" là phần mở rộng
 nếu founder muốn đi tiếp.
 
-### 4.3 Vì sao vẫn cần gen thêm
+### 4.3 Bộ ảnh lớp W01–W11 — ĐÃ GIAO 2026-10-01
 
-L01/L03/L04 là **ảnh phẳng đã bẹt**: núi, nước, trời dính liền một tấm. Không tách được
-thành lớp → không có parallax thật, và **không có mặt nạ che để làm god-ray**. Muốn chế độ B
-phải có các lớp rời có alpha. Danh sách + prompt chi tiết: [phase-02](./phase-02-asset-generation.md).
+L01/L03/L04 là **ảnh phẳng đã bẹt**: núi, nước, trời dính liền một tấm. Không tách được thành
+lớp → không có parallax thật, và không có mặt nạ che để làm god-ray. Vì vậy Phase 2 đặt gen
+thêm 11 ảnh lớp có alpha.
+
+**Kết quả:** đủ 11 ảnh (bản chính + alt), đã kiểm chứng độc lập — alpha thật trên cả 8 ảnh cần
+alpha, đúng kích thước, trời sạch không dính núi. Chi tiết số đo + 3 phát hiện ảnh hưởng tới
+Phase 3 (nguồn gen ở độ phân giải thấp rồi phóng to; W07 gần như đục; dải sáng đáy trời):
+[phase-02 § Nghiệm thu](./phase-02-asset-generation.md#nghiệm-thu-đợt-giao-2026-10-01).
+
+| Ảnh | Nội dung | Vai trò trong world |
+|---|---|---|
+| W01/W02/W03 | Trời bình minh / hoàng hôn / Ngân Hà (opaque, 2560×1440) | 3 tấm trời pha theo tiến độ cuộn |
+| W04/W05/W06 | Núi đá vôi lớp xa / giữa / gần (alpha) | Chiều sâu parallax + **mặt nạ che cho god-ray** |
+| W07 | Mặt nước phản chiếu vàng (alpha mép trên) | Mặt nước tiền cảnh |
+| W08 | Khung vách đá + tán lá (alpha) | Lớp gần camera nhất, tạo chiều sâu mạnh nhất |
+| W09 | Thuỷ đình + thuyền nan (alpha, đã tách 2 file) | Vật thể trung cảnh |
+| W10 | Đĩa mặt trời + quầng (alpha, đối xứng xuyên tâm) | Nguồn sáng dùng chung cho trời và god-ray |
+| W11 | 6 hạt sao (alpha, đã tách 6 file) | Hạt sao tụ về vòng lá số |
 
 ## 5. Sáu lỗi ChatGPT báo — đã kiểm chứng
 
@@ -157,13 +172,16 @@ vào Phase 1.
 | Phase | Name | Status |
 |-------|------|--------|
 | 1 | [foundation-fixes](./phase-01-foundation-fixes.md) | Pending |
-| 2 | [asset-generation](./phase-02-asset-generation.md) | Pending |
+| 2 | [asset-generation](./phase-02-asset-generation.md) | **Ảnh đã giao — còn khâu nhập kho** |
 | 3 | [painted-layer-world](./phase-03-painted-layer-world.md) | Pending |
 | 4 | [rays-and-atmosphere](./phase-04-rays-and-atmosphere.md) | Pending |
 | 5 | [chart-handoff-and-qa](./phase-05-chart-handoff-and-qa.md) | Pending |
 
 **Điểm dừng quyết định:** cuối Phase 1 trang đã đẹp hơn hiện tại và hết lỗi. Founder xem rồi
-mới quyết có đi tiếp Phase 3–5 hay không. Phase 2 (gen ảnh) chạy song song, không chặn Phase 1.
+mới quyết có đi tiếp Phase 3–5 hay không.
+
+**Thứ tự chạy khuyến nghị:** Phase 1 (sửa lỗi, CSS thuần) → nhập kho W01–W11 → Phase 3. Phase 1
+và khâu nhập kho độc lập nhau, làm song song được.
 
 ## 8. Rủi ro
 
