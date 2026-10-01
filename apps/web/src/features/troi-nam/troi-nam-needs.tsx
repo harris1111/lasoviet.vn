@@ -48,10 +48,10 @@ export function TroiNamNeeds({ locale }: { locale: "en" | "vi" }) {
   }, []);
 
   // The discipline links below already carry `data-reveal` + `--i` (set by
-  // the shared HomepageV3Needs for the live homepage's HomepageV3Motion
-  // system), but that system isn't mounted on this preview page, so those
-  // attributes currently do nothing. This reveals the same markup directly
-  // instead of introducing a second, parallel attribute scheme, and stays
+  // the shared HomepageV3Needs for the older homepage's HomepageV3Motion
+  // system), but that system isn't mounted here, so those attributes
+  // currently do nothing. This reveals the same markup directly instead of
+  // introducing a second, parallel attribute scheme, and stays
   // forward-compatible if HomepageV3Motion is ever mounted here too.
   useLayoutEffect(() => {
     const wrap = wrapRef.current;

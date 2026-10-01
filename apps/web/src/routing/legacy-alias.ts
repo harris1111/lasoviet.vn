@@ -6,6 +6,8 @@ export const LEGACY_DISCIPLINE_ALIASES: Readonly<Record<string, string>> = {
   "/gieo-que-kinh-dich": "/kinh-dich",
   "/ban-do-sao": "/chiem-tinh",
   "/boi-bai/tarot": "/boi-bai",
+  // 2026-10-02: /troi-nam was promoted to be the root homepage.
+  "/troi-nam": "/",
 };
 
 export function resolveLegacyAliasRedirect(
@@ -33,7 +35,11 @@ export function resolveLegacyAliasRedirect(
   }
 
   const targetUrl = new URL(url.toString());
-  targetUrl.pathname = isEnglish ? `/en${targetCanonical}` : targetCanonical;
+  const rawTargetPath = isEnglish ? `/en${targetCanonical}` : targetCanonical;
+  // A root target (e.g. "/troi-nam" -> "/") combined with the English prefix
+  // would otherwise produce "/en/" — strip the trailing slash so it's "/en".
+  targetUrl.pathname =
+    rawTargetPath.length > 1 && rawTargetPath.endsWith("/") ? rawTargetPath.slice(0, -1) : rawTargetPath;
 
   return NextResponse.redirect(targetUrl, 301);
 }
