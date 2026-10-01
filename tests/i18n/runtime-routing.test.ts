@@ -148,7 +148,10 @@ describe("localized app runtime tree", () => {
     expect(layoutSource).toContain("setRequestLocale");
     expect(layoutSource).toContain("NextIntlClientProvider");
     expect(layoutSource).toContain("lang={locale}");
-    expect(pageSource).toContain('getTranslations("common")');
+    // 2026-10-02 homepage swap: the root page now renders the Trời Nam
+    // experience, which reads its own locale-scoped feature components
+    // rather than calling getTranslations("common") directly.
+    expect(pageSource).toContain("<TroiNamHero locale={locale} />");
     expect(requestSource).toContain("getRequestConfig");
     expect(JSON.parse(viMessages).app).toMatchObject({
       taglinePrefix: "Lập lá số.",
