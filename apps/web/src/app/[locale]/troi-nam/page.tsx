@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { SiteFooter } from "../../../components/site-footer";
 import { SiteHeader } from "../../../components/site-header";
 import { TroiNamAbout } from "../../../features/troi-nam/troi-nam-about";
+import { troiNamAsset } from "../../../features/troi-nam/troi-nam-assets";
 import { TroiNamFaq } from "../../../features/troi-nam/troi-nam-faq";
 import { TroiNamValue } from "../../../features/troi-nam/troi-nam-value";
 import { TroiNamCompare } from "../../../features/troi-nam/troi-nam-compare";
@@ -13,13 +14,31 @@ import { TroiNamStory } from "../../../features/troi-nam/troi-nam-story";
 import { TroiNamTestimonials } from "../../../features/troi-nam/troi-nam-testimonials";
 import { TroiNamTicker } from "../../../features/troi-nam/troi-nam-ticker";
 import { TroiNamUsp } from "../../../features/troi-nam/troi-nam-usp";
+import { TroiNamWorldStage } from "../../../features/troi-nam/troi-nam-world-stage";
 
 type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
 
+// O01 — generated specifically as the social share image for this route.
+const shareImage = troiNamAsset("O01");
+
 // Preview only. The live homepage stays at `/` until the Plan 5 switchover.
+// `metadataBase` is scoped to this route's own metadata export — it only
+// resolves the relative OG/Twitter image URLs below into absolute ones
+// against the canonical domain (FD-057); it does not touch the root layout
+// or any other route's metadata.
 export const metadata: Metadata = {
   title: "Trời Nam — bản xem trước",
   robots: { index: false, follow: false },
+  metadataBase: new URL("https://lasoviet.net"),
+  openGraph: {
+    title: "Trời Nam — bản xem trước",
+    images: [{ url: shareImage.src, width: shareImage.width, height: shareImage.height }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Trời Nam — bản xem trước",
+    images: [shareImage.src],
+  },
 };
 
 export default async function Page({ params }: PageProps) {
@@ -29,16 +48,18 @@ export default async function Page({ params }: PageProps) {
     <div className="tn">
       <SiteHeader locale={locale} currentPath={locale === "en" ? "/en/troi-nam" : "/troi-nam"} />
       <main>
-        <TroiNamHero locale={locale} />
-        <section className="tn-section" data-troi-nam-block="story">
-          <TroiNamStory />
-        </section>
-        <section className="tn-section" data-troi-nam-block="ticker">
-          <TroiNamTicker />
-        </section>
-        <section className="tn-section" data-troi-nam-block="explore">
-          <TroiNamExplore locale={locale} />
-        </section>
+        <TroiNamWorldStage>
+          <TroiNamHero locale={locale} />
+          <section className="tn-section" data-troi-nam-block="story">
+            <TroiNamStory />
+          </section>
+          <section className="tn-section" data-troi-nam-block="ticker">
+            <TroiNamTicker />
+          </section>
+          <section className="tn-section" data-troi-nam-block="explore">
+            <TroiNamExplore locale={locale} />
+          </section>
+        </TroiNamWorldStage>
         <section className="tn-section" data-troi-nam-block="needs">
           <TroiNamNeeds locale={locale} />
         </section>

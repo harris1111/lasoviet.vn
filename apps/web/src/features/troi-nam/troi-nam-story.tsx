@@ -1,23 +1,13 @@
 import { HomepageV3Story } from "../homepage-v3/homepage-v3-static-sections";
-import { troiNamAsset } from "./troi-nam-assets";
 
+// No local plate image here (there used to be one, L03) — the painted
+// WebGL world behind this section is already showing matching dusk/night
+// scenery at this scroll position. Stacking a second, differently-lit photo
+// on top of it read as two competing sunsets in one frame (2026-10-01 CX
+// review). L03 is still used by the hero's own crossfade.
 export function TroiNamStory() {
-  const plate = troiNamAsset("L03");
-
   return (
     <div className="hv3 tn-story">
-      <picture className="tn-story-media">
-        <img
-          src={plate.src}
-          srcSet={plate.srcSet}
-          sizes="(min-width: 880px) 1280px, 100vw"
-          width={plate.width}
-          height={plate.height}
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
-      </picture>
       <HomepageV3Story />
     </div>
   );

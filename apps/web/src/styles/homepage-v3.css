@@ -17,7 +17,12 @@
   --art-line: rgba(201, 164, 77, 0.5); --art-glyph: #d8bd7c;
   --tick-off: rgba(201, 164, 77, 0.3); --tick-on: #e86b4e; --glow: rgba(232, 107, 78, 0.75);
   --need-bg: #17130e; --need-bg-on: #1c1813;
-  --d1: oklch(0.8 0.08 165); --d2: oklch(0.8 0.08 260); --d3: oklch(0.8 0.08 70); --d4: oklch(0.8 0.08 310);
+  /* Same accent per discipline as its own dedicated page
+     (discipline-page-provider.ts's DISCIPLINE_THEMES) — d1=Bát Tự, d2=Chiêm
+     Tinh, d3=Kinh Dịch, d4=Thần Số Học (DISCIPLINES array order,
+     homepage-v3-data.ts). Previously generic pastel oklch hues that didn't
+     match; 2026-10-01 fix. */
+  --d1: #4F7A68; --d2: #6E93AC; --d3: #8A7450; --d4: #7A82A0;
   color-scheme: dark;
   background: var(--page);
   color: var(--text);
@@ -45,7 +50,9 @@ html[data-theme="light"] .hv3 {
   --art-line: rgba(122, 84, 40, 0.42); --art-glyph: #5e4127;
   --tick-off: rgba(122, 84, 40, 0.32); --tick-on: #b8472f; --glow: rgba(206, 91, 69, 0.6);
   --need-bg: #f3ede1; --need-bg-on: #fffcf5;
-  --d1: oklch(0.5 0.08 165); --d2: oklch(0.5 0.08 260); --d3: oklch(0.5 0.08 70); --d4: oklch(0.5 0.08 310);
+  /* Same fixed per-discipline accent as dark mode — discipline-page-shell.tsx
+     uses one accentColor regardless of theme, so this matches that. */
+  --d1: #4F7A68; --d2: #6E93AC; --d3: #8A7450; --d4: #7A82A0;
   color-scheme: light;
 }
 

@@ -1,10 +1,18 @@
 #!/usr/bin/env node
-// One-off asset build for the Trời Nam homepage.
+// Incremental asset build for the Trời Nam homepage.
 // Outputs are committed; contributors do not normally re-run this.
 //
+// Assets arrive from the image tool in separate batches over time, each as its own
+// source folder (e.g. the original 78-asset batch in ~/Downloads/troi-nam-all, the
+// W01–W11 batch in ~/Downloads/lasoviet-3D-elements). Run this once per batch, pointed
+// at that batch's folder — it writes that batch's images and merges its manifest
+// entries into the existing manifest.json (see the merge note near the bottom of this
+// file for why, and how to force a from-scratch rebuild).
+//
 //   node scripts/build-troi-nam-assets.mjs ~/Downloads/troi-nam-all
+//   node scripts/build-troi-nam-assets.mjs ~/Downloads/lasoviet-3D-elements/<đã-giải-nén>
 
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import sharp from "sharp";
@@ -52,6 +60,13 @@ const PHOTOS = [
   ["C12", "chan-dung", "chan-dung-le-thi-kim-oanh-doc-gia-thai-nguyen", [96, 192, 384]],
   ["C13", "chan-dung", "chan-dung-phan-anh-dung-doc-gia-vinh", [96, 192, 384]],
   ["C14", "chan-dung", "chan-dung-vo-thuy-trang-doc-gia-quy-nhon", [96, 192, 384]],
+
+  // W01–W03 — Trời Nam painted-world sky plates (2026-10-01 delivery). Source is
+  // 2560×1440; ship at 1920 per phase-03's texture-size table (no real detail above
+  // ~1672px per the generator's own QA notes, so 2560 only costs memory).
+  ["W01", "canh", "bau-troi-binh-minh-son-mai-trang-chu", [960, 1440, 1920]],
+  ["W02", "canh", "bau-troi-hoang-hon-son-mai-trang-chu", [960, 1440, 1920]],
+  ["W03", "canh", "bau-troi-dem-ngan-ha-son-mai-trang-chu", [960, 1440, 1920]],
 ];
 
 /** Repeating background tiles. Edges are repaired before export. */
@@ -78,6 +93,17 @@ const OVERLAYS = [
   ["P03", "hoa-tiet", "dai-vien-dong-son-lien-mach-trang-chu", "line"],
   ["P04", "hoa-tiet", "may-lanh-net-vang-trang-chu", "line"],
   ["P05", "hoa-tiet", "vong-12-phan-net-vang-trang-chu", "line"],
+
+  // W04–W08, W10 — Trời Nam painted-world layers (2026-10-01 delivery). All alpha,
+  // all "photo" compression. Optional 5th element is a max output width used to
+  // downsize per phase-03's texture-size table; sources were generated at ~1672px
+  // and upscaled to 2560 by the image tool, so shipping 2560 buys no real detail.
+  ["W04", "the-gioi", "nui-da-voi-lop-xa-trang-chu", "photo", 1280],
+  ["W05", "the-gioi", "nui-da-voi-lop-giua-trang-chu", "photo", 1600],
+  ["W06", "the-gioi", "nui-da-voi-lop-gan-trang-chu", "photo", 1920],
+  ["W07", "the-gioi", "mat-nuoc-tinh-phan-chieu-vang-trang-chu", "photo", 1920],
+  ["W08", "the-gioi", "khung-tien-canh-vach-da-tan-la-trang-chu", "photo", 1920],
+  ["W10", "the-gioi", "dia-mat-troi-quang-sang-vang-trang-chu", "photo", 512],
 ];
 
 /**
@@ -105,6 +131,27 @@ const ICON_SHEETS = [
   ["I02", "icon/hanh-trinh", 4, 3, ["thau-hieu-chinh-minh", "tinh-duyen", "cong-viec-tien-bac", "nam-nay",
     "la-so-mien-phi", "luu-la-so", "mo-bang-la", "doc-ban-luan-giai",
     "lich-am", "gio-sinh", "rieng-tu", "cung-lien-quan"]],
+];
+
+/**
+ * Objects the generator already delivered as separate files (not a single sheet to
+ * split by alpha bounding box like GRIDS below). W09/W11 (2026-10-01 delivery) arrived
+ * pre-split: `thuy-dinh-co-trang-chu.png`, `hat-sao-1-trang-chu.png`, etc. Each row is
+ * [id, folder, [[sourceBase, outputName], ...], maxWidth].
+ */
+const PRESPLIT = [
+  ["W09", "vat-the/trung-canh", [
+    ["thuy-dinh-co-trang-chu", "thuy-dinh-co"],
+    ["thuyen-nan-tren-nuoc-trang-chu", "thuyen-nan-tren-nuoc"],
+  ], 768],
+  ["W11", "vat-the/hat-sao", [
+    ["hat-sao-1-trang-chu", "hat-sao-1"],
+    ["hat-sao-2-trang-chu", "hat-sao-2"],
+    ["hat-sao-3-trang-chu", "hat-sao-3"],
+    ["hat-sao-4-trang-chu", "hat-sao-4"],
+    ["hat-sao-5-trang-chu", "hat-sao-5"],
+    ["hat-sao-6-trang-chu", "hat-sao-6"],
+  ], 256],
 ];
 
 /** Grids of separate objects, split by alpha bounding box. Names are in reading order. */
@@ -310,6 +357,7 @@ async function run() {
     process.exit(1);
   }
   const files = new Set(readdirSync(srcDir));
+  const manifestPath = join(OUT_ROOT, "manifest.json");
   const manifest = {};
   const missing = [];
   const src = (id) => (files.has(`${id}.png`) ? join(srcDir, `${id}.png`) : null);
@@ -321,17 +369,27 @@ async function run() {
     mkdirSync(outDir, { recursive: true });
     const meta = await sharp(input).metadata();
     const use = widths.filter((w) => w <= meta.width);
+    let largestOutput;
     for (const w of use) {
+      largestOutput = join(outDir, `${base}-${w}w.webp`);
       await sharp(input)
         .resize({ width: w, withoutEnlargement: true })
         .webp({ quality: 78, effort: 6 })
-        .toFile(join(outDir, `${base}-${w}w.webp`));
+        .toFile(largestOutput);
     }
+    // Manifest width/height must describe the file `src` actually points at
+    // (the largest *served* variant), not the source PNG — those only
+    // coincided for every prior row because `widths`' max happened to equal
+    // the source's native width. W01-W03 cap at 1920 while their source is
+    // 2560 (upscaled by the image tool past real detail, see phase-03 of
+    // the painted-world plan), so this would otherwise silently report a
+    // wrong intrinsic size to anything using it for <img> width/height.
+    const servedMeta = await sharp(largestOutput).metadata();
     manifest[id] = {
       src: `/images/troi-nam/${folder}/${base}-${use[use.length - 1]}w.webp`,
       srcSet: use.map((w) => `/images/troi-nam/${folder}/${base}-${w}w.webp ${w}w`).join(", "),
-      width: meta.width,
-      height: meta.height,
+      width: servedMeta.width,
+      height: servedMeta.height,
     };
     console.log(`  ${id} → ${base} (${use.join(", ")}w)`);
   }
@@ -354,7 +412,7 @@ async function run() {
     console.log(`  ${id} → ${base} (tile ${fixed.w}×${fixed.h}, lệch mép ${fixed.cost.toFixed(2)}×)`);
   }
 
-  for (const [id, folder, base, kind] of OVERLAYS) {
+  for (const [id, folder, base, kind, maxWidth] of OVERLAYS) {
     const input = src(id);
     if (!input) { missing.push(id); continue; }
     const outDir = join(OUT_ROOT, folder);
@@ -362,10 +420,35 @@ async function run() {
     const out = join(outDir, `${base}.webp`);
     const pipeline = sharp(input).ensureAlpha();
     if (kind === "line") pipeline.resize({ width: LINE_MAX_WIDTH, withoutEnlargement: true });
+    else if (maxWidth) pipeline.resize({ width: maxWidth, withoutEnlargement: true });
     await pipeline.webp(WEBP[kind]).toFile(out);
     const meta = await sharp(out).metadata();
     manifest[id] = { src: `/images/troi-nam/${folder}/${base}.webp`, width: meta.width, height: meta.height };
-    console.log(`  ${id} → ${base} (alpha, ${kind})`);
+    console.log(`  ${id} → ${base} (alpha, ${kind}${maxWidth ? `, ${maxWidth}w` : ""})`);
+  }
+
+  for (const [id, folder, files, maxWidth] of PRESPLIT) {
+    const outDir = join(OUT_ROOT, folder);
+    mkdirSync(outDir, { recursive: true });
+    let done = 0;
+    for (const [sourceBase, outputName] of files) {
+      const input = src(sourceBase);
+      if (!input) { missing.push(`${id}.${outputName}`); continue; }
+      const out = join(outDir, `${outputName}.webp`);
+      await sharp(input)
+        .ensureAlpha()
+        .resize({ width: maxWidth, height: maxWidth, fit: "inside", withoutEnlargement: true })
+        .webp(WEBP.photo)
+        .toFile(out);
+      const meta = await sharp(out).metadata();
+      manifest[`${id}.${outputName}`] = {
+        src: `/images/troi-nam/${folder}/${outputName}.webp`,
+        width: meta.width,
+        height: meta.height,
+      };
+      done++;
+    }
+    console.log(`  ${id} → ${done}/${files.length} vật thể đã tách sẵn vào ${folder}/`);
   }
 
   for (const [id, folder, names] of GRIDS) {
@@ -427,8 +510,18 @@ async function run() {
   }
 
   mkdirSync(OUT_ROOT, { recursive: true });
-  writeFileSync(join(OUT_ROOT, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(`\nXong. ${Object.keys(manifest).length} mục trong manifest.json`);
+  // Merge onto the existing manifest rather than overwrite it. Assets arrive in
+  // separate batches from the image tool (troi-nam-all, lasoviet-3D-elements, and
+  // whatever comes next), each run against its own batch folder, so a run only ever
+  // sees that batch's IDs — overwriting would silently delete every earlier batch's
+  // entries. Consequence: the manifest is append-only from this script's point of
+  // view, so a stale or removed ID is not cleaned up just by re-running. To force a
+  // clean rebuild, delete apps/web/public/images/troi-nam/manifest.json first, then
+  // run this script once against a source directory containing every batch's PNGs.
+  const existing = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, "utf8")) : {};
+  const combined = { ...existing, ...manifest };
+  writeFileSync(manifestPath, `${JSON.stringify(combined, null, 2)}\n`);
+  console.log(`\nXong. ${Object.keys(manifest).length} mục mới/cập nhật, ${Object.keys(combined).length} tổng trong manifest.json`);
   if (missing.length) console.warn(`Thiếu file nguồn: ${missing.join(", ")}`);
 }
 

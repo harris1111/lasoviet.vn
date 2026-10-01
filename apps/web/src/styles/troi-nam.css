@@ -1,6 +1,7 @@
 /* Trời Nam — homepage visual system. Tokens first, then the hero. */
 
 .tn {
+  --tn-world-opacity: 1;
   --tn-ink: var(--lacquer-950);
   --tn-gold: var(--gold-500);
   --tn-gold-light: var(--gold-400);
@@ -25,10 +26,89 @@
   padding-inline: var(--tn-gutter);
 }
 
+/*
+ * The painted world behind hero->explore (`.tn-world-content`) is the stage
+ * — its backgrounds must reach the true viewport edge, not stop 44-64px
+ * short of it (the old padding-inline here made every section's background
+ * read as a "patch" with a visible seam on both sides, 2026-10-01 CX
+ * review). The inline inset moves to each section's own text column below
+ * instead, so copy position is unchanged — only the background now bleeds.
+ */
+.tn-world-content .tn-section {
+  padding-inline: 0;
+}
+
 .tn-shell {
   max-width: var(--tn-max);
   margin-inline: auto;
 }
+
+/*
+ * World stage (Plan 4): wraps hero/story/ticker/explore. `.tn-world-content`
+ * holds those sections in their normal, unchanged flow/order — this adds no
+ * height. `.tn-world-backdrop` is a non-flow absolute layer the same height
+ * as that content, and `.tn-world-sticky` pins the actual canvas to 100svh
+ * while the stage scrolls past, i.e. the canvas stays on screen for the
+ * whole hero→explore span instead of scrolling away with the hero alone.
+ * `overflow: clip` on the backdrop clips the sticky child to the stage's
+ * own width so it can't cause horizontal scroll — `hidden` would do the same
+ * clipping, but per spec it also makes this element a scroll container,
+ * which breaks `position: sticky` on `.tn-world-sticky` inside it (the
+ * child then sticks to ITS scroll container, not the viewport). `clip`
+ * cuts overflow without creating a scroll container, so sticky keeps
+ * tracking the viewport across the whole hero→explore span.
+ */
+.tn-world-stage {
+  position: relative;
+}
+
+.tn-world-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.tn-world-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+
+.tn-world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tn .tn-world-canvas {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tn[data-troi-nam-world-ready] .tn-world-canvas {
+  opacity: var(--tn-world-opacity, 1);
+}
+
+.tn-world-content {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Deliberately NOT dimming `.tn-hero-media` here. The original effects
+ * contract replaced the hero photo with a code-drawn vector world once
+ * ready — rendered and reviewed live, that read as noticeably cheaper than
+ * the real Tràng An photography next to the hero's refined typography/form
+ * (founder call, 2026-10-01). The painted-world rebuild
+ * (docs/superpowers/plans/2026-10-01-troi-nam-painted-world/) replaces every
+ * code-drawn shape with reviewed artwork, but the hero photo still wins that
+ * comparison at p=0, so it stays the hero's real background. The world
+ * keeps rendering behind it either way; whether it shows through anywhere
+ * else down the page depends on each section's own background, not this
+ * rule.
+ */
 
 /* ---- Hero ---- */
 
@@ -112,6 +192,20 @@
   pointer-events: none;
 }
 
+/*
+ * Night plate (L04 desktop / L05 phone crop — unlike L03 above, L05 exists,
+ * so this crossfade runs at every width, not just >=880px). `.tn-hero-plate`
+ * on the inner <img> reuses the same sizing/object-fit as the dawn plate;
+ * this wrapper only owns position + opacity, mirroring `.tn-hero-media picture`.
+ */
+.tn-hero-plate-night {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  opacity: var(--tn-hero-night, 0);
+}
+
 /* Keeps ivory text legible over the plate's brightest band. */
 .tn-hero-scrim {
   position: absolute;
@@ -126,17 +220,83 @@
 }
 
 /*
- * Extra darkening for the `night` phase, layered above `.tn-hero-scrim`.
- * Stays off below 880px along with `.tn-hero-plate-dusk`: without that photo
- * swap this would just be a plain black fade over the unchanged dawn plate.
+ * Extra darkening for the `night` phase, layered above `.tn-hero-scrim` and
+ * `.tn-hero-plate-night`. Now active at every width: L05 (unlike L03) has a
+ * phone crop, so the night photo swap it's darkening over is real on mobile
+ * too, not just >=880px.
+ *
+ * Capped at 0.55 rather than going to full opacity at night=1: before the
+ * night photo existed, a flat black fade AT opacity 1 stood in for "night"
+ * over the unchanged dawn plate. Now `.tn-hero-plate-night` carries a real
+ * Milky Way photo underneath — a fully opaque scrim would black it out
+ * completely, defeating the whole point of wiring it in.
  */
 .tn-hero-scrim-night {
   position: absolute;
   inset: 0;
   z-index: -1;
   background: #050403;
-  opacity: 0;
+  opacity: calc(var(--tn-hero-night, 0) * 0.55);
   pointer-events: none;
+}
+
+/*
+ * Opening logo draw-in: the locked Colophon v5 logomark (brand/logo/README.md,
+ * chốt 2026-09-04) draws itself once on first paint, then this whole panel
+ * fades away. `pointer-events: none` throughout means it never blocks the
+ * birth form or scroll underneath, even mid-draw. Pure CSS autoplay, no JS —
+ * see `.tn-logo-intro { display: none }` in troi-nam-reduced-motion-guards.css:
+ * the broad `animation: none !important` guard alone would freeze this panel
+ * fully opaque forever instead of skipping it.
+ */
+.tn-logo-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(circle, rgb(8 7 6 / 0.82) 0%, rgb(8 7 6 / 0.4) 45%, transparent 72%);
+  opacity: 1;
+  animation: tn-logo-intro-out 500ms ease 1300ms forwards;
+}
+
+.tn-logo-intro-svg {
+  width: clamp(84px, 20vw, 200px);
+  aspect-ratio: 1;
+  overflow: visible;
+  color: var(--tn-gold);
+}
+
+.tn-logo-intro-ring,
+.tn-logo-intro-crown,
+.tn-logo-intro-v {
+  stroke-dasharray: 1;
+}
+.tn-logo-intro-ring { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 0ms both; }
+.tn-logo-intro-crown { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms both; }
+.tn-logo-intro-v { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms both; }
+
+.tn-logo-intro-details,
+.tn-logo-intro-cinnabar {
+  animation: tn-logo-fade-in 400ms ease 700ms both;
+}
+
+@keyframes tn-logo-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes tn-logo-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tn-logo-intro-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 /* Measure lives on the heading, where `em` tracks the display size. Putting it on the
@@ -195,6 +355,15 @@
   display: none;
 }
 
+/* `.hv3` carries the chart's `--hc-*` color tokens, but it also paints its
+   own opaque page background/text color — both wrong here, where the slot
+   sits over the hero's painted backdrop. Same override pattern as
+   `.tn-hero-form.hv3` above. */
+.tn-hero-chart-slot.hv3 {
+  background: none;
+  color: inherit;
+}
+
 @media (min-width: 880px) {
   .tn-hero-content {
     flex-direction: row;
@@ -232,11 +401,15 @@
     display: block;
     object-fit: cover;
     object-position: 70% 50%;
-    opacity: var(--tn-hero-dusk, 0);
+    /* Effects-contract weights: dawn 1-dusk, dusk dusk*(1-night), night
+       night. Without the (1-night) factor, dusk would stay fully opaque
+       underneath the night plate once night rises, fighting it instead of
+       handing off cleanly. */
+    opacity: calc(var(--tn-hero-dusk, 0) * (1 - var(--tn-hero-night, 0)));
   }
 
-  .tn-hero-scrim-night {
-    opacity: var(--tn-hero-night, 0);
+  .tn-hero-plate-night .tn-hero-plate {
+    object-position: 70% 50%;
   }
 
   .tn-hero-scrim {
@@ -260,15 +433,30 @@
 .tn .tn-explore.hv3 {
   position: relative;
   width: 100%;
+  /* Solid fallback for no-WebGL/no-JS/reduced-motion, where there's no
+     painted world behind this to show through. Once the world is live
+     (below), this goes transparent and each section does its own much
+     lighter, text-scoped readability treatment instead. */
   background: var(--tn-ink);
   color: var(--tn-text);
   font-size: var(--tn-body);
 }
 
+.tn[data-troi-nam-world-ready] .tn-story.hv3,
+.tn[data-troi-nam-world-ready] .tn-ticker.hv3,
+.tn[data-troi-nam-world-ready] .tn-explore.hv3 {
+  background: transparent;
+}
+
 .tn .tn-story .hv3-container {
   position: relative;
   max-width: var(--tn-max);
-  padding: 0;
+  padding-block: 0;
+  /* Section-level inline padding was removed so the background above can
+     bleed to the viewport edge (see `.tn-world-content .tn-section`) — this
+     is the one place that inset now lives, so the text column's actual
+     position on screen is unchanged. */
+  padding-inline: var(--tn-gutter);
 }
 
 .tn .tn-story .hv3-h2,
@@ -277,23 +465,9 @@
   font-size: var(--tn-h2);
 }
 
-/* Story: the new plate replaces only the decorative art, never the copy. */
 .tn .tn-story {
   isolation: isolate;
   overflow: clip;
-}
-
-.tn .tn-story-media {
-  display: block;
-  height: clamp(15rem, 62vw, 22.5rem);
-}
-
-.tn .tn-story-media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 72% 40%;
 }
 
 .tn .tn-story .hv3-story-art {
@@ -301,6 +475,7 @@
 }
 
 .tn .tn-story .hv3-story-panel {
+  position: relative;
   min-height: 0;
   border: 0;
   border-radius: 0;
@@ -308,9 +483,40 @@
   color: var(--tn-text);
 }
 
+/*
+ * Soft readability gradient on the panel (not a box behind the section) —
+ * the painted world stays fully visible past where the text column ends.
+ * Same curve shape the shared `.hv3-story-art::after` component already
+ * uses for art-behind-text sections (strong near the text, gone by ~82%),
+ * just re-centered on tn-ink instead of the lighter v3 surface color.
+ * Mobile gets near-full coverage top-to-bottom (the text column is full
+ * width there, so there's no "right side" to leave clear); desktop switches
+ * to the left-dark/right-clear split once the copy column narrows to 58%
+ * (2026-10-01 CX review, "thế giới là sân khấu").
+ */
+.tn .tn-story .hv3-story-panel::before {
+  content: "";
+  position: absolute;
+  inset: -4% -2%;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
+  pointer-events: none;
+}
+
 .tn .tn-story .hv3-story-copy {
+  position: relative;
   width: 100%;
   padding: var(--tn-gutter);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-story .hv3-story-copy {
+    width: min(58%, 620px);
+  }
+
+  .tn .tn-story .hv3-story-panel::before {
+    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
+  }
 }
 
 .tn .tn-story .hv3-story-body {
@@ -327,11 +533,18 @@
   color: var(--tn-gold-light);
 }
 
-/* Ticker: retain the existing marquee, pause and reduced-motion behavior. */
+/*
+ * Ticker: retain the existing marquee, pause and reduced-motion behavior.
+ * No background/border box of its own (removed 2026-10-01 CX review) — it
+ * reads as the world's own foreground now, not a boxed strip laid over it.
+ * The mask fades each edge instead of hard-clipping mid-chip/mid-word.
+ */
 .tn .tn-ticker .hv3-ticker-region {
-  background: var(--lacquer-900);
-  border-color: var(--lacquer-line);
+  background: transparent;
+  border-block: 0;
   padding-block: var(--tn-gutter);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, black 56px, black calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, black 56px, black calc(100% - 56px), transparent 100%);
 }
 
 .tn .tn-ticker .hv3-marquee-cycle a,
@@ -355,6 +568,10 @@
 .tn .tn-explore {
   isolation: isolate;
   scroll-margin-top: var(--tn-section-y);
+  /* Ready/fallback changes must expose the correct layer immediately — a
+     fade here would show the wrong background for a beat on every failure
+     or context-loss transition. */
+  transition: none;
 }
 
 .tn .tn-explore-texture {
@@ -417,11 +634,10 @@
 }
 
 /*
- * Decorative "twelve-cung" ring shown before the real grid resolves into
- * view on scroll-in — plain geometry (12 evenly spaced ticks), never real
- * palace/star data (see troi-nam-explore.tsx). `--tn-ring` and
- * `--tn-grid-reveal` default to the safe static state — ring off, grid
- * fully visible — without JS or under prefers-reduced-motion.
+ * Legacy decorative ring remains off in the static fallback. The painted
+ * WebGL ring (P05, Phase 5) owns the stars-converge handoff; it must not be
+ * duplicated by this pseudo-layer once the world is ready (see the
+ * `[data-troi-nam-world-ready]` rule further down, which hides this).
  */
 .tn .tn-explore .hv3-chart-wrap::before {
   content: "";
@@ -445,9 +661,45 @@
   order: initial;
   overflow: visible;
   aspect-ratio: 1;
-  opacity: var(--tn-grid-reveal, 1);
-  transform: scale(calc(0.94 + 0.06 * var(--tn-grid-reveal, 1)));
-  transition: opacity 200ms ease, transform 200ms ease;
+  opacity: 1;
+  transform: none;
+}
+
+/* Reveal the painted world through Explore only after its first successful
+   frame; removing `data-troi-nam-world-ready` (failure, context loss, no-JS)
+   restores every one of these to their safe static default immediately.
+   (`.tn-explore.hv3`'s own background is handled by the shared Story/Ticker/
+   Explore ready-state rule above.) */
+.tn[data-troi-nam-world-ready] .tn-explore-texture {
+  opacity: calc(0.14 * (1 - var(--tn-world-opacity)));
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart-wrap::before {
+  display: none;
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart {
+  opacity: calc(1 - var(--tn-world-opacity));
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart:focus-within {
+  opacity: 1;
+}
+
+/*
+ * Removed 2026-10-01 CX review: a rounded solid box behind the heading
+ * (added, then rejected same day) read as the exact "hộp đen" problem this
+ * whole pass exists to fix. Text sits directly on the world; a text-shadow
+ * does the readability job a box was doing, without ever drawing a hard
+ * edge over the art.
+ */
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9);
 }
 
 .tn .tn-explore .hv3-cell {
@@ -455,6 +707,19 @@
   color: var(--tn-text);
   border-color: var(--lacquer-line);
   background: var(--lacquer-700);
+}
+
+.tn .tn-explore .hv3-cell::before {
+  content: "";
+  position: absolute;
+  width: clamp(16px, 1.9vw, 26px);
+  aspect-ratio: 1;
+  bottom: 6px;
+  left: 6px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
 
 .tn .tn-explore .hv3-cell[data-state="trine"] {
@@ -485,7 +750,10 @@
 }
 
 .tn .tn-explore .hv3-cell-glyph {
-  color: var(--tn-gold-light);
+  /* The painted palace icon (`.hv3-cell::before`) occupies this glyph's
+     visual footprint; the Hán branch character stays in the accessible DOM
+     (still read by assistive tech / selectable text) but isn't painted. */
+  color: transparent;
 }
 
 .tn .tn-explore .hv3-chart-core {
@@ -552,7 +820,10 @@
   min-height: 0;
   padding: var(--tn-gutter);
   color: var(--tn-text);
-  background: var(--lacquer-900);
+  /* Semi-transparent, not flat solid — this is a real selectable detail
+     card (not decoration), so it keeps its own surface, just softened to
+     blend with the world behind it (2026-10-01 CX review). */
+  background: rgb(15 13 10 / 0.88);
   border-color: var(--lacquer-line);
 }
 
@@ -618,6 +889,11 @@
 
   .tn .tn-explore .hv3-cell {
     padding: 10px 12px;
+  }
+
+  .tn .tn-explore .hv3-cell::before {
+    bottom: 10px;
+    left: 12px;
   }
 
   .tn .tn-explore .hv3-panel {
@@ -715,7 +991,12 @@
   flex-direction: column;
   min-width: 0;
   gap: calc(var(--tn-gutter) / 2);
-  padding: calc(clamp(10rem, 22vw, 14rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  /* Was clamp(10rem,22vw,14rem) (160-224px) — four of these stacked 2x2
+     nearly doubled the whole needs section's height versus the live
+     homepage's plain text-row buttons (2026-10-01 CX review: "section cao
+     quá mức cần thiết"). Still a real decorative plate, just not a page-
+     length one. */
+  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   color: var(--tn-text);
   background: var(--lacquer-800);
   border: 1px solid var(--lacquer-line);
@@ -725,7 +1006,7 @@
   content: "";
   position: absolute;
   inset: 0 0 auto;
-  height: clamp(10rem, 22vw, 14rem);
+  height: clamp(6.5rem, 13vw, 8.5rem);
   background-size: cover;
   background-position: center 44%;
   background-repeat: no-repeat;
@@ -733,7 +1014,7 @@
 }
 
 .tn .tn-needs .hv3-need[aria-pressed="true"] {
-  padding: calc(clamp(10rem, 22vw, 14rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   border: 1px solid var(--tn-gold-light);
   background: var(--lacquer-700);
   box-shadow: inset 0 0 0 1px var(--tn-gold-light);
@@ -1520,6 +1801,54 @@
   border-radius: 1rem;
   background: var(--tn-ink);
   color: var(--tn-text);
+}
+
+/*
+ * Two floating hoa đăng (candle lanterns) bob gently at the base of the
+ * closing CTA, on continuous loop — ambient, matching the falling gold
+ * leaves in Value. z-index lifts them above .hv3-final-cta-bg and the CTA
+ * copy's own z-index:auto stacking (both are later in source order and
+ * would otherwise paint over a plain pseudo-element).
+ */
+.tn .tn-about .hv3-final-cta::before,
+.tn .tn-about .hv3-final-cta::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 6%;
+  width: 4rem;
+  height: 4rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgb(255 190 110 / 0.35));
+  animation: tn-lantern-float 6s ease-in-out infinite;
+}
+
+.tn .tn-about .hv3-final-cta::before {
+  left: 8%;
+}
+
+.tn .tn-about .hv3-final-cta::after {
+  right: 9%;
+  width: 3.25rem;
+  height: 3.25rem;
+  animation-duration: 7s;
+  animation-delay: 1.8s;
+}
+
+@keyframes tn-lantern-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+    filter: drop-shadow(0 0 8px rgb(255 190 110 / 0.3));
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+    filter: drop-shadow(0 0 14px rgb(255 190 110 / 0.55));
+  }
 }
 
 .tn .tn-about .hv3-final-cta-bg {

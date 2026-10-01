@@ -410,5 +410,93 @@
   },
   "I02.cung-lien-quan": {
     "src": "/images/troi-nam/icon/hanh-trinh/cung-lien-quan.webp"
+  },
+  "W01": {
+    "src": "/images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-1920w.webp",
+    "srcSet": "/images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-960w.webp 960w, /images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-1440w.webp 1440w, /images/troi-nam/canh/bau-troi-binh-minh-son-mai-trang-chu-1920w.webp 1920w",
+    "width": 1920,
+    "height": 1080
+  },
+  "W02": {
+    "src": "/images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-1920w.webp",
+    "srcSet": "/images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-960w.webp 960w, /images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-1440w.webp 1440w, /images/troi-nam/canh/bau-troi-hoang-hon-son-mai-trang-chu-1920w.webp 1920w",
+    "width": 1920,
+    "height": 1080
+  },
+  "W03": {
+    "src": "/images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-1920w.webp",
+    "srcSet": "/images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-960w.webp 960w, /images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-1440w.webp 1440w, /images/troi-nam/canh/bau-troi-dem-ngan-ha-son-mai-trang-chu-1920w.webp 1920w",
+    "width": 1920,
+    "height": 1080
+  },
+  "W04": {
+    "src": "/images/troi-nam/the-gioi/nui-da-voi-lop-xa-trang-chu.webp",
+    "width": 1280,
+    "height": 720
+  },
+  "W05": {
+    "src": "/images/troi-nam/the-gioi/nui-da-voi-lop-giua-trang-chu.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "W06": {
+    "src": "/images/troi-nam/the-gioi/nui-da-voi-lop-gan-trang-chu.webp",
+    "width": 1920,
+    "height": 1080
+  },
+  "W07": {
+    "src": "/images/troi-nam/the-gioi/mat-nuoc-tinh-phan-chieu-vang-trang-chu.webp",
+    "width": 1920,
+    "height": 768
+  },
+  "W08": {
+    "src": "/images/troi-nam/the-gioi/khung-tien-canh-vach-da-tan-la-trang-chu.webp",
+    "width": 1920,
+    "height": 1080
+  },
+  "W10": {
+    "src": "/images/troi-nam/the-gioi/dia-mat-troi-quang-sang-vang-trang-chu.webp",
+    "width": 512,
+    "height": 512
+  },
+  "W09.thuy-dinh-co": {
+    "src": "/images/troi-nam/vat-the/trung-canh/thuy-dinh-co.webp",
+    "width": 768,
+    "height": 768
+  },
+  "W09.thuyen-nan-tren-nuoc": {
+    "src": "/images/troi-nam/vat-the/trung-canh/thuyen-nan-tren-nuoc.webp",
+    "width": 768,
+    "height": 768
+  },
+  "W11.hat-sao-1": {
+    "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-1.webp",
+    "width": 256,
+    "height": 256
+  },
+  "W11.hat-sao-2": {
+    "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-2.webp",
+    "width": 256,
+    "height": 256
+  },
+  "W11.hat-sao-3": {
+    "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-3.webp",
+    "width": 256,
+    "height": 256
+  },
+  "W11.hat-sao-4": {
+    "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-4.webp",
+    "width": 256,
+    "height": 256
+  },
+  "W11.hat-sao-5": {
+    "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-5.webp",
+    "width": 256,
+    "height": 256
+  },
+  "W11.hat-sao-6": {
+    "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-6.webp",
+    "width": 256,
+    "height": 256
   }
 }

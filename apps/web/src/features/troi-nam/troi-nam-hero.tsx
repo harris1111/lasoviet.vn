@@ -9,6 +9,7 @@ import {
 } from "../homepage-v3/homepage-v3-birth-form";
 import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
 import { troiNamAsset } from "./troi-nam-assets";
+import { TroiNamLogoIntro } from "./troi-nam-logo-intro";
 import { clampProgress, scenePhases } from "./troi-nam-motion-math";
 import { createTroiNamProgress } from "./troi-nam-scroll-progress";
 
@@ -20,6 +21,8 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   const desktop = troiNamAsset("L01");
   const mobile = troiNamAsset("L02");
   const dusk = troiNamAsset("L03");
+  const night = troiNamAsset("L04");
+  const nightMobile = troiNamAsset("L05");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -45,11 +48,11 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
         section.style.setProperty("--tn-hero-night", "0");
         return;
       }
-      // `snapshot.progress` spans the whole hero->explore "world" range (Plan 4's
-      // job to make that visible via a pinned scene). Until then, re-derive a
-      // progress local to the hero's own height so the crossfade actually
-      // finishes while the plate is still on screen, instead of off-screen by
-      // the time it reaches dusk/night.
+      // Shared `snapshot.progress` now spans hero -> the Explore chart reaching
+      // viewport centre (Phase 5's handoff point), much longer than the hero
+      // section itself — re-derive a progress local to the hero's own height
+      // so the crossfade actually finishes while the plate is still on
+      // screen, instead of off-screen by the time it reaches dusk/night.
       const scrolledPast = snapshot.progress * (snapshot.range.end - snapshot.range.start);
       const heroHeight = section.offsetHeight || 1;
       const local = clampProgress(scrolledPast / heroHeight);
@@ -94,9 +97,29 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
           aria-hidden="true"
           decoding="async"
         />
+        {/* L04/L05 (Hạ Long, Milky Way): unlike L03 above, L05 has a phone crop,
+            so the night plate crossfades on mobile too — see CSS for the <880px
+            source swap. `loading="lazy"` since it's the last plate reached and
+            fetchPriority stays reserved for the dawn plate (LCP). */}
+        <picture className="tn-hero-plate-night">
+          <source media={MOBILE} srcSet={nightMobile.srcSet} sizes="100vw" />
+          <img
+            className="tn-hero-plate"
+            src={night.src}
+            srcSet={night.srcSet}
+            sizes="100vw"
+            width={night.width}
+            height={night.height}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </div>
       <div className="tn-hero-scrim" aria-hidden="true" />
       <div className="tn-hero-scrim-night" aria-hidden="true" />
+      <TroiNamLogoIntro />
 
       <div className="tn-hero-content">
         <div className="tn-hero-left">
@@ -115,7 +138,7 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
 
         {/* Reused verbatim from the live homepage: the chart reveals as the same
             birth-form values are typed, so it must read `state.hero`, not a copy. */}
-        <div className="tn-hero-chart-slot">
+        <div className="tn-hero-chart-slot hv3">
           <HomepageV3HeroChart hero={state.hero} locale={locale} />
         </div>
       </div>
