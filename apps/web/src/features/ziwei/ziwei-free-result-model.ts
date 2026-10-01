@@ -13,7 +13,7 @@ export type FreeResultPalace = {
   facts: string;
 };
 export type FreeResultModel = {
-  insights: { id: string; title: string; description: string; evidenceId: string }[];
+  insights: { id: string; title: string; description: string; evidenceId?: string }[];
   palaces: FreeResultPalace[];
   selectedPalaceId: string;
   annual: { year: number; caution: number; favorable: number; neutral: number } | null;
@@ -66,11 +66,28 @@ export function buildFreeResultModel(input: {
   );
   const fallback = buildFreeInsights(chart, locale, input.displayName).items;
   const first = details.find((item) => item.id === "life-palace") ?? fallback[0]!;
-  const second = details.find((item) => item.id === "top-concern")
-    ?? details.find((item) => item.id === "body-palace") ?? fallback[1]!;
+  let second: { id: string; title: string; description?: string; evidenceId?: string };
+  const authorizedSecond = details.find((item) => item.id === "top-concern")
+    ?? details.find((item) => item.id === "body-palace");
+  if (authorizedSecond) {
+    second = authorizedSecond;
+  } else if (preview.topConcern) {
+    const matchedPalace = palaces.find((palace) => palace.id === requested);
+    if (matchedPalace) {
+      second = {
+        id: "top-concern",
+        title: matchedPalace.name,
+        description: matchedPalace.facts,
+      };
+    } else {
+      second = fallback[1]!;
+    }
+  } else {
+    second = fallback[1]!;
+  }
   const insights = (isGuest ? [first] : [first, second]).map((item) => ({
+    ...(item.evidenceId ? { evidenceId: item.evidenceId } : {}),
     id: item.id, title: item.title, description: item.description ?? "",
-    evidenceId: item.evidenceId,
   }));
   const yearly = input.horoscope?.yearly;
   return {

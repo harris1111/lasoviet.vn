@@ -7,13 +7,20 @@ import {
 } from "@lasoviet/contracts";
 import { privateApiClient, PrivateApiClientError } from "../../api/private-api-client";
 import { CurrentActorResolutionError, VerifiedAccountResolutionError, resolveCurrentActor, resolveVerifiedAccountActor } from "../../auth/resolve-current-actor";
+import { CANONICAL_ORIGIN } from "../../routing/canonical-origin";
 
 const headers = { "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
 
 export async function submitFeedbackCommand(request: Request, kind: "feedback" | "guarantee"): Promise<Response> {
-  const origin = request.headers.get("origin");
-  if ((origin && origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site") {
+  if (request.headers.get("sec-fetch-site") === "cross-site") {
     return NextResponse.json({ code: "REQUEST_ORIGIN_INVALID" }, { status: 403, headers });
+  }
+  const origin = request.headers.get("origin");
+  if (origin !== null) {
+    const isDevLocal = process.env.NODE_ENV === "development" && origin === new URL(request.url).origin;
+    if (origin !== CANONICAL_ORIGIN && !isDevLocal) {
+      return NextResponse.json({ code: "REQUEST_ORIGIN_INVALID" }, { status: 403, headers });
+    }
   }
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ code: "FEEDBACK_INVALID" }, { status: 400, headers }); }
