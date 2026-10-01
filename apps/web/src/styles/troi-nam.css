@@ -26,6 +26,18 @@
   padding-inline: var(--tn-gutter);
 }
 
+/*
+ * The painted world behind hero->explore (`.tn-world-content`) is the stage
+ * — its backgrounds must reach the true viewport edge, not stop 44-64px
+ * short of it (the old padding-inline here made every section's background
+ * read as a "patch" with a visible seam on both sides, 2026-10-01 CX
+ * review). The inline inset moves to each section's own text column below
+ * instead, so copy position is unchanged — only the background now bleeds.
+ */
+.tn-world-content .tn-section {
+  padding-inline: 0;
+}
+
 .tn-shell {
   max-width: var(--tn-max);
   margin-inline: auto;
@@ -421,15 +433,30 @@
 .tn .tn-explore.hv3 {
   position: relative;
   width: 100%;
+  /* Solid fallback for no-WebGL/no-JS/reduced-motion, where there's no
+     painted world behind this to show through. Once the world is live
+     (below), this goes transparent and each section does its own much
+     lighter, text-scoped readability treatment instead. */
   background: var(--tn-ink);
   color: var(--tn-text);
   font-size: var(--tn-body);
 }
 
+.tn[data-troi-nam-world-ready] .tn-story.hv3,
+.tn[data-troi-nam-world-ready] .tn-ticker.hv3,
+.tn[data-troi-nam-world-ready] .tn-explore.hv3 {
+  background: transparent;
+}
+
 .tn .tn-story .hv3-container {
   position: relative;
   max-width: var(--tn-max);
-  padding: 0;
+  padding-block: 0;
+  /* Section-level inline padding was removed so the background above can
+     bleed to the viewport edge (see `.tn-world-content .tn-section`) — this
+     is the one place that inset now lives, so the text column's actual
+     position on screen is unchanged. */
+  padding-inline: var(--tn-gutter);
 }
 
 .tn .tn-story .hv3-h2,
@@ -438,23 +465,9 @@
   font-size: var(--tn-h2);
 }
 
-/* Story: the new plate replaces only the decorative art, never the copy. */
 .tn .tn-story {
   isolation: isolate;
   overflow: clip;
-}
-
-.tn .tn-story-media {
-  display: block;
-  height: clamp(15rem, 62vw, 22.5rem);
-}
-
-.tn .tn-story-media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 72% 40%;
 }
 
 .tn .tn-story .hv3-story-art {
@@ -462,6 +475,7 @@
 }
 
 .tn .tn-story .hv3-story-panel {
+  position: relative;
   min-height: 0;
   border: 0;
   border-radius: 0;
@@ -469,9 +483,40 @@
   color: var(--tn-text);
 }
 
+/*
+ * Soft readability gradient on the panel (not a box behind the section) —
+ * the painted world stays fully visible past where the text column ends.
+ * Same curve shape the shared `.hv3-story-art::after` component already
+ * uses for art-behind-text sections (strong near the text, gone by ~82%),
+ * just re-centered on tn-ink instead of the lighter v3 surface color.
+ * Mobile gets near-full coverage top-to-bottom (the text column is full
+ * width there, so there's no "right side" to leave clear); desktop switches
+ * to the left-dark/right-clear split once the copy column narrows to 58%
+ * (2026-10-01 CX review, "thế giới là sân khấu").
+ */
+.tn .tn-story .hv3-story-panel::before {
+  content: "";
+  position: absolute;
+  inset: -4% -2%;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
+  pointer-events: none;
+}
+
 .tn .tn-story .hv3-story-copy {
+  position: relative;
   width: 100%;
   padding: var(--tn-gutter);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-story .hv3-story-copy {
+    width: min(58%, 620px);
+  }
+
+  .tn .tn-story .hv3-story-panel::before {
+    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
+  }
 }
 
 .tn .tn-story .hv3-story-body {
@@ -488,11 +533,18 @@
   color: var(--tn-gold-light);
 }
 
-/* Ticker: retain the existing marquee, pause and reduced-motion behavior. */
+/*
+ * Ticker: retain the existing marquee, pause and reduced-motion behavior.
+ * No background/border box of its own (removed 2026-10-01 CX review) — it
+ * reads as the world's own foreground now, not a boxed strip laid over it.
+ * The mask fades each edge instead of hard-clipping mid-chip/mid-word.
+ */
 .tn .tn-ticker .hv3-ticker-region {
-  background: var(--lacquer-900);
-  border-color: var(--lacquer-line);
+  background: transparent;
+  border-block: 0;
   padding-block: var(--tn-gutter);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, black 56px, black calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, black 56px, black calc(100% - 56px), transparent 100%);
 }
 
 .tn .tn-ticker .hv3-marquee-cycle a,
@@ -615,11 +667,9 @@
 
 /* Reveal the painted world through Explore only after its first successful
    frame; removing `data-troi-nam-world-ready` (failure, context loss, no-JS)
-   restores every one of these to their safe static default immediately. */
-.tn[data-troi-nam-world-ready] .tn-explore.hv3 {
-  background: transparent;
-}
-
+   restores every one of these to their safe static default immediately.
+   (`.tn-explore.hv3`'s own background is handled by the shared Story/Ticker/
+   Explore ready-state rule above.) */
 .tn[data-troi-nam-world-ready] .tn-explore-texture {
   opacity: calc(0.14 * (1 - var(--tn-world-opacity)));
 }
@@ -636,11 +686,20 @@
   opacity: 1;
 }
 
+/*
+ * Removed 2026-10-01 CX review: a rounded solid box behind the heading
+ * (added, then rejected same day) read as the exact "hộp đen" problem this
+ * whole pass exists to fix. Text sits directly on the world; a text-shadow
+ * does the readability job a box was doing, without ever drawing a hard
+ * edge over the art.
+ */
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
-.tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts,
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
+}
+
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
-  background: rgb(16 14 12 / 0.85);
-  border-radius: 0.75rem;
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9);
 }
 
 .tn .tn-explore .hv3-cell {
@@ -761,7 +820,10 @@
   min-height: 0;
   padding: var(--tn-gutter);
   color: var(--tn-text);
-  background: var(--lacquer-900);
+  /* Semi-transparent, not flat solid — this is a real selectable detail
+     card (not decoration), so it keeps its own surface, just softened to
+     blend with the world behind it (2026-10-01 CX review). */
+  background: rgb(15 13 10 / 0.88);
   border-color: var(--lacquer-line);
 }
 
