@@ -82,8 +82,15 @@ function ownScore(palace: ReportChartPalaceV1, opposite?: ReportChartPalaceV1): 
     }
     total += borrowed ? value / 2 : value;
   }
+  // Phụ tinh của chính cung này (không mượn): cộng điểm sao, cộng Tứ hóa nếu
+  // sao đó có, đúng một lần mỗi sao. Trước bản sửa này, Hóa Kỵ trên phụ tinh
+  // (ví dụ Văn Khúc Hóa Kỵ) bị bỏ qua vì chỉ chính tinh được cộng Tứ hóa.
   for (const star of palace.stars) {
+    if (star.kind !== "aux") continue;
     total += AUX_POINTS[star.starId] ?? 0;
+    if (star.transformationId) {
+      total += TRANSFORMATION_POINTS[star.transformationId] ?? 0;
+    }
   }
   return total;
 }
