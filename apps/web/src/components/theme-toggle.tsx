@@ -1,13 +1,31 @@
 "use client";
 
-import { useSiteTheme } from "../features/theme/use-site-theme";
+import { useEffect, useState } from "react";
+
+const THEME_KEY = "lasoviet:theme";
+type Theme = "dark" | "light";
+
+function readTheme(): Theme {
+  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+}
 
 /** Header light/dark switch (FD-102). CSS shows it only on light-ready pages. */
 export function ThemeToggle({ locale }: { locale: "en" | "vi" }) {
-  const { effective: theme } = useSiteTheme();
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    queueMicrotask(() => setTheme(readTheme()));
+  }, []);
+
   function toggle() {
-    const controller = window.__lsvTheme;
-    if (controller) controller.choose(controller.getSnapshot().effective === "light" ? "dark" : "light");
+    const next: Theme = theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = next;
+    setTheme(next);
+    try {
+      window.localStorage.setItem(THEME_KEY, next);
+    } catch {
+      // Storage can be blocked; the theme still changes for this visit.
+    }
   }
 
   const vi = locale === "vi";

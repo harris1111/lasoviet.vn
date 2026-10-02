@@ -33,7 +33,7 @@ export default async function Page({ params }: PageProps) {
   const { locale } = await params;
 
   return (
-    <div className="tn" data-light-ready>
+    <div className="tn">
       <SiteHeader locale={locale} currentPath={locale === "en" ? "/en" : "/"}
         chartCtaLabel={locale === "vi" ? "Lập lá số miễn phí" : "Start my free chart"} />
       {/*

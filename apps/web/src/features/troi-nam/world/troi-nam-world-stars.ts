@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { worldThemeConfig, type WorldThemeConfig } from "./troi-nam-world-theme-config";
+import { troiNamAsset } from "../troi-nam-assets";
 import { mulberry32 } from "./troi-nam-world-rng";
 import type { WorldTextures } from "./troi-nam-world-textures";
 
@@ -48,7 +48,7 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-export function createStars(scene: THREE.Scene, { quality, seed, textures, config = worldThemeConfig("dark", quality) }: { quality: "low" | "high"; seed: number; textures: WorldTextures; config?: WorldThemeConfig }) {
+export function createStars(scene: THREE.Scene, { quality, seed, textures }: { quality: "low" | "high"; seed: number; textures: WorldTextures }) {
   const count = quality === "high" ? 1200 : 400;
   const rng = mulberry32(seed * 2 + 7);
   const start = new Float32Array(count * 3);
@@ -74,9 +74,9 @@ export function createStars(scene: THREE.Scene, { quality, seed, textures, confi
   geometry.setAttribute("aVariant", new THREE.BufferAttribute(variant, 1));
   const uniforms = {
     uChartWeight: { value: 0 }, uNightWeight: { value: 0 }, uTime: { value: 0 }, uPixelRatio: { value: 1 },
-    ...Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`uStar${i}`, { value: textures.load(config.asset(`W11.hat-sao-${i + 1}`).src) }])),
+    ...Object.fromEntries(Array.from({ length: 6 }, (_, i) => [`uStar${i}`, { value: textures.load(troiNamAsset(`W11.hat-sao-${i + 1}`).src) }])),
   };
-  const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, transparent: true, depthWrite: false, blending: config.theme === "light" ? THREE.NormalBlending : THREE.AdditiveBlending });
+  const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   const points = new THREE.Points(geometry, material);
   points.frustumCulled = false;
   points.renderOrder = 30;

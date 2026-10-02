@@ -37,10 +37,10 @@
   --pearl-800: #4a4438;
 
   /* Primitive colors: Ink (Text on light — docs/13 §5.2) */
-  --ink-900: #1d1812;
-  --ink-800: #2b241d;
-  --ink-600: #5a4d3d;
-  --ink-400: #7a6d5a;
+  --ink-900: #14263d;
+  --ink-800: #263445;
+  --ink-600: #5e6873;
+  --ink-400: #7a8592;
 
   /* Primitive colors: Discipline accents */
   --jade-500: #4f7a68;
@@ -139,7 +139,7 @@ html[data-theme="dark"] {
   --status-warning: #e0ae52;
   --status-error:   #e8798a;
 
-  --cta-fg: var(--cta-ink);
+  --cta-fg: var(--lacquer-900);
 
   --discipline-jade: var(--jade);
   --discipline-jade-deep: var(--jade-deep);
@@ -187,7 +187,7 @@ html[data-theme="light"]:has([data-light-ready]) {
   --status-warning: #8a5a12;
   --status-error:   #8f2737;
 
-  --cta-fg: var(--cta-ink);
+  --cta-fg: var(--lacquer-900);
 
   --discipline-jade: #2f5446;
   --discipline-jade-deep: #1c362c;
@@ -280,134 +280,3 @@ html[data-theme="light"]:has([data-light-ready]) {
     transition-duration: 0.01ms !important;
   }
 }
-
-/* Homepage light V2: fixed semantic colors while legacy bridge is retained. */
-/* Update the FOUR ink primitives in existing :root, not a second declaration. */
-/* --ink-900:#1d1812; --ink-800:#2b241d; --ink-600:#5a4d3d; --ink-400:#7a6d5a; */
-
-/* Add to global token file. Fixed CTA tokens survive the legacy primitive bridge. */
-:root {
-  --cta-ink: #0f0d0a;
-  --cta-ramp: linear-gradient(103deg, #9a7730, #f2dca0 34%, #c9a44d 58%, #a8842f);
-  --cta-flat: #f2dca0;
-  --cta-flat-hover: #c9a44d;
-  --tn-ink: #080706; /* legacy name means canvas, not foreground ink */
-  --tn-text: #eae4d5;
-  --tn-text-muted: #a79e8b;
-  --tn-gold: #c9a44d;
-  --tn-gold-light: #f2dca0;
-  --tn-panel: #1c1813;
-  --tn-card: #15120e;
-  --tn-deep: #0f0d0a;
-  --tn-hairline: #3a3227;
-  --tn-control-border: #6e6656;
-  --tn-seal: #ce5b45;
-  --tn-focus: #f2dca0;
-  --tn-scrim-floor: rgb(8 7 6 / .82);
-  --tn-scrim-clear: rgb(8 7 6 / 0);
-  --tn-scrim-hero-mobile: linear-gradient(180deg,rgb(8 7 6 / .72) 0%,rgb(8 7 6 / .28) 42%,rgb(8 7 6 / .88) 100%);
-  --tn-scrim-hero-desktop: linear-gradient(90deg,rgb(8 7 6 / .85) 0%,rgb(8 7 6 / .55) 46%,rgb(8 7 6 / .2) 78%),linear-gradient(180deg,rgb(8 7 6 / .45) 0%,rgb(8 7 6 / 0) 35%);
-  --tn-scrim-phase: #050403;
-  --tn-intro-wash: radial-gradient(circle,rgb(8 7 6 / .82) 0%,rgb(8 7 6 / .4) 45%,transparent 72%);
-  --tn-story-wash-mobile: linear-gradient(180deg,rgb(8 7 6 / .9) 0%,rgb(8 7 6 / .86) 70%,rgb(8 7 6 / .72) 100%);
-  --tn-story-wash-desktop: linear-gradient(90deg,rgb(8 7 6 / .9) 0%,rgb(8 7 6 / .84) 42%,rgb(8 7 6 / .55) 62%,rgb(8 7 6 / 0) 82%);
-  --tn-text-shadow: 0 1px 3px rgb(5 4 3 / .9),0 4px 18px rgb(5 4 3 / .7);
-  --tn-legend-shadow: 0 1px 3px rgb(5 4 3 / .9);
-  --tn-pulse-start: rgb(242 220 160 / .55);
-  --tn-pulse-end: rgb(242 220 160 / 0);
-  --tn-detail-surface: rgb(15 13 10 / .88);
-  --tn-value-wash: linear-gradient(rgb(16 14 12 / .8),rgb(16 14 12 / .92));
-  --tn-lantern-shadow: drop-shadow(0 0 10px rgb(255 190 110 / .35));
-  --tn-lantern-shadow-start: drop-shadow(0 0 8px rgb(255 190 110 / .3));
-  --tn-lantern-shadow-end: drop-shadow(0 0 14px rgb(255 190 110 / .55));
-  --tn-art-frame: #755718;
-  --tn-art-shadow: 0 5px 16px rgb(29 24 18 / .10);
-}
-html[data-theme="light"]:has([data-light-ready]) {
-  --chart-active-ink: #8f3423;
-  --chart-active-surface: #f8e8df;
-  --chart-relation-ink: #a63d2f;
-  --chart-relation-surface: #f7ece3;
-  --chart-opposite-surface: #f5ecd8;
-  --tn-ink: #f7f1e5;
-  --tn-text: #1d1812;
-  --tn-text-muted: #5a4d3d;
-  --tn-gold: #755718;
-  --tn-gold-light: #755718; /* text accent, NEVER a CTA fill */
-  --tn-panel: #fffdf7;
-  --tn-card: #fffdf7;
-  --tn-deep: #eee5d6;
-  --tn-hairline: #d7cdbd;
-  --tn-control-border: #958a7c;
-  --tn-seal: #a63d2f;
-  --tn-focus: #a63d2f;
-  --tn-scrim-floor: rgb(255 253 247 / .88);
-  --tn-scrim-clear: rgb(255 253 247 / 0);
-  /* Local text footprints use floor opacity. Hero wide wash outside it can feather. */
-  --tn-scrim-hero-mobile: linear-gradient(180deg,rgb(255 253 247 / .94),rgb(255 253 247 / .88));
-  --tn-scrim-hero-desktop: linear-gradient(90deg,rgb(255 253 247 / .94) 0%,rgb(255 253 247 / .88) 52%,rgb(255 253 247 / 0) 78%);
-  --tn-scrim-phase: transparent;
-  --tn-intro-wash: none;
-  --tn-story-wash-mobile: linear-gradient(rgb(255 253 247 / .94),rgb(255 253 247 / .88));
-  --tn-story-wash-desktop: linear-gradient(90deg,rgb(255 253 247 / .94) 0%,rgb(255 253 247 / .88) 64%,rgb(255 253 247 / 0) 82%);
-  --tn-text-shadow: none;
-  --tn-legend-shadow: none;
-  --tn-pulse-start: rgb(166 61 47 / .18);
-  --tn-pulse-end: rgb(166 61 47 / 0);
-  --tn-detail-surface: #fffdf7; /* control panel: fully opaque */
-  --tn-value-wash: linear-gradient(rgb(255 253 247 / .88),rgb(255 253 247 / .94));
-  --tn-lantern-shadow: drop-shadow(0 2px 4px rgb(29 24 18 / .12));
-  --tn-lantern-shadow-start: drop-shadow(0 2px 4px rgb(29 24 18 / .12));
-  --tn-lantern-shadow-end: drop-shadow(0 2px 4px rgb(29 24 18 / .12));
-}
-
-html[data-theme="light"]:has([data-light-ready]) .hv3 {
-  --page: var(--surface-canvas);
-  --surface: var(--surface-deep);
-  --raised: var(--surface-panel);
-  --inset: var(--surface-panel);
-  --text: var(--text-heading);
-  --muted: var(--text-muted);
-  --subtle: var(--text-muted);
-  --hair: var(--border-hairline);
-  --hair2: var(--border-control);
-  --focus: var(--tn-focus);
-  --action: var(--accent-seal);
-  --action-h: var(--chart-active-ink);
-  --action-t: var(--surface-panel);
-  --accent: var(--accent-seal);
-  --link: var(--accent-gold);
-  --error: var(--status-error);
-  --seg-bg: var(--text-heading);
-  --seg-t: var(--surface-panel);
-  --chart-face: var(--surface-canvas);
-  --chart-cell: var(--surface-panel);
-  --chart-grid: var(--border-control);
-  --chart-label: var(--text-body);
-  --chart-active: var(--chart-active-ink);
-  --chart-active-bg: var(--chart-active-surface);
-  --chart-rel: var(--chart-relation-ink);
-  --chart-rel-bg: var(--chart-relation-surface);
-  --chart-opp: var(--accent-gold);
-  --chart-opp-bg: var(--chart-opposite-surface);
-  --chart-opp-line: var(--accent-gold);
-  --ornament: var(--accent-gold);
-  --ornament-t: var(--accent-gold);
-  --inv: var(--surface-panel);
-  --inv-line: var(--border-hairline);
-  --shadow: var(--shadow-card);
-  --art-shadow: var(--tn-art-shadow);
-  --art-dark: 0; --art-light: 1;
-  --art-line: var(--border-control);
-  --art-glyph: var(--text-body);
-  --tick-off: var(--border-control);
-  --tick-on: var(--accent-seal);
-  --glow: var(--tn-pulse-start);
-  --need-bg: var(--surface-panel);
-  --need-bg-on: var(--surface-panel);
-  --d1: var(--discipline-jade); --d2: var(--discipline-mineral);
-  --d3: var(--discipline-bronze); --d4: var(--discipline-indigo);
-  color-scheme: light;
-}
-/* These chart semantic tokens are defined in the light token block above.
-   Keep small labels ink800/600 and measure UI borders on EACH state surface. */

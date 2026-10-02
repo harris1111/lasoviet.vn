@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { worldThemeConfig, type WorldThemeConfig } from "./troi-nam-world-theme-config";
+import { troiNamAsset } from "../troi-nam-assets";
 import { referenceDawnFraming } from "./troi-nam-world-chapters";
 import { loadWorldTexture, type WorldTextures } from "./troi-nam-world-textures";
 
@@ -36,7 +36,7 @@ export type DawnLight = {
 const SKY_DISTANCE = 60; // z offset behind the camera, in view space, along -look
 const SKY_TEXTURE_ASPECT = 16 / 9; // close enough for a cloud/star photo — unlike rock, mild stretch here is imperceptible
 
-export function createDawnLight(scene: THREE.Scene, textures: WorldTextures, config: WorldThemeConfig = worldThemeConfig("dark", "high")): DawnLight {
+export function createDawnLight(scene: THREE.Scene, textures: WorldTextures): DawnLight {
   const group = new THREE.Group();
   const disposables: Array<{ dispose(): void }> = [];
   const sharedGeometry = new THREE.PlaneGeometry(1, 1);
@@ -44,7 +44,7 @@ export function createDawnLight(scene: THREE.Scene, textures: WorldTextures, con
 
   const skyMeshes: Record<"dawn" | "dusk" | "night", THREE.Mesh> = {} as never;
   (["dawn", "dusk", "night"] as const).forEach((key, i) => {
-    const asset = config.asset(key === "dawn" ? "W01" : key === "dusk" ? "W02" : "W03");
+    const asset = troiNamAsset(key === "dawn" ? "W01" : key === "dusk" ? "W02" : "W03");
     const texture = loadWorldTexture(asset.src, textures);
     const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false });
     const mesh = new THREE.Mesh(sharedGeometry, material);
@@ -86,8 +86,8 @@ export function createDawnLight(scene: THREE.Scene, textures: WorldTextures, con
   return {
     group,
     setPhase({ dusk, night }) {
-      (skyMeshes.dawn.material as THREE.MeshBasicMaterial).opacity = config.theme === "light" ? 1 : 1 - dusk;
-      (skyMeshes.dusk.material as THREE.MeshBasicMaterial).opacity = config.theme === "light" ? dusk : dusk * (1 - night);
+      (skyMeshes.dawn.material as THREE.MeshBasicMaterial).opacity = 1 - dusk;
+      (skyMeshes.dusk.material as THREE.MeshBasicMaterial).opacity = dusk * (1 - night);
       (skyMeshes.night.material as THREE.MeshBasicMaterial).opacity = night;
     },
     resize,
