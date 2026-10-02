@@ -179,7 +179,7 @@ describe("create top-up order", () => {
     const { VerifiedAccountResolutionError } = await import("../../auth/resolve-current-actor.js");
     vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
     await createTopUpOrderFormAction(form);
-    expect(redirect).toHaveBeenLastCalledWith(`/dang-nhap?callbackURL=${encodeURIComponent(returnPath)}`);
+    expect(redirect).toHaveBeenLastCalledWith(`/dang-nhap?callbackURL=${encodeURIComponent(returnPath)}&fallbackURL=${encodeURIComponent(returnPath)}`);
   });
 
   it("throws instead of redirecting when the private API call fails", async () => {
