@@ -125,6 +125,7 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "sepay.orderTtlSeconds": "SEPAY_ORDER_TTL_SECONDS",
   "sepay.webhookSecret": "SEPAY_WEBHOOK_SECRET",
   sepayAutoApproveTopUps: "SEPAY_AUTO_APPROVE_TOPUPS",
+  freePalaceGenerationEnabled: "FREE_PALACE_GENERATION_ENABLED",
   "telegram.botToken": "TELEGRAM_BOT_TOKEN",
   "telegram.chatId": "TELEGRAM_CHAT_ID",
 };
@@ -443,7 +444,14 @@ export function loadEnvironment(
     }
   }
 
+  const freePalaceGenerationEnabled = source.FREE_PALACE_GENERATION_ENABLED === undefined
+    ? false : booleanValue(source.FREE_PALACE_GENERATION_ENABLED);
+  if (freePalaceGenerationEnabled === undefined) {
+    return invalidEnvironment("FREE_PALACE_GENERATION_ENABLED");
+  }
+
   const normalized: AppEnvironment = {
+    freePalaceGenerationEnabled,
     sepayAutoApproveTopUps,
     nodeEnv: parsedNodeEnv.data as NodeEnvironment,
     ai: ai.value,

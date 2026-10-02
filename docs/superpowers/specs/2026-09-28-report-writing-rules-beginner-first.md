@@ -164,7 +164,7 @@ Three beats: what this area looks like for this person â†’ where it gets hard â†
 ### 5.3 Decadal cycles (new, FD-106b)
 
 - Current cycle: unchanged depth (550 to 750 syllables), full arc.
-- Other seven cycles: **120 to 200 syllables each**. Two or three sentences. Name the palace the cycle passes through, say what rises in those ten years, and stop. Short and formulaic is acceptable here; this is a teaser, not a reading.
+- Other seven cycles: **120 to 200 syllables each** for 7 teaser cycles (selected as 8 consecutive cycles containing current, clamped at boundaries, excluding current). Two or three sentences. Name the palace the cycle passes through, say what rises in those ten years, and stop. Short and formulaic is acceptable here; this is a teaser, not a reading.
 
 ## 6. Gate changes
 

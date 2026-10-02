@@ -42,6 +42,8 @@ export type ZiweiResultTabsProps = {
   preview: FreeIdentityPreviewV1;
   isSample?: boolean;
   horoscope?: ZiweiHoroscopeResultV1;
+  isGuest?: boolean;
+  signInHref?: string;
 };
 
 export function ZiweiResultTabs({
@@ -56,6 +58,8 @@ export function ZiweiResultTabs({
   preview,
   isSample,
   horoscope,
+  isGuest,
+  signInHref,
 }: ZiweiResultTabsProps) {
   const t = useTranslations("ziwei");
   const router = useRouter();
@@ -232,10 +236,12 @@ export function ZiweiResultTabs({
               chart={chart}
               chartId={chartId}
               displayName={displayName}
+              isGuest={isGuest}
               locale={locale}
               loadEvidence={loadEvidence}
               onNavigateToPalaces={() => handleTabChange("palaces", undefined)}
               preview={preview}
+              signInHref={signInHref}
             />
           </div>
         )}
@@ -269,9 +275,13 @@ export function ZiweiResultTabs({
           >
             <ZiweiPalacesTab
               chart={chart}
+              chartId={chartId}
+              isGuest={isGuest}
               locale={locale}
               onOpenPalace={(palaceSuffix) => handleTabChange("palaces", palaceSuffix)}
               openPalaceId={openId}
+              preview={preview}
+              signInHref={signInHref}
             />
           </div>
         )}

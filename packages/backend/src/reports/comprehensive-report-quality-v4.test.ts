@@ -1,183 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
-  type NormalizedZiweiChartV1,
-  type ReportSourceSnapshotV1,
-  type ZiweiPalaceId,
-} from "@lasoviet/contracts";
-import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_1_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_2_SENSITIVITY,
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
 } from "./identity-report-config.js";
 
-import { buildComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
+import { buildFacts } from "./comprehensive-report-test-facts.js";
 import {
   COMPREHENSIVE_REPORT_QUALITY_FINDING_CODES_V4,
   countVietnameseSyllables,
   validateComprehensiveReportSectionQualityV4,
 } from "./comprehensive-report-quality-v4.js";
 
-const palaceIds: ZiweiPalaceId[] = [
-  "ziwei.palace.life",
-  "ziwei.palace.siblings",
-  "ziwei.palace.spouse",
-  "ziwei.palace.children",
-  "ziwei.palace.wealth",
-  "ziwei.palace.health",
-  "ziwei.palace.travel",
-  "ziwei.palace.friends",
-  "ziwei.palace.career",
-  "ziwei.palace.property",
-  "ziwei.palace.fortune",
-  "ziwei.palace.parents",
-];
-
-const branches = [
-  "ziwei.branch.tiger",
-  "ziwei.branch.rabbit",
-  "ziwei.branch.dragon",
-  "ziwei.branch.snake",
-  "ziwei.branch.horse",
-  "ziwei.branch.goat",
-  "ziwei.branch.monkey",
-  "ziwei.branch.rooster",
-  "ziwei.branch.dog",
-  "ziwei.branch.pig",
-  "ziwei.branch.rat",
-  "ziwei.branch.ox",
-] as const;
-
-function buildFacts(
-  starsByPalace: Partial<Record<ZiweiPalaceId, Array<{ id: string; category?: string }>>> = {},
-) {
-  const chart: NormalizedZiweiChartV1 = {
-    version: 1,
-    systemId: "ziwei",
-    palaces: palaceIds.map((id, index) => ({
-      id,
-      earthlyBranchId: branches[index]!,
-      heavenlyStemId: "ziwei.stem.jia",
-      isBodyPalace: id === "ziwei.palace.career",
-      isOriginalPalace: index === 0,
-      cycleStateId: "ziwei.cycle.born",
-      stars: (starsByPalace[id] ?? (
-        id === "ziwei.palace.life"
-          ? [
-              { id: "ziwei.star.ziwei", category: "major" },
-              { id: "ziwei.star.tianfu", category: "major" },
-            ]
-          : []
-      )).map((star) => ({
-        ...star,
-        brightness: "ziwei.brightness.prosperous",
-      })) as NormalizedZiweiChartV1["palaces"][number]["stars"],
-    })),
-    transformations: [{ starId: "ziwei.star.ziwei", id: "ziwei.transformation.power" }],
-    soulPalaceId: "ziwei.palace.life",
-    bodyPalaceId: "ziwei.palace.career",
-    horoscopeCapabilities: [
-      { id: "ziwei.horoscope.decadal", supported: true },
-      { id: "ziwei.horoscope.annual", supported: true },
-    ],
-    warnings: [],
-    provenance: {
-      version: 1,
-      engineId: "ziwei.iztro",
-      engineVersion: "2.6.0",
-      adapterId: "ziwei.iztro-adapter",
-      adapterVersion: "1.0.0",
-      schemaId: "normalized-ziwei-chart-v1",
-      ruleSetId: "ziwei.default",
-      inputHash: "a".repeat(64),
-      configHash: "b".repeat(64),
-      rawSnapshotHash: "c".repeat(64),
-      calculatedAt: "2026-09-02T00:00:00+00:00",
-      limitations: [],
-    },
-  };
-  const snapshot: ReportSourceSnapshotV1 = {
-    version: 1,
-    reportId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-    reportVersionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-    chartVersionId: "chart-v1",
-    asOfDate: "2026-09-12",
-    targetYear: 2026,
-    timingRuleVersion: "ziwei.timing.v1",
-    sensitivityRuleVersion: "ziwei.sensitivity.v1",
-    snapshotHash: "c".repeat(64),
-    snapshot: {
-      version: 1,
-      chartVersionId: "chart-v1",
-      asOfDate: "2026-09-12",
-      timezone: "Asia/Ho_Chi_Minh",
-      timingRuleVersion: "ziwei.timing.v1",
-      sensitivityRuleVersion: "ziwei.sensitivity.v1",
-      timing: {
-        decadal: {
-          state: "active",
-          index: 2,
-          ageRange: [22, 31],
-          yearRange: [2022, 2031],
-          palaceId: "ziwei.palace.fortune",
-          heavenlyStemId: "ziwei.stem.yi",
-          earthlyBranchId: "ziwei.branch.rabbit",
-          palaces: chart.palaces.map((palace) => ({
-            palaceId: palace.id,
-            heavenlyStemId: "ziwei.stem.jia",
-            earthlyBranchId: palace.earthlyBranchId,
-            isOriginalPalace: palace.isOriginalPalace,
-            cycleStateId: "ziwei.cycle.born",
-            stars: palace.stars,
-            transformations: [],
-          })),
-        },
-        annual: {
-          targetYear: 2026,
-          palaceId: "ziwei.palace.career",
-          heavenlyStemId: "ziwei.stem.bing",
-          earthlyBranchId: "ziwei.branch.horse",
-          palaces: chart.palaces.map((palace) => ({
-            palaceId: palace.id,
-            heavenlyStemId: "ziwei.stem.jia",
-            earthlyBranchId: palace.earthlyBranchId,
-            isOriginalPalace: palace.isOriginalPalace,
-            cycleStateId: "ziwei.cycle.born",
-            stars: palace.stars,
-            transformations: [],
-          })),
-        },
-        provenance: {
-          engineId: "ziwei.iztro",
-          engineVersion: "2.6.0",
-          adapterId: "ziwei.iztro-adapter",
-          adapterVersion: "1.0.0",
-          ruleSetId: "ziwei.default",
-          config: {
-            yearDivide: "normal",
-            horoscopeDivide: "normal",
-            ageDivide: "normal",
-            dayDivide: "current",
-          },
-        },
-      },
-      sensitivity: {
-        selectedFrame: { position: "selected", vendorTimeIndex: 6, civilDateOffset: 0, frameId: "ziwei.time-frame.horse" },
-        previousFrame: { position: "previous", vendorTimeIndex: 5, civilDateOffset: 0, frameId: "ziwei.time-frame.snake" },
-        nextFrame: { position: "next", vendorTimeIndex: 7, civilDateOffset: 0, frameId: "ziwei.time-frame.goat" },
-        stableFactKeys: ["ziwei.fact.soul-palace"],
-        sensitiveFacts: [],
-      },
-      provenance: {
-        chartVersionId: "chart-v1",
-        timingRuleVersion: "ziwei.timing.v1",
-        sensitivityRuleVersion: "ziwei.sensitivity.v1",
-        snapshotHash: "c".repeat(64),
-      },
-    },
-  };
-  return buildComprehensiveZiweiFactsV4(chart, snapshot);
-}
 
 const facts = buildFacts();
 
@@ -449,5 +284,56 @@ describe("comprehensive V4 section quality", () => {
         item.note.length <= 240
       ))).toBe(true);
     }
+  });
+});
+
+import {
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+  REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER,
+} from "./identity-report-config.js";
+
+const V42 = [REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER, REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER] as const;
+const flowing = (n: number) => Array.from({ length: 5 }, (_, i) =>
+  `${i === 0 ? "Lá số của bạn cho thấy" : "Đoạn tiếp theo kể"} ${Array.from({ length: n }, () => "nội dung").join(" ")} sao Tử Vi.`,
+).join("\n\n");
+
+describe("comprehensive V4 section quality, v2.4 beginner-first", () => {
+  it("passes five flowing paragraphs with one star named and the rest in evidence refs", () => {
+    expect(gate({ text: flowing(70) }, facts, ...V42)).toEqual({ ok: true, findings: [] });
+  });
+
+  it.each([
+    ["banned phrase", `${flowing(70)} Nhưng nó có mặt sau.`, "BANNED_PHRASE"],
+    ["banned opener", `${flowing(70)}\n\nChỗ dễ va chạm là tiền chung.`, "BANNED_PHRASE"],
+    ["machine sub-heading", `Chỗ dễ va chạm\n${flowing(70)}`, "MACHINE_SUBHEADING"],
+    ["star density", `${flowing(70)} Thiên Phủ, Liêm Trinh, Thất Sát, Thiên Cơ, Thái Âm, Cự Môn, Thiên Đồng, Thiên Lương, Vũ Khúc, Tham Lang, Phá Quân, Thái Dương, Thiên Tướng, Văn Xương, Văn Khúc, Tả Phù, Hữu Bật.`, "STAR_DENSITY"],
+    ["too few overview paragraphs", flowing(70).split("\n\n").slice(0, 3).join(" "), "OVERVIEW_ARC"],
+    ["overview opens on a star", `Tử Vi ${flowing(70)}`, "OVERVIEW_ARC"],
+  ])("rejects %s", (_name, text, code) => {
+    expectFinding(gate({ text }, facts, ...V42), code);
+  });
+
+  it("anchors non-palace sections through evidence refs, with one named in prose", () => {
+    const noName = flowing(70).replaceAll("sao Tử Vi", "điều ấy");
+    expectFinding(gate({ text: noName }, facts, ...V42), "EVIDENCE_ANCHORS");
+    expect(gate({ text: flowing(70) }, facts, ...V42).ok).toBe(true);
+  });
+
+  it("anchors palace sections through the palace stars, with one named in prose", () => {
+    const text = flowing(70).split("\n\n").join(" ");
+    expect(gate({ key: "palace:ziwei.palace.life", kind: "palace", palaceId: "ziwei.palace.life", text }, facts, ...V42).ok).toBe(true);
+    expectFinding(
+      gate({ key: "palace:ziwei.palace.life", kind: "palace", palaceId: "ziwei.palace.life", text: text.replaceAll("sao Tử Vi", "điều ấy") }, facts, ...V42),
+      "PALACE_ANCHORS",
+    );
+  });
+
+  it("checks the title for banned wording", () => {
+    expectFinding(gate({ text: flowing(70), title: "Chỗ đang mắc" }, facts, ...V42), "BANNED_PHRASE");
+  });
+
+  it("leaves the live v2.3 tuple unchanged", () => {
+    const v23 = gate({ text: `${prose(610)} mặt sau` }, facts, REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY, REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY);
+    expect(v23.ok).toBe(true);
   });
 });

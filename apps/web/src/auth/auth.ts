@@ -1,3 +1,4 @@
+import { recordVerifiedNotificationSignIn } from "@lasoviet/database/runtime";
 import "server-only";
 
 import { betterAuth } from "better-auth";
@@ -17,6 +18,7 @@ import {
 } from "@lasoviet/database/runtime";
 
 import { sendAuthEmail } from "./auth-email-client";
+import { ensureSessionWelcomeGrant } from "./ensure-session-welcome-grant";
 
 function configuration() {
   const result = loadEnvironment(process.env);
@@ -89,6 +91,14 @@ export function createAuth() {
     },
   },
   databaseHooks: {
+    session: {
+      create: {
+        after: async (session) => {
+          await ensureSessionWelcomeGrant(session);
+          await recordVerifiedNotificationSignIn(database, session);
+        },
+      },
+    },
     user: {
       create: {
         after: async (user) => {

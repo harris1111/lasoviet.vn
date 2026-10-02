@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { ReaderUpgrade } from "./reader-upgrade";
 import type {
   ComprehensiveReportTier2PublicContentV1,
   ComprehensiveReportTier2PublicContentV3,
@@ -20,6 +21,8 @@ import {
   ReportStarChips,
 } from "./report-chart-visuals";
 import { computePalaceScores } from "./report-palace-score";
+import { ReportChartSheet } from "./report-chart-sheet";
+import { PartFeedback } from "./part-feedback";
 import { ReportNarrative } from "./report-narrative";
 import { splitLeadSentence, splitNarrative } from "./report-paragraphs";
 import { resolveActiveSectionIndex } from "./report-reading-position";
@@ -48,9 +51,13 @@ export function ComprehensiveReportReader({
   report,
 }: ComprehensiveReportReaderProps) {
   const t = useTranslations("reports");
+  const feedback = (partId: string) => report.chartId
+    ? <PartFeedback locale={locale} chartId={report.chartId} reportId={report.reportId} partId={partId} sku={report.sku} paid />
+    : null;
 
   const [fontIdx, setFontIdx] = useState<number>(1);
   const [activeSectionIdx, setActiveSectionIdx] = useState<number>(0);
+  const [chartOpen, setChartOpen] = useState(false);
   const [tocOpen, setTocOpen] = useState<boolean>(false);
   const [progressPct, setProgressPct] = useState<number>(0);
   const [readSectionIds, setReadSectionIds] = useState<Set<string>>(new Set());
@@ -78,6 +85,22 @@ export function ComprehensiveReportReader({
 
   const chartSnapshot =
     "chartSnapshot" in report && report.chartSnapshot ? report.chartSnapshot : null;
+  const teasers = useMemo(() => {
+    const list = v4_1Content?.decadalTeasers;
+    if (!v4_1Content || !list?.length) return undefined;
+    const map = new Map(list.map((item) => [item.ordinal, item.narrative]));
+    const current = chartSnapshot?.decadal.currentOrdinal;
+    if (current != null && v4_1Content.currentDecadal.state === "active") {
+      const firstParagraph = v4_1Content.currentDecadal.narrative.split(/\n\s*\n/u)[0] ?? "";
+      map.set(current, (firstParagraph.match(/[^.!?]+[.!?]+|[^.!?]+$/gu) ?? [firstParagraph]).slice(0, 2).join("").trim());
+    }
+    return map;
+  }, [v4_1Content, chartSnapshot]);
+  const openCurrentDecadal = () => {
+    const section = document.getElementById("section-current-decadal");
+    section?.focus({ preventScroll: true });
+    section?.scrollIntoView({ block: "start" });
+  };
   const snapshotPalace = (palaceId: string | undefined) =>
     chartSnapshot && palaceId
       ? chartSnapshot.palaces.find((p) => p.palaceId === palaceId) ?? null
@@ -95,11 +118,13 @@ export function ComprehensiveReportReader({
     () => chartSnapshot?.palaces.find((p) => p.isLife)?.palaceId ?? "ziwei.palace.life",
   );
   const openPalaceById = (palaceId: string) => {
+    if (!isTier2) { scrollToUpgrade(); return; }
     setSelectedPalaceId(palaceId);
     setPalaceOpen(palaceId, true);
     const el = document.getElementById(`palace-${palaceId.replace("ziwei.palace.", "")}`);
     if (el) {
-      el.scrollIntoView({ block: "start" });
+      el.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      el.querySelector("summary")?.focus({ preventScroll: true });
     }
   };
 
@@ -129,15 +154,26 @@ export function ComprehensiveReportReader({
     );
   };
 
+  const printingRef = useRef(false);
   // Printing and PDF export must include every palace.
   useEffect(() => {
+    let previouslyOpen: HTMLDetailsElement[] = [];
     const openAll = () => {
+      if (printingRef.current) return;
+      printingRef.current = true;
+      previouslyOpen = Array.from(document.querySelectorAll<HTMLDetailsElement>(".report-palace-card[open]"));
       document.querySelectorAll<HTMLDetailsElement>(".report-palace-card").forEach((card) => {
         card.open = true;
       });
     };
+    const restore = () => {
+      if (!printingRef.current) return;
+      printingRef.current = false;
+      document.querySelectorAll<HTMLDetailsElement>(".report-palace-card").forEach((card) => { card.open = previouslyOpen.includes(card); });
+    };
     window.addEventListener("beforeprint", openAll);
-    return () => window.removeEventListener("beforeprint", openAll);
+    window.addEventListener("afterprint", restore);
+    return () => { window.removeEventListener("beforeprint", openAll); window.removeEventListener("afterprint", restore); };
   }, []);
 
   const tocSections = useMemo(() => {
@@ -291,6 +327,20 @@ export function ComprehensiveReportReader({
       if (idx < 0) return;
       const section = tocSections[idx]!;
       setActiveSectionIdx(idx);
+      if (chartSnapshot) {
+        if (section.id === "section-palace-readings" && isTier2Content(report.content)) {
+          const palaceTops = report.content.palaceReadings.map((palace) => document.getElementById(`palace-${palace.palaceId.replace("ziwei.palace.", "")}`)?.getBoundingClientRect().top ?? Infinity);
+          const palaceIndex = resolveActiveSectionIndex(palaceTops, window.innerHeight, false);
+          const palace = report.content.palaceReadings[palaceIndex];
+          if (palace) setSelectedPalaceId(palace.palaceId);
+        } else {
+          const target = section.id === "section-core-axis" ? chartSnapshot.palaces.find((palace) => palace.isBody)?.palaceId
+            : section.id === "section-overview" ? chartSnapshot.palaces.find((palace) => palace.isLife)?.palaceId
+            : section.id === "section-annual-snapshot" ? chartSnapshot.annual.palaceId
+            : section.id === "section-current-decadal" ? chartSnapshot.decadal.cycles.find((cycle) => cycle.ordinal === chartSnapshot.decadal.currentOrdinal)?.palaceId : undefined;
+          if (target) setSelectedPalaceId(target);
+        }
+      }
       setReadSectionIds((prev) => {
         if (prev.has(section.id)) return prev;
         const next = new Set(prev);
@@ -315,7 +365,7 @@ export function ComprehensiveReportReader({
       window.removeEventListener("resize", schedule);
       if (frame !== 0) cancelAnimationFrame(frame);
     };
-  }, [tocSections, report.reportId]);
+  }, [tocSections, report.reportId, chartSnapshot, report.content]);
 
   // Mobile TOC Dialog Keyboard Lifecycle
   useEffect(() => {
@@ -582,6 +632,12 @@ export function ComprehensiveReportReader({
         <div className="report-reader-layout">
           {/* LEFT TOC SIDEBAR (Desktop) */}
           <nav className="report-toc-sidebar report-toc-rail" aria-label={t("reader.toc_title")}>
+            {chartSnapshot && (
+              <div className="report-navigation-chart">
+                <ReportChart snapshot={chartSnapshot} selectedPalaceId={selectedPalaceId} variant="compact" t={t} onSelect={openPalaceById} />
+                <p className="report-chart-help">{t("reader.chart_navigation_help")}</p>
+              </div>
+            )}
             <p className="report-toc-count">
               {t("reader.read_progress_count", { read: readCount, total: totalCount })}
             </p>
@@ -702,6 +758,7 @@ export function ComprehensiveReportReader({
                 </div>
                 {lifePalace && <ReportStarChips palace={lifePalace} t={t} />}
                 <ReportNarrative className="report-section-narrative" text={report.content.overview.narrative} />
+                {feedback("overview")}
               </section>
 
               {/* 2. Core Axis */}
@@ -716,6 +773,7 @@ export function ComprehensiveReportReader({
                 </div>
                 {bodyPalace && <ReportStarChips palace={bodyPalace} t={t} />}
                 <ReportNarrative className="report-section-narrative" text={report.content.coreAxis.narrative} />
+                {feedback("coreAxis")}
               </section>
 
               {/* Tier-2 only sections */}
@@ -736,6 +794,7 @@ export function ComprehensiveReportReader({
                         <article key={index} className="report-subcard">
                           <h4 className="report-subcard-title">{config.title}</h4>
                           <ReportNarrative className="report-subcard-narrative" text={config.narrative} />
+                          {feedback(`keyConfigurations.${index}`)}
                         </article>
                       ))}
                     </div>
@@ -776,7 +835,7 @@ export function ComprehensiveReportReader({
                             id={`palace-${palace.palaceId.replace("ziwei.palace.", "")}`}
                             className="report-subcard report-palace-card"
                             open={openPalaces.has(palace.palaceId)}
-                            onToggle={(event) => setPalaceOpen(palace.palaceId, event.currentTarget.open)}
+                            onToggle={(event) => { if (!printingRef.current) setPalaceOpen(palace.palaceId, event.currentTarget.open); }}
                           >
                             <summary className="report-palace-summary">
                               {chartSnapshot && (
@@ -808,6 +867,7 @@ export function ComprehensiveReportReader({
                               text={palace.narrative}
                               lead={false}
                             />
+                            {feedback(palace.palaceId)}
                           </details>
                         );
                       })}
@@ -829,6 +889,7 @@ export function ComprehensiveReportReader({
                         <article key={theme.id} id={`theme-${theme.id}`} className="report-subcard">
                           <h4 className="report-subcard-title">{theme.title}</h4>
                           <ReportNarrative className="report-subcard-narrative" text={theme.narrative} />
+                          {feedback(theme.id)}
                         </article>
                       ))}
                     </div>
@@ -847,51 +908,19 @@ export function ComprehensiveReportReader({
                   <h3 className="report-section-title">{report.content.strengthsAndTensions.title}</h3>
                 </div>
                 <ReportNarrative className="report-section-narrative" text={report.content.strengthsAndTensions.narrative} />
+                {feedback("strengthsAndTensions")}
               </section>
 
               {/* Tier 1 In-Reader Upgrade Box: Only rendered after reading meaningful content */}
               {!isTier2 && canShowUpgrade && (
-                <div className="report-upgrade-box" id="nang-cap">
-                  <h3>{t("reader.upgrade_title")}</h3>
-                  <p>{t("reader.upgrade_desc")}</p>
-
-                  <div className="report-upgrade-map">
-                    <div className="report-upgrade-map-col">
-                      <h4>{t("reader.unlocked_map_title")}</h4>
-                      <ul>
-                        <li>✓ {report.content.overview.title}</li>
-                        <li>✓ {report.content.coreAxis.title}</li>
-                        <li>✓ {report.content.strengthsAndTensions.title}</li>
-                        <li>✓ Định hướng thực tế</li>
-                      </ul>
-                    </div>
-                    <div className="report-upgrade-map-col">
-                      <h4>{t("reader.locked_map_title")}</h4>
-                      <ul>
-                        <li>🔒 12 cung chi tiết</li>
-                        <li>🔒 Cấu trúc trọng yếu</li>
-                        <li>🔒 4 lĩnh vực đời sống</li>
-                        <li>🔒 Đại vận và lưu niên</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <p className="report-upgrade-deadline">
-                    {t("reader.upgrade_price_notice")}
-                  </p>
-
-                  <div className="report-upgrade-row">
-                    <a className="btn-upgrade" href="/nap-la">
-                      {t("reader.upgrade_cta")}
-                    </a>
-                  </div>
-                </div>
+                <ReaderUpgrade key={`${report.chartId}:${report.chartVersionId}:${locale}`} locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} />
               )}
 
               {v4_1Content && (
                 <>
                   <section
                     id="section-current-decadal"
+                    tabIndex={-1}
                     data-report-section
                     className="report-section-block"
                   >
@@ -901,6 +930,8 @@ export function ComprehensiveReportReader({
                     </div>
                     {chartSnapshot && (
                       <ReportDecadalTimeline
+                        teasers={teasers}
+                        onOpenCurrent={openCurrentDecadal}
                         snapshot={chartSnapshot}
                         t={t}
                         onOpenPalace={openPalaceById}
@@ -908,6 +939,7 @@ export function ComprehensiveReportReader({
                     )}
                     {decadalPalace && <ReportStarChips palace={decadalPalace} t={t} />}
                     <ReportNarrative className="report-section-narrative" text={v4_1Content.currentDecadal.narrative} />
+                    {feedback("currentDecadal")}
                   </section>
 
                   <section
@@ -921,6 +953,7 @@ export function ComprehensiveReportReader({
                     </div>
                     {annualPalace && <ReportStarChips palace={annualPalace} t={t} />}
                     <ReportNarrative className="report-section-narrative" text={v4_1Content.annualSnapshot.narrative} />
+                    {feedback("annualSnapshot")}
                   </section>
 
                   <section
@@ -944,6 +977,7 @@ export function ComprehensiveReportReader({
                           {v4_1Content.birthTimeSensitivity.sensitiveFactors.title}
                         </h4>
                         <ReportNarrative lead={false} text={v4_1Content.birthTimeSensitivity.sensitiveFactors.narrative} />
+                        {feedback("birthTimeSensitivity")}
                       </article>
                     </div>
                   </section>
@@ -983,6 +1017,7 @@ export function ComprehensiveReportReader({
                     ))}
                   </ul>
                 )}
+                {feedback("practicalDirection")}
               </section>
             </div>
 
@@ -992,6 +1027,18 @@ export function ComprehensiveReportReader({
           </main>
         </div>
       </div>
+
+      {chartSnapshot && (
+        <nav className="report-chart-mobile-bar" aria-label={t("reader.chart_navigation")}>
+          <button type="button" onClick={() => { setTocOpen(false); setChartOpen(true); }} aria-haspopup="dialog" aria-expanded={chartOpen}>{t("reader.open_chart")}</button>
+          <button type="button" onClick={() => setTocOpen(true)} aria-haspopup="dialog" aria-expanded={tocOpen}>{t("reader.open_toc")}</button>
+          <span aria-label={t("reader.read_progress")}>{Math.round(progressPct)}%</span>
+        </nav>
+      )}
+      {chartOpen && chartSnapshot && (
+        <ReportChartSheet snapshot={chartSnapshot} selectedPalaceId={selectedPalaceId} t={t}
+          meta={{ targetYear: chartSnapshot.annual.targetYear }} onClose={() => setChartOpen(false)} onSelect={openPalaceById} />
+      )}
 
       {/* MOBILE TOC SHEET (Modal / Dialog) */}
       {tocOpen && (

@@ -48,5 +48,10 @@ export async function GET(): Promise<Response> {
     return new NextResponse(null, { status: 502, headers: NO_STORE_HEADERS });
   }
 
-  return NextResponse.json(parsed.data, { status: 200, headers: NO_STORE_HEADERS });
+  const headers = new Headers(NO_STORE_HEADERS);
+  const grant = (response as { welcomeGrant?: { grantedAt?: unknown; promotionalLa?: unknown } }).welcomeGrant;
+  if (grant?.promotionalLa === 60 && typeof grant.grantedAt === "string" && Number.isFinite(Date.parse(grant.grantedAt))) {
+    headers.set("x-wallet-welcome-granted-at", new Date(grant.grantedAt).toISOString());
+  }
+  return NextResponse.json(parsed.data, { status: 200, headers });
 }

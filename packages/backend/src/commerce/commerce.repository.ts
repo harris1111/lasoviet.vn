@@ -1,3 +1,9 @@
+import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
+import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
+import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
+import { calculateBonusExpiry } from "@lasoviet/contracts";
+import { reportReservationAuthority } from "../reports/natal-report-authority.js";
+import { reservePaidReport } from "../reports/natal-report-reservation.js";
 import { randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, or, sql } from "drizzle-orm";
@@ -12,7 +18,8 @@ import type {
   OrderHistoryV1,
   OrderStatus,
 } from "@lasoviet/contracts";
-import { resolveProductTitle, resolveEntitlementScopeForSku } from "@lasoviet/contracts";
+import { resolveProductTitle, resolveEntitlementScopeForSku, type GuaranteeClaimRequestV1, type PartFeedbackCreateV1 } from "@lasoviet/contracts";
+import { createGuaranteeFeedbackService, resolveRelatedPalaceSuggestion } from "./guarantee-feedback.service.js";
 import {
   auditLogs,
   birthProfileReadingContexts,
@@ -24,11 +31,11 @@ import {
   commercePaymentEvents,
   commerceReconciliationState,
   commerceUnmatchedPayments,
-  enqueueOutbox,
   evidenceSets,
   reportReservations,
   reportVersions,
   type Database,
+  walletTopUpContinuations,
   walletAccounts,
   walletPurchaseIntents,
   walletTransactions,
@@ -49,7 +56,6 @@ import {
 import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
 import {
   currentReportVersions,
-  deriveReportTimingLineage,
   type ReportVersionResolver,
 } from "../reports/identity-report-config.js";
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
@@ -73,12 +79,14 @@ export type ContentPurchaseOrder = OrderRecord & {
 type CheckoutLocale = "vi" | "en";
 
 export type CommerceRepositoryOptions = {
+  dailyReadingWriter?: DailyReadingWriter;
   now?: () => Date;
   orderTtlSeconds?: number;
   beforePaymentCommit?: () => Promise<void>;
   paymentCodeFactory?: () => string;
   beforeClaimLockedRequery?: () => Promise<void>;
   reportVersionResolver?: ReportVersionResolver;
+  resolveMonthlyPeriodKey?: (asOfDate: string) => string;
 };
 
 export type OwnedOrderProjection = {
@@ -89,6 +97,7 @@ export type OwnedOrderProjection = {
 export type OwnedTopUpOrderProjection = {
   order: WalletTopUpOrder;
   creditedLa: number | null;
+  continuation: WalletTopUpContinuationViewV1 | null;
 };
 
 function ownerFilter(actor: CurrentActor, now: Date) {
@@ -133,6 +142,11 @@ export function createDatabaseCommerceRepository(
   const walletUnlock = createWalletUnlockService(database, walletService, {
     now: getNow,
     reportVersionResolver,
+    dailyReadingWriter: options.dailyReadingWriter,
+    resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey,
+  });
+  const guaranteeFeedback = createGuaranteeFeedbackService(database, {
+    now: getNow,
   });
 
   async function getOwnedOrderWithExpiry(actor: CurrentActor, orderId: string): Promise<ContentPurchaseOrder | null> {
@@ -334,6 +348,7 @@ export function createDatabaseCommerceRepository(
       requestId: input.providerEventId,
       traceId: input.traceId,
     });
+    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver, dailyReadingWriter: options.dailyReadingWriter, resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey });
     await options.beforePaymentCommit?.();
     return { ok: true, replayed: false };
   }
@@ -477,7 +492,7 @@ export function createDatabaseCommerceRepository(
           eq(ziweiChartVersions.chartId, ziweiCharts.id),
         ),
       )
-      .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .leftJoin(reportReservations, reportReservationAuthority(database))
       .where(and(
         eq(commerceEntitlements.ownerId, actor.userId),
         eq(commerceOrders.kind, "content_purchase"),
@@ -765,7 +780,7 @@ export function createDatabaseCommerceRepository(
           eq(commerceEntitlements.chartId, commerceOrders.chartId),
         ),
       )
-      .leftJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+      .leftJoin(reportReservations, reportReservationAuthority(database))
       .where(and(
         eq(commerceOrders.ownerId, actor.userId),
         eq(commerceOrders.kind, "content_purchase"),
@@ -1002,9 +1017,9 @@ export function createDatabaseCommerceRepository(
         eq(ziweiChartVersions.chartId, ziweiCharts.id),
       ))
       .innerJoin(reportReservations, and(
-        eq(reportReservations.entitlementId, commerceEntitlements.id),
+        reportReservationAuthority(database),
         eq(reportReservations.chartVersionId, walletPurchaseIntents.chartVersionId),
-        eq(reportReservations.sku, walletPurchaseIntents.sku),
+        or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, walletPurchaseIntents.sku)),
         eq(reportReservations.locale, walletPurchaseIntents.locale),
       ))
       .innerJoin(evidenceSets, and(
@@ -1015,6 +1030,7 @@ export function createDatabaseCommerceRepository(
       .where(and(
         eq(commerceEntitlements.ownerId, actor.userId),
         isNull(commerceEntitlements.orderId),
+        isNull(commerceEntitlements.revokedAt),
       ))
       .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
     const walletItems: AccountLibraryV2["items"] = walletRows.map((row) => {
@@ -1063,9 +1079,15 @@ export function createDatabaseCommerceRepository(
     unlockWalletPurchase(actor: CurrentActor, input: Parameters<typeof walletUnlock.unlock>[1]) {
       return walletUnlock.unlock(actor, input);
     },
+    submitPartFeedback(actor: CurrentActor, input: PartFeedbackCreateV1) {
+      return guaranteeFeedback.submitPartFeedback(actor, input);
+    },
+    claimGuarantee(actor: CurrentActor, input: GuaranteeClaimRequestV1) {
+      return guaranteeFeedback.claimGuarantee(actor, input);
+    },
     readAccountLibraryV2,
 
-    async createTopUpOrder(actor: CurrentActor, packId: string, locale: string) {
+    async createTopUpOrder(actor: CurrentActor, packId: string, locale: string, continuation?: WalletTopUpContinuationRequestV1) {
       const pack = walletTopUpPack(packId);
       if (pack === undefined) return { ok: false as const, code: "TOP_UP_PACK_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);
@@ -1089,6 +1111,8 @@ export function createDatabaseCommerceRepository(
         const ownerLockKey = `commerce:topup:${actor.userId}`;
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${ownerLockKey}))`);
 
+        const acceptedContinuation = continuation === undefined ? undefined : await validateTopUpContinuation(transaction, actor.userId, selectedLocale, continuation);
+        if (acceptedContinuation === null) return { ok: false as const, code: "TOP_UP_CONTINUATION_INVALID" };
         const currentNow = getNow();
         const cutoff = new Date(currentNow.getTime() - orderTtlSeconds * 1000);
         const pendingOrders = await transaction.select().from(commerceOrders)
@@ -1102,8 +1126,10 @@ export function createDatabaseCommerceRepository(
           .for("update");
         for (const pending of pendingOrders) {
           if (!isWalletTopUpOrder(pending)) continue;
+          const [binding] = await transaction.select().from(walletTopUpContinuations).where(eq(walletTopUpContinuations.orderId, pending.id)).limit(1);
           if (pending.createdAt.getTime() > cutoff.getTime() && pending.locale === selectedLocale) {
-            return { ok: true as const, value: pending, reused: true };
+            if (matchesTopUpContinuation(binding, acceptedContinuation)) return { ok: true as const, value: pending, reused: true };
+            continue;
           }
           await transaction.update(commerceOrders)
             .set({ status: "expired" })
@@ -1129,6 +1155,11 @@ export function createDatabaseCommerceRepository(
           }).onConflictDoNothing({ target: commerceOrders.paymentCode }).returning();
           if (created !== undefined) {
             if (!isWalletTopUpOrder(created)) throw new Error("TOP_UP_ORDER_SHAPE_INVALID");
+            if (acceptedContinuation) await transaction.insert(walletTopUpContinuations).values({
+              orderId: created.id, ownerId: actor.userId, purchaseIntentId: acceptedContinuation.purchaseIntentId,
+              intentStateVersion: acceptedContinuation.expectedIntentVersion, confirmedPriceLa: acceptedContinuation.confirmedPriceLa,
+              returnTab: acceptedContinuation.returnTab, returnOpen: acceptedContinuation.returnOpen ?? null, createdAt: currentNow,
+            });
             return { ok: true as const, value: created, reused: false };
           }
         }
@@ -1163,6 +1194,7 @@ export function createDatabaseCommerceRepository(
       return {
         order,
         creditedLa: grant !== undefined && pack !== undefined ? pack.purchasedLa + pack.promotionalLa : null,
+        continuation: await readTopUpContinuation(database, order.id, actor.userId),
       };
     },
 
@@ -1250,7 +1282,7 @@ export function createDatabaseCommerceRepository(
           .from(commerceEntitlements)
           .innerJoin(
             reportReservations,
-            eq(reportReservations.entitlementId, commerceEntitlements.id),
+            reportReservationAuthority(database),
           )
           .innerJoin(
             commerceOrders,
@@ -1380,7 +1412,7 @@ export function createDatabaseCommerceRepository(
       if (order.status === "paid") {
         const [reservation] = await database.select({ reportId: reportReservations.reportId })
           .from(commerceEntitlements)
-          .innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
+          .innerJoin(reportReservations, reportReservationAuthority(database))
           .where(and(eq(commerceEntitlements.orderId, order.id), eq(commerceEntitlements.ownerId, order.ownerId)))
           .limit(1);
         if (reservation) {
@@ -1391,7 +1423,7 @@ export function createDatabaseCommerceRepository(
             .from(commerceEntitlements)
             .innerJoin(
               reportReservations,
-              eq(reportReservations.entitlementId, commerceEntitlements.id),
+              reportReservationAuthority(database),
             )
             .innerJoin(
               commerceOrders,
@@ -1402,6 +1434,7 @@ export function createDatabaseCommerceRepository(
                 eq(commerceEntitlements.chartId, order.chartId),
                 eq(commerceEntitlements.ownerId, order.ownerId),
                 eq(reportReservations.locale, order.locale),
+                eq(reportReservations.chartVersionId, order.chartVersionId),
                 eq(commerceOrders.kind, "content_purchase"),
                 ne(commerceOrders.status, "refunded"),
               ),
@@ -1652,90 +1685,15 @@ export function createDatabaseCommerceRepository(
         const [entitlement] = await transaction.insert(commerceEntitlements).values({
           orderId: paidOrder.id, chartId: paidOrder.chartId, sku: paidOrder.sku, ownerId: paidOrder.ownerId,
           scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
+          dailyBonusExpiresAt: paidOrder.sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
           createdAt: currentNow,
         }).returning();
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
-        const [existingChartReservation] = await transaction
-          .select({
-            reportId: reportReservations.reportId,
-            reportVersionId: reportReservations.reportVersionId,
-          })
-          .from(commerceEntitlements)
-          .innerJoin(
-            reportReservations,
-            eq(reportReservations.entitlementId, commerceEntitlements.id),
-          )
-          .innerJoin(
-            commerceOrders,
-            eq(commerceOrders.id, commerceEntitlements.orderId),
-          )
-          .where(
-            and(
-              eq(commerceEntitlements.chartId, paidOrder.chartId),
-              eq(commerceEntitlements.ownerId, paidOrder.ownerId),
-              eq(reportReservations.locale, paidOrder.locale),
-              eq(commerceOrders.kind, "content_purchase"),
-              ne(commerceOrders.status, "refunded"),
-              ne(commerceEntitlements.id, entitlement.id),
-            ),
-          )
-          .orderBy(desc(reportReservations.createdAt))
-          .limit(1);
-
-        if (existingChartReservation === undefined) {
-          if (reportVersions.family === "v4" || reportVersions.family === "v4_1") {
-            const timingLineage = deriveReportTimingLineage(currentNow, {
-              timingRuleVersion: reportVersions.timingRuleVersion,
-            });
-            const [reservation] = await transaction.insert(reportReservations).values({
-              reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
-              evidenceVersionId: evidence.id, knowledgeVersionId: reportVersions.knowledgeVersion,
-              promptVersion: reportVersions.promptVersion, reportConfigVersion: reportVersions.reportConfigVersion,
-              locale: paidOrder.locale, sku: paidOrder.sku,
-              asOfDate: timingLineage.asOfDate, targetYear: timingLineage.targetYear,
-              timingRuleVersion: timingLineage.timingRuleVersion, sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
-              readingContextRevisionId,
-              createdAt: currentNow, updatedAt: currentNow,
-            }).returning();
-            if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
-            await enqueueOutbox(transaction, {
-              schemaVersion: 1, type: "report.generation.requested.v2", eventId: randomUUID(),
-              occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
-              aggregateType: "order", aggregateId: paidOrder.id,
-              idempotencyKey: "report-request:" + reservation.reportVersionId,
-              payload: {
-                reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
-                chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
-                knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
-                reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale as "vi" | "en", sku: reservation.sku,
-                asOfDate: timingLineage.asOfDate, targetYear: timingLineage.targetYear,
-                timingRuleVersion: timingLineage.timingRuleVersion, sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
-                readingContextRevisionId: reservation.readingContextRevisionId,
-              },
-            });
-          } else {
-            const [reservation] = await transaction.insert(reportReservations).values({
-              reportId: randomUUID(), reportVersionId: randomUUID(), entitlementId: entitlement.id, chartVersionId: paidOrder.chartVersionId,
-              evidenceVersionId: evidence.id, knowledgeVersionId: reportVersions.knowledgeVersion,
-              promptVersion: reportVersions.promptVersion, reportConfigVersion: reportVersions.reportConfigVersion,
-              locale: paidOrder.locale, sku: paidOrder.sku,
-              createdAt: currentNow, updatedAt: currentNow,
-            }).returning();
-            if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
-            await enqueueOutbox(transaction, {
-              schemaVersion: 1, type: "report.generation.requested.v1", eventId: randomUUID(),
-              occurredAt: currentNow.toISOString(), traceId: input.traceId, actorId: paidOrder.ownerId,
-              aggregateType: "order", aggregateId: paidOrder.id,
-              idempotencyKey: "report-request:" + reservation.reportVersionId,
-              payload: {
-                reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, entitlementId: entitlement.id,
-                chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
-                knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
-                reportConfigVersion: reservation.reportConfigVersion, locale: reservation.locale, sku: reservation.sku,
-              },
-            });
-          }
-        }
+        await reservePaidReport(transaction, {
+          entitlement, chartVersionId: paidOrder.chartVersionId, evidenceVersionId: evidence.id,
+          locale: paidOrder.locale as "vi" | "en", versions: reportVersions, readingContextRevisionId,
+          now: currentNow, traceId: input.traceId, aggregateType: "order", aggregateId: paidOrder.id,
+        });
         await options.beforePaymentCommit?.();
         return { ok: true as const, replayed: false };
       });
@@ -2203,149 +2161,19 @@ export function createDatabaseCommerceRepository(
             sku: paidOrder.sku,
             ownerId: paidOrder.ownerId,
             scope: resolveEntitlementScopeForSku(paidOrder.sku as CommerceSku, reportVersions.family),
+            dailyBonusExpiresAt: paidOrder.sku === "ZIWEI-IDENTITY-P0" ? calculateBonusExpiry(currentNow) : null,
             createdAt: currentNow,
           })
           .returning();
 
         if (entitlement === undefined) throw new Error("ENTITLEMENT_CREATE_FAILED");
 
-        const [existingChartReservation] = await transaction
-          .select({
-            reportId: reportReservations.reportId,
-            reportVersionId: reportReservations.reportVersionId,
-          })
-          .from(commerceEntitlements)
-          .innerJoin(
-            reportReservations,
-            eq(reportReservations.entitlementId, commerceEntitlements.id),
-          )
-          .innerJoin(
-            commerceOrders,
-            eq(commerceOrders.id, commerceEntitlements.orderId),
-          )
-          .where(
-            and(
-              eq(commerceEntitlements.chartId, paidOrder.chartId),
-              eq(commerceEntitlements.ownerId, paidOrder.ownerId),
-              eq(reportReservations.locale, paidOrder.locale),
-              eq(commerceOrders.kind, "content_purchase"),
-              ne(commerceOrders.status, "refunded"),
-              ne(commerceEntitlements.id, entitlement.id),
-            ),
-          )
-          .orderBy(desc(reportReservations.createdAt))
-          .limit(1);
-
-        let finalReportId: string;
-
-        if (existingChartReservation === undefined) {
-          if (reportVersions.family === "v4" || reportVersions.family === "v4_1") {
-            const timingLineage = deriveReportTimingLineage(currentNow, {
-              timingRuleVersion: reportVersions.timingRuleVersion,
-            });
-            const [reservation] = await transaction
-              .insert(reportReservations)
-              .values({
-                reportId: randomUUID(),
-                reportVersionId: randomUUID(),
-                entitlementId: entitlement.id,
-                chartVersionId: paidOrder.chartVersionId,
-                evidenceVersionId: evidence.id,
-                knowledgeVersionId: reportVersions.knowledgeVersion,
-                promptVersion: reportVersions.promptVersion,
-                reportConfigVersion: reportVersions.reportConfigVersion,
-                locale: paidOrder.locale,
-                sku: paidOrder.sku,
-                asOfDate: timingLineage.asOfDate,
-                targetYear: timingLineage.targetYear,
-                timingRuleVersion: timingLineage.timingRuleVersion,
-                sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
-                readingContextRevisionId,
-                createdAt: currentNow,
-                updatedAt: currentNow,
-              })
-              .returning();
-
-            if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
-
-            await enqueueOutbox(transaction, {
-              schemaVersion: 1,
-              type: "report.generation.requested.v2",
-              eventId: randomUUID(),
-              occurredAt: currentNow.toISOString(),
-              traceId: actor.requestId,
-              actorId: paidOrder.ownerId,
-              aggregateType: "order",
-              aggregateId: paidOrder.id,
-              idempotencyKey: "report-request:" + reservation.reportVersionId,
-              payload: {
-                reportId: reservation.reportId,
-                reportVersionId: reservation.reportVersionId,
-                entitlementId: entitlement.id,
-                chartVersionId: reservation.chartVersionId,
-                evidenceVersionId: reservation.evidenceVersionId,
-                knowledgeVersionId: reservation.knowledgeVersionId,
-                promptVersion: reservation.promptVersion,
-                reportConfigVersion: reservation.reportConfigVersion,
-                locale: reservation.locale as "vi" | "en",
-                sku: reservation.sku,
-                asOfDate: timingLineage.asOfDate,
-                targetYear: timingLineage.targetYear,
-                timingRuleVersion: timingLineage.timingRuleVersion,
-                sensitivityRuleVersion: timingLineage.sensitivityRuleVersion,
-                readingContextRevisionId: reservation.readingContextRevisionId,
-              },
-            });
-            finalReportId = reservation.reportId;
-          } else {
-            const [reservation] = await transaction
-              .insert(reportReservations)
-              .values({
-                reportId: randomUUID(),
-                reportVersionId: randomUUID(),
-                entitlementId: entitlement.id,
-                chartVersionId: paidOrder.chartVersionId,
-                evidenceVersionId: evidence.id,
-                knowledgeVersionId: reportVersions.knowledgeVersion,
-                promptVersion: reportVersions.promptVersion,
-                reportConfigVersion: reportVersions.reportConfigVersion,
-                locale: paidOrder.locale,
-                sku: paidOrder.sku,
-                createdAt: currentNow,
-                updatedAt: currentNow,
-              })
-              .returning();
-
-            if (reservation === undefined) throw new Error("REPORT_RESERVATION_CREATE_FAILED");
-
-            await enqueueOutbox(transaction, {
-              schemaVersion: 1,
-              type: "report.generation.requested.v1",
-              eventId: randomUUID(),
-              occurredAt: currentNow.toISOString(),
-              traceId: actor.requestId,
-              actorId: paidOrder.ownerId,
-              aggregateType: "order",
-              aggregateId: paidOrder.id,
-              idempotencyKey: "report-request:" + reservation.reportVersionId,
-              payload: {
-                reportId: reservation.reportId,
-                reportVersionId: reservation.reportVersionId,
-                entitlementId: entitlement.id,
-                chartVersionId: reservation.chartVersionId,
-                evidenceVersionId: reservation.evidenceVersionId,
-                knowledgeVersionId: reservation.knowledgeVersionId,
-                promptVersion: reservation.promptVersion,
-                reportConfigVersion: reservation.reportConfigVersion,
-                locale: reservation.locale,
-                sku: reservation.sku,
-              },
-            });
-            finalReportId = reservation.reportId;
-          }
-        } else {
-          finalReportId = existingChartReservation.reportId;
-        }
+        const { reservation: sharedReservation } = await reservePaidReport(transaction, {
+          entitlement, chartVersionId: paidOrder.chartVersionId, evidenceVersionId: evidence.id,
+          locale: paidOrder.locale as "vi" | "en", versions: reportVersions, readingContextRevisionId,
+          now: currentNow, traceId: actor.requestId, aggregateType: "order", aggregateId: paidOrder.id,
+        });
+        const finalReportId = sharedReservation.reportId;
 
         await transaction.insert(auditLogs).values({
           actorId: actor.userId,

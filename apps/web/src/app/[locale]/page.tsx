@@ -1,26 +1,23 @@
 import { routeRegistry } from "@lasoviet/config";
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
 
 import { SiteFooter } from "../../components/site-footer";
 import { SiteHeader } from "../../components/site-header";
 import { loadPublicContentRepository } from "../../features/content/public-content-repository";
-import { HomepageV3Compare } from "../../features/homepage-v3/homepage-v3-compare";
-import { HomepageV3Explore } from "../../features/homepage-v3/homepage-v3-explore";
-import { HomepageV3Faq } from "../../features/homepage-v3/homepage-v3-faq";
-import { HomepageV3Hero } from "../../features/homepage-v3/homepage-v3-hero";
-import { HomepageV3Needs } from "../../features/homepage-v3/homepage-v3-needs";
-import { HomepageV3Motion } from "../../features/homepage-v3/homepage-v3-motion";
-import { HomepageV3Testimonials } from "../../features/homepage-v3/homepage-v3-testimonials-section";
-import { HomepageV3Showcase } from "../../features/homepage-v3/homepage-v3-showcase";
-import {
-  HomepageV3About,
-  HomepageV3Story,
-  HomepageV3Ticker,
-  HomepageV3Usp,
-  HomepageV3Value,
-} from "../../features/homepage-v3/homepage-v3-static-sections";
+import { HomepageV3ConcernProvider } from "../../features/homepage-v3/homepage-v3-concern-context";
 import { buildPublicMetadata } from "../../seo/public-metadata";
+import { TroiNamAbout } from "../../features/troi-nam/troi-nam-about";
+import { TroiNamFaq } from "../../features/troi-nam/troi-nam-faq";
+import { TroiNamValue } from "../../features/troi-nam/troi-nam-value";
+import { TroiNamCompare } from "../../features/troi-nam/troi-nam-compare";
+import { TroiNamExplore } from "../../features/troi-nam/troi-nam-explore";
+import { TroiNamHero } from "../../features/troi-nam/troi-nam-hero";
+import { TroiNamNeeds } from "../../features/troi-nam/troi-nam-needs";
+import { TroiNamStory } from "../../features/troi-nam/troi-nam-story";
+import { TroiNamTestimonials } from "../../features/troi-nam/troi-nam-testimonials";
+import { TroiNamTicker } from "../../features/troi-nam/troi-nam-ticker";
+import { TroiNamUsp } from "../../features/troi-nam/troi-nam-usp";
+import { TroiNamWorldStage } from "../../features/troi-nam/troi-nam-world-stage";
 
 type PageProps = { params: Promise<{ locale: "en" | "vi" }> };
 
@@ -34,55 +31,55 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function Page({ params }: PageProps) {
   const { locale } = await params;
-  const t = await getTranslations("common");
 
   return (
-    <div className="home">
-      <SiteHeader locale={locale} />
-      <div className="hv3" data-light-ready>
-        <div className="hv3-progress" aria-hidden="true" />
-        <HomepageV3Motion />
-        <main aria-label={t("app.name")}>
-          <section className="hv3-section hv3-hero" data-home-block="hero" id="lap-la-so">
-            <HomepageV3Hero locale={locale} />
+    <div className="tn">
+      <SiteHeader locale={locale} currentPath={locale === "en" ? "/en" : "/"} />
+      {/*
+        Page-scoped (2026-10-01 audit F2): wraps a server-rendered subtree in a
+        client provider — standard RSC composition, not a client-ification of
+        the page; everything below remains server-rendered content passed
+        through as `children`.
+      */}
+      <HomepageV3ConcernProvider>
+        <main>
+          <TroiNamWorldStage>
+            <TroiNamHero locale={locale} />
+            <section className="tn-section" data-troi-nam-block="story">
+              <TroiNamStory />
+            </section>
+            <section className="tn-section" data-troi-nam-block="ticker">
+              <TroiNamTicker />
+            </section>
+            <section className="tn-section" data-troi-nam-block="explore">
+              <TroiNamExplore locale={locale} />
+            </section>
+          </TroiNamWorldStage>
+          <section className="tn-section" data-troi-nam-block="needs" id="dich-vu">
+            <TroiNamNeeds locale={locale} />
           </section>
-          <section className="hv3-section hv3-showcase" data-home-block="showcase" id="xem-truoc">
-            <HomepageV3Showcase locale={locale} />
+          <section className="tn-section" data-troi-nam-block="compare" id="so-sanh">
+            <TroiNamCompare locale={locale} />
           </section>
-          <section className="hv3-section hv3-story-section" data-home-block="story">
-            <HomepageV3Story />
+          <section className="tn-section" data-troi-nam-block="testimonials">
+            <TroiNamTestimonials />
           </section>
-          <HomepageV3Ticker />
-          <section className="hv3-section hv3-surface" data-home-block="explore" id="la-so-mau">
-            <HomepageV3Explore locale={locale} />
+          <section className="tn-section" data-troi-nam-block="usp">
+            <TroiNamUsp />
           </section>
-          <section className="hv3-section" data-home-block="needs" id="dich-vu">
-            <div id="nhu-cau">
-              <HomepageV3Needs locale={locale} />
-            </div>
+          <section className="tn-section" data-troi-nam-block="value" id="gia-tri">
+            <TroiNamValue locale={locale} />
           </section>
-          <section className="hv3-section hv3-ruled" data-home-block="comparison" id="so-sanh">
-            <HomepageV3Compare />
-          </section>
-          <section className="hv3-section" data-home-block="testimonials" id="loi-nguoi-doc">
-            <HomepageV3Testimonials />
-          </section>
-          <section className="hv3-section hv3-inverse hv3-usp" data-home-block="usp" data-parallax="24">
-            <HomepageV3Usp />
-          </section>
-          <section className="hv3-section" data-home-block="value" id="gia-tri">
-            <HomepageV3Value locale={locale} />
-          </section>
-          <section className="hv3-section hv3-ruled" data-home-block="faq" id="faq">
+          <section className="tn-section" data-troi-nam-block="faq" id="faq">
             <div id="cau-hoi">
-              <HomepageV3Faq locale={locale} />
+              <TroiNamFaq locale={locale} />
             </div>
           </section>
-          <section className="hv3-section hv3-lacquer" data-home-block="about">
-            <HomepageV3About locale={locale} />
+          <section className="tn-section" data-troi-nam-block="about">
+            <TroiNamAbout locale={locale} />
           </section>
         </main>
-      </div>
+      </HomepageV3ConcernProvider>
       <SiteFooter locale={locale} />
     </div>
   );

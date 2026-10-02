@@ -4,6 +4,7 @@ import type { AiProvider, AiProviderError } from "../ai/ai-provider.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
   COMPREHENSIVE_REPORT_SECTION_KEYS,
+  COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2,
   COMPREHENSIVE_REPORT_SECTION_KEYS_V4_1,
   type ComprehensiveReportSectionKey,
 } from "./comprehensive-report-section-v4.js";
@@ -11,6 +12,7 @@ import {
   REPORT_CONFIG_VERSION_V4_1_SECTIONED,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
 } from "./identity-report-config.js";
 
 const CriticSchema = z
@@ -52,8 +54,10 @@ const SectionedWarningCategorySchema = z.enum([
   "repetition",
 ]);
 
+const BeginnerWarningCategorySchema = z.enum([...SectionedWarningCategorySchema.options, "beginner"]);
+
 const SectionedWarningSchema = z.object({
-  key: z.enum(COMPREHENSIVE_REPORT_SECTION_KEYS),
+  key: z.enum(COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2),
   category: SectionedWarningCategorySchema,
   note: z.string().trim().min(1).max(300),
 }).strict();
@@ -63,7 +67,7 @@ export type ComprehensiveSectionedCriticV4Evaluation = {
 };
 export type ComprehensiveSectionedReviewWarning = {
   key: ComprehensiveReportSectionKey;
-  category: z.infer<typeof SectionedWarningCategorySchema>;
+  category: z.infer<typeof BeginnerWarningCategorySchema>;
   note: string;
 };
 type ComprehensiveSectionedLegacyCriticV4Evaluation = z.infer<typeof CriticSchema> & {
@@ -180,7 +184,8 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
     reportConfigVersion?:
       | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED
       | typeof REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY
-      | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY;
+      | typeof REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
+      | typeof REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER;
     warningOnly?: boolean;
   },
 ): Promise<ComprehensiveSectionedCriticV4Result> {
@@ -189,7 +194,8 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
     ? { lifeStage: parsedReadingContext.data.lifeStage ?? null, topConcern: parsedReadingContext.data.topConcern ?? null }
     : null;
   const reportConfigVersion = options?.reportConfigVersion ?? REPORT_CONFIG_VERSION_V4_1_SECTIONED;
-  const allowedSectionKeys = reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
+  const beginner = reportConfigVersion === REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER;
+  const allowedSectionKeys = beginner ? COMPREHENSIVE_REPORT_SECTION_KEYS_V4_2 : reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED
     ? COMPREHENSIVE_REPORT_SECTION_KEYS
     : reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY ||
         reportConfigVersion === REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY
@@ -201,7 +207,7 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
   const warningSchema = z.object({
     warnings: z.array(z.object({
       key: z.enum(allowedSectionKeys),
-      category: SectionedWarningCategorySchema,
+      category: beginner ? BeginnerWarningCategorySchema : SectionedWarningCategorySchema,
       note: z.string().trim().min(1).max(300),
     }).strict()).max(12),
   }).strict();
@@ -231,7 +237,7 @@ export async function critiqueComprehensiveZiweiReportSectionedV4(
     schema: warningOnly ? warningSchema : legacySchema,
     schemaName: "comprehensive_report_sectioned_critic_v4",
     system: warningOnly
-      ? `Bạn rà soát tư vấn một lần cho toàn bộ báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.net.
+      ? `${beginner ? 'Với mỗi phần, kiểm tra tên sao lần đầu phải giải nghĩa ngay bằng lời đời thường trong câu đó hoặc câu sau; phát hiện câu đọc như dịch từ tiếng Anh, ghép danh từ trừu tượng hoặc từ Hán Việt ít dùng. Mỗi lỗi là warning category "beginner", note trích nguyên cụm lỗi.\n' : ""}Bạn rà soát tư vấn một lần cho toàn bộ báo cáo luận giải Tử Vi Đẩu Số V4 tại lasoviet.net.
 Chỉ dựa trên report và facts. Đầu ra phải là JSON {"warnings":[{"key":"...","category":"...","note":"..."}]}.
 warnings là tối đa 12 cảnh báo ngắn, mỗi cảnh báo chỉ đúng section bị ảnh hưởng; category là correctness, evidence, safety, clarity, consistency, actionability hoặc repetition.
 Đây chỉ là rà soát tư vấn: không chấm điểm, không approve/reject, không yêu cầu viết lại. Khi không thấy vấn đề, trả {"warnings":[]}.

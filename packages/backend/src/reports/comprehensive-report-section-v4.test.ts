@@ -12,6 +12,7 @@ import {
 import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
   REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
 } from "./identity-report-config.js";
 
 const narrative = (title = "Tiêu đề") => ({
@@ -136,5 +137,34 @@ describe("comprehensive report section V4 registry", () => {
     expect(() => resolveComprehensiveReportSectionKeys("unknown")).toThrow(
       ComprehensiveReportSectionV4Error,
     );
+  });
+
+  it("validates decadalTeasers schema accepting ordinals 0..11 and up to 7 items", () => {
+    const valid = [
+      { ordinal: 0, narrative: "Nội dung teaser", evidenceKeys: ["ziwei.evidence.one"] },
+      { ordinal: 11, narrative: "Nội dung teaser cuối", evidenceKeys: ["ziwei.evidence.one"] },
+    ];
+    const parsed = parseComprehensiveReportAcceptedSection(
+      { key: "decadalTeasers", value: valid },
+      REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+    );
+    expect(parsed.key).toBe("decadalTeasers");
+
+    // Rejects ordinal > 11
+    expect(() => parseComprehensiveReportAcceptedSection(
+      { key: "decadalTeasers", value: [{ ordinal: 12, narrative: "Quá giới hạn", evidenceKeys: ["ziwei.evidence.one"] }] },
+      REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+    )).toThrow(ComprehensiveReportSectionV4Error);
+
+    // Rejects more than 7 items
+    const eightItems = Array.from({ length: 8 }, (_, i) => ({
+      ordinal: i,
+      narrative: "Nội dung teaser",
+      evidenceKeys: ["ziwei.evidence.one"],
+    }));
+    expect(() => parseComprehensiveReportAcceptedSection(
+      { key: "decadalTeasers", value: eightItems },
+      REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
+    )).toThrow(ComprehensiveReportSectionV4Error);
   });
 });

@@ -1,3 +1,4 @@
+import { REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1 } from "./topic-report-config.js";
 import {
   REPORT_KNOWLEDGE_VERSION_V1,
   REPORT_KNOWLEDGE_VERSION_V2,
@@ -10,6 +11,7 @@ import {
   REPORT_PROMPT_VERSION_V4_0_1,
   REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
   REPORT_PROMPT_VERSION_V4_1_SENSITIVITY,
 } from "./identity-report-config.js";
 
@@ -58,7 +60,10 @@ export function resolveIdentityReportVersionFamily<T extends string = IdentityRe
     (
       promptVersion === REPORT_PROMPT_VERSION_V4_1_SENSITIVITY ||
       promptVersion === REPORT_PROMPT_VERSION_V4_1_1_SENSITIVITY ||
-      promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY
+      promptVersion === REPORT_PROMPT_VERSION_V4_2_BEGINNER ||
+      promptVersion === REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY ||
+      promptVersion === REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1 ||
+      promptVersion === "ziwei.period-reading.prompt.v1"
     ) &&
     knowledgeVersion === REPORT_KNOWLEDGE_VERSION_V4
   ) {

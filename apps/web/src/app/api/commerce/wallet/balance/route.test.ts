@@ -82,6 +82,18 @@ describe("GET /api/commerce/wallet/balance", () => {
     await expect(response.json()).resolves.toEqual({ code: "WALLET_ACCOUNT_INELIGIBLE" });
   });
 
+  it("exposes only confirmed welcome receipt metadata without changing the strict balance contract", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({ request: vi.fn().mockResolvedValue({
+      ok: true, value: validBalance,
+      welcomeGrant: { promotionalLa: 60, grantedAt: "2026-09-30T10:00:00.000Z" },
+    }) });
+    const { GET } = await import("./route.js");
+    const response = await GET();
+    expect(response.headers.get("x-wallet-welcome-granted-at")).toBe("2026-09-30T10:00:00.000Z");
+    await expect(response.json()).resolves.toEqual(validBalance);
+  });
+
   it("returns 502 on a malformed upstream envelope", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     vi.mocked(privateApiClient).mockReturnValue({

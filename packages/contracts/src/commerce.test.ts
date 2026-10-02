@@ -29,7 +29,7 @@ import {
 } from "./commerce.js";
 
 describe("commerce contracts", () => {
-  it("resolves entitlement scope for canonical single palace SKUs and fails closed for reserved products", () => {
+  it("resolves implemented palace and topic scopes while rejecting unsupported products", () => {
     const lifeScope = resolveEntitlementScopeForSku("ZIWEI-PALACE-LIFE-P0");
     expect(lifeScope).toEqual({
       sections: [],
@@ -45,11 +45,11 @@ describe("commerce contracts", () => {
     expect(EntitlementScopeSchema.safeParse(wealthScope).success).toBe(true);
 
     expect(() => resolveEntitlementScopeForSku("ZIWEI-PALACE-UNKNOWN" as any)).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toThrow();
+    expect(resolveEntitlementScopeForSku("ZIWEI-RELATIONSHIP-P0")).toEqual({ sections: ["topicDeepDive"] });
+    expect(resolveEntitlementScopeForSku("ZIWEI-CAREER-P0")).toEqual({ sections: ["topicDeepDive"] });
     expect(() => resolveEntitlementScopeForSku("ZIWEI-TODAY-P0")).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toThrow();
-    expect(() => resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toThrow();
+    expect(resolveEntitlementScopeForSku("ZIWEI-MONTHLY-P0")).toEqual({sections:["periodReading"]});
+    expect(resolveEntitlementScopeForSku("ZIWEI-YEAR-2026-P0")).toEqual({sections:["periodReading"]});
   });
   it("adds strict order kinds without changing the V1 SKU contract", () => {
     expect(CommerceOrderKindSchema.safeParse("content_purchase").success).toBe(true);
@@ -504,3 +504,9 @@ describe("commerce contracts", () => {
       }).success).toBe(false);
     });
   });
+
+it("keeps a daily-date entitlement separate from natal report sections", () => {
+  expect(EntitlementScopeSchema.parse({ sections: [], dailyDates: ["2026-09-30"] })).toEqual({ sections: [], dailyDates: ["2026-09-30"] });
+  expect(EntitlementScopeSchema.safeParse({ sections: [], dailyDates: ["2026-02-31"] }).success).toBe(false);
+  expect(EntitlementScopeSchema.safeParse({ sections: [], dailyDates: [] }).success).toBe(false);
+});

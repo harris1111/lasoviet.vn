@@ -5,7 +5,7 @@
   "paymentDeferred": "SePay sẽ được mở ở bước tiếp theo.",
   "preview": {
     "eyebrow": "Xem trước miễn phí",
-    "title": "Ba điểm để tự quan sát",
+    "title": "Lá số Tử Vi của bạn, và 2 điều lá số nói riêng về bạn",
     "strength": "Điểm mạnh",
     "tension": "Điểm căng cần quan sát",
     "coverage": "Phần xem trước bao quát {percent}% nội dung của {offer}."
@@ -58,6 +58,7 @@
     "recommended": "Gợi ý",
     "bestValue": "Nhiều Lá tặng nhất",
     "unlock": "Mở khóa",
+    "unlockFullReading": "Mở luận giải đầy đủ",
     "topupAndUnlock": "Nạp và mở",
     "topupNow": "Nạp ngay",
     "topupPack": "Nạp {vnd}",
@@ -74,7 +75,7 @@
     "unlockDialogShortBalanceTitle": "Chưa đủ Lá",
     "unlockDialogShortBalanceBody": "Bạn cần thêm {gap} Lá. Số dư hiện tại là {balance} Lá.",
     "unlockDialogTopupAction": "Nạp {pack} — {vnd}",
-    "unlockDialogTopupNote": "Sau khi nạp xong, quay lại trang này và bấm mở lại — lựa chọn của bạn vẫn được giữ nguyên.",
+    "unlockDialogTopupNote": "Sau khi thanh toán được xác nhận, bạn sẽ trở về đúng phần vừa chọn. Nếu lựa chọn hoặc giá đã thay đổi, Lá vừa nạp vẫn được giữ trong ví để bạn xác nhận lại.",
     "unlockDialogGenericError": "Có lỗi xảy ra. Vui lòng thử lại.",
     "laInstantNotice": "Lá vào ví ngay khi nhận chuyển khoản.",
     "topupNotice": "Thanh toán bằng chuyển khoản VietQR. Lá vào ví ngay khi nhận tiền, không cần chờ duyệt. Lá đã nạp không hết hạn.",
@@ -90,7 +91,18 @@
     "benefitSupport": "Hỗ trợ khi gặp lỗi",
     "benefitSupportDesc": "Nhắn Messenger hoặc email nếu thanh toán gặp lỗi.",
     "supportHeading": "Cần hỏi trước khi mua?",
-    "supportDesc": "Lá Số Việt trả lời qua Messenger hoặc email trong ngày làm việc."
+    "supportDesc": "Lá Số Việt trả lời qua Messenger hoặc email trong ngày làm việc.",
+    "unlockAfterTopupConsent": "Nạp Lá để tự mở {item} với giá {price} Lá khi thanh toán được xác nhận.",
+    "unlockCompletedBalance": "Phần bạn chọn đã mở. Ví còn {balance} Lá.",
+    "unlockReadPart": "Đọc phần vừa mở",
+    "unlockResidualSuggestion": "Bạn có thể dùng số Lá còn lại để chọn phần đọc tiếp theo.",
+    "unlockReviewSelection": "Chọn phần đọc tiếp",
+    "unlockContinuationBlocked": "Lá đã vào ví. Lựa chọn trước đó đã thay đổi; hãy xem lại giá trước khi mở.",
+    "residualPalaceToday": "Số Lá còn lại đủ cho một cung khác và Hôm nay ({cost} Lá).",
+    "residualToday": "Số Lá còn lại đủ cho Hôm nay ({cost} Lá).",
+    "residualTwoDays": "Bạn có thể giữ Lá cho hai ngày Hôm nay sau khi hết lượt tặng ({cost} Lá).",
+    "residualTopicPalace": "Số Lá còn lại đủ cho chủ đề thứ hai và một cung ({cost} Lá).",
+    "residualReserved": "Một số phần gợi ý chưa mở bán. Bạn có thể giữ Lá trong ví và xem các phần hiện có."
   },
   "checkout": {
     "eyebrow": "Thanh toán",
@@ -287,6 +299,75 @@
     "timeline_how_body": "Cuộc đời trong Tử Vi được chia thành những chặng mười năm, mỗi chặng đi qua một cung khác nhau trên lá số. Chặng nào đi qua cung nào thì việc của cung đó nổi lên rõ hơn trong mười năm ấy. Dải này không nói chặng nào tốt chặng nào xấu. Nó chỉ cho bạn biết trọng tâm của từng quãng đời, để chuẩn bị trước thay vì bị bất ngờ.",
     "timeline_living": "Đang sống",
     "timeline_read_full": "Đọc đầy đủ chặng này",
-    "timeline_read_palace": "Đọc cung {palace}"
+    "timeline_read_palace": "Đọc cung {palace}",
+    "open_chart": "Xem lá số",
+    "close_chart": "Đóng lá số",
+    "chart_navigation": "Điều hướng bằng lá số",
+    "chart_navigation_help": "Chạm một cung để đọc phần luận giải. Dùng phím mũi tên để di chuyển, Enter để mở.",
+    "read_progress": "Tiến độ đọc"
+  },
+  "readerUpgrade": {
+    "title": "Đọc tiếp Tử Vi trọn đời",
+    "description": "Khám phá mười hai cung, các cấu trúc chính, chủ đề cuộc sống và bối cảnh đại vận, năm hiện tại.",
+    "price": "Giá nâng cấp của bạn: {amount} Lá",
+    "credit": "Bạn đang được giảm {amount} Lá so với giá niêm yết 960 Lá.",
+    "terms": "Lá đã dùng mở cung lẻ và Bản mệnh của lá số này được khấu trừ trong 7 ngày từ lần mua đầu. Giá cuối cùng và số dư được kiểm tra lại trước khi bạn xác nhận.",
+    "loading": "Đang kiểm tra giá nâng cấp…",
+    "unavailable": "Mở bảng xác nhận để kiểm tra giá và số dư hiện tại.",
+    "unlock": "Xem giá và xác nhận nâng cấp",
+    "topup": "Nạp Lá",
+    "palaces": "Luận giải mười hai cung",
+    "patterns": "Cấu trúc chính và chủ đề cuộc sống",
+    "timing": "Đại vận và năm hiện tại",
+    "scope": "Chỉ hiển thị tiêu đề và hình minh họa cho đến khi bạn mở."
+  },
+  "topicReader": {
+    "eyebrow": "Luận giải chuyên sâu",
+    "navigation": "Điều hướng bài luận",
+    "library": "Về thư viện của bạn",
+    "print": "In bài luận",
+    "actions": "Hành động thực tế",
+    "avoid": "Nên tránh:"
+  },
+  "feedback": {
+    "question": "Phần này có đúng với bạn không?",
+    "accurate": "Đúng",
+    "partially_accurate": "Một phần",
+    "inaccurate": "Không đúng",
+    "thanks": "Cảm ơn bạn đã phản hồi.",
+    "saving": "Đang lưu…",
+    "error": "Chưa thể xử lý. Bạn vui lòng thử lại.",
+    "signIn": "Vui lòng đăng nhập tài khoản đã xác minh để yêu cầu hoàn Lá.",
+    "alreadyClaimed": "Bạn đã sử dụng quyền hoàn Lá một lần cho tài khoản này.",
+    "expired": "Thời hạn yêu cầu hoàn Lá 24 giờ đã kết thúc.",
+    "priceLimit": "Quyền hoàn Lá áp dụng cho phần có giá dưới 500 Lá.",
+    "conditions": "Hoàn Lá một lần cho mỗi tài khoản, với phần mua dưới 500 Lá trong vòng 24 giờ. Phần được hoàn sẽ khóa lại.",
+    "claim": "Yêu cầu hoàn Lá và khóa lại phần này",
+    "restored": "Đã hoàn {amount} Lá. Phần đọc đã được khóa lại.",
+    "related": "Thử đọc thêm {palace}"
+  },
+  "membership": {
+    "title": "Hội viên",
+    "activeUntil": "Hội viên có hiệu lực đến {date}.",
+    "inactive": "Hội viên chưa hoạt động.",
+    "manualRenewal": "Gia hạn thủ công cộng thêm thời gian còn lại. Không tự động gia hạn hay trừ Lá.",
+    "benefitsMonthlyEnabled": "Nguyệt vận được bao gồm trong thời gian hội viên còn hiệu lực. Bản cá nhân của công cụ: sắp có. Bản Toàn diện mua riêng. Ưu đãi 20% được so với giá sau khấu trừ, chọn giá thấp hơn và không cộng dồn.",
+    "benefitsPending": "Nguyệt vận và bản cá nhân của công cụ: sắp có. Bản Toàn diện mua riêng. Ưu đãi 20% được so với giá sau khấu trừ, chọn giá thấp hơn và không cộng dồn.",
+    "signIn": "Đăng nhập để xem hội viên",
+    "renew": "Gia hạn {days} ngày · {price} Lá",
+    "purchase": "Đăng ký {days} ngày · {price} Lá",
+    "monthly": "Hội viên tháng",
+    "yearly": "Hội viên năm",
+    "confirmTitle": "Xác nhận hội viên",
+    "confirm": "Xác nhận trừ Lá",
+    "confirmAfterTopup": "Sau khi nạp Lá, quay lại Hội viên để xác nhận đăng ký hoặc gia hạn.",
+    "loading": "Đang tải trạng thái hội viên…",
+    "error": "Chưa tải được trạng thái hội viên. Vui lòng thử lại."
+  },
+  "periodReader": {
+    "calendar": "Luận giải theo lịch âm",
+    "overview": "Tổng quan",
+    "periods": "Các giai đoạn trong bài luận",
+    "cautions": "Điều nên lưu ý"
   }
 }

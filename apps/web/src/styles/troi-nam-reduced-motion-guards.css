@@ -1,0 +1,46 @@
+/* Import AFTER troi-nam.css. This file adds no animation or layout runway. */
+@media (prefers-reduced-motion: reduce) {
+  .tn *,
+  .tn *::before,
+  .tn *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Restore the actual DOM chart even if JS stored an earlier ring phase. */
+  .tn .tn-explore .hv3-chart {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .tn .tn-explore .hv3-chart-wrap::before,
+  .tn .tn-hero-plate-dusk,
+  .tn .tn-hero-plate-night,
+  .tn .tn-hero-scrim-night {
+    opacity: 0 !important;
+  }
+
+  /* `animation: none` alone would freeze this panel fully opaque forever. */
+  .tn .tn-logo-intro {
+    display: none !important;
+  }
+
+  /* Do not override native [hidden], dialog states or accordion display. */
+  .tn .tn-needs[data-need-reveal="pending"] .hv3-need,
+  .tn .tn-needs[data-reveal-ready] .hv3-disc-slot[data-reveal],
+  .tn .tn-faq[data-faq-reveal="pending"] .hv3-faq-item {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .tn .tn-value .hv3-steps li[data-step="3"]::before,
+  .tn .tn-value .hv3-steps li[data-step="3"]::after {
+    opacity: 0 !important;
+  }
+
+  .tn .tn-about .hv3-final-cta::before,
+  .tn .tn-about .hv3-final-cta::after {
+    opacity: 0 !important;
+  }
+}

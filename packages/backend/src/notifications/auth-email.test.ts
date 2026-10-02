@@ -110,8 +110,9 @@ class MemoryDeliveryStore implements AuthEmailDeliveryStore {
   ): Promise<void> {
     const record = this.records.get(idempotencyKey);
     if (
-      record?.status === "sending" &&
-      record.attemptCount === attemptCount
+      record &&
+      (record.status === "sending" || record.status === "pending") &&
+      (attemptCount === 0 || record.attemptCount === attemptCount)
     ) {
       record.status = "sent";
       record.providerMessageId = providerMessageId ?? null;
@@ -133,8 +134,9 @@ class MemoryDeliveryStore implements AuthEmailDeliveryStore {
   ): Promise<void> {
     const record = this.records.get(idempotencyKey);
     if (
-      record?.status === "sending" &&
-      record.attemptCount === attemptCount
+      record &&
+      (record.status === "sending" || record.status === "pending") &&
+      (attemptCount === 0 || record.attemptCount === attemptCount)
     ) {
       record.status = status;
       record.lastErrorCode = errorCode;
@@ -422,4 +424,146 @@ describe("auth email delivery state machine", () => {
     expect(delivered.attemptCount).toBe(1);
     expect(delivered.providerMessageId).toBe("msg-pending-ready");
   });
+  it("fails closed and blocks dispatch for nurture_verified_signin, han_month_reminder, and delayed_unlock_completed", async () => {
+    const store = new MemoryDeliveryStore();
+    const calls = { count: 0 };
+    const now = new Date("2026-09-28T00:00:00Z");
+
+    const service = createAuthEmailDeliveryService({
+      store,
+      provider: provider({ ok: true, providerMessageId: "never-called" }, calls),
+      recipientFingerprintSecret: "synthetic-secret",
+      now: () => now,
+    });
+
+    const nurtureReq: PersistedEmailDeliveryRequest = {
+      version: 1,
+      kind: "nurture_verified_signin",
+      idempotencyKey: "nurture-signin:u1",
+      recipient: "user@test.com",
+      locale: "vi",
+      actionUrl: "https://lasoviet.net/la-so/c1",
+      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=tok1",
+      requestId: "req-1",
+      userId: "u1",
+      chartId: "c1",
+      palaceId: "ziwei.palace.career",
+      palaceTitle: "Cung Quan Lộc",
+    };
+
+    const hanReq: PersistedEmailDeliveryRequest = {
+      version: 1,
+      kind: "han_month_reminder",
+      idempotencyKey: "han-reminder:c1:2026:7",
+      recipient: "user@test.com",
+      locale: "vi",
+      actionUrl: "https://lasoviet.net/la-so/c1",
+      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=tok2",
+      requestId: "req-2",
+      userId: "u1",
+      chartId: "c1",
+      targetYear: 2026,
+      monthIndex: 7,
+      primaryFocus: "tiền bạc",
+      prepText: "Cẩn trọng tài chính",
+      marker: "warn",
+    };
+
+    const unlockReq: PersistedEmailDeliveryRequest = {
+      version: 1,
+      kind: "delayed_unlock_completed",
+      idempotencyKey: "delayed-unlock:o1",
+      recipient: "user@test.com",
+      locale: "vi",
+      actionUrl: "https://lasoviet.net/la-so/c1",
+      requestId: "req-3",
+      userId: "u1",
+      orderId: "o1",
+      sku: "ZIWEI-PALACE-CAREER",
+      itemName: "Cung Quan Lộc",
+    };
+
+    for (const req of [nurtureReq, hanReq, unlockReq]) {
+      const outcome = await service.send(req);
+      expect(outcome.status).toBe("failed_permanent");
+      expect(outcome.errorCode).toBe("DISPATCH_DISABLED");
+      expect(outcome.attemptCount).toBe(0);
+    }
+
+    // Provider send must never be called for disabled notification kinds
+    expect(calls.count).toBe(0);
+  });
+  it("does not retry nurture_verified_signin, han_month_reminder, or delayed_unlock_completed in retryDue", async () => {
+    const store = new MemoryDeliveryStore();
+    const calls = { count: 0 };
+    const now = new Date("2026-09-28T00:00:00Z");
+
+    const nurtureReq: PersistedEmailDeliveryRequest = {
+      version: 1,
+      kind: "nurture_verified_signin",
+      idempotencyKey: "nurture-signin:u1",
+      recipient: "user@test.com",
+      locale: "vi",
+      actionUrl: "https://lasoviet.net/la-so/c1",
+      unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=tok1",
+      requestId: "req-1",
+      userId: "u1",
+      chartId: "c1",
+      palaceId: "ziwei.palace.career",
+      palaceTitle: "Cung Quan Lộc",
+    };
+
+    store.seed({
+      id: "delivery-nurture-pending",
+      idempotencyKey: nurtureReq.idempotencyKey,
+      kind: "nurture_verified_signin",
+      recipientFingerprint: "fp-1",
+      requestPayload: nurtureReq,
+      status: "pending",
+      sendingLeaseExpiresAt: null,
+      attemptCount: 0,
+      lastErrorCode: null,
+      providerMessageId: null,
+      createdAt: now,
+      updatedAt: now,
+      sentAt: null,
+    });
+
+    const service = createAuthEmailDeliveryService({
+      store,
+      provider: provider({ ok: true, providerMessageId: "never" }, calls),
+      recipientFingerprintSecret: "synthetic-secret",
+      now: () => now,
+    });
+
+    const processed = await service.retryDue(10);
+    expect(processed).toBe(0);
+    expect(calls.count).toBe(0);
+  });
 });
+
+ describe("enabled completion email boundaries", () => {
+   const completion = { version: 1 as const, kind: "delayed_unlock_completed" as const, idempotencyKey: "notice:1", recipient: "user@example.test", locale: "vi" as const, actionUrl: "https://lasoviet.net/la-so/c1", requestId: "notice:1", userId: "u1", orderId: "o1", sku: "ZIWEI-PALACE-LIFE-P0", itemName: '<a href="https://evil.test">bad</a>' };
+   it("escapes untrusted HTML and deduplicates an authorized notification", async () => {
+     const messages: EmailMessage[] = [];
+     const service = createAuthEmailDeliveryService({ store: new MemoryDeliveryStore(), provider: { async send(message) { messages.push(message); return { ok: true, providerMessageId: "mock" }; } }, recipientFingerprintSecret: "test", delayedUnlockEligibility: async () => true });
+     expect((await service.send(completion)).status).toBe("sent");
+     expect((await service.send(completion)).status).toBe("sent");
+     expect(messages).toHaveLength(1);
+     expect(messages[0]!.html).toContain("&lt;a href=&quot;https://evil.test&quot;&gt;bad&lt;/a&gt;");
+     expect(messages[0]!.html).not.toContain('<a href="https://evil.test">');
+   });
+   it("rechecks eligibility immediately before dispatch and suppresses withdrawn ownership", async () => {
+     let sent = 0;
+     const service = createAuthEmailDeliveryService({ store: new MemoryDeliveryStore(), provider: { async send() { sent += 1; return { ok: true }; } }, recipientFingerprintSecret: "test", delayedUnlockEligibility: async () => false });
+     expect((await service.send(completion)).errorCode).toBe("UNLOCK_NOTICE_NO_LONGER_ELIGIBLE");
+     expect(sent).toBe(0);
+   });
+   it("fails closed without the nontransactional consent checker", async () => {
+     let sent = 0;
+     const service = createAuthEmailDeliveryService({ store: new MemoryDeliveryStore(), provider: { async send() { sent += 1; return { ok: true }; } }, recipientFingerprintSecret: "test", nurtureEligibility: async () => true });
+     const nurture = { version: 1 as const, kind: "nurture_verified_signin" as const, idempotencyKey: "nurture:u1", recipient: "user@example.test", locale: "vi" as const, actionUrl: "https://lasoviet.net/la-so/c1", unsubscribeUrl: "https://lasoviet.net/thong-bao/huy-dang-ky#token=x", requestId: "n1", userId: "u1", chartId: "c1", palaceId: "ziwei.palace.life", palaceTitle: "Cung Mệnh" };
+     expect((await service.send(nurture)).errorCode).toBe("RECIPIENT_UNSUBSCRIBED");
+     expect(sent).toBe(0);
+   });
+ });

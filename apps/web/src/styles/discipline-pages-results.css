@@ -1845,3 +1845,182 @@ html[data-theme="light"] .chart-pill-btn:hover:not(:disabled) {
 }
 
 
+
+/* ==========================================================================
+   FD-105 Package 1.4: Magnet Offer, Secure Reveal & Blur Boundary
+   ========================================================================== */
+
+/* Guest 24-hour deletion banner (FD-105 1.4 / FD-020) */
+.guest-24h-deletion-banner {
+  margin: 1.5rem auto 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(236, 138, 116, 0.08);
+  border: 1px solid rgba(236, 138, 116, 0.25);
+  border-radius: 12px;
+}
+
+.guest-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.guest-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--son, #ec8a74);
+  background: rgba(236, 138, 116, 0.16);
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+}
+
+.guest-banner-content {
+  flex: 1 1 300px;
+}
+
+.guest-banner-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--pearl-100, #f7f6f2);
+  margin-bottom: 2px;
+}
+
+.guest-banner-text {
+  font-size: 0.85rem;
+  color: var(--pearl-300, #c8c5b8);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.guest-banner-action {
+  flex-shrink: 0;
+}
+
+.guest-banner-cta {
+  background: var(--son, #ec8a74);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Secure Locked Preview & Blurred Placeholders (FD-105 1.4) */
+.secure-locked-preview-card {
+  position: relative;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+
+.locked-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.locked-preview-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--pearl-300, #c8c5b8);
+}
+
+.locked-preview-tagline {
+  font-size: 0.8rem;
+  color: var(--pearl-400, #9e9a8f);
+}
+
+.locked-preview-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--pearl-100, #f7f6f2);
+  margin: 0 0 0.5rem;
+}
+
+.locked-preview-clipped {
+  margin-bottom: 0.75rem;
+}
+
+.locked-clipped-sentence {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--pearl-200, #dedbd2);
+  margin: 0;
+}
+
+.locked-preview-blur-bars {
+  user-select: none;
+  pointer-events: none;
+  margin: 0.75rem 0 1rem;
+}
+
+.blur-bar {
+  height: 10px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  filter: blur(2.5px);
+}
+
+.locked-preview-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.locked-preview-counts {
+  font-size: 0.8rem;
+  color: var(--pearl-400, #9e9a8f);
+  font-family: var(--font-mono, monospace);
+}
+
+.locked-preview-actions .locked-action-btn {
+  font-weight: 600;
+}
+
+/* Palace list badges & title lines */
+.palace-status-badge.badge-read {
+  background: rgba(80, 160, 100, 0.15);
+  color: #6ed68f;
+  border-color: rgba(80, 160, 100, 0.3);
+}
+
+.palace-title-line {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--pearl-400, #9e9a8f);
+  margin-top: 3px;
+  font-weight: 400;
+}
+
+/* Ensure chart container is strictly NEVER blurred */
+.ziwei-chart-tab-shell,
+.ziwei-chart-container,
+.ziwei-chart-frame {
+  filter: none !important;
+}
+
+/* Print Boundary: hide all blurred placeholders, bars and action buttons */
+@media print {
+  .locked-preview-blur-bars,
+  .locked-preview-actions,
+  .guest-24h-deletion-banner {
+    display: none !important;
+  }
+}

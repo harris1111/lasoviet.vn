@@ -26,7 +26,7 @@
     "nameLabel": "Reader's name",
     "nameOptional": "(to mark this chart)",
     "namePlaceholder": "e.g. An Nhien",
-    "submit": "Reveal your own chart",
+    "submit": "Continue creating your chart",
     "errors": {
       "dateEmpty": "Please enter the full day, month and year (4-digit year).",
       "dateImpossible": "This date does not exist on the calendar. Please check it again.",
@@ -67,18 +67,18 @@
     "b4": "Pick the question that matters most to find your answer ↗"
   },
   "explore": {
-    "eyebrow": "Explore the 12 palaces",
+    "eyebrow": "Explore the 12 palaces",
     "title": "One chart. Twelve folds of a life.",
     "lead": "Don't let unfamiliar terms hold you back. Start with the Life palace to understand your nature, then move on to Career, Wealth or Spouse. You'll see that no event in your life ever stood alone—each one is woven into and held up by the others.",
     "shortcutsLabel": "Palaces most people open first",
-    "mobileHint": "Tap the grid to open the other 8 palaces.",
-    "chartLabel": "12 palaces",
+    "mobileHint": "Tap the grid to open the other 8 palaces.",
+    "chartLabel": "12 palaces",
     "palaceAria": "{name} palace, branch {branch}",
     "reading": "Reading",
     "palacePrefix": "Palace of",
     "trine": "Trine",
     "opposite": "Opposite (facing palace)",
-    "cycles": "Beyond the 12 still palaces there is the rhythm of time itself: a ten-year cycle that reshapes a decade, an annual cycle that tests each year.",
+    "cycles": "Beyond the 12 still palaces there is the rhythm of time itself: a ten-year cycle that reshapes a decade, an annual cycle that tests each year.",
     "cta": "Build a chart to see your own life",
     "sample": "Try a full sample chart →"
   },
@@ -179,33 +179,33 @@
       "decision": {
         "title": "A decision right in front of you",
         "question": "Standing at a fork in the road: sign this contract, accept this trip, or take a step back?",
-        "path": "When you need guidance for one specific moment, the wisdom of the I Ching helps you read the times: whether to act decisively or hold steady.",
-        "cta": "Consult the I Ching",
-        "c1": "I Ching"
+        "path": "When you need guidance for one specific moment, the wisdom of the I Ching helps you read the times: whether to act decisively or hold steady.",
+        "cta": "Consult the I Ching",
+        "c1": "I Ching"
       }
     },
     "lensTitle": "Each discipline, a clear lens of its own.",
-    "lensLead": "Zi Wei helps you read the whole picture of your life. When you want a wider view for a specific situation, explore these other refined ancient disciplines.",
+    "lensLead": "Zi Wei helps you read the whole picture of your life. When you want a wider view for a specific situation, explore these other refined ancient disciplines.",
     "disciplines": {
       "tuvi": {
-        "name": "Zi Wei Dou Shu",
-        "desc": "A map of 12 palaces and over 100 stars, fully decoding your character, relationships and every turning point in life.",
-        "cta": "Build your chart now"
+        "name": "Zi Wei Dou Shu",
+        "desc": "A map of 12 palaces and over 100 stars, fully decoding your character, relationships and every turning point in life.",
+        "cta": "Explore Zi Wei"
       },
       "batu": {
-        "name": "BaZi (Four Pillars)",
+        "name": "BaZi (Four Pillars)",
         "desc": "Four pillars—Year, Month, Day, Hour—reading the balance of yin and yang and the rise and fall of the five elements.",
         "cta": "Explore BaZi"
       },
       "chiemtinh": {
-        "name": "Western Astrology",
+        "name": "Western Astrology",
         "desc": "Where the stars stood at the moment you were born, read through the 12 zodiac signs to reveal your inner world and unconscious potential.",
         "cta": "Explore Astrology"
       },
       "kinhdich": {
-        "name": "I Ching",
-        "desc": "The wisdom of timing through 64 hexagrams, illuminating the nature of change and suggesting how to act in a specific situation.",
-        "cta": "Explore the I Ching"
+        "name": "I Ching",
+        "desc": "The wisdom of timing through 64 hexagrams, illuminating the nature of change and suggesting how to act in a specific situation.",
+        "cta": "Explore the I Ching"
       },
       "thansohoc": {
         "name": "Numerology",
@@ -216,19 +216,19 @@
   },
   "compare": {
     "title": "Speed or a conversation? What will truly stay with you?",
-    "lead": "General horoscope sites offer speed. AI chatbots offer flexibility. Meeting a master offers a listening ear. Lá Số Việt provides an accurate, grounded destiny map that stays with you for life.",
+    "lead": "General horoscope sites offer speed. AI chatbots offer flexibility. Meeting a master offers a listening ear. Lá Số Việt provides an accurate, grounded destiny map that stays with you for life.",
     "tableLabel": "One key advantage and practical limits of each approach",
     "groupLabel": "The options you are considering",
-    "colLsv": "Lá Số Việt",
+    "colLsv": "Lá Số Việt",
     "colWeb": "General horoscope sites",
     "colAi": "Asking an AI",
     "colThay": "Meeting a master",
-    "tabLsv": "Lá Số Việt",
+    "tabLsv": "Lá Số Việt",
     "tabWeb": "Horoscope sites",
     "tabAi": "Asking an AI",
     "tabThay": "Meeting a master",
     "cardTitle": "What makes {name} worth choosing?",
-    "fixLabel": "At Lá Số Việt:",
+    "fixLabel": "At Lá Số Việt:",
     "ctaDesktop": "Create my chart →",
     "cta": "Start with my chart →",
     "rows": {
@@ -280,7 +280,7 @@
     "eyebrow": "Honest words from readers",
     "titleA": "What stays with you",
     "titleB": "after being truly seen.",
-    "lead": "Everyone who comes to Lá Số Việt carries a different worry. But everyone leaves carrying something to hold onto.",
+    "lead": "Everyone who comes to Lá Số Việt carries a different worry. But everyone leaves carrying something to hold onto.",
     "readFull": "Read in full ↗",
     "readFullAria": "Read the full note from {name}",
     "more": "See more notes from readers ↓",
@@ -368,15 +368,15 @@
       },
       "q5": {
         "q": "Is my birth date and time information kept private?",
-        "a": "Lá Số Việt treats your privacy as an absolute principle. Anonymous users' birth data is automatically deleted after 24 hours. We do not send your birth date and time, your name, or your chart's content to any third-party tool, and you always have the right to permanently delete your profile at any time.",
+        "a": "Lá Số Việt treats your privacy as an absolute principle. Anonymous users' birth data is automatically deleted after 24 hours. We do not send your birth date and time, your name, or your chart's content to any third-party tool, and you always have the right to permanently delete your profile at any time.",
         "linkLabel": "Privacy Policy"
       }
     }
   },
   "about": {
     "title": "Simplifying Eastern and Western esoteric wisdom, bringing ancient knowledge closer to Vietnamese users.",
-    "body": "Lá Số Việt unifies classic disciplines—from Ziwei and BaZi to Astrology, I Ching, and Numerology. Delivered in clear, accessible Vietnamese with transparent logic, Lá Số Việt helps you deeply understand yourself and prepare proactively for every life milestone.",
-    "link": "Learn more about Lá Số Việt →",
+    "body": "Lá Số Việt unifies classic disciplines—from Ziwei and BaZi to Astrology, I Ching, and Numerology. Delivered in clear, accessible Vietnamese with transparent logic, Lá Số Việt helps you deeply understand yourself and prepare proactively for every life milestone.",
+    "link": "Learn more about Lá Số Việt →",
     "ctaTitle": "Your journey ahead is ready to be illuminated.",
     "cta": "Create your chart now"
   }

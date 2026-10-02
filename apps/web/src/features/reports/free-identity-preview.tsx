@@ -7,12 +7,14 @@ import type {
 } from "@lasoviet/contracts";
 import { useTranslations } from "next-intl";
 
+import { PartFeedback } from "./part-feedback";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import {
   ziweiPresentation,
   type ZiweiPresentationLocale,
 } from "../ziwei/ziwei-presentation";
 import { buildFreeInsights } from "../ziwei/ziwei-free-insights";
+import { SecureLockedPreview } from "../ziwei/secure-locked-preview";
 
 export type FreeIdentityPreviewProps = {
   chart?: NormalizedZiweiChartV1;
@@ -25,6 +27,8 @@ export type FreeIdentityPreviewProps = {
   >;
   preview: FreeIdentityPreviewV1;
   paidUpgradeEligible?: boolean;
+  signInHref?: string;
+  isGuest?: boolean;
 };
 
 export function FreeIdentityPreview({
@@ -35,27 +39,74 @@ export function FreeIdentityPreview({
   loadEvidence,
   preview,
   paidUpgradeEligible = true,
+  signInHref,
+  isGuest,
 }: FreeIdentityPreviewProps) {
   const t = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
 
-  // Pure deterministic presenter derived from chart facts
-  const richInsights = chart ? buildFreeInsights(chart, locale, displayName) : undefined;
+  // Pure deterministic presenter fallback derived from chart facts if server details are absent
+  const richInsights = !preview.insightDetails && chart ? buildFreeInsights(chart, locale, displayName) : undefined;
+
+  const magnetTitle = preview.magnetOffer?.title ?? (locale === "vi" ? "Lá số Tử Vi của bạn, và 2 điều lá số nói riêng về bạn" : "Your Zi Wei Chart, and 2 Key Insights Personal to You");
+  const magnetSubtitle = preview.magnetOffer?.subtitle ?? (locale === "vi" ? "Lập từ dữ liệu sinh chuẩn xác trong 60 giây. Khám phá 2 điều nổi bật nhất về bản mệnh của bạn trước khi đi sâu vào 12 cung." : "Constructed from exact birth data in 60 seconds. Discover the 2 primary highlights about your chart before exploring all 12 palaces.");
+
+  const isGuestActor = Boolean(isGuest ?? preview.audience === "guest");
 
   return (
     <section aria-labelledby="identity-preview-title" className="identity-preview">
       <div className="identity-preview-head">
         <p className="eyebrow">{t("preview.eyebrow")}</p>
-        <h2 id="identity-preview-title">{t("preview.title")}</h2>
+        <h2 id="identity-preview-title">{magnetTitle}</h2>
         <p className="identity-preview-subtitle">
-          {locale === "vi"
-            ? "Tóm lược ba bình diện nổi bật nhất trên lá số giúp bạn nhận diện xu hướng hành động, nắm bắt cơ hội và tự quan sát điểm cần tiết chế."
-            : "A concise overview of three primary chart dimensions to recognize action patterns, leverage opportunities, and observe key tensions."}
+          {magnetSubtitle}
         </p>
       </div>
 
       <div className="identity-insights">
-        {richInsights ? (
+        {preview.insightDetails && preview.insightDetails.length > 0 ? (
+          preview.insightDetails.map((item) => {
+            if (item.isLocked) {
+              return (
+                <article className="identity-insight-card is-locked" key={item.id}>
+                  <SecureLockedPreview
+                    actionHref={signInHref}
+                    actionLabel={locale === "vi" ? "Lưu lá số để đọc điều thứ hai" : "Save chart to reveal insight 2"}
+                    badge={locale === "vi" ? "Chưa mở" : "Locked"}
+                    clippedSentences={item.lockedPreview?.clippedSentences}
+                    counts={item.lockedPreview?.counts}
+                    isGuest={true}
+                    lengthHint={item.lockedPreview?.lengthHint ?? 4}
+                    locale={locale}
+                    signInHref={signInHref}
+                    tagline={item.tagline}
+                    title={item.title}
+                  />
+                </article>
+              );
+            }
+
+            return (
+              <article className="identity-insight-card" key={item.id}>
+                <div className="insight-card-top">
+                  <span className="insight-numeral">{item.numeral}</span>
+                  <span className="insight-tagline">{item.tagline}</span>
+                </div>
+                <h3 className="insight-card-title">{item.title}</h3>
+                <p className="insight-card-prose">{item.description}</p>
+                <div className="insight-card-footer">
+                  <EvidenceDrawer
+                    chart={chart}
+                    chartId={chartId}
+                    evidenceId={item.evidenceId}
+                    locale={locale}
+                    loadEvidence={loadEvidence}
+                  />
+                </div>
+              </article>
+            );
+          })
+        ) : richInsights ? (
           richInsights.items.map((item) => (
             <article className="identity-insight-card" key={item.id}>
               <div className="insight-card-top">
@@ -64,6 +115,7 @@ export function FreeIdentityPreview({
               </div>
               <h3 className="insight-card-title">{item.title}</h3>
               <p className="insight-card-prose">{item.description}</p>
+              <PartFeedback locale={locale} chartId={chartId} partId={item.id} />
               <div className="insight-card-footer">
                 <EvidenceDrawer
                   chart={chart}
@@ -82,6 +134,7 @@ export function FreeIdentityPreview({
                 <span className="insight-numeral">0{index + 1}</span>
               </div>
               <h3 className="insight-card-title">{presentation.insight(insight.id)}</h3>
+              <PartFeedback locale={locale} chartId={chartId} partId={insight.id} />
               <div className="insight-card-footer">
                 <EvidenceDrawer
                   chart={chart}
@@ -95,6 +148,26 @@ export function FreeIdentityPreview({
           ))
         )}
       </div>
+
+      {/* Bản Mệnh Opening Card: opening text for verified signed-in; locked placeholder for guest */}
+      {preview.banMenhPreview ? (
+        <div className="identity-ban-menh-preview-wrap">
+          <SecureLockedPreview
+            actionHref={isGuestActor ? signInHref : (locale === "en" ? `/en/la-so/${chartId}/chon-luan-giai` : `/la-so/${chartId}/chon-luan-giai`)}
+            actionLabel={isGuestActor ? (locale === "vi" ? "Đăng nhập để đọc Bản mệnh" : "Sign in to read Destiny") : (locale === "vi" ? "Mở – 240 Lá" : "Unlock – 240 Lá")}
+            badge={locale === "vi" ? "Xem trước Bản mệnh" : "Destiny Preview"}
+            clippedSentences={preview.banMenhPreview.opening ? [preview.banMenhPreview.opening] : [locale === "vi" ? "Bản mệnh tại Cung Mệnh phản ánh trục cốt lõi của tính cách và thiên hướng phát triển tự nhiên…" : "Your core destiny anchors the life axis, reflecting fundamental nature and natural growth…"]}
+            counts={preview.banMenhPreview.counts}
+            isGuest={isGuestActor}
+            lengthHint={preview.banMenhPreview.lengthHint}
+            locale={locale}
+            priceLa={isGuestActor ? undefined : preview.banMenhPreview.priceLa}
+            signInHref={signInHref}
+            tagline={locale === "vi" ? "Trục Cung Mệnh" : "Life Palace Axis"}
+            title={preview.banMenhPreview.title}
+          />
+        </div>
+      ) : null}
 
       {richInsights ? (
         <div className="identity-signals-grid">

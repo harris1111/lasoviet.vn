@@ -1,3 +1,5 @@
+import { FREE_RESULT_TOPIC_IDS } from "./free-result-topic-catalog";
+
 export const CANONICAL_RESULT_TABS = [
   "chart",
   "overview",
@@ -69,7 +71,10 @@ export type ParsedResultTabState = {
   open?: string;
 };
 
-export function parseResultTabState(searchParams?: Record<string, string | string[] | undefined>): ParsedResultTabState {
+export function parseResultTabState(
+  searchParams?: Record<string, string | string[] | undefined>,
+  context: "legacy" | "free-result" = "legacy",
+): ParsedResultTabState {
   // Reject arrays / multiple values (only accept string with exactly 1 value)
   const rawTab = typeof searchParams?.tab === "string" ? searchParams.tab : undefined;
   const rawOpen = typeof searchParams?.open === "string" ? searchParams.open : undefined;
@@ -90,7 +95,8 @@ export function parseResultTabState(searchParams?: Record<string, string | strin
     const trimmed = rawOpen.trim();
     if (tab === "palaces" && (CANONICAL_TAB_PALACE_IDS as readonly string[]).includes(trimmed)) {
       open = trimmed;
-    } else if (tab === "topics" && (CANONICAL_TOPIC_IDS as readonly string[]).includes(trimmed)) {
+    } else if (tab === "topics" && ((CANONICAL_TOPIC_IDS as readonly string[]).includes(trimmed)
+      || (context === "free-result" && (FREE_RESULT_TOPIC_IDS as readonly string[]).includes(trimmed)))) {
       open = trimmed;
     } else if (tab === "evidence" && (CANONICAL_EVIDENCE_OPEN_IDS as readonly string[]).includes(trimmed)) {
       open = trimmed;

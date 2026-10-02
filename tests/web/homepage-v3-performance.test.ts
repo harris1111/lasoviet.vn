@@ -61,19 +61,30 @@ describe("Homepage V3 Performance & Responsive Assets (Task #44)", () => {
         expect(cssCode).toContain(`la-so-tu-vi-tranh-son-hero-${theme}-${viewport}.webp`);
       }
     }
-    expect(cssCode).toContain('html[data-theme="light"] .hv3-chart');
+    // 2026-10-02 hotfix (docs/qa/2026-10-02-homepage-light-theme-handoff.md §3.1):
+    // this rule (and the other light-theme rules in homepage-v3.css/global.css)
+    // must stay guarded on `:has([data-light-ready])`, or a saved light
+    // preference repaints it on routes — starting with the Trời Nam homepage —
+    // that have no light styling at all.
+    expect(cssCode).toContain('html[data-theme="light"]:has([data-light-ready]) .hv3-chart');
   });
 
-  it("ensures layout preloads the active theme and viewport hero image before paint", () => {
+  it("does not preload the retired V10 hero image, and forces dark on routes without data-light-ready", () => {
+    // 2026-10-02 hotfix: the V10 hero this used to preload belongs to the old
+    // homepage; the live Trời Nam hero (troi-nam-hero.tsx) already renders
+    // with fetchPriority="high" and needs no separate preload <link>. The
+    // old unconditional "apply saved/OS theme on every route" bootstrap is
+    // also what caused the saved-light bug — see
+    // apps/web/src/app/[locale]/theme-bootstrap.test.ts for the full route
+    // matrix regression test of its replacement.
     const layoutCode = fs.readFileSync(
       path.resolve(process.cwd(), "apps/web/src/app/[locale]/layout.tsx"),
       "utf8",
     );
 
-    expect(layoutCode).toContain('rel="preload"');
-    expect(layoutCode).toContain('as="image"');
-    expect(layoutCode).toContain("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-");
-    expect(layoutCode).toContain('"-mobile":"-desktop"');
+    expect(layoutCode).not.toContain("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-");
+    expect(layoutCode).toContain("NOT_READY");
+    expect(layoutCode).toContain("data-light-ready");
   });
 
   it("ensures ticker has off-screen content-visibility optimization", () => {

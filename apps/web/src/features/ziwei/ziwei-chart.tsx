@@ -21,13 +21,19 @@ export function ZiweiChart({
   chart,
   birthSummary,
   locale,
+  selectedPalaceId: controlledPalaceId,
+  onSelectPalace,
 }: {
   chart: NormalizedZiweiChartV1;
   birthSummary?: ZiweiBirthSummaryV1;
   locale: ZiweiPresentationLocale;
+  selectedPalaceId?: string;
+  onSelectPalace?: (palaceId: string) => void;
 }) {
   const presentation = ziweiPresentation(locale);
-  const [selectedPalaceId, setSelectedPalaceId] = useState<string>(chart.soulPalaceId);
+  const [localPalaceId, setLocalPalaceId] = useState<string>(chart.soulPalaceId);
+  const selectedPalaceId = controlledPalaceId ?? localPalaceId;
+  const setSelectedPalaceId = onSelectPalace ?? setLocalPalaceId;
 
   const selectedPalace =
     chart.palaces.find((p) => p.id === selectedPalaceId) ??

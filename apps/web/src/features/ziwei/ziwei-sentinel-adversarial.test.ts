@@ -200,7 +200,7 @@ vi.mock("./calculate-ziwei-chart-action", () => ({
 }));
 
 import ZiweiChartResultPage from "../../app/[locale]/la-so/[chartId]/page";
-import { ZiweiResultTabs } from "./ziwei-result-tabs";
+import { ZiweiFreeResult } from "./ziwei-free-result";
 
 function findElementInTree(node: any, targetComponent: any): any {
   if (!node || typeof node !== "object") return null;
@@ -285,7 +285,7 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
     expect(projectFreeIdentityPreview(mismatchedFacts)).toBeNull();
   });
 
-  it("proves page composition executes the production projector and client props passed to ZiweiResultTabs never leak the sentinel", async () => {
+  it("proves page composition projects safe FD109 client props without leaking the sentinel", async () => {
     currentMockPreviewResult = { ok: true, value: validAdversarialPreview };
 
     const pageElement = await ZiweiChartResultPage({
@@ -293,11 +293,13 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
       searchParams: Promise.resolve({}),
     });
 
-    const tabsElement = findElementInTree(pageElement, ZiweiResultTabs);
+    const tabsElement = findElementInTree(pageElement, ZiweiFreeResult);
     expect(tabsElement).not.toBeNull();
 
     const clientProps = tabsElement.props;
-    expect(clientProps).toHaveProperty("preview");
+    expect(clientProps).toHaveProperty("model");
+    expect(clientProps).not.toHaveProperty("preview");
+    expect(clientProps).not.toHaveProperty("horoscope");
 
     const serializedClientProps = JSON.stringify(clientProps);
     expect(serializedClientProps).not.toContain(EXACT_SENTINEL);
@@ -310,21 +312,22 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
     const serializedPageTree = safeStringify(pageElement);
     expect(serializedPageTree).not.toContain(EXACT_SENTINEL);
 
-    expect(clientProps.preview).toHaveProperty("capabilityId", "ziwei.identity.p0");
-    expect(clientProps.preview.insights).toHaveLength(3);
-    expect(clientProps.preview.insights[0].evidence).not.toHaveProperty("lockedEvidenceNarrative");
-    expect(clientProps.preview.insights[0].evidence).not.toHaveProperty("leak1");
-    expect(clientProps.preview.paidPreview).not.toHaveProperty("secretLockedNarrative");
+    expect(clientProps.model.insights).toHaveLength(1);
+    expect(clientProps.model.insights[0]).not.toHaveProperty("lockedEvidenceNarrative");
+    expect(clientProps.model.insights[0]).not.toHaveProperty("leak1");
+    expect(clientProps.model).not.toHaveProperty("paidPreview");
   });
 
-  it("proves page composition fails closed with notFound when preview is malformed", async () => {
-    currentMockPreviewResult = { ok: true, value: { version: 1, malformed: true } };
-
-    await expect(
-      ZiweiChartResultPage({
-        params: Promise.resolve({ chartId: "c1", locale: "vi" }),
-        searchParams: Promise.resolve({}),
-      }),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
+  it("rejects malformed preview prose while retaining the authorized structural chart", async () => {
+    currentMockPreviewResult = { ok: true, value: { version: 1, malformed: true, description: EXACT_SENTINEL } };
+    const pageElement = await ZiweiChartResultPage({
+      params: Promise.resolve({ chartId: "c1", locale: "vi" }),
+      searchParams: Promise.resolve({}),
+    });
+    const result = findElementInTree(pageElement, ZiweiFreeResult);
+    expect(result).not.toBeNull();
+    expect(result.props.model.insights).toHaveLength(1);
+    expect(JSON.stringify(result.props)).not.toContain(EXACT_SENTINEL);
+    expect(result.props).not.toHaveProperty("preview");
   });
 });

@@ -1,7 +1,8 @@
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
+import { createReportQueryService } from "../reports/report-query.service.js";
 import { and, eq } from "drizzle-orm";
 import type { CurrentActor, Result } from "@lasoviet/contracts";
 import {
-  commerceEntitlements,
   reportAssets,
   reportReservations,
   type Database,
@@ -34,26 +35,33 @@ export function createDatabaseAssetDownloadRepository(
   return {
     async findOwnedStoredPdf(assetId, ownerId) {
       const [asset] = await database
-        .select({ objectKey: reportAssets.objectKey })
+        .select({ objectKey: reportAssets.objectKey, reportId: reportReservations.reportId })
         .from(reportAssets)
         .innerJoin(
           reportReservations,
           eq(reportReservations.reportVersionId, reportAssets.reportVersionId),
-        )
-        .innerJoin(
-          commerceEntitlements,
-          eq(commerceEntitlements.id, reportReservations.entitlementId),
         )
         .where(
           and(
             eq(reportAssets.id, assetId),
             eq(reportAssets.status, "stored"),
             eq(reportAssets.mediaType, "application/pdf"),
-            eq(commerceEntitlements.ownerId, ownerId),
           ),
         )
         .limit(1);
-      return asset ?? null;
+      if (!asset) return null;
+      try {
+        const record = await createDatabaseReportQueryRepository(database).readAuthorizedReport(ownerId, asset.reportId);
+        if (!record?.entitlements.some((entitlement) => entitlement.active && entitlement.sku === "ZIWEI-IDENTITY-P0")) return null;
+        const query = createReportQueryService({ repository: { readAuthorizedReport: async () => record } });
+        const result = await query.getReport({ kind: "account", userId: ownerId, sessionId: "asset-download", requestId: "asset-download" }, asset.reportId);
+        if (!result.ok || !("state" in result.value) || result.value.state !== "ready") return null;
+        const report = result.value;
+        if (report.contentVersion === "ziwei-palaces.v1" || "lockedSections" in report.content) return null;
+        return { objectKey: asset.objectKey };
+      } catch {
+        return null;
+      }
     },
   };
 }

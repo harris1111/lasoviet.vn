@@ -11,12 +11,18 @@
     "pack_selected",
     "checkout_created",
     "payment_confirmed",
+    "unlock_confirm_view",
+    "unlock_confirmed",
     "la_spent",
+    "welcome_grant",
     "report_opened",
     "report_section_read",
+    "part_feedback",
+    "guarantee_claimed",
     "upgrade_view",
     "upgrade_purchased",
-    "return_visit"
+    "return_visit",
+    "free_result_interaction"
   ],
   "events": [
     {
@@ -109,12 +115,40 @@
       ]
     },
     {
+      "name": "unlock_confirm_view",
+      "properties": [
+        "sku",
+        "price_la",
+        "amount",
+        "balance",
+        "balance_after",
+        "placement"
+      ]
+    },
+    {
+      "name": "unlock_confirmed",
+      "properties": [
+        "sku",
+        "amount",
+        "price_la",
+        "balance_after"
+      ]
+    },
+    {
       "name": "la_spent",
       "properties": [
         "sku",
         "amount",
         "balance_after",
         "feature_id"
+      ]
+    },
+    {
+      "name": "welcome_grant",
+      "properties": [
+        "amount",
+        "balance_after",
+        "grant_type"
       ]
     },
     {
@@ -131,6 +165,26 @@
         "sku",
         "section_id",
         "read_depth_percent"
+      ]
+    },
+    {
+      "name": "part_feedback",
+      "properties": [
+        "section_id",
+        "feedback",
+        "rating",
+        "sku",
+        "is_free"
+      ]
+    },
+    {
+      "name": "guarantee_claimed",
+      "properties": [
+        "sku",
+        "amount",
+        "amount_restored",
+        "reason",
+        "section_id"
       ]
     },
     {
@@ -155,6 +209,15 @@
       "properties": [
         "days_since_last_visit",
         "return_count"
+      ]
+    },
+    {
+      "name": "free_result_interaction",
+      "properties": [
+        "stage",
+        "section_id",
+        "locale",
+        "source_kind"
       ]
     }
   ]

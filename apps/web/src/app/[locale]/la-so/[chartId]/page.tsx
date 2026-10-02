@@ -1,8 +1,10 @@
+import { loadTopUpCompletion, TopUpCompletionNotice } from "../../../../features/commerce/topup-completion";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 
+import { PrivateApiClientError } from "../../../../api/private-api-client";
 import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
 import { SiteHeader } from "../../../../components/site-header";
 import { AnonymousDataDeletionControl } from "../../../../features/privacy/anonymous-data-deletion-control";
@@ -10,8 +12,10 @@ import { deleteAnonymousDataAction } from "../../../../features/privacy/delete-a
 import { freeIdentityPreviewLoader } from "../../../../features/reports/load-free-identity-preview";
 import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
-import { ZiweiResultTabs } from "../../../../features/ziwei/ziwei-result-tabs";
-import { projectFreeIdentityPreview } from "../../../../features/ziwei/ziwei-free-preview-projection";
+import { ZiweiFreeResult } from "../../../../features/ziwei/ziwei-free-result";
+import { buildFreeResultModel } from "../../../../features/ziwei/ziwei-free-result-model";
+import { resolveFreeResultSource } from "../../../../features/ziwei/free-result-source-resolver";
+import { Guest24hDeletionBanner } from "../../../../features/ziwei/guest-24h-deletion-banner";
 import {
   parseResultTabState,
   buildCanonicalTabUrl,
@@ -46,30 +50,47 @@ export default async function ZiweiChartResultPage({
   // 1. Authorize actor and load chart/preview FIRST to preserve private route 404/auth boundary
   const [chartResult, previewResult, horoscopeResult, actor, t] = await Promise.all([
     loadZiweiChart.loadChart(chartId),
-    freeIdentityPreviewLoader.loadPreview(chartId),
+    freeIdentityPreviewLoader.loadPreview(chartId).catch((error: unknown) => {
+      if (error instanceof PrivateApiClientError && error.code === "PRIVATE_API_RESPONSE_INVALID") {
+        return { ok: false as const, error: { code: "INSUFFICIENT_EVIDENCE" as const } };
+      }
+      throw error;
+    }),
     loadZiweiChart.loadHoroscope(chartId).catch(() => ({ ok: false as const })),
     resolveCurrentActor(),
     getTranslations("ziwei"),
   ]);
-  if (!chartResult.ok || !previewResult.ok) notFound();
+  if (!chartResult.ok || (!previewResult.ok && previewResult.error.code !== "INSUFFICIENT_EVIDENCE")) notFound();
 
   // 2. Canonicalize query params ONLY AFTER authorized chart loaders pass
-  const tabState = parseResultTabState(rawSearchParams);
+  const { topupOrder, ...tabSearchParams } = rawSearchParams ?? {};
+  const tabState = parseResultTabState(tabSearchParams, "free-result");
   const currentChartPath = localizedChartPath(locale, chartId);
-  const canonicalChartUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+  const completion = await loadTopUpCompletion(actor, topupOrder, currentChartPath);
+  const canonicalTabUrl = buildCanonicalTabUrl(currentChartPath, tabState);
+  const canonicalChartUrl = completion && typeof topupOrder === "string" ? `${canonicalTabUrl}${canonicalTabUrl.includes("?") ? "&" : "?"}topupOrder=${encodeURIComponent(topupOrder)}` : canonicalTabUrl;
 
   // If incoming query parameters differ from canonical URL, safely redirect to canonical URL
-  if (hasNonCanonicalQueryParams(rawSearchParams, tabState)) {
+  if (hasNonCanonicalQueryParams(tabSearchParams, tabState) || (topupOrder !== undefined && !completion)) {
     redirect(canonicalChartUrl);
   }
 
-  // 3. Project preview data through strict production boundary to prevent arbitrary/locked narrative in RSC props
-  const safePreview = projectFreeIdentityPreview(previewResult.value);
-  if (!safePreview) notFound();
+  // 3. Resolve only structural metadata for this authorized chart/version.
+  const safePreview = resolveFreeResultSource({
+    chartId, chartVersionId: chartResult.value.chartVersionId,
+    preview: previewResult.ok ? previewResult.value : null,
+  });
 
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
+  const isGuest = actor.kind !== "account" || actor.emailVerified !== true;
 
   const displayName = chartResult.value.birthSummary.displayName;
+  const freeResultModel = buildFreeResultModel({
+    chart: chartResult.value.chart,
+    preview: safePreview,
+    horoscope: horoscopeResult.ok ? horoscopeResult.value : undefined,
+    isGuest, locale, displayName,
+  });
   const heroTitle = displayName
     ? t("personalizedTitle", { name: displayName })
     : t("title");
@@ -80,6 +101,7 @@ export default async function ZiweiChartResultPage({
   return (
     <>
       <SiteHeader
+        variant="result"
         currentPath={currentChartPath}
         locale={locale}
         signInReturnPath={canonicalChartUrl}
@@ -88,50 +110,29 @@ export default async function ZiweiChartResultPage({
         <section className="result-hero container">
           <p className="eyebrow">{t("private")}</p>
           <h1>{heroTitle}</h1>
-          <p>{heroCopy}</p>
-        </section>
-
-        {/* 5-layer result tabs shell */}
-        <ZiweiResultTabs
-          basePath={currentChartPath}
-          birthSummary={chartResult.value.birthSummary}
-          chart={chartResult.value.chart}
-          chartId={chartId}
-          displayName={displayName}
-          horoscope={horoscopeResult.ok ? horoscopeResult.value : undefined}
-          initialState={tabState}
-          locale={locale}
-          loadEvidence={loadZiweiEvidence}
-          preview={safePreview}
-        />
-
-        <section aria-labelledby="paid-report-cta-heading" className="result-paid-report-cta">
-          <div className="result-paid-report-head">
-            <p className="eyebrow">{locale === "en" ? "Go deeper into your chart" : "Đọc sâu hơn lá số của bạn"}</p>
-            <h2 id="paid-report-cta-heading">
-              {locale === "en" ? "From today's 3 highlights to all 12 palaces" : "Từ 3 điểm hôm nay, đến toàn bộ 12 cung"}
-            </h2>
-            <p className="result-paid-report-body">
-              {locale === "en"
-                ? "You just read three highlights from your Life Palace. Your chart still has the Body Palace, the Four Transformations, and other configurations left to open — see them all when you're ready to go deeper."
-                : "Bạn vừa đọc 3 điểm nổi bật từ Cung Mệnh. Lá số của bạn còn Cung Thân, Tứ Hóa và các cấu hình khác chưa mở — xem đầy đủ khi bạn sẵn sàng đọc sâu hơn."}
-            </p>
-          </div>
-          <div className="result-paid-report-actions">
+          <p className="result-hero-copy">{heroCopy}</p>
+          <div className="result-hero-actions">
             <Link
               className="button"
               href={locale === "en" ? `/en/la-so/${chartId}/chon-luan-giai` : `/la-so/${chartId}/chon-luan-giai`}
             >
-              {locale === "en" ? "Choose a reading" : "Chọn luận giải phù hợp"}
-            </Link>
-            <Link
-              className="button button-secondary"
-              href={locale === "en" ? "/en/bao-cao-mau/tu-vi" : "/bao-cao-mau/tu-vi"}
-            >
-              {locale === "en" ? "View sample report" : "Xem bản luận giải mẫu"}
+              {t("topicLink")}
             </Link>
           </div>
         </section>
+
+        {completion && <TopUpCompletionNotice continuation={completion} locale={locale} chartId={chartId} />}
+        <ZiweiFreeResult
+          basePath={currentChartPath}
+          chart={chartResult.value.chart}
+          birthSummary={chartResult.value.birthSummary}
+          chartId={chartId}
+          initialState={tabState}
+          locale={locale}
+          loadEvidence={loadZiweiEvidence}
+          model={freeResultModel}
+          signInHref={signInHref}
+        />
 
         <div className="container result-page-footer-container">
           {actor.kind === "anonymous" ? (

@@ -89,6 +89,7 @@ export type AppEnvironment = {
   garage: GarageEnvironment;
   sepay: SePayEnvironment;
   sepayAutoApproveTopUps?: boolean;
+  freePalaceGenerationEnabled?: boolean;
   telegram?: {
     botToken: string;
     chatId: string;
@@ -241,6 +242,7 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     garage: GarageEnvironmentSchema,
     sepay: SePayEnvironmentSchema,
     sepayAutoApproveTopUps: z.boolean().default(false),
+    freePalaceGenerationEnabled: z.boolean().optional(),
     telegram: z
       .object({
         botToken: trimmedNonEmpty,
@@ -251,6 +253,11 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
   })
   .strict()
   .superRefine((environment, context) => {
+    if (environment.freePalaceGenerationEnabled &&
+        (!environment.ai.enabled || !environment.ai.productionEnabled)) {
+      context.addIssue({ code: "custom", path: ["freePalaceGenerationEnabled"],
+        message: "Free palace generation requires approved production AI" });
+    }
     if (environment.nodeEnv !== "production") {
       return;
     }

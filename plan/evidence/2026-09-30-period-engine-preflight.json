@@ -1,0 +1,326 @@
+{
+  "status": "engine_preflight_only_not_real_writer_acceptance",
+  "asOfDate": "2026-09-30",
+  "samples": [
+    {
+      "index": 0,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 3,
+      "sha256": "90d13bfd868dbc186993d0027d52922b8833fa48f6aa955e4ba0ed68f14ae48c"
+    },
+    {
+      "index": 0,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "e96903aaeeb57cedc10d5dc0eee8ff4619363062a08779c86e11fe925965442a"
+    },
+    {
+      "index": 1,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 3,
+      "sha256": "dda3fee0f1f24ba9852e18888342fde83058b2b1781fcce261ae5500d4099510"
+    },
+    {
+      "index": 1,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "66b02dc70ebab6e42f1c5fbb635072257aa479750f7e6ed3d7f1d8e70492c1ac"
+    },
+    {
+      "index": 2,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "c7f8dd710c558b774aa08dc86dddbb3ca1175e6ff03af63e35feec4741620a97"
+    },
+    {
+      "index": 2,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "0df26e136d09147d91781327e8af092488c904af9c8a008a50d36cf63043f11f"
+    },
+    {
+      "index": 3,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 5,
+      "sha256": "1ff553eacb01afb8d356520b6e51e9a37be9fb34880ce4f54a4dd608f0f957dd"
+    },
+    {
+      "index": 3,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 29,
+      "sha256": "531e2985402cb467409e15ffc3c869d3499deb0da6787fbe14cf2f0c34c474b2"
+    },
+    {
+      "index": 4,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "0de0af88faf62c4d94d7dbb953e47953f861cc514747d4dd839297001b758d57"
+    },
+    {
+      "index": 4,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "0eeae8c10bcb29201b7d1a1bd04d1bc3f662df7d731a701f099604d9d7b84008"
+    },
+    {
+      "index": 5,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 5,
+      "sha256": "9993353ee0a7bbfc1610efe145028d50a6c719349d68e899d7f060283a05fc09"
+    },
+    {
+      "index": 5,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 29,
+      "sha256": "cb61b4f94f3659016fb852ba7fcd33d81dcace712065edcd76b4c975cabc2ac2"
+    },
+    {
+      "index": 6,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "5e645b8468f9684928b848bcb0fb4e9fffbfa77c8b4e838947dcab46b1a26a4f"
+    },
+    {
+      "index": 6,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "eda9d347fb00b4062e28cadf746d2d636ac6544344d632bea05a875ce498c7c0"
+    },
+    {
+      "index": 7,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 3,
+      "sha256": "ea20ec5b0eae2f9f8eb9b149a7c77b055925baafb1b966ff1ef0105deea35697"
+    },
+    {
+      "index": 7,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 28,
+      "sha256": "a90da6053bce9249863998e0ec66d7ffe76f4778765c7e595d37cbf5dd7083cd"
+    },
+    {
+      "index": 8,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "7373f53ff3445e5dfe399ec8b21812adf0b50c2cee703da5e6912a4b51ed9085"
+    },
+    {
+      "index": 8,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "4887aea90d89cd2dd8e675847fd3ece5b88b6a29616e07ca270e2c1633f08d8d"
+    },
+    {
+      "index": 9,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "818d364f33b84d51ac138fec0ccff47afda7d5cb8f1d49062148cc2a4220bb97"
+    },
+    {
+      "index": 9,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "d50cadb8589713b5c5bda164d806dbc3707ed4bfa373e974a8c4d1332d3c3414"
+    },
+    {
+      "index": 10,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 3,
+      "sha256": "affe34fff37ace3e739325e79865142a3a66654fd34b4859ee17667f465c36af"
+    },
+    {
+      "index": 10,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 28,
+      "sha256": "169895f380b3a77d2588e0492e33b37693697f0f275bfd447bd022232fb4d276"
+    },
+    {
+      "index": 11,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 3,
+      "sha256": "383e6ec45d83278314de0a9000e574ddad680e0548946255b48df043004b7393"
+    },
+    {
+      "index": 11,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 28,
+      "sha256": "5f4c1eebab9818d1d4589fb293cbbe62e3a18c27821b6466a0b962e97701a690"
+    },
+    {
+      "index": 12,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "98fc9c6a7293bb30b57cada156489253a7ac179b075987a4d8f8858b4f365d03"
+    },
+    {
+      "index": 12,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 28,
+      "sha256": "8858996d57c08e39d5a7472040177c757789544226a0bf71ef114c6720c77556"
+    },
+    {
+      "index": 13,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "fcf40f76f6797fc08c5d2b1e0707b54d7e3cf5591b9cef83accfe36eaf87315d"
+    },
+    {
+      "index": 13,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "2315199679233ba28511b964b5cde4dc086765c3ef35c90c99207170e5c74597"
+    },
+    {
+      "index": 14,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "60714b79dd118559404844d62e4e0c22229ce0bb58e15324da795e011b741ad5"
+    },
+    {
+      "index": 14,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "7ec154acae8860f70141c50c0380c35d6901e7435b85ce14e74376451be18e25"
+    },
+    {
+      "index": 15,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "c32d84fcfabf44d4b1a4c60301b011fdf41d95495ddb4f070835a2d0892a0ac4"
+    },
+    {
+      "index": 15,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "5fcfaf2468c918062f03fe49fa35cd2e5e325b7ff21b004e36325791fec47360"
+    },
+    {
+      "index": 16,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "aef0172d04a10bb0627b87e7dc927dd4f96b9abf045611ea311726f2be1f33d7"
+    },
+    {
+      "index": 16,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "1c25a4634d9bc41db8aeae166297f7df9acc9ba5771897d17b797978eb837b82"
+    },
+    {
+      "index": 17,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 5,
+      "sha256": "009a22d5210376ab90a80d50ecc31648f2687b16c96f0a2d8624bc1b9c906a3d"
+    },
+    {
+      "index": 17,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 29,
+      "sha256": "2b04580e08f69b5b82f362b01725e43a6b0dce70393b49e35c0fe2fc1bb40a63"
+    },
+    {
+      "index": 18,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 3,
+      "sha256": "a8c4224769570c0954a350087e8522255e7cde624ba96e72bae55489cbcd7f5e"
+    },
+    {
+      "index": 18,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 28,
+      "sha256": "16e6377ea01b89a87db24d43b4441a48abc9591f416aa0852048b3f47cb83a7b"
+    },
+    {
+      "index": 19,
+      "kind": "monthly",
+      "periodKey": "2026-08-regular",
+      "periodCount": 1,
+      "evidenceCount": 4,
+      "sha256": "43dff7bf8ebbe877503b20084a30557c8fccd572e2bd638d7046c3880356cb46"
+    },
+    {
+      "index": 19,
+      "kind": "annual",
+      "periodKey": "2026",
+      "periodCount": 12,
+      "evidenceCount": 27,
+      "sha256": "c4a39ee8c21b45a234163a33046c094603944612b837d7e292f72e52b7631aef"
+    }
+  ]
+}

@@ -162,6 +162,26 @@ describe("create top-up order", () => {
     expect(redirect).toHaveBeenCalledWith("/thanh-toan/topup-1");
   });
 
+  it("forwards explicitly confirmed intent terms and retains them through sign-in", async () => {
+    const continuation = { purchaseIntentId: "11111111-1111-4111-8111-111111111111", expectedIntentVersion: 3, confirmedPriceLa: 240, returnTab: "palaces" as const, returnOpen: "life" };
+    const returnPath = `/nap-la?pack=LA-ENTRY-300&intent=${continuation.purchaseIntentId}&intentVersion=3&price=240&tab=palaces&open=life`;
+    const { createTopUpOrderFormAction } = await import("./create-topup-order.js");
+    const form = new FormData();
+    form.set("packId", "LA-ENTRY-300");
+    form.set("locale", "vi");
+    form.set("returnPath", returnPath);
+    form.set("continuation", JSON.stringify(continuation));
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    const request = vi.fn().mockResolvedValue({ ok: true, value: validTopUpStatus });
+    vi.mocked(privateApiClient).mockReturnValue({ request });
+    await createTopUpOrderFormAction(form);
+    expect(request).toHaveBeenCalledWith("/commerce/wallet/top-up-orders", expect.objectContaining({ body: JSON.stringify({ packId: "LA-ENTRY-300", locale: "vi", continuation }) }));
+    const { VerifiedAccountResolutionError } = await import("../../auth/resolve-current-actor.js");
+    vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
+    await createTopUpOrderFormAction(form);
+    expect(redirect).toHaveBeenLastCalledWith(`/dang-nhap?callbackURL=${encodeURIComponent(returnPath)}`);
+  });
+
   it("throws instead of redirecting when the private API call fails", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     vi.mocked(privateApiClient).mockReturnValue({

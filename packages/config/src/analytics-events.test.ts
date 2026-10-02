@@ -18,12 +18,18 @@ describe("analytics-events config and schema", () => {
     "pack_selected",
     "checkout_created",
     "payment_confirmed",
+    "unlock_confirm_view",
+    "unlock_confirmed",
     "la_spent",
+    "welcome_grant",
     "report_opened",
     "report_section_read",
+    "part_feedback",
+    "guarantee_claimed",
     "upgrade_view",
     "upgrade_purchased",
     "return_visit",
+    "free_result_interaction",
   ] as const;
 
   it("preserves exact canonical funnel and matches canonical event names", () => {

@@ -1,3 +1,4 @@
+import { teaserCyclesFor } from "./comprehensive-report-decadal-teasers.js";
 import {
   ZiweiComprehensiveReportContentV2Schema,
   ZiweiComprehensiveReportContentV3Schema,
@@ -640,7 +641,7 @@ export function validateComprehensiveZiweiReportV4_1(
   }
 
   const report: ZiweiComprehensiveReportContentV3 = parsed.data;
-  const { birthTimeSensitivity, ...v4Report } = report;
+  const { birthTimeSensitivity, decadalTeasers, ...v4Report } = report;
   const baseResult = validateComprehensiveZiweiReportV4(v4Report, facts, options);
   if (!baseResult.ok) return baseResult;
 
@@ -649,11 +650,23 @@ export function validateComprehensiveZiweiReportV4_1(
       key.startsWith("sensitivity.stable.") || key.startsWith("sensitivity.sensitive."),
     ),
   );
+  const teaserErrors: string[] = [];
+  if (decadalTeasers) {
+    const cycles = teaserCyclesFor(facts);
+    if (decadalTeasers.length !== cycles.length || decadalTeasers.some((item, index) => {
+      const cycle = cycles[index];
+      return !cycle || item.ordinal !== cycle.ordinal || item.palaceId !== cycle.palaceId ||
+        item.ageRange.some((age, i) => age !== cycle.ageRange[i]) || item.yearRange.some((year, i) => year !== cycle.yearRange[i]);
+    })) teaserErrors.push("decadalTeasers must match derived cycles");
+    for (const item of decadalTeasers) for (const key of item.evidenceKeys) {
+      if (!facts.evidenceKeys.includes(key)) teaserErrors.push(`Unsupported decadal teaser evidence key: ${key}`);
+    }
+  }
   const sensitivityKeys = [
     ...birthTimeSensitivity.stableFactors.evidenceKeys,
     ...birthTimeSensitivity.sensitiveFactors.evidenceKeys,
   ];
-  const errors: string[] = [];
+  const errors: string[] = [...teaserErrors];
   if (birthTimeSensitivity.stableFactors.evidenceKeys.length === 0 ||
       birthTimeSensitivity.sensitiveFactors.evidenceKeys.length === 0) {
     errors.push("birthTimeSensitivity requires evidence for both factor narratives");
@@ -664,6 +677,7 @@ export function validateComprehensiveZiweiReportV4_1(
     }
   }
   const text: CustomerTextBlock[] = [
+    ...(decadalTeasers ?? []).map((item) => ({ section: `decadalTeasers[${item.ordinal}]`, text: item.narrative })),
     { section: "birthTimeSensitivity.title", text: birthTimeSensitivity.title },
     { section: "birthTimeSensitivity.stableFactors.title", text: birthTimeSensitivity.stableFactors.title },
     { section: "birthTimeSensitivity.stableFactors.narrative", text: birthTimeSensitivity.stableFactors.narrative },

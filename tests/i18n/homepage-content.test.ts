@@ -16,22 +16,26 @@ function collectStrings(value: unknown): string[] {
 }
 
 describe("homepage content and structure requirements", () => {
-  it("orchestrates the 11 homepage V3 data-home-block sections inside <main> in order", () => {
+  it("orchestrates the Trời Nam data-troi-nam-block sections inside <main> in order (2026-10-02 homepage swap)", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
+    // "hero" is intentionally not asserted here: TroiNamHero carries its own
+    // `data-troi-nam-block="hero"` on its internal <section>, so it never
+    // appears in page.tsx's own source text.
+    expect(pageSource).toContain("<TroiNamHero");
+
     const blockMatches = Array.from(
-      pageSource.matchAll(/data-home-block="([^"]+)"/g),
+      pageSource.matchAll(/data-troi-nam-block="([^"]+)"/g),
       (match) => match[1],
     );
 
     expect(blockMatches).toEqual([
-      "hero",
-      "showcase",
       "story",
+      "ticker",
       "explore",
       "needs",
-      "comparison",
+      "compare",
       "testimonials",
       "usp",
       "value",
@@ -104,6 +108,16 @@ describe("homepage content and structure requirements", () => {
     const pagePath = resolve(rootDir, "apps/web/src/app/[locale]/page.tsx");
     const pageSource = readFileSync(pagePath, "utf8");
 
+    // 2026-10-02 homepage swap: #lap-la-so, #la-so-mau and #nhu-cau now live
+    // on the Trời Nam feature components themselves (TroiNamHero/Explore/Needs)
+    // rather than on page.tsx, so this check spans page.tsx plus those files.
+    const combinedSource = [
+      pageSource,
+      readFileSync(resolve(rootDir, "apps/web/src/features/troi-nam/troi-nam-hero.tsx"), "utf8"),
+      readFileSync(resolve(rootDir, "apps/web/src/features/troi-nam/troi-nam-explore.tsx"), "utf8"),
+      readFileSync(resolve(rootDir, "apps/web/src/features/troi-nam/troi-nam-needs.tsx"), "utf8"),
+    ].join("\n");
+
     const requiredAnchors = [
       "#dich-vu",
       "#lap-la-so",
@@ -117,8 +131,8 @@ describe("homepage content and structure requirements", () => {
 
     for (const anchor of requiredAnchors) {
       expect(
-        pageSource.includes(anchor) || pageSource.includes(anchor.slice(1)),
-        `page.tsx must contain anchor ${anchor}`,
+        combinedSource.includes(anchor) || combinedSource.includes(anchor.slice(1)),
+        `homepage sources must contain anchor ${anchor}`,
       ).toBe(true);
     }
 

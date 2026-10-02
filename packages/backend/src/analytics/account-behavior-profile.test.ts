@@ -70,6 +70,22 @@ describe("account-behavior-profile", () => {
     expect(update.laBalance).toBe(50);
   });
 
+  it("updates la balance on unlock_confirmed and welcome_grant", () => {
+    const unlockUpdate = computeBehaviorProfileUpdateFromEvent(null, {
+      name: "unlock_confirmed",
+      properties: { balance_after: 120, sku: "ZIWEI-NATAL-EXCERPT-P0" },
+      occurredAt: new Date("2026-09-14T01:00:00Z"),
+    });
+    expect(unlockUpdate.laBalance).toBe(120);
+
+    const grantUpdate = computeBehaviorProfileUpdateFromEvent(null, {
+      name: "welcome_grant",
+      properties: { amount: 60, balance_after: 60, grant_type: "welcome_verified_account" },
+      occurredAt: new Date("2026-09-14T01:00:00Z"),
+    });
+    expect(grantUpdate.laBalance).toBe(60);
+  });
+
   it("tracks max depth for report_section_read", () => {
     const existing: ExistingBehaviorProfile = {
       userId: "usr_123",

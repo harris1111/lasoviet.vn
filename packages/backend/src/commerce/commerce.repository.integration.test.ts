@@ -45,7 +45,9 @@ import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_PROMPT_VERSION_V2,
   REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY,
+  REPORT_PROMPT_VERSION_V4_2_BEGINNER,
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+  REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
   v4_1SensitivityReportVersions,
   v4ReportVersions,
 } from "../reports/identity-report-config.js";
@@ -1539,7 +1541,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     await expect(
       database
         .update(commerceEntitlements)
-        .set({ sku: "ZIWEI-CAREER-P0" })
+        .set({ sku: "ZIWEI-CAREER-P0", dailyBonusExpiresAt: null })
         .where(eq(commerceEntitlements.id, entitlement1!.id)),
     ).rejects.toMatchObject({
       cause: expect.objectContaining({
@@ -1555,7 +1557,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     try {
       await database
         .update(commerceEntitlements)
-        .set({ sku: "ZIWEI-CAREER-P0" })
+        .set({ sku: "ZIWEI-CAREER-P0", dailyBonusExpiresAt: null })
         .where(eq(commerceEntitlements.id, entitlement1!.id));
     } finally {
       await database.execute(sql`
@@ -2724,7 +2726,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     }
   });
 
-  it("proves default resolver activates V4.1.2 and emits V2 event with timing fields", async () => {
+  it("proves default resolver activates V4.2 beginner and emits V2 event with timing fields", async () => {
     const fixedNow = new Date("2026-09-13T10:00:00.000Z");
     const repo = createDatabaseCommerceRepository(database, { now: () => fixedNow });
 
@@ -2754,9 +2756,9 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(reservation?.timingRuleVersion).toBe("ziwei.timing.v1");
     expect(reservation?.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
     expect(reservation?.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V4);
-    expect(reservation?.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY);
+    expect(reservation?.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_2_BEGINNER);
     expect(reservation?.reportConfigVersion).toBe(
-      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
     );
 
     const [outboxEvent] = await database
@@ -2774,9 +2776,9 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(payload.timingRuleVersion).toBe("ziwei.timing.v1");
     expect(payload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
     expect(payload.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V4);
-    expect(payload.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_1_2_SENSITIVITY);
+    expect(payload.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_2_BEGINNER);
     expect(payload.reportConfigVersion).toBe(
-      REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
+      REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER,
     );
 
     // Verify default V4.1 entitlement includes the sensitivity section.

@@ -185,3 +185,11 @@ describe("wallet commerce V1 contracts", () => {
   });
 
 });
+
+it("accepts member prices without discounting membership fees or daily standalone purchases", () => {
+  for (const [sku, amountLa] of [["ZIWEI-NATAL-EXCERPT-P0", 192], ["ZIWEI-PALACE-LIFE-P0", 96], ["ZIWEI-CAREER-P0", 384], ["ZIWEI-MONTHLY-P0", 240], ["ZIWEI-IDENTITY-P0", 768]] as const) {
+    expect(WalletContentPriceV1Schema.safeParse({ sku, amountLa }).success).toBe(true);
+  }
+  expect(WalletContentPriceV1Schema.safeParse({ sku: "MEMBERSHIP-MONTHLY-P0", amountLa: 1200 }).success).toBe(false);
+  expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-TODAY-P0", amountLa: 48 }).success).toBe(false);
+});

@@ -114,7 +114,10 @@ export function HomepageV3Explore({ locale }: { locale: "en" | "vi" }) {
         </div>
 
         <div className="hv3-panel" aria-live="polite">
-          <h3 className="hv3-h3-lg">{t("palacePrefix")} {tp(`${selected.id}.name`)}</h3>
+          {/* Non-breaking space: "Cung" must never wrap away from the palace name that
+              follows it (2026-10-02 orphan-word fix) — some names are themselves two
+              words (e.g. "Phu Thê"), each already protected the same way in its own string. */}
+          <h3 className="hv3-h3-lg">{t("palacePrefix")}&nbsp;{tp(`${selected.id}.name`)}</h3>
           <p className="hv3-accent hv3-strong">{tp(`${selected.id}.title`)}</p>
           <p className="hv3-panel-desc">{tp(`${selected.id}.desc`)}</p>
           <div className="hv3-relations">

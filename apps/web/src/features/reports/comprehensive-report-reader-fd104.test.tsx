@@ -149,3 +149,68 @@ describe("ComprehensiveReportReader FD-104 wave 1", () => {
     expect(html).toContain('aria-current="true"');
   });
 });
+
+it("shows past and future teasers and an accessible link to the full current cycle", () => {
+  const report = v3Report(true);
+  if (!("currentDecadal" in report.content)) throw new Error("Expected Tier 2 content");
+  report.content.decadalTeasers = [0, 3].map((ordinal) => ({
+    ...chartSnapshot.decadal.cycles[ordinal]!,
+    narrative: ordinal === 0 ? "Chặng đầu đời đi qua cung Mệnh." : "Chặng sau đi qua cung Tử Tức.",
+  }));
+  const html = renderToStaticMarkup(<ComprehensiveReportReader report={report} />);
+  expect(html).toContain("Chặng đầu đời đi qua cung Mệnh.");
+  expect(html).toContain("Chặng sau đi qua cung Tử Tức.");
+  expect(html).toContain("report-cycle-list");
+  expect(html).toContain('id="section-current-decadal" tabindex="-1"');
+  expect(html).toContain("report-cycle-cta is-primary");
+  expect(renderToStaticMarkup(<ComprehensiveReportReader report={v3Report(true)} />)).not.toContain("report-cycle-list");
+});
+
+it("links to full current decadal cycle reading for late ordinals 8 and 11 from full 12-cycle snapshot", () => {
+  const full12Cycles = Array.from({ length: 12 }, (_, ordinal) => ({
+    ordinal,
+    palaceId: `ziwei.palace.${palaceIds[ordinal % palaceIds.length]!}` as const,
+    ageRange: [5 + 10 * ordinal, 14 + 10 * ordinal] as [number, number],
+    yearRange: [1997 + 10 * ordinal, 2006 + 10 * ordinal] as [number, number],
+  }));
+
+  for (const lateOrdinal of [8, 11] as const) {
+    const lateChartSnapshot = {
+      ...chartSnapshot,
+      decadal: {
+        currentOrdinal: lateOrdinal,
+        cycles: full12Cycles,
+      },
+    } as unknown as ReportChartSnapshotV1;
+
+    const report = v3Report(true);
+    report.chartSnapshot = lateChartSnapshot;
+    if (!("currentDecadal" in report.content)) {
+      throw new Error("Expected Tier 2 report content");
+    }
+    report.content.currentDecadal = {
+      title: `Đại vận ${lateOrdinal}`,
+      state: "active",
+      index: lateOrdinal,
+      ageRange: full12Cycles[lateOrdinal]!.ageRange,
+      yearRange: full12Cycles[lateOrdinal]!.yearRange,
+      narrative: "Nội dung đại vận chặng muộn.",
+    };
+
+    // 7 teasers around lateOrdinal
+    const teaserOrdinals = [4, 5, 6, 7, 8, 9, 10, 11].filter((o) => o !== lateOrdinal);
+    report.content.decadalTeasers = teaserOrdinals.map((ordinal) => ({
+      ...full12Cycles[ordinal]!,
+      narrative: `Nội dung teaser chặng ${ordinal}.`,
+    }));
+
+    const html = renderToStaticMarkup(<ComprehensiveReportReader report={report} />);
+    expect(html).toContain("report-timeline");
+    expect(html).toContain("report-cycle-list");
+    expect(html).toContain(`Nội dung teaser chặng ${teaserOrdinals[0]}.`);
+    expect(html).toContain('id="section-current-decadal" tabindex="-1"');
+    expect(html).toContain("report-cycle-cta is-primary");
+    // Verify current cycle row in timeline has aria-current="true"
+    expect(html).toContain('aria-current="true"');
+  }
+});

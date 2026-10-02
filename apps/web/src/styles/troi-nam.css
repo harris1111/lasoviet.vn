@@ -1,0 +1,1935 @@
+/* Trời Nam — homepage visual system. Tokens first, then the hero. */
+
+.tn {
+  --tn-world-opacity: 1;
+  --tn-ink: var(--lacquer-950);
+  --tn-gold: var(--gold-500);
+  --tn-gold-light: var(--gold-400);
+  --tn-text: var(--pearl-100);
+  --tn-text-muted: var(--pearl-400);
+
+  /* Display peaks at 120px on desktop and stays readable at 320px. */
+  --tn-display: clamp(2.25rem, 1.4rem + 4.3vw, 7.5rem);
+  --tn-h2: clamp(1.75rem, 1.2rem + 2.4vw, 3.25rem);
+  --tn-body: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+
+  --tn-gutter: clamp(1rem, 0.5rem + 2.5vw, 4rem);
+  --tn-section-y: clamp(3.5rem, 2rem + 7vw, 8rem);
+  --tn-max: 1280px;
+
+  background: var(--tn-ink);
+  color: var(--tn-text);
+}
+
+.tn-section {
+  padding-block: var(--tn-section-y);
+  padding-inline: var(--tn-gutter);
+}
+
+/*
+ * The painted world behind hero->explore (`.tn-world-content`) is the stage
+ * — its backgrounds must reach the true viewport edge, not stop 44-64px
+ * short of it (the old padding-inline here made every section's background
+ * read as a "patch" with a visible seam on both sides, 2026-10-01 CX
+ * review). The inline inset moves to each section's own text column below
+ * instead, so copy position is unchanged — only the background now bleeds.
+ */
+.tn-world-content .tn-section {
+  padding-inline: 0;
+}
+
+.tn-shell {
+  max-width: var(--tn-max);
+  margin-inline: auto;
+}
+
+/*
+ * World stage (Plan 4): wraps hero/story/ticker/explore. `.tn-world-content`
+ * holds those sections in their normal, unchanged flow/order — this adds no
+ * height. `.tn-world-backdrop` is a non-flow absolute layer the same height
+ * as that content, and `.tn-world-sticky` pins the actual canvas to 100svh
+ * while the stage scrolls past, i.e. the canvas stays on screen for the
+ * whole hero→explore span instead of scrolling away with the hero alone.
+ * `overflow: clip` on the backdrop clips the sticky child to the stage's
+ * own width so it can't cause horizontal scroll — `hidden` would do the same
+ * clipping, but per spec it also makes this element a scroll container,
+ * which breaks `position: sticky` on `.tn-world-sticky` inside it (the
+ * child then sticks to ITS scroll container, not the viewport). `clip`
+ * cuts overflow without creating a scroll container, so sticky keeps
+ * tracking the viewport across the whole hero→explore span.
+ */
+.tn-world-stage {
+  position: relative;
+}
+
+.tn-world-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.tn-world-sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+
+.tn-world-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tn .tn-world-canvas {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tn[data-troi-nam-world-ready] .tn-world-canvas {
+  opacity: var(--tn-world-opacity, 1);
+}
+
+.tn-world-content {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Deliberately NOT dimming `.tn-hero-media` here. The original effects
+ * contract replaced the hero photo with a code-drawn vector world once
+ * ready — rendered and reviewed live, that read as noticeably cheaper than
+ * the real Tràng An photography next to the hero's refined typography/form
+ * (founder call, 2026-10-01). The painted-world rebuild
+ * (docs/superpowers/plans/2026-10-01-troi-nam-painted-world/) replaces every
+ * code-drawn shape with reviewed artwork, but the hero photo still wins that
+ * comparison at p=0, so it stays the hero's real background. The world
+ * keeps rendering behind it either way; whether it shows through anywhere
+ * else down the page depends on each section's own background, not this
+ * rule.
+ */
+
+/* ---- Hero ---- */
+
+.tn-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: clip;
+}
+
+/*
+ * The photo plate is full-bleed to the viewport (see `.tn-hero-media`), but the
+ * copy, form and chart must not stretch with it: on an ultra-wide monitor a bare
+ * `padding-inline` still lets the flex row fill the remaining track width,
+ * pinning content to the true edge of a 2000px+ window. Capping this inner
+ * wrapper keeps the same layout as at 1440px and just adds letterboxing
+ * outside it on wider screens.
+ */
+.tn-hero-content {
+  max-width: 1760px;
+  margin-inline: auto;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  padding-block: clamp(5rem, 4rem + 6vw, 7rem) clamp(2rem, 1.5rem + 3vw, 4rem);
+  padding-inline: var(--tn-gutter);
+}
+
+.tn-hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.5rem, 1rem + 2vw, 2rem);
+  min-width: 0;
+}
+
+/*
+ * Grid items default to `min-width: auto`, which lets a track grow to fit a
+ * child's min-content — the wizard's "Nhớ khoảng giờ (Canh giờ)" pill forces
+ * exactly that, quietly widening the column past the viewport, where
+ * `overflow: clip` then hides the excess instead of showing a scrollbar. The
+ * live homepage avoids this the same way, with `min-width: 0` on the flex
+ * item that holds this same form.
+ */
+.tn-hero-content > * {
+  min-width: 0;
+}
+
+/* The picture element must not take a grid cell, or it pushes the copy sideways. */
+.tn-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  display: block;
+}
+
+.tn-hero-media picture {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.tn-hero-plate {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 50%;
+}
+
+/*
+ * L03 (dusk/chuyển đêm) has no phone crop yet, so the crossfade only runs at
+ * >=880px (see the desktop media block below). `dusk`/`night` are 0..1 weights
+ * the scroll-progress bridge writes onto `.tn-hero` (see troi-nam-hero.tsx);
+ * absent JS/reduced-motion they default to 0, i.e. the plain dawn plate.
+ */
+.tn-hero-plate-dusk {
+  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/*
+ * Night plate (L04 desktop / L05 phone crop — unlike L03 above, L05 exists,
+ * so this crossfade runs at every width, not just >=880px). `.tn-hero-plate`
+ * on the inner <img> reuses the same sizing/object-fit as the dawn plate;
+ * this wrapper only owns position + opacity, mirroring `.tn-hero-media picture`.
+ */
+.tn-hero-plate-night {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  opacity: var(--tn-hero-night, 0);
+}
+
+/* Keeps ivory text legible over the plate's brightest band. */
+.tn-hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgb(8 7 6 / 0.72) 0%,
+    rgb(8 7 6 / 0.28) 42%,
+    rgb(8 7 6 / 0.88) 100%
+  );
+}
+
+/*
+ * Extra darkening for the `night` phase, layered above `.tn-hero-scrim` and
+ * `.tn-hero-plate-night`. Now active at every width: L05 (unlike L03) has a
+ * phone crop, so the night photo swap it's darkening over is real on mobile
+ * too, not just >=880px.
+ *
+ * Capped at 0.55 rather than going to full opacity at night=1: before the
+ * night photo existed, a flat black fade AT opacity 1 stood in for "night"
+ * over the unchanged dawn plate. Now `.tn-hero-plate-night` carries a real
+ * Milky Way photo underneath — a fully opaque scrim would black it out
+ * completely, defeating the whole point of wiring it in.
+ */
+.tn-hero-scrim-night {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: #050403;
+  opacity: calc(var(--tn-hero-night, 0) * 0.55);
+  pointer-events: none;
+}
+
+/*
+ * Opening logo draw-in: the locked Colophon v5 logomark (brand/logo/README.md,
+ * chốt 2026-09-04) draws itself once on first paint, then this whole panel
+ * fades away. `pointer-events: none` throughout means it never blocks the
+ * birth form or scroll underneath, even mid-draw. Pure CSS autoplay, no JS —
+ * see `.tn-logo-intro { display: none }` in troi-nam-reduced-motion-guards.css:
+ * the broad `animation: none !important` guard alone would freeze this panel
+ * fully opaque forever instead of skipping it.
+ */
+.tn-logo-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(circle, rgb(8 7 6 / 0.82) 0%, rgb(8 7 6 / 0.4) 45%, transparent 72%);
+  opacity: 1;
+  animation: tn-logo-intro-out 500ms ease 1300ms forwards;
+}
+
+.tn-logo-intro-svg {
+  width: clamp(84px, 20vw, 200px);
+  aspect-ratio: 1;
+  overflow: visible;
+  color: var(--tn-gold);
+}
+
+.tn-logo-intro-ring,
+.tn-logo-intro-crown,
+.tn-logo-intro-v {
+  stroke-dasharray: 1;
+}
+.tn-logo-intro-ring { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 0ms both; }
+.tn-logo-intro-crown { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms both; }
+.tn-logo-intro-v { animation: tn-logo-draw 550ms cubic-bezier(0.2, 0.7, 0.2, 1) 300ms both; }
+
+.tn-logo-intro-details,
+.tn-logo-intro-cinnabar {
+  animation: tn-logo-fade-in 400ms ease 700ms both;
+}
+
+@keyframes tn-logo-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes tn-logo-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tn-logo-intro-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* Measure lives on the heading, where `em` tracks the display size. Putting it on the
+   wrapper would resolve `ch` against 16px and collapse the line into one word per row. */
+.tn-hero-title {
+  margin: 0;
+  max-width: 9em;
+  font-family: var(--font-display);
+  font-size: var(--tn-display);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.tn-hero-title span {
+  display: block;
+}
+
+.tn-hero-title span + span {
+  color: var(--tn-gold-light);
+}
+
+.tn-hero-sub {
+  margin: clamp(0.75rem, 0.5rem + 1vw, 1.25rem) 0 0;
+  max-width: 36ch;
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 1rem + 0.7vw, 1.625rem);
+  line-height: 1.35;
+  color: var(--tn-text);
+}
+
+/* Visible proof, not another claim — a real sample reading, reachable before
+   the visitor fills in anything (2026-10-01 audit F1). */
+.tn-hero-sample-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-top: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
+  color: var(--tn-gold-light);
+  font-size: var(--tn-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tn-hero-sample-cta:hover {
+  color: var(--tn-gold);
+}
+
+.tn-hero-handoff-note {
+  margin: 0.75rem 0 0;
+  color: var(--tn-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/*
+ * The form itself is the unmodified wizard card from the live homepage
+ * (`.hv3-form` in homepage-v3.css): raised surface, hairline border, shadow,
+ * segmented pills, tabular time inputs. Scoping this wrapper as `.hv3` gives it
+ * that card's own tokens and styling verbatim — Trời Nam does not restyle it.
+ * `margin-top` on `.hv3-form` is reset because that spacing assumes it sits
+ * below a headline in the same column; here it is the whole grid cell. The
+ * card itself stays full width of the left column; only the field grid inside
+ * (`.hv3-date-grid`, `.hv3-row`) is widened at desktop, below.
+ */
+.tn-hero-form.hv3 {
+  width: 100%;
+  background: none;
+}
+
+.tn-hero-form .hv3-form {
+  margin-top: 0;
+}
+
+/* The reveal chart is the unmodified v3 component: a fixed 500px-tall painted
+   lacquer panel with its own reveal mask. It sits in its own slot, never
+   stretched or restyled, matching how it renders on the live homepage. */
+.tn-hero-chart-slot {
+  display: none;
+}
+
+/* `.hv3` carries the chart's `--hc-*` color tokens, but it also paints its
+   own opaque page background/text color — both wrong here, where the slot
+   sits over the hero's painted backdrop. Same override pattern as
+   `.tn-hero-form.hv3` above. */
+.tn-hero-chart-slot.hv3 {
+  background: none;
+  color: inherit;
+}
+
+@media (min-width: 880px) {
+  .tn-hero-content {
+    flex-direction: row;
+    align-items: center;
+    gap: clamp(2rem, 1rem + 4vw, 4rem);
+  }
+
+  .tn-hero-left {
+    flex: 1 1 480px;
+    max-width: 640px;
+  }
+
+  .tn-hero-chart-slot {
+    display: block;
+    flex: 1 1 480px;
+    max-width: 620px;
+    min-width: 0;
+  }
+
+  /* Widen the wizard's own field rows now that the card is not squeezed into
+     a 420px sidebar. The card's padding, radius and colors stay untouched. */
+  .tn-hero-form .hv3-date-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tn-hero-form .hv3-row {
+    flex-wrap: nowrap;
+  }
+
+  .tn-hero-plate {
+    object-position: 70% 50%;
+  }
+
+  .tn-hero-plate-dusk {
+    display: block;
+    object-fit: cover;
+    object-position: 70% 50%;
+    /* Effects-contract weights: dawn 1-dusk, dusk dusk*(1-night), night
+       night. Without the (1-night) factor, dusk would stay fully opaque
+       underneath the night plate once night rises, fighting it instead of
+       handing off cleanly. */
+    opacity: calc(var(--tn-hero-dusk, 0) * (1 - var(--tn-hero-night, 0)));
+  }
+
+  .tn-hero-plate-night .tn-hero-plate {
+    object-position: 70% 50%;
+  }
+
+  .tn-hero-scrim {
+    background:
+      linear-gradient(90deg, rgb(8 7 6 / 0.85) 0%, rgb(8 7 6 / 0.55) 46%, rgb(8 7 6 / 0.2) 78%),
+      linear-gradient(180deg, rgb(8 7 6 / 0.45) 0%, rgb(8 7 6 / 0) 35%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tn * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- PLAN2-A: Story, Ticker, Explore ---- */
+/* Scope overrides to the wrappers. No v3 tokens or global rules are changed. */
+.tn .tn-story.hv3,
+.tn .tn-ticker.hv3,
+.tn .tn-explore.hv3 {
+  position: relative;
+  width: 100%;
+  /* Solid fallback for no-WebGL/no-JS/reduced-motion, where there's no
+     painted world behind this to show through. Once the world is live
+     (below), this goes transparent and each section does its own much
+     lighter, text-scoped readability treatment instead. */
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn[data-troi-nam-world-ready] .tn-story.hv3,
+.tn[data-troi-nam-world-ready] .tn-ticker.hv3,
+.tn[data-troi-nam-world-ready] .tn-explore.hv3 {
+  background: transparent;
+}
+
+.tn .tn-story .hv3-container {
+  position: relative;
+  max-width: var(--tn-max);
+  padding-block: 0;
+  /* Section-level inline padding was removed so the background above can
+     bleed to the viewport edge (see `.tn-world-content .tn-section`) — this
+     is the one place that inset now lives, so the text column's actual
+     position on screen is unchanged. */
+  padding-inline: var(--tn-gutter);
+}
+
+.tn .tn-story .hv3-h2,
+.tn .tn-explore .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-story {
+  isolation: isolate;
+  overflow: clip;
+}
+
+.tn .tn-story .hv3-story-art {
+  display: none;
+}
+
+.tn .tn-story .hv3-story-panel {
+  position: relative;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--tn-text);
+}
+
+/*
+ * Soft readability gradient on the panel (not a box behind the section) —
+ * the painted world stays fully visible past where the text column ends.
+ * Same curve shape the shared `.hv3-story-art::after` component already
+ * uses for art-behind-text sections (strong near the text, gone by ~82%),
+ * just re-centered on tn-ink instead of the lighter v3 surface color.
+ * Mobile gets near-full coverage top-to-bottom (the text column is full
+ * width there, so there's no "right side" to leave clear); desktop switches
+ * to the left-dark/right-clear split once the copy column narrows to 58%
+ * (2026-10-01 CX review, "thế giới là sân khấu").
+ */
+.tn .tn-story .hv3-story-panel::before {
+  content: "";
+  position: absolute;
+  inset: -4% -2%;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
+  pointer-events: none;
+}
+
+.tn .tn-story .hv3-story-copy {
+  position: relative;
+  width: 100%;
+  padding: var(--tn-gutter);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-story .hv3-story-copy {
+    width: min(58%, 620px);
+  }
+
+  .tn .tn-story .hv3-story-panel::before {
+    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
+  }
+}
+
+.tn .tn-story .hv3-story-body {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-story .hv3-questions p {
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-story .hv3-questions .hv3-q-accent {
+  color: var(--tn-gold-light);
+}
+
+/*
+ * Ticker: retain the existing marquee, pause and reduced-motion behavior.
+ * No background/border box of its own (removed 2026-10-01 CX review) — it
+ * reads as the world's own foreground now, not a boxed strip laid over it.
+ * The mask fades each edge instead of hard-clipping mid-chip/mid-word.
+ */
+.tn .tn-ticker .hv3-ticker-region {
+  background: transparent;
+  border-block: 0;
+  padding-block: var(--tn-gutter);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, black 56px, black calc(100% - 56px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, black 56px, black calc(100% - 56px), transparent 100%);
+}
+
+.tn .tn-ticker .hv3-marquee-cycle a,
+.tn .tn-ticker .hv3-marquee-chip {
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+  color: var(--tn-text);
+}
+
+.tn .tn-ticker .hv3-marquee-cycle a:hover {
+  border-color: var(--tn-gold);
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-ticker a:focus-visible,
+.tn .tn-explore :focus-visible {
+  outline-color: var(--tn-gold-light);
+}
+
+/* Explore: texture stays behind the unmodified interactive component. */
+.tn .tn-explore {
+  isolation: isolate;
+  scroll-margin-top: var(--tn-section-y);
+  /* Ready/fallback changes must expose the correct layer immediately — a
+     fade here would show the wrong background for a beat on every failure
+     or context-loss transition. */
+  transition: none;
+}
+
+.tn .tn-explore-texture {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-head {
+  max-width: 52ch;
+}
+
+.tn .tn-explore .hv3-eyebrow,
+.tn .tn-explore .hv3-mono,
+.tn .tn-explore .hv3-accent,
+.tn .tn-explore .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-lead,
+.tn .tn-explore .hv3-hint,
+.tn .tn-explore .hv3-panel-desc,
+.tn .tn-explore .hv3-panel-note,
+.tn .tn-explore .hv3-legend,
+.tn .tn-explore .hv3-cell-branch {
+  color: var(--tn-text-muted);
+}
+
+.tn .tn-explore .hv3-shortcuts {
+  display: flex;
+}
+
+.tn .tn-explore .hv3-shortcuts button {
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-shortcuts button[aria-pressed="true"] {
+  color: var(--tn-text);
+  border-color: var(--son);
+  background: var(--lacquer-700);
+}
+
+.tn .tn-explore .hv3-explore-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-explore .hv3-chart-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  scroll-margin-top: var(--tn-section-y);
+}
+
+/*
+ * Legacy decorative ring remains off in the static fallback. The painted
+ * WebGL ring (P05, Phase 5) owns the stars-converge handoff; it must not be
+ * duplicated by this pseudo-layer once the world is ready (see the
+ * `[data-troi-nam-world-ready]` rule further down, which hides this).
+ */
+.tn .tn-explore .hv3-chart-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='none' stroke='%23f2dca0' stroke-width='0.5' opacity='0.55'/><g fill='%23f2dca0'><circle cx='50.0' cy='4.0' r='1.6'/><circle cx='73.0' cy='10.2' r='1.6'/><circle cx='89.8' cy='27.0' r='1.6'/><circle cx='96.0' cy='50.0' r='1.6'/><circle cx='89.8' cy='73.0' r='1.6'/><circle cx='73.0' cy='89.8' r='1.6'/><circle cx='50.0' cy='96.0' r='1.6'/><circle cx='27.0' cy='89.8' r='1.6'/><circle cx='10.2' cy='73.0' r='1.6'/><circle cx='4.0' cy='50.0' r='1.6'/><circle cx='10.2' cy='27.0' r='1.6'/><circle cx='27.0' cy='10.2' r='1.6'/></g></svg>");
+  background-size: 100% 100%;
+  opacity: var(--tn-ring, 0);
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+/* Reset the hero's shared .hv3-chart height, margins, order and clipping. */
+.tn .tn-explore .hv3-chart {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  flex: none;
+  order: initial;
+  overflow: visible;
+  aspect-ratio: 1;
+  opacity: 1;
+  transform: none;
+}
+
+/* Reveal the painted world through Explore only after its first successful
+   frame; removing `data-troi-nam-world-ready` (failure, context loss, no-JS)
+   restores every one of these to their safe static default immediately.
+   (`.tn-explore.hv3`'s own background is handled by the shared Story/Ticker/
+   Explore ready-state rule above.) */
+.tn[data-troi-nam-world-ready] .tn-explore-texture {
+  opacity: calc(0.14 * (1 - var(--tn-world-opacity)));
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart-wrap::before {
+  display: none;
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart {
+  opacity: calc(1 - var(--tn-world-opacity));
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-chart:focus-within {
+  opacity: 1;
+}
+
+/*
+ * Removed 2026-10-01 CX review: a rounded solid box behind the heading
+ * (added, then rejected same day) read as the exact "hộp đen" problem this
+ * whole pass exists to fix. Text sits directly on the world; a text-shadow
+ * does the readability job a box was doing, without ever drawing a hard
+ * edge over the art.
+ */
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
+}
+
+.tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9);
+}
+
+.tn .tn-explore .hv3-cell {
+  padding: 6px;
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+  background: var(--lacquer-700);
+}
+
+.tn .tn-explore .hv3-cell::before {
+  content: "";
+  position: absolute;
+  width: clamp(16px, 1.9vw, 26px);
+  aspect-ratio: 1;
+  bottom: 6px;
+  left: 6px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-cell[data-state="trine"] {
+  border-color: var(--son);
+  background: var(--lacquer-800);
+}
+
+.tn .tn-explore .hv3-cell[data-state="opposite"] {
+  border-color: var(--tn-gold);
+  background: var(--lacquer-900);
+}
+
+.tn .tn-explore .hv3-cell[data-state="selected"] {
+  border-color: var(--son);
+  background: var(--lacquer-900);
+  animation: tn-cell-select 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* A ring that pulses out once from a newly selected palace; default
+   animation-fill-mode means it leaves no lingering shadow behind. */
+@keyframes tn-cell-select {
+  0% {
+    box-shadow: 0 0 0 0 rgb(242 220 160 / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgb(242 220 160 / 0);
+  }
+}
+
+.tn .tn-explore .hv3-cell-glyph {
+  /* The painted palace icon (`.hv3-cell::before`) occupies this glyph's
+     visual footprint; the Hán branch character stays in the accessible DOM
+     (still read by assistive tech / selectable text) but isn't painted. */
+  color: transparent;
+}
+
+.tn .tn-explore .hv3-chart-core {
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-chart-core > div {
+  border-color: var(--son);
+  outline-color: var(--son);
+}
+
+/*
+ * The relation rays (trine/opposite lines + dots) already re-render with new
+ * coordinates on every palace selection (homepage-v3-explore.tsx, unmodified);
+ * this only adds motion to that existing SVG, so they glide to the newly
+ * selected palace instead of snapping.
+ */
+.tn .tn-explore .hv3-chart-lines line,
+.tn .tn-explore .hv3-chart-lines circle {
+  transition:
+    x1 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    y1 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    x2 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    y2 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    cx 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    cy 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.tn .tn-explore .hv3-line-trine {
+  stroke: var(--son);
+}
+
+.tn .tn-explore .hv3-dot-trine {
+  fill: var(--son);
+}
+
+.tn .tn-explore .hv3-line-opposite {
+  stroke: var(--tn-gold);
+}
+
+.tn .tn-explore .hv3-dot-opposite {
+  fill: var(--tn-gold);
+}
+
+.tn .tn-explore .hv3-legend-trine {
+  border-color: var(--son);
+}
+
+.tn .tn-explore .hv3-legend-opposite {
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-explore .hv3-rel-trine {
+  color: var(--son);
+}
+
+.tn .tn-explore .hv3-rel-opposite {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-panel {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--tn-gutter);
+  color: var(--tn-text);
+  /* Semi-transparent, not flat solid — this is a real selectable detail
+     card (not decoration), so it keeps its own surface, just softened to
+     blend with the world behind it (2026-10-01 CX review). */
+  background: rgb(15 13 10 / 0.88);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-relations {
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-explore .hv3-btn {
+  color: var(--tn-ink) !important;
+  background: var(--tn-gold-light);
+}
+
+.tn .tn-explore .hv3-btn:hover {
+  background: var(--tn-gold);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-story-media {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    z-index: -1;
+  }
+
+  .tn .tn-story-media img {
+    object-position: 78% 50%;
+  }
+
+  .tn .tn-story-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, var(--tn-ink) 0%, transparent 100%);
+  }
+
+  .tn .tn-story .hv3-story-panel {
+    min-height: 35rem;
+    justify-content: center;
+  }
+
+  .tn .tn-story .hv3-story-copy {
+    width: min(64%, 44rem);
+    padding: var(--tn-gutter);
+  }
+
+  .tn .tn-ticker .hv3-ticker-region {
+    padding-block: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-ticker .hv3-marquee-cycle a,
+  .tn .tn-ticker .hv3-marquee-chip {
+    font-size: var(--tn-body);
+  }
+
+  .tn .tn-explore .hv3-shortcuts {
+    display: none;
+  }
+
+  .tn .tn-explore .hv3-explore-body {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .tn .tn-explore .hv3-cell {
+    padding: 10px 12px;
+  }
+
+  .tn .tn-explore .hv3-cell::before {
+    bottom: 10px;
+    left: 12px;
+  }
+
+  .tn .tn-explore .hv3-panel {
+    min-height: 22.5rem;
+  }
+}
+
+
+/* ---- PLAN2-B: Needs, Compare ---- */
+.tn .tn-needs.hv3,
+.tn .tn-compare.hv3 {
+  position: relative;
+  width: 100%;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-needs {
+  scroll-margin-top: var(--tn-section-y);
+}
+
+.tn .tn-needs .hv3-container,
+.tn .tn-compare .hv3-container {
+  position: relative;
+  max-width: var(--tn-max);
+  min-width: 0;
+  padding: 0;
+}
+
+.tn .tn-needs .hv3-h2,
+.tn .tn-compare .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-needs .hv3-lead,
+.tn .tn-needs .hv3-muted,
+.tn .tn-compare .hv3-lead {
+  color: var(--tn-text-muted);
+}
+
+.tn .tn-needs .hv3-link,
+.tn .tn-compare .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-needs :focus-visible,
+.tn .tn-compare :focus-visible {
+  outline-color: var(--tn-gold-light);
+}
+
+/* Needs: add decorative plates to the original four buttons. */
+.tn .tn-needs .hv3-needs-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-needs .hv3-need-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+/*
+ * Stacked scroll-in reveal for the four need cards (troi-nam-needs.tsx sets
+ * `data-need-reveal` via IntersectionObserver). No JS, IntersectionObserver
+ * missing, or prefers-reduced-motion: the attribute is never set and every
+ * card stays at its normal opacity/position — safe default.
+ */
+.tn .tn-needs[data-need-reveal] .hv3-need {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.tn .tn-needs[data-need-reveal="pending"] .hv3-need {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.tn .tn-needs[data-need-reveal] .hv3-need:nth-child(2) {
+  transition-delay: 60ms;
+}
+
+.tn .tn-needs[data-need-reveal] .hv3-need:nth-child(3) {
+  transition-delay: 120ms;
+}
+
+.tn .tn-needs[data-need-reveal] .hv3-need:nth-child(4) {
+  transition-delay: 180ms;
+}
+
+.tn .tn-needs .hv3-need {
+  position: relative;
+  overflow: hidden;
+  flex-direction: column;
+  min-width: 0;
+  gap: calc(var(--tn-gutter) / 2);
+  /* Was clamp(10rem,22vw,14rem) (160-224px) — four of these stacked 2x2
+     nearly doubled the whole needs section's height versus the live
+     homepage's plain text-row buttons (2026-10-01 CX review: "section cao
+     quá mức cần thiết"). Still a real decorative plate, just not a page-
+     length one. */
+  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  color: var(--tn-text);
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-need::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(6.5rem, 13vw, 8.5rem);
+  background-size: cover;
+  background-position: center 44%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.tn .tn-needs .hv3-need[aria-pressed="true"] {
+  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  border: 1px solid var(--tn-gold-light);
+  background: var(--lacquer-700);
+  box-shadow: inset 0 0 0 1px var(--tn-gold-light);
+}
+
+.tn .tn-needs .hv3-need-icon {
+  background-color: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+  background-size: 34px 34px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tn .tn-needs .hv3-need-question {
+  color: var(--tn-text-muted);
+}
+
+.tn .tn-needs .hv3-need-detail {
+  padding: var(--tn-gutter);
+  min-width: 0;
+  gap: var(--tn-gutter);
+  color: var(--tn-text);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-need-art {
+  height: clamp(14rem, 45vw, 22rem);
+  margin: calc(-1 * var(--tn-gutter)) calc(-1 * var(--tn-gutter)) 0;
+  background-color: var(--lacquer-800);
+  background-position: center 44%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+/* Decorative detail image follows aria-pressed via the wrapper's asset rules. */
+.tn .tn-needs .hv3-need-art img {
+  display: none;
+}
+
+.tn .tn-needs .hv3-chips span {
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-btn {
+  color: var(--tn-ink) !important;
+  background: var(--tn-gold-light);
+}
+
+.tn .tn-needs .hv3-btn:hover {
+  background: var(--tn-gold);
+}
+
+/* Keep all existing discipline links and artwork, with the Trời Nam palette. */
+.tn .tn-needs .hv3-lens-head {
+  margin-top: var(--tn-section-y);
+  scroll-margin-top: var(--tn-section-y);
+}
+
+.tn .tn-needs .hv3-disciplines {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+/*
+ * Stagger reveal for the discipline links, driven by `data-reveal`/`--i`
+ * already set in the shared HomepageV3Needs markup (see troi-nam-needs.tsx
+ * for why it's wired here instead of via the live homepage's motion system).
+ * No JS/IntersectionObserver/prefers-reduced-motion: `data-reveal-ready` is
+ * never set, so every card stays at its normal opacity/position.
+ */
+.tn .tn-needs[data-reveal-ready] .hv3-disc-slot {
+  transition: opacity 220ms ease, transform 220ms ease;
+  transition-delay: calc(min(var(--i, 0), 6) * 60ms);
+}
+
+.tn .tn-needs[data-reveal-ready] .hv3-disc-slot:not([data-in]) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.tn .tn-needs .hv3-disc-slot-flagship {
+  grid-column: auto;
+}
+
+.tn .tn-needs .hv3-disc,
+.tn .tn-needs .hv3-disc-flagship {
+  color: var(--tn-text) !important;
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-disc-flagship {
+  flex-direction: column;
+}
+
+.tn .tn-needs .hv3-disc-art,
+.tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art,
+.tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
+  flex: none;
+  aspect-ratio: 4 / 3;
+  background: var(--lacquer-900);
+  border: 0;
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-disc:hover,
+.tn .tn-needs .hv3-disc:focus-visible {
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-needs .hv3-mask {
+  background: var(--tn-gold);
+}
+
+.tn .tn-needs .hv3-disc-cta {
+  color: var(--tn-gold-light);
+}
+
+/* Compare: subtle paper texture behind the existing disclosure and data. */
+.tn .tn-compare {
+  isolation: isolate;
+}
+
+.tn .tn-compare-texture {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.tn .tn-compare .hv3-compare-head {
+  padding: var(--tn-gutter);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-points {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-compare .hv3-compare-points span {
+  padding: var(--tn-gutter);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-points svg {
+  color: var(--tn-gold);
+}
+
+.tn .tn-compare .hv3-compare-details {
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-details > summary {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-compare .hv3-tabs {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+.tn .tn-compare .hv3-tabs button {
+  flex: 1 1 auto;
+  white-space: normal;
+  padding-block: calc(var(--tn-gutter) / 4);
+  color: var(--tn-text);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-tabs button[aria-pressed="true"] {
+  background: var(--tn-gold-light);
+  color: var(--tn-ink);
+  border-color: var(--tn-gold-light);
+}
+
+.tn .tn-compare .hv3-cmp-card {
+  color: var(--tn-text);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-cmp-top {
+  background: var(--lacquer-700);
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-compare .hv3-cmp-card-title,
+.tn .tn-compare .hv3-cmp-value {
+  color: var(--tn-text);
+}
+
+.tn .tn-compare .hv3-cmp-axis,
+.tn .tn-compare .hv3-cmp-fix strong {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-compare .hv3-cmp-fix {
+  color: var(--tn-text-muted);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-compare .hv3-compare-table th,
+.tn .tn-compare .hv3-compare-table td {
+  color: var(--tn-text-muted);
+  border-color: var(--lacquer-line);
+  overflow-wrap: anywhere;
+}
+
+.tn .tn-compare .hv3-compare-table thead th,
+.tn .tn-compare .hv3-compare-table tbody th {
+  color: var(--tn-text);
+}
+
+.tn .tn-compare .hv3-compare-table [data-col="lsv"] {
+  color: var(--tn-text);
+  background: var(--lacquer-700);
+  border-color: var(--lacquer-line);
+  box-shadow: inset 3px 0 0 var(--tn-gold);
+}
+
+.tn .tn-compare .hv3-cmp-mark {
+  color: var(--son);
+}
+
+.tn .tn-compare .hv3-cmp-mark[data-strength="true"],
+.tn .tn-compare .hv3-cmp-mark[data-lsv="true"] {
+  color: var(--tn-gold-light);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-needs .hv3-needs-body {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .tn .tn-needs .hv3-need-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tn .tn-needs .hv3-disciplines {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tn .tn-needs .hv3-disc-slot-flagship {
+    grid-column: 1 / -1;
+  }
+
+  .tn .tn-needs .hv3-disc-flagship {
+    flex-direction: row;
+  }
+
+  .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
+    flex: 0 0 34%;
+    aspect-ratio: 4 / 5;
+    border-bottom: 0;
+    border-right: 1px solid var(--lacquer-line);
+  }
+
+  .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art {
+    aspect-ratio: 4 / 5;
+  }
+
+  .tn .tn-compare .hv3-compare-points {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Preserve v3's 1180px table threshold; cards remain at narrow desktops. */
+  .tn .tn-compare .hv3-compare-head {
+    max-width: 60rem;
+  }
+}
+
+
+
+/* ---- PLAN2-C: Testimonials, Usp ---- */
+/* Append only. Original v3 components, reader data and avatar rendering stay intact. */
+.tn .tn-testimonials.hv3,
+.tn .tn-usp.hv3 {
+  width: 100%;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+
+.tn .tn-testimonials .hv3-h2,
+.tn .tn-usp .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-testimonials :focus-visible,
+.tn .tn-usp :focus-visible {
+  outline: 2px solid var(--tn-gold-light) !important;
+  outline-offset: 3px;
+}
+
+/* Keep the v3 768/1024px visibility rules: its rotation hook uses those breakpoints.
+ * Keep the 16px row gap: the original swipe/auto-scroll calculation depends on it.
+ * No transform, containment or clipping on the wrapper: the fixed dialog needs the viewport.
+ */
+.tn .tn-testimonials .hv3-tt-head {
+  gap: var(--tn-gutter);
+  margin-bottom: var(--tn-gutter);
+}
+
+.tn .tn-testimonials .hv3-eyebrow,
+.tn .tn-testimonials .hv3-tt-label,
+.tn .tn-testimonials .hv3-tt-attrib {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-testimonials .hv3-tt-lead {
+  max-width: 42ch;
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-testimonials .hv3-tt-card {
+  padding: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+  border-radius: 16px;
+  background: var(--lacquer-800);
+  color: var(--tn-text);
+}
+
+.tn .tn-testimonials .hv3-tt-card:hover,
+.tn .tn-testimonials .hv3-tt-card:focus-within {
+  border-color: var(--tn-gold);
+}
+
+.tn .tn-testimonials .hv3-tt-mark {
+  left: var(--tn-gutter);
+  background: var(--son);
+}
+
+.tn .tn-testimonials .hv3-tt-quote {
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-testimonials .hv3-tt-foot {
+  gap: 0 calc(var(--tn-gutter) / 2);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-testimonials .hv3-tt-who {
+  max-width: 100%;
+}
+
+.tn .tn-testimonials .hv3-tt-who > div {
+  min-width: 0;
+}
+
+.tn .tn-testimonials .hv3-tt-name {
+  color: var(--tn-text);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.tn .tn-testimonials .hv3-tt-city {
+  color: var(--tn-text-muted);
+}
+
+/* Avatar element and its sprite/monogram styling are intentionally untouched. */
+
+.tn .tn-testimonials .hv3-tt-read,
+.tn .tn-testimonials .hv3-tt-more,
+.tn .tn-testimonials .hv3-tt-start {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-testimonials .hv3-tt-row {
+  margin-inline: 0;
+  padding-inline: 0;
+  scroll-padding-inline: 0;
+}
+
+.tn .tn-testimonials .hv3-tt-actions {
+  margin-top: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+}
+
+.tn .tn-testimonials .hv3-tt-arrows button,
+.tn .tn-testimonials .hv3-tt-pause,
+.tn .tn-testimonials .hv3-tt-filters button,
+.tn .tn-testimonials .hv3-tt-dialog-head button {
+  border-color: var(--lacquer-line);
+  color: var(--tn-text);
+  background: var(--lacquer-800);
+}
+
+.tn .tn-testimonials .hv3-tt-filters button[aria-pressed="true"] {
+  border-color: var(--tn-gold-light);
+  background: var(--tn-gold-light);
+  color: var(--tn-ink);
+}
+
+.tn .tn-testimonials .hv3-tt-list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+}
+
+.tn .tn-testimonials .hv3-tt-dialog {
+  padding: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+  background: var(--lacquer-800);
+  color: var(--tn-text);
+}
+
+/* USP: replace decorative photos and icons through wrapper-scoped CSS only.
+ * The P02 URL is supplied by troiNamAsset; --tn-usp-motifs is an image reference,
+ * not a new color, typography or spacing token. All copy and links remain in v3.
+ */
+.tn .tn-usp .hv3-usp-head {
+  gap: var(--tn-gutter);
+  padding-top: 0;
+}
+
+.tn .tn-usp .hv3-usp-lead {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+  text-shadow: none;
+}
+
+.tn .tn-usp .hv3-usp-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+  margin-top: var(--tn-gutter);
+}
+
+.tn .tn-usp .hv3-usp-card {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--tn-gutter);
+  border-color: var(--lacquer-line);
+  border-radius: 16px;
+  background: var(--lacquer-800);
+  color: var(--tn-text);
+}
+
+.tn .tn-usp .hv3-usp-photo,
+.tn .tn-usp .hv3-usp-scrim,
+.tn .tn-usp .hv3-usp-icon {
+  display: none;
+}
+
+.tn .tn-usp .hv3-usp-body {
+  position: relative;
+  inset: auto;
+  padding: 0;
+}
+
+/* P02 is a 640x427 sheet, inspected before choosing these decorative windows.
+ * No extra img/text/accessibility node is inserted into the original cards.
+ */
+.tn .tn-usp .hv3-usp-body::before {
+  content: "";
+  display: block;
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: calc(var(--tn-gutter) / 2);
+  background-image: var(--tn-usp-motifs);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* n1: chim Lac — continuity; window x=0,y=50,220x185.
+ * The stepped crop excludes the neighboring standing bird below the beak.
+ */
+.tn .tn-usp .hv3-usp-dark .hv3-usp-body::before {
+  height: 5.04545rem;
+  background-size: 290.909% auto;
+  background-position: 0% 20.661%;
+  clip-path: polygon(0 0, 100% 0, 100% 42%, 78% 42%, 78% 100%, 0 100%);
+}
+
+/* n2: star — an individual center; window x=480,y=70,160x160. */
+.tn .tn-usp .hv3-usp-paper .hv3-usp-body::before {
+  background-size: 400% auto;
+  background-position: 100% 26.217%;
+}
+
+/* n3: paired spirals — relationships; window x=210,y=285,140x90. */
+.tn .tn-usp .hv3-usp-ink .hv3-usp-body::before {
+  height: 3.85714rem;
+  background-size: 457.143% auto;
+  background-position: 42% 84.570%;
+}
+
+/* n4: boat — a journey at one's own pace; window x=0,y=235,210x140. */
+.tn .tn-usp .hv3-usp-son .hv3-usp-body::before {
+  height: 4rem;
+  background-size: 304.762% auto;
+  background-position: 0% 81.881%;
+}
+
+.tn .tn-usp .hv3-usp-card h3 {
+  margin-top: 0;
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-usp .hv3-usp-card p {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-usp .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-testimonials .hv3-tt-head,
+  .tn .tn-usp .hv3-usp-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .tn .tn-testimonials .hv3-tt-card,
+  .tn .tn-testimonials .hv3-tt-dialog,
+  .tn .tn-usp .hv3-usp-card {
+    padding: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-testimonials .hv3-tt-mark {
+    left: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-testimonials .hv3-tt-list,
+  .tn .tn-usp .hv3-usp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--tn-gutter) / 2);
+  }
+}
+
+
+/* ---- PLAN2-D: Value, Faq, About ---- */
+/* Presentation only. Shared v3 components and their state stay unchanged. */
+.tn .tn-value.hv3,
+.tn .tn-faq.hv3,
+.tn .tn-about.hv3 {
+  width: 100%;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+
+.tn .tn-value .hv3-h2,
+.tn .tn-faq .hv3-h2,
+.tn .tn-about .hv3-h2 {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+.tn .tn-value .hv3-lead {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-value .hv3-steps {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+  margin-top: calc(var(--tn-gutter) * 2);
+}
+
+.tn .tn-value .hv3-steps li {
+  min-width: 0;
+  padding: var(--tn-gutter);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 1rem;
+  background: var(--lacquer-900);
+}
+
+.tn .tn-value .hv3-step-visual {
+  width: 6rem;
+  height: 6rem;
+  margin-bottom: var(--tn-gutter);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/*
+ * Two gold leaves drift down inside the "unlock with Lá" step card (step 3)
+ * on continuous loop — ambient, not scroll-triggered, so no JS is needed.
+ * Backgrounds are set per-leaf in troi-nam-value.tsx. prefers-reduced-motion
+ * already collapses every .tn animation via the existing global rule.
+ */
+.tn .tn-value .hv3-steps li[data-step="3"] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::before,
+.tn .tn-value .hv3-steps li[data-step="3"]::after {
+  content: "";
+  position: absolute;
+  /* Starts at the visible top edge, not above it — with overflow:hidden on
+     the card, a negative starting offset spent most of the loop clipped out
+     of view before it ever faded in. */
+  top: 0;
+  width: 26px;
+  height: 34px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  pointer-events: none;
+  animation: tn-leaf-fall 6s ease-in infinite;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::before {
+  left: 18%;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::after {
+  left: 68%;
+  width: 20px;
+  height: 26px;
+  animation-duration: 7s;
+  animation-delay: 2s;
+}
+
+@keyframes tn-leaf-fall {
+  0% {
+    transform: translate(0, 0) rotate(-8deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(8px, 440px) rotate(40deg);
+    opacity: 0;
+  }
+}
+
+.tn .tn-value .hv3-step-visual > svg,
+.tn .tn-value .hv3-step-dot {
+  display: none;
+}
+
+.tn .tn-value .hv3-h3 {
+  margin: 0;
+  color: var(--tn-gold-light);
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.625rem);
+}
+
+.tn .tn-value .hv3-steps p {
+  max-width: 38ch;
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+  line-height: 1.7;
+}
+
+.tn .tn-faq .hv3-faq-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--tn-gutter) * 2);
+}
+
+.tn .tn-faq .hv3-faq-side,
+.tn .tn-faq .hv3-faq-list {
+  min-width: 0;
+  max-width: none;
+}
+
+.tn .tn-faq .hv3-faq-item {
+  border-top-color: var(--lacquer-line);
+}
+
+.tn .tn-faq .hv3-faq-item:last-child {
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+/*
+ * Stacked scroll-in reveal for the FAQ rows (troi-nam-faq.tsx sets
+ * data-faq-reveal via IntersectionObserver). No JS, no IntersectionObserver,
+ * or prefers-reduced-motion: the attribute is never set, so every row stays
+ * at its normal opacity/position — safe default.
+ */
+.tn .tn-faq[data-faq-reveal] .hv3-faq-item {
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.tn .tn-faq[data-faq-reveal="pending"] .hv3-faq-item {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.tn .tn-faq[data-faq-reveal] .hv3-faq-item:nth-child(2) {
+  transition-delay: 60ms;
+}
+
+.tn .tn-faq[data-faq-reveal] .hv3-faq-item:nth-child(3) {
+  transition-delay: 120ms;
+}
+
+.tn .tn-faq[data-faq-reveal] .hv3-faq-item:nth-child(4) {
+  transition-delay: 180ms;
+}
+
+.tn .tn-faq[data-faq-reveal] .hv3-faq-item:nth-child(5) {
+  transition-delay: 240ms;
+}
+
+.tn .tn-faq .hv3-faq-q {
+  min-height: 4rem;
+  color: var(--tn-text);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-faq .hv3-faq-plus {
+  border-color: var(--tn-gold);
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-faq .hv3-faq-a {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+/* Never override the accordion's native hidden state. */
+.tn .tn-faq .hv3-link,
+.tn .tn-faq .hv3-faq-a a,
+.tn .tn-about .hv3-about-body .hv3-link {
+  color: var(--tn-gold-light);
+}
+
+.tn .tn-about .hv3-about-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  background: var(--lacquer-900);
+  color: var(--tn-text);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 1rem;
+}
+
+.tn .tn-about .hv3-about-panel::before {
+  content: "";
+  display: block;
+  min-height: clamp(14rem, 55vw, 22rem);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tn .tn-about .hv3-about-art {
+  display: none;
+}
+
+.tn .tn-about .hv3-about-body {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: var(--tn-gutter);
+}
+
+.tn .tn-about .hv3-about-body p {
+  color: var(--tn-text-muted);
+  font-size: var(--tn-body);
+}
+
+.tn .tn-about .hv3-final-cta {
+  margin-top: calc(var(--tn-gutter) * 2);
+  border-radius: 1rem;
+  background: var(--tn-ink);
+  color: var(--tn-text);
+}
+
+/*
+ * Two floating hoa đăng (candle lanterns) bob gently at the base of the
+ * closing CTA, on continuous loop — ambient, matching the falling gold
+ * leaves in Value. z-index lifts them above .hv3-final-cta-bg and the CTA
+ * copy's own z-index:auto stacking (both are later in source order and
+ * would otherwise paint over a plain pseudo-element).
+ */
+.tn .tn-about .hv3-final-cta::before,
+.tn .tn-about .hv3-final-cta::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  bottom: 6%;
+  width: 4rem;
+  height: 4rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.9;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgb(255 190 110 / 0.35));
+  animation: tn-lantern-float 6s ease-in-out infinite;
+}
+
+.tn .tn-about .hv3-final-cta::before {
+  left: 8%;
+}
+
+.tn .tn-about .hv3-final-cta::after {
+  right: 9%;
+  width: 3.25rem;
+  height: 3.25rem;
+  animation-duration: 7s;
+  animation-delay: 1.8s;
+}
+
+@keyframes tn-lantern-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+    filter: drop-shadow(0 0 8px rgb(255 190 110 / 0.3));
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+    filter: drop-shadow(0 0 14px rgb(255 190 110 / 0.55));
+  }
+}
+
+.tn .tn-about .hv3-final-cta-bg {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.3;
+}
+
+/* Remove the v3 light-theme side plates in both themes. */
+.tn .tn-about .hv3-final-cta-bg::before,
+.tn .tn-about .hv3-final-cta-bg::after {
+  display: none;
+}
+
+.tn .tn-about .hv3-final-cta-inner {
+  padding: var(--tn-section-y) var(--tn-gutter);
+}
+
+.tn .tn-about .hv3-final-cta-inner p {
+  color: var(--tn-text);
+  font-size: var(--tn-h2);
+}
+
+@media (min-width: 880px) {
+  .tn .tn-value .hv3-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tn .tn-faq .hv3-faq-layout {
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  }
+
+  .tn .tn-about .hv3-about-panel {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: stretch;
+  }
+
+  .tn .tn-about .hv3-about-panel::before {
+    min-height: 26rem;
+  }
+
+  .tn .tn-about .hv3-about-body {
+    align-self: center;
+    padding-block: calc(var(--tn-gutter) * 1.5);
+  }
+}
+
+
+/* ---- PLAN2-C portraits: append after the accumulated Trời Nam styles ---- */
+.tn .tn-testimonials .hv3-tt-avatar {
+  display: block;
+  box-sizing: border-box;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 1px solid var(--tn-gold);
+  border-radius: 50%;
+  object-fit: cover;
+}

@@ -1,0 +1,99 @@
+{
+  "recordedAt": "2026-10-01T08:45:43.720Z",
+  "origin": "https://lasoviet.net",
+  "services": [
+    {
+      "service": "web",
+      "revision": "544afaa86b6fbd7bf1697863ef3a2fad57f43511",
+      "health": "healthy"
+    },
+    {
+      "service": "api",
+      "revision": "544afaa86b6fbd7bf1697863ef3a2fad57f43511",
+      "health": "healthy"
+    },
+    {
+      "service": "worker",
+      "revision": "544afaa86b6fbd7bf1697863ef3a2fad57f43511",
+      "health": "healthy"
+    }
+  ],
+  "checks": [
+    {
+      "name": "FD109 verified vi",
+      "status": "PASS"
+    },
+    {
+      "name": "welcome notice vi",
+      "status": "PASS"
+    },
+    {
+      "name": "account/top-up page availability vi",
+      "status": "PASS"
+    },
+    {
+      "name": "FD109 verified en",
+      "status": "PASS"
+    },
+    {
+      "name": "welcome notice en",
+      "status": "PASS"
+    },
+    {
+      "name": "account/top-up page availability en",
+      "status": "PASS"
+    },
+    {
+      "name": "existing welcome grant durable replay",
+      "status": "PASS"
+    },
+    {
+      "name": "anonymous wallet denied",
+      "status": "PASS"
+    },
+    {
+      "name": "catalog baseline quotes/replay/reserved guard",
+      "status": "PASS"
+    },
+    {
+      "name": "analytics real ingest/dedup/privacy",
+      "status": "PASS"
+    },
+    {
+      "name": "owned reader navigation/print 390",
+      "status": "PASS"
+    },
+    {
+      "name": "owned reader navigation/print 1440",
+      "status": "PASS"
+    },
+    {
+      "name": "private report anonymous denied",
+      "status": "PASS"
+    },
+    {
+      "name": "no new recorded AI calls/report jobs",
+      "status": "PASS"
+    }
+  ],
+  "blockers": [],
+  "overall": "PASS",
+  "boundary": "Real deployed services; existing verified staging account. Normal welcome-grant and analytics side effects permitted. No orders/unlocks/refunds requested. SQL read-only; AI/job counters checked. Additional opt-in: two pending quote intents and bounded telemetry replay; still no orders/unlocks/refunds.",
+  "routing": {
+    "publishedLoopback": "3000/tcp -> 127.0.0.1:63423",
+    "matchingBuildAssetCount": 25,
+    "assetSetHash": "8fb5a0385eaf83673552845035ddda4c5c96ba785331110db5d4f9087bf4c4c7"
+  },
+  "aiJobCounters": {
+    "before": {
+      "aicalls": 521,
+      "queuejobs": 130,
+      "reservations": 76
+    },
+    "after": {
+      "aicalls": 521,
+      "queuejobs": 130,
+      "reservations": 76
+    }
+  }
+}

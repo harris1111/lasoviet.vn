@@ -1,3 +1,4 @@
+import { ZiweiPeriodReadingFactsV1Schema } from "./ziwei-period-reading-v1.js";
 import { z } from "zod";
 import { ZIWEI_PALACE_IDS } from "./ziwei-comprehensive-report-v1.js";
 import type { ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
@@ -264,11 +265,15 @@ export const ZiweiReportSnapshotV1Schema = z
     timingRuleVersion: z.string().trim().min(1),
     sensitivityRuleVersion: z.string().trim().min(1),
     timing: ZiweiTimingSnapshotV1Schema,
+    periodReading: ZiweiPeriodReadingFactsV1Schema.optional(),
     sensitivity: ZiweiSensitivitySnapshotV1Schema,
     provenance: ZiweiReportSnapshotProvenanceV1Schema,
   })
   .strict()
   .superRefine((snapshot, ctx) => {
+    if (snapshot.periodReading && (snapshot.periodReading.chartVersionId !== snapshot.chartVersionId || snapshot.periodReading.asOfDate !== snapshot.asOfDate)) {
+      ctx.addIssue({ code: "custom", path: ["periodReading"], message: "Period facts must match snapshot lineage" });
+    }
     if (snapshot.chartVersionId !== snapshot.provenance.chartVersionId) {
       ctx.addIssue({
         code: "custom",

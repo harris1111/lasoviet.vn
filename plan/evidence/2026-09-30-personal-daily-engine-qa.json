@@ -1,0 +1,2677 @@
+{
+  "kind": "real-local-deterministic-engine-writer-run",
+  "syntheticProfiles": true,
+  "externalPaidCalls": 0,
+  "consecutivePassingGenerations": 20,
+  "editorialAcceptance": "pending-independent-content-review",
+  "catalogActivation": false,
+  "samples": [
+    {
+      "sample": 1,
+      "syntheticInput": {
+        "birthDate": "1980-01-01",
+        "localTime": "00:30",
+        "gender": "male"
+      },
+      "sha256": "8cb9d67d2171fbca5638e1c7ecb4557342771b46b862719f0afb1c14a4690b29",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-1",
+        "chartVersionId": "synthetic-version-1",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Thiên Cơ"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. Với sự tọa thủ của Thiên Cơ, ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 2,
+      "syntheticInput": {
+        "birthDate": "1981-02-02",
+        "localTime": "02:30",
+        "gender": "female"
+      },
+      "sha256": "26d33b2765d13fbc91916f5d20e0929ead8eff297c9e1a3b5de222e2b8ede74b",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-2",
+        "chartVersionId": "synthetic-version-2",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Thiên Cơ"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. Với sự tọa thủ của Thiên Cơ, ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 3,
+      "syntheticInput": {
+        "birthDate": "1982-03-03",
+        "localTime": "04:30",
+        "gender": "male"
+      },
+      "sha256": "7048a6c96d690283942041ca0a8baeba9e3d2db6c001872285bfb1b696217fc0",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-3",
+        "chartVersionId": "synthetic-version-3",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Liêm Trinh",
+            "Thất Sát"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Liêm Trinh, Thất Sát, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 4,
+      "syntheticInput": {
+        "birthDate": "1983-04-04",
+        "localTime": "06:30",
+        "gender": "female"
+      },
+      "sha256": "156b6a7fe394698d5f594835ed87cc9873b0e05baab2de7094f11b3d5d0f3389",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-4",
+        "chartVersionId": "synthetic-version-4",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 5,
+      "syntheticInput": {
+        "birthDate": "1984-05-05",
+        "localTime": "08:30",
+        "gender": "male"
+      },
+      "sha256": "98c94cd2a7a97cbc28d3a4ace069b137fe6706aa0d0b1d90880a90ed2a0eed04",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-5",
+        "chartVersionId": "synthetic-version-5",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Liêm Trinh",
+            "Thất Sát"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Liêm Trinh, Thất Sát, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 6,
+      "syntheticInput": {
+        "birthDate": "1985-06-06",
+        "localTime": "10:30",
+        "gender": "female"
+      },
+      "sha256": "84b95ed7902e1053c37a97b8cc0099d8a79ba803ca9506316c85913230ff0705",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-6",
+        "chartVersionId": "synthetic-version-6",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 7,
+      "syntheticInput": {
+        "birthDate": "1986-07-07",
+        "localTime": "12:30",
+        "gender": "male"
+      },
+      "sha256": "1bc0e11b439fa647beccc973ecbfb54dd793656866ea40b6dd28f689f2b386a1",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-7",
+        "chartVersionId": "synthetic-version-7",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 8,
+      "syntheticInput": {
+        "birthDate": "1987-08-08",
+        "localTime": "14:30",
+        "gender": "female"
+      },
+      "sha256": "d7c6341d5983e1a2c1b0536e0b3444a2123913eaab61ed7905912c2b7f92e9a1",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-8",
+        "chartVersionId": "synthetic-version-8",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 9,
+      "syntheticInput": {
+        "birthDate": "1988-09-09",
+        "localTime": "16:30",
+        "gender": "male"
+      },
+      "sha256": "037f4a28cb577eda382dc1ea90623c2445e410192f7aa77e2e54c6fe9345aae9",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-9",
+        "chartVersionId": "synthetic-version-9",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 10,
+      "syntheticInput": {
+        "birthDate": "1989-10-10",
+        "localTime": "18:30",
+        "gender": "female"
+      },
+      "sha256": "c831a581eb71a5965995235eadd0683319e40d893b256bd686b666a750fd2ba5",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-10",
+        "chartVersionId": "synthetic-version-10",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 11,
+      "syntheticInput": {
+        "birthDate": "1990-11-11",
+        "localTime": "20:30",
+        "gender": "male"
+      },
+      "sha256": "f04e69f50ad5e47be2307d6e10ba8a17b34c55d705ee2208962cb2e8a9814328",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-11",
+        "chartVersionId": "synthetic-version-11",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Thiên Tướng"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Tật Ách của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Tật Ách trên lá số của bạn. Với sự tọa thủ của Thiên Tướng, ngày này nhấn mạnh vào chủ đề chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Tật Ách.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 12,
+      "syntheticInput": {
+        "birthDate": "1991-12-12",
+        "localTime": "22:30",
+        "gender": "female"
+      },
+      "sha256": "8b8a1a1c1d8fe1c8612abc88fb515d2c17ebf1a697379881b64a0f7ed79fc9c8",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-12",
+        "chartVersionId": "synthetic-version-12",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Thiên Đồng",
+            "Cự Môn"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Thiên Đồng, Cự Môn, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 13,
+      "syntheticInput": {
+        "birthDate": "1992-01-13",
+        "localTime": "00:30",
+        "gender": "male"
+      },
+      "sha256": "2dff528c00acd56978a857fa39fd94d36dc47099b883a2b0ea55ef87358ff8a0",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-13",
+        "chartVersionId": "synthetic-version-13",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Thiên Lương"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Thiên Lương, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 14,
+      "syntheticInput": {
+        "birthDate": "1993-02-14",
+        "localTime": "02:30",
+        "gender": "female"
+      },
+      "sha256": "22ac24de5107908ae1443b363a685599d0a936a6d1f77e62deeac050739d4db0",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-14",
+        "chartVersionId": "synthetic-version-14",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 15,
+      "syntheticInput": {
+        "birthDate": "1994-03-15",
+        "localTime": "04:30",
+        "gender": "male"
+      },
+      "sha256": "6922bcb44edbf70118592ae415bfdd60ba28f4d38f7a136ab43570af0a4c257f",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-15",
+        "chartVersionId": "synthetic-version-15",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Liêm Trinh",
+            "Thất Sát"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Liêm Trinh, Thất Sát, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 16,
+      "syntheticInput": {
+        "birthDate": "1995-04-16",
+        "localTime": "06:30",
+        "gender": "female"
+      },
+      "sha256": "ab309bd2754c09bc91f187dd2833f46558c667435162baa73f8391440344cde7",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-16",
+        "chartVersionId": "synthetic-version-16",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Liêm Trinh",
+            "Thất Sát"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Liêm Trinh, Thất Sát, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 17,
+      "syntheticInput": {
+        "birthDate": "1996-05-17",
+        "localTime": "08:30",
+        "gender": "male"
+      },
+      "sha256": "a7149a7dbf7d00f74194ae3abccf8cc847a6ecb05c5d14a9f646fb876b1f901c",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-17",
+        "chartVersionId": "synthetic-version-17",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 18,
+      "syntheticInput": {
+        "birthDate": "1997-06-18",
+        "localTime": "10:30",
+        "gender": "female"
+      },
+      "sha256": "9ee674ad4af21d0da8b059e235ca23262bfa8fd11a2e8e2d095c148eb51297ef",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-18",
+        "chartVersionId": "synthetic-version-18",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 19,
+      "syntheticInput": {
+        "birthDate": "1998-07-19",
+        "localTime": "12:30",
+        "gender": "male"
+      },
+      "sha256": "4cd4cd18c52ca759831f3996ae8970830bd80028faea096c670b4a36bfdce213",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-19",
+        "chartVersionId": "synthetic-version-19",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [
+            "Thái Dương",
+            "Thái Âm"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. Với sự tọa thủ của Thái Dương, Thái Âm, ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 20,
+      "syntheticInput": {
+        "birthDate": "1999-08-20",
+        "localTime": "14:30",
+        "gender": "female"
+      },
+      "sha256": "2697a61f75d975efc03283fe4479695432bf4dd79d1c67599eb5a723d2704058",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-20",
+        "chartVersionId": "synthetic-version-20",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi chạm cung Thiên Di của bạn",
+          "overview": "Hôm nay là ngày Đinh Mùi, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung Thiên Di trên lá số của bạn. ngày này nhấn mạnh vào chủ đề giao tế bên ngoài, đi lại và mở rộng không gian sống. Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại Thiên Di.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Thân tâm & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    }
+  ],
+  "frozenClockAt": "2026-09-30T03:00:00.000Z",
+  "executedAt": "2026-09-30T10:15:29.123849+00:00"
+}
