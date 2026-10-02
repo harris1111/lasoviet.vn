@@ -45,13 +45,17 @@
   .fd109-tabs button[aria-selected="true"] { border-color: var(--gold-500); color: var(--gold-500); }
   .fd109-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: start; }
   .fd109-chart { position: sticky; top: 24px; }
-  .fd109-main [data-tab] { display: none; }
+  .fd109-main [data-tab], .fd109-main [data-tabs] { display: none; }
   .fd109[data-active-tab="chart"] [data-tab="chart"],
   .fd109[data-active-tab="overview"] [data-tab="overview"],
   .fd109[data-active-tab="nam-nay"] [data-tab="nam-nay"],
   .fd109[data-active-tab="palaces"] [data-tab="palaces"],
   .fd109[data-active-tab="topics"] [data-tab="topics"],
   .fd109[data-active-tab="evidence"] [data-tab="evidence"] { display: block; }
+  /* data-tabs (plural, space-separated) shows a node on more than one tab
+     without duplicating it — used by the completion block (audit finding 2). */
+  .fd109[data-active-tab="overview"] [data-tabs~="overview"],
+  .fd109[data-active-tab="topics"] [data-tabs~="topics"] { display: block; }
   .fd109-sticky { display: none; }
   .fd109-preview { margin: auto; border-radius: 20px; }
 }
