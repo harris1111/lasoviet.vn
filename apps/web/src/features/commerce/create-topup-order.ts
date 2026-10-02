@@ -39,7 +39,8 @@ export async function createTopUpOrder(
     if (error instanceof VerifiedAccountResolutionError) {
       const returnTarget = returnPath ?? `${prefix}/nap-la`;
       return redirect(
-        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(returnTarget)}`,
+        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(returnTarget)}` +
+          `&fallbackURL=${encodeURIComponent(returnTarget)}`,
       );
     }
     throw error;

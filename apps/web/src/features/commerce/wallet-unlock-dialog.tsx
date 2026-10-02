@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
 import type { LaSku } from "@lasoviet/contracts";
@@ -51,6 +52,21 @@ export type WalletUnlockDialogProps = {
   labels: WalletUnlockDialogLabels;
 };
 
+export function buildWalletSignInHref(
+  locale: "vi" | "en",
+  currentHref: string,
+  chartId: string,
+): string {
+  const prefix = locale === "en" ? "/en" : "";
+  const currentUrl = new URL(currentHref, "https://lasoviet.local");
+  const callbackURL = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+  const fallbackURL = `${prefix}/la-so/${encodeURIComponent(chartId)}/chon-luan-giai`;
+  return (
+    `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(callbackURL)}` +
+    `&fallbackURL=${encodeURIComponent(fallbackURL)}`
+  );
+}
+
 function randomId(): string {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
@@ -76,6 +92,7 @@ export function WalletUnlockDialog({
   labels,
 }: WalletUnlockDialogProps) {
   const t = useTranslations("reports");
+  const router = useRouter();
   const [state, setState] = useState<DialogState>({ step: "loading" });
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -98,8 +115,7 @@ export function WalletUnlockDialog({
         if (!active) return;
         if (!intentResponse.ok || !balanceResponse.ok) {
           if (intentResponse.status === 401 || balanceResponse.status === 401) {
-            const prefix = locale === "en" ? "/en" : "";
-            window.location.href = `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(window.location.href)}`;
+            router.push(buildWalletSignInHref(locale, window.location.href, chartId));
             return;
           }
           setState({ step: "error", message: labels.genericError });
@@ -126,7 +142,7 @@ export function WalletUnlockDialog({
     // every time the dialog opens, so a fresh intent+balance load always
     // starts from "loading" without a synchronous setState in the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [chartId, locale, router]);
 
   useEffect(() => {
     if (!open) return;

@@ -93,11 +93,15 @@ describe("create top-up order", () => {
     await createTopUpOrder("LA-START-1100", "vi");
 
     expect(privateApiClient).not.toHaveBeenCalled();
-    expect(redirect).toHaveBeenCalledWith(`/dang-nhap?callbackURL=${encodeURIComponent("/nap-la")}`);
+    expect(redirect).toHaveBeenCalledWith(
+      `/dang-nhap?callbackURL=${encodeURIComponent("/nap-la")}&fallbackURL=${encodeURIComponent("/nap-la")}`,
+    );
 
     vi.mocked(redirect).mockClear();
     await createTopUpOrder("LA-START-1100", "en");
-    expect(redirect).toHaveBeenCalledWith(`/en/dang-nhap?callbackURL=${encodeURIComponent("/en/nap-la")}`);
+    expect(redirect).toHaveBeenCalledWith(
+      `/en/dang-nhap?callbackURL=${encodeURIComponent("/en/nap-la")}&fallbackURL=${encodeURIComponent("/en/nap-la")}`,
+    );
   });
 
   it("keeps the customer's chosen return path through sign-in", async () => {
@@ -112,7 +116,8 @@ describe("create top-up order", () => {
     await createTopUpOrder("LA-START-1100", "vi", "/la-so/chart-1/chon-luan-giai");
 
     expect(redirect).toHaveBeenCalledWith(
-      `/dang-nhap?callbackURL=${encodeURIComponent("/la-so/chart-1/chon-luan-giai")}`,
+      `/dang-nhap?callbackURL=${encodeURIComponent("/la-so/chart-1/chon-luan-giai")}` +
+        `&fallbackURL=${encodeURIComponent("/la-so/chart-1/chon-luan-giai")}`,
     );
   });
 

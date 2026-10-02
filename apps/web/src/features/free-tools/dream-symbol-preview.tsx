@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+import { buildFreeToolLoginHref } from "./free-tool-login-link";
 
 export type DreamSymbolPreviewProps = {
   locale: "vi" | "en";
@@ -303,7 +304,7 @@ export function DreamSymbolPreview({ locale, className }: DreamSymbolPreviewProp
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <Link
-              href={isVi ? "/dang-nhap" : "/en/dang-nhap"}
+              href={buildFreeToolLoginHref(locale, "dreamSymbols")}
               style={{ color: "var(--text-body)", textDecoration: "none", fontSize: "14px" }}
             >
               {isVi ? "Đăng nhập" : "Sign in"}

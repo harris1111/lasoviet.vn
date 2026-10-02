@@ -53,7 +53,8 @@ export async function createCheckoutOrder(
         offerKey,
       )}#${encodeURIComponent(offerKey)}`;
       return redirect(
-        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(returnTarget)}`,
+        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(returnTarget)}` +
+          `&fallbackURL=${encodeURIComponent(returnTarget)}`,
       );
     }
     throw error;

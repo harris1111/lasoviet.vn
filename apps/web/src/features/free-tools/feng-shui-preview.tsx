@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+import { buildFreeToolLoginHref } from "./free-tool-login-link";
 
 export type FengShuiPreviewProps = {
   locale: "vi" | "en";
@@ -236,7 +237,7 @@ export function FengShuiPreview({ locale, className }: FengShuiPreviewProps) {
   const tuviHref = isVi ? "/tu-vi" : "/en/tu-vi";
   const freeToolsHref = isVi ? "/cong-cu-mien-phi" : "/en/cong-cu-mien-phi";
   const kienthucHref = isVi ? "/kien-thuc" : "/en/kien-thuc";
-  const loginHref = isVi ? "/dang-nhap" : "/en/dang-nhap";
+  const loginHref = buildFreeToolLoginHref(locale, "fengShui");
   const contactHref = isVi ? "/lien-he" : "/en/lien-he";
 
   return (
