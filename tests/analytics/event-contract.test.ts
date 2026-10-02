@@ -17,7 +17,7 @@ describe("analytics event contract", () => {
     expect(canonicalFunnel).toEqual(analyticsConfig.canonical_funnel);
   });
 
-  it("validates all 21 canonical events and their allowlisted properties", () => {
+  it("validates all 22 canonical events and their allowlisted properties", () => {
     const expectedEvents = [
       "landing",
       "wizard_start",
@@ -40,6 +40,7 @@ describe("analytics event contract", () => {
       "upgrade_view",
       "upgrade_purchased",
       "return_visit",
+      "free_result_interaction",
     ];
 
     expect(canonicalFunnel).toEqual(expectedEvents);
@@ -176,6 +177,7 @@ describe("analytics event contract", () => {
       "upgrade_view",
       "upgrade_purchased",
       "return_visit",
+      "free_result_interaction",
     ];
 
     for (const eventName of testEvents) {

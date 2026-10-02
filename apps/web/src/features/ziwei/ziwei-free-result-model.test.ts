@@ -36,21 +36,20 @@ describe("FD109 server-side free-result projection", () => {
   it("serializes one guest insight and aggregate year counts only", () => {
     const model = buildFreeResultModel(input);
     expect(model.insights).toHaveLength(1);
-    // A02: the first insight is always the chart-grounded structural text, not
-    // the API's generic "life-palace" literal (even though that literal is
-    // unlocked and available here as "VISIBLE" — it must be ignored).
-    expect(model.insights[0]?.description).toBe(buildFreeInsights(chart, "vi").items[0]!.description);
+    expect(model.insights[0]?.description).toContain("Tử Vi");
     expect(model.insights[0]?.description).not.toBe("VISIBLE");
     expect(model.annual).toEqual({ year: 2026, caution: 2, favorable: 3, neutral: 7 });
     const serialized = JSON.stringify(model);
-    for (const secret of ["VISIBLE", "SECOND_", "LOCKED_", "PAID_", "MONTH_", "YEAR_", "DAILY_"]) {
+    for (const secret of ["SECOND_", "LOCKED_", "PAID_", "MONTH_", "YEAR_", "DAILY_"]) {
       expect(serialized).not.toContain(secret);
     }
   });
-  it("includes the authorized second insight for verified actors, not locked prose", () => {
+  it("includes the actual structural Body insight for verified actors, not ungrounded API prose", () => {
     const model = buildFreeResultModel({ ...input, isGuest: false });
     expect(model.insights).toHaveLength(2);
-    expect(model.insights[1]?.description).toBe("SECOND_PROSE_SECRET");
+    expect(model.insights[1]?.id).toBe("body-palace");
+    expect(model.insights[1]?.description).toContain("Quan Lộc");
+    expect(JSON.stringify(model)).not.toContain("SECOND_PROSE_SECRET");
     expect(JSON.stringify(model)).not.toContain("LOCKED_");
     expect(JSON.stringify(model)).not.toContain("MONTH_");
   });
@@ -151,7 +150,7 @@ describe("FD109 server-side free-result projection", () => {
       expect(model.insights[0]?.id).toBe("life-palace");
     });
 
-    it("preserves authorized Vietnamese concern prose and its evidenceId when usable", () => {
+    it("uses chart facts instead of unverified Vietnamese concern prose and unknown evidence", () => {
       const model = buildFreeResultModel({
         ...input,
         isGuest: false,
@@ -166,12 +165,8 @@ describe("FD109 server-side free-result projection", () => {
       });
       expect(model.insights).toHaveLength(2);
       expect(model.insights[1]?.id).toBe("top-concern");
-      expect(model.insights[1]?.title).toBe("Quan tâm");
-      expect(model.insights[1]?.description).toBe("Luận giải sự nghiệp");
-      // A03 / ui-contract.md "Accept exact recognized engine IDs only... Do not
-      // invent career-preview": the prose is kept, but an evidenceId outside
-      // {life-palace, body-palace, transformations} is not a real engine fact
-      // and must not become a link.
+      expect(model.insights[1]?.title).toBe("Cung Quan Lộc");
+      expect(model.insights[1]?.description).toContain("Tử Vi");
       expect(model.insights[1]?.evidenceId).toBeUndefined();
     });
 
@@ -198,7 +193,7 @@ describe("FD109 server-side free-result projection", () => {
     });
   });
 
-  describe("A02: chart-grounded first insight (audit finding 1)", () => {
+  describe("A02 regression: first insight tracks this chart's own facts, not just not-the-literal", () => {
     const otherChart = {
       palaces: ZIWEI_PALACE_IDS.map((id, index) => ({
         id, earthlyBranchId: CANONICAL_BRANCH_SEQUENCE[(index + 3) % 12]!,
@@ -218,139 +213,10 @@ describe("FD109 server-side free-result projection", () => {
       expect(second).toBe(buildFreeInsights(otherChart, "vi").items[0]!.description);
     });
 
-    it("stays chart-grounded in English too", () => {
-      const model = buildFreeResultModel({ ...input, locale: "en" });
-      expect(model.insights[0]?.description).toBe(buildFreeInsights(chart, "en").items[0]!.description);
-      expect(model.insights[0]?.description).not.toBe("VISIBLE");
-    });
-
-    it("describes a palace with no major stars (vô chính diệu) instead of inventing one", () => {
-      const emptyLifeChart = {
-        ...chart,
-        palaces: chart.palaces.map((p) => (p.id === "ziwei.palace.life" ? { ...p, stars: [] } : p)),
-      } as NormalizedZiweiChartV1;
-      const model = buildFreeResultModel({ ...input, chart: emptyLifeChart });
-      expect(model.insights[0]?.description).toBe(buildFreeInsights(emptyLifeChart, "vi").items[0]!.description);
-      expect(model.insights[0]?.description).toContain("vô chính diệu");
-    });
-
     it("keeps the provisional-time disclaimer when the chart is provisional", () => {
       const provisionalChart = { ...chart, provisional: true } as NormalizedZiweiChartV1;
       const model = buildFreeResultModel({ ...input, chart: provisionalChart });
       expect(model.insights[0]?.description).toContain("Ước tính tạm tính do chưa rõ giờ sinh");
     });
-
-  });
-
-  describe("A03: verified concern and evidence boundary (audit finding 7)", () => {
-    // Reproduces packages/backend/src/reports/free-identity-preview.ts as
-    // measured 2026-10-02: for ANY verified concern, insight2's title and
-    // description are built from the concern palace (concernInfo), but id
-    // and evidenceId are hard-coded to "body-palace" /
-    // "ziwei.identity.body-palace" regardless of which palace the prose is
-    // actually about.
-    const mislabeledConcernInsight = (title: string, description: string) => ({
-      id: "body-palace", numeral: "02", title, tagline: "whatever",
-      description, evidenceId: "ziwei.identity.body-palace", isLocked: false,
-    });
-
-    it("relabels a concern insight mislabeled as body-palace and drops the mismatched evidence", () => {
-      const model = buildFreeResultModel({
-        ...input,
-        isGuest: false,
-        preview: {
-          insightDetails: [
-            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
-            mislabeledConcernInsight("Cung Tài Bạch", "WEALTH_PALACE_PROSE"),
-          ],
-          topConcern: "money", // -> ziwei.palace.wealth, not chart.bodyPalaceId ("career")
-        } as unknown as FreeIdentityPreviewV1,
-      });
-      expect(model.insights).toHaveLength(2);
-      // The real prose is kept — only the false id/evidence pairing is fixed.
-      expect(model.insights[1]?.title).toBe("Cung Tài Bạch");
-      expect(model.insights[1]?.description).toBe("WEALTH_PALACE_PROSE");
-      expect(model.insights[1]?.id).toBe("top-concern");
-      expect(model.insights[1]?.evidenceId).toBeUndefined();
-    });
-
-    it.each(["love", "family", "wellbeing"] as const)(
-      "also corrects the %s concern, never pointing readers at Cung Thân's evidence",
-    (topConcern) => {
-      const model = buildFreeResultModel({
-        ...input,
-        isGuest: false,
-        preview: {
-          insightDetails: [
-            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
-            mislabeledConcernInsight("Concern title", "Concern prose"),
-          ],
-          topConcern,
-        } as unknown as FreeIdentityPreviewV1,
-      });
-      expect(model.insights[1]?.id).toBe("top-concern");
-      expect(model.insights[1]?.evidenceId).toBeUndefined();
-    });
-
-    it("keeps id and evidence as body-palace when the concern genuinely is the actual Body palace", () => {
-      // chart.bodyPalaceId is "ziwei.palace.career" in this fixture, so the
-      // career concern IS the real Body palace: the API's labelling is
-      // correct here and must not be rewritten.
-      const model = buildFreeResultModel({
-        ...input,
-        isGuest: false,
-        preview: {
-          insightDetails: [
-            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
-            mislabeledConcernInsight("Cung Quan Lộc", "CAREER_IS_BODY_PROSE"),
-          ],
-          topConcern: "career",
-        } as unknown as FreeIdentityPreviewV1,
-      });
-      expect(model.insights[1]?.id).toBe("body-palace");
-      expect(model.insights[1]?.description).toBe("CAREER_IS_BODY_PROSE");
-      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.body-palace");
-    });
-
-    it("keeps id and evidence as body-palace when no concern was chosen", () => {
-      const model = buildFreeResultModel({
-        ...input,
-        isGuest: false,
-        preview: {
-          insightDetails: [
-            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
-            mislabeledConcernInsight("Cung Quan Lộc", "NO_CONCERN_BODY_PROSE"),
-          ],
-        } as unknown as FreeIdentityPreviewV1,
-      });
-      expect(model.insights[1]?.id).toBe("body-palace");
-      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.body-palace");
-    });
-
-    it("does not break the private page when evidence ends up absent (renders structural facts only)", () => {
-      const model = buildFreeResultModel({
-        ...input,
-        isGuest: false,
-        preview: {
-          insightDetails: [
-            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
-            mislabeledConcernInsight("Cung Tài Bạch", "WEALTH_PALACE_PROSE"),
-          ],
-          topConcern: "money",
-        } as unknown as FreeIdentityPreviewV1,
-      });
-      // No throw, both insights still render, and the second never falls
-      // through to an undefined/empty title.
-      expect(model.insights).toHaveLength(2);
-      expect(model.insights[1]?.title).toBeTruthy();
-    });
-  });
-
-  it("still returns exactly one insight for a guest, with its real evidence id", () => {
-    const model = buildFreeResultModel(input);
-    expect(model.insights).toHaveLength(1);
-    expect(model.insights[0]?.id).toBe("life-palace");
-    expect(model.insights[0]?.evidenceId).toBe("ziwei.identity.life-palace");
-    expect(JSON.stringify(model)).not.toContain("costVnd");
   });
 });

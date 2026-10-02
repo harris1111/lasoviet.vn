@@ -50,7 +50,7 @@ export function getDisciplineNavLinks(
 
 export type SiteHeaderProps = {
   locale: "en" | "vi";
-  variant?: "default" | "discipline";
+  variant?: "default" | "discipline" | "result";
   currentPath?: string;
   signInReturnPath?: string;
   contactPath?: string;
@@ -125,7 +125,7 @@ export function SiteHeader({
     // static trust-strip copy inside the homepage hero.
     React.createElement(
       "header",
-      { className: "site-header" + (isDiscipline ? " site-header-discipline" : "") },
+      { className: "site-header" + (isDiscipline ? " site-header-discipline" : "") + (variant === "result" ? " site-header-result" : "") },
       React.createElement(
         "div",
         { className: "container header-inner" },

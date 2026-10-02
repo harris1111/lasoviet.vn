@@ -21,7 +21,8 @@
     "guarantee_claimed",
     "upgrade_view",
     "upgrade_purchased",
-    "return_visit"
+    "return_visit",
+    "free_result_interaction"
   ],
   "events": [
     {
@@ -208,6 +209,15 @@
       "properties": [
         "days_since_last_visit",
         "return_count"
+      ]
+    },
+    {
+      "name": "free_result_interaction",
+      "properties": [
+        "stage",
+        "section_id",
+        "locale",
+        "source_kind"
       ]
     }
   ]

@@ -6,6 +6,9 @@ import { describe, expect, it } from "vitest";
 const ALLOWED_BACKEND_FILE = "apps/web/src/app/api/notifications/unsubscribe/route.ts";
 const ALLOWED_BACKEND_SPECIFIER = "@lasoviet/backend/notifications/notification-preference";
 
+const ALLOWED_SCORER_FILE = "apps/web/src/features/reports/report-palace-score.ts";
+const ALLOWED_SCORER_SPECIFIER = "@lasoviet/backend/reports/structural-palace-score";
+
 const PRODUCTION_SOURCE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -111,6 +114,7 @@ export function validateBackendImportAllowlist(
   const violations: Array<{ file: string; specifier: string; reason: string }> = [];
 
   for (const entry of imports) {
+    if (entry.file === ALLOWED_SCORER_FILE && entry.specifier === ALLOWED_SCORER_SPECIFIER) continue;
     if (entry.file !== ALLOWED_BACKEND_FILE) {
       violations.push({
         ...entry,
@@ -151,7 +155,7 @@ describe("workspace boundaries", () => {
     },
   );
 
-  it("restricts backend imports in apps/web/src strictly to the unsubscribe route and preference subpath", async () => {
+  it("restricts backend imports to the exact unsubscribe and pure scorer file/subpath pairs", async () => {
     const sourceFiles = await scanWebSourceFiles("apps/web/src");
     const detectedBackendImports: Array<{ file: string; specifier: string }> = [];
 
@@ -164,11 +168,13 @@ describe("workspace boundaries", () => {
       }
     }
 
-    expect(detectedBackendImports).toEqual([
+    expect(detectedBackendImports.sort((a, b) => a.file.localeCompare(b.file))).toEqual([
       {
         file: ALLOWED_BACKEND_FILE,
         specifier: ALLOWED_BACKEND_SPECIFIER,
       },
+      { file: ALLOWED_SCORER_FILE, specifier: ALLOWED_SCORER_SPECIFIER },
+      { file: ALLOWED_SCORER_FILE, specifier: ALLOWED_SCORER_SPECIFIER },
     ]);
 
     const audit = validateBackendImportAllowlist(detectedBackendImports);
@@ -287,5 +293,22 @@ describe("workspace boundaries", () => {
       "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run build && corepack pnpm@11.25.0 run test",
     );
     expect(workflow).toContain("      - run: pnpm build\n      - run: pnpm test");
+  });
+});
+
+describe("pure structural scorer import boundary", () => {
+  it("allows only the exact pure export from its frontend wrapper", () => {
+    const file = "apps/web/src/features/reports/report-palace-score.ts";
+    expect(validateBackendImportAllowlist([{ file, specifier: "@lasoviet/backend/reports/structural-palace-score" }]).valid).toBe(true);
+    expect(validateBackendImportAllowlist([{ file, specifier: "@lasoviet/backend" }]).valid).toBe(false);
+    expect(validateBackendImportAllowlist([{ file: "apps/web/src/other.ts", specifier: "@lasoviet/backend/reports/structural-palace-score" }]).valid).toBe(false);
+  });
+  it("keeps the pure scorer free of runtime imports", async () => {
+    const source = await readFile("packages/backend/src/reports/structural-palace-score.ts", "utf8");
+    const ast = ts.createSourceFile("scorer.ts", source, ts.ScriptTarget.Latest, true);
+    const imports = ast.statements.filter(ts.isImportDeclaration);
+    expect(imports).toHaveLength(1);
+    expect(imports.every((node) => node.importClause?.isTypeOnly === true)).toBe(true);
+    expect(source).not.toMatch(/\brequire\s*\(|\bimport\s*\(/);
   });
 });

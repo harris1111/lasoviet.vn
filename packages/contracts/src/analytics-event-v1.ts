@@ -22,6 +22,7 @@ export const CANONICAL_ANALYTICS_EVENT_NAMES = [
   "upgrade_view",
   "upgrade_purchased",
   "return_visit",
+  "free_result_interaction",
 ] as const;
 
 export const CanonicalAnalyticsEventNameSchema = z.enum(

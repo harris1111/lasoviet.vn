@@ -247,6 +247,7 @@ export type {
 
 export {
   NormalizedZiweiChartV1Schema,
+  PalaceIdSchema,
 } from "./normalized-ziwei-chart-v1.js";
 export type {
   NormalizedZiweiChartV1,
@@ -915,3 +916,4 @@ export { ReportTopicReadyViewV1Schema, PaidReportSkuSchema, type ReportTopicRead
 
 export { ZiweiPeriodReadingPublicContentV1Schema, projectPeriodReadingPublicContent, type ZiweiPeriodReadingPublicContentV1 } from "./ziwei-period-reading-public-v1.js";
 export { ReportPeriodReadyViewV1Schema, type ReportPeriodReadyViewV1 } from "./identity-report-v1.js";
+export { FreePalaceGiftContentV1Schema, FreePalaceGiftFactV1Schema, FreePalaceGiftViewV1Schema, FreePalaceGiftOutboxPayloadV1Schema, FreePalaceGiftFrozenCallV1Schema, type FreePalaceGiftFrozenCallV1, type FreePalaceGiftContentV1, type FreePalaceGiftFactV1, type FreePalaceGiftViewV1 } from "./free-palace-gift-v1.js";
