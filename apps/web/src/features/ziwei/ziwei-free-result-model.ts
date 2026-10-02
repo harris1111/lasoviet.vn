@@ -26,6 +26,15 @@ const concernPalaces: Record<TopConcernV1, string> = {
   wellbeing: "ziwei.palace.fortune", self_understanding: "ziwei.palace.body",
 };
 
+// A03 / ui-contract.md: the only engine evidence ids the UI may ever link to.
+// Anything else (an invented id such as "ziwei.identity.career-preview") is
+// not a real fact reference and must not become a clickable link.
+const RECOGNIZED_EVIDENCE_IDS = new Set([
+  "ziwei.identity.life-palace",
+  "ziwei.identity.body-palace",
+  "ziwei.identity.transformations",
+]);
+
 /**
  * Server-side allowlist. The client gets only authorized prose and aggregate
  * annual counts, never a raw horoscope, paid preview or locked insight.
@@ -73,7 +82,21 @@ export function buildFreeResultModel(input: {
   const authorizedSecond = details.find((item) => item.id === "top-concern")
     ?? details.find((item) => item.id === "body-palace");
   if (authorizedSecond) {
-    second = authorizedSecond;
+    // A03 / audit finding 7: the preview API always tags insight 2 as
+    // id="body-palace" / evidenceId="ziwei.identity.body-palace", even when
+    // its title/description were actually written for a different concern
+    // palace (e.g. topConcern "money" describing cung Tài Bạch). The prose
+    // itself is real and kept; the id and evidence are only trustworthy when
+    // this insight genuinely is about the chart's actual Body palace.
+    const isActualBodyPalace = !preview.topConcern || requested === chart.bodyPalaceId;
+    second = (authorizedSecond.id === "body-palace"
+        && authorizedSecond.evidenceId === "ziwei.identity.body-palace"
+        && !isActualBodyPalace)
+      ? { ...authorizedSecond, id: "top-concern", evidenceId: undefined }
+      : authorizedSecond;
+    if (second.evidenceId && !RECOGNIZED_EVIDENCE_IDS.has(second.evidenceId)) {
+      second = { ...second, evidenceId: undefined };
+    }
   } else if (preview.topConcern) {
     const matchedPalace = palaces.find((palace) => palace.id === requested);
     if (matchedPalace) {
