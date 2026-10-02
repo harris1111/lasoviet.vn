@@ -43,15 +43,14 @@ The active role delegation chain is:
 
 ```text
 Owner goals and decisions
-    -> GPT 5.6 Sol high (Orchestrator)
-        -> Flash Executor high (ag/gemini-3.8-flash) for bounded implementation
-        -> GPT 5.6 Terra high for independent milestone review
+    -> GPT 6.1 Sol medium (Orchestrator)
+        -> GPT 6.1 Sol medium (Reviewer)
+        -> Flash Executor medium (ag/gemini-3.8-flash) for bounded implementation
 ```
 
 - **Interactive Mode:** When the user chats directly with Flash or any other active session model, that model manages the task directly with high factual rigor and executes without unnecessary subagent overhead.
-- **Sol (Orchestrator):** Owns scope control, task decomposition, sequencing, and owner communication. Sol gives Flash Executor a fully specified, bounded brief and gives Terra the matching independent review brief.
-- **Flash Executor (ag/gemini-3.8-flash at high):** Active primary executor for bounded implementation. Flash implements only the assigned files and behavior, runs focused checks, and returns structured evidence. Flash may make one local correction on immediate syntax/test failure; if ambiguous, it stops with `BLOCKED` or `NEEDS_CONTEXT`.
-- **Terra high (Reviewer):** Performs independent adversarial milestone review on features, security/privacy boundaries, and test coverage before release gates. Terra does not write implementation code.
+- **Sol (Orchestrator and Reviewer, `cx/gpt-6.1-sol` at medium):** Owns scope control, task decomposition, sequencing, owner communication, and the independent milestone review of plans, diffs, tests, security/privacy boundaries, and release evidence. Sol gives Flash Executor a fully specified, bounded brief and reviews the resulting evidence before release gates.
+- **Flash Executor (`ag/gemini-3.8-flash` at medium):** Active primary executor for bounded implementation. Flash implements only the assigned files and behavior, runs focused checks, and returns structured evidence. Flash may make one local correction on immediate syntax/test failure; if ambiguous, it stops with `BLOCKED` or `NEEDS_CONTEXT`.
 - **Luna:** Remains disabled unless explicitly reactivated by the owner.
 
 ## 4. Implementation Governance & Safety

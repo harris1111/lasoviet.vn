@@ -41,7 +41,8 @@ export async function createTopUpOrder(
       const parsedReturn = new URL(returnPath ?? `${prefix}/nap-la`, "https://lasoviet.net");
       const returnTarget = parsedReturn.origin === "https://lasoviet.net" ? `${parsedReturn.pathname}${parsedReturn.search}` : `${prefix}/nap-la`;
       return redirect(
-        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(returnTarget)}`,
+        `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(returnTarget)}` +
+          `&fallbackURL=${encodeURIComponent(returnTarget)}`,
       );
     }
     throw error;

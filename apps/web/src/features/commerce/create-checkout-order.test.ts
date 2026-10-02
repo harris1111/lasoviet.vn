@@ -94,7 +94,9 @@ describe("create checkout order", () => {
 
     expect(privateApiClient).not.toHaveBeenCalled();
     const expectedTarget = encodeURIComponent("/la-so/chart-1/chon-luan-giai?offer=ziwei-comprehensive#ziwei-comprehensive");
-    expect(redirect).toHaveBeenCalledWith(`/dang-nhap?callbackURL=${expectedTarget}`);
+    expect(redirect).toHaveBeenCalledWith(
+      `/dang-nhap?callbackURL=${expectedTarget}&fallbackURL=${expectedTarget}`,
+    );
     const calledUrl = vi.mocked(redirect).mock.calls[0]![0];
     expect(calledUrl).not.toMatch(/ZIWEI-[A-Z0-9]+/);
 
@@ -102,7 +104,9 @@ describe("create checkout order", () => {
     vi.mocked(redirect).mockClear();
     await createCheckoutOrder("chart-1", "en", "ziwei-comprehensive");
     const expectedEnTarget = encodeURIComponent("/en/la-so/chart-1/chon-luan-giai?offer=ziwei-comprehensive#ziwei-comprehensive");
-    expect(redirect).toHaveBeenCalledWith(`/en/dang-nhap?callbackURL=${expectedEnTarget}`);
+    expect(redirect).toHaveBeenCalledWith(
+      `/en/dang-nhap?callbackURL=${expectedEnTarget}&fallbackURL=${expectedEnTarget}`,
+    );
   });
 
   it("rejects unknown offer key before auth or private API", async () => {

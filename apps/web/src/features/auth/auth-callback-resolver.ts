@@ -3,9 +3,14 @@ const DUMMY_BASE = "https://lasoviet.local";
 export function resolveAuthCallbackUrl(
   rawUrl: unknown,
   locale: "vi" | "en" | string,
+  fallbackUrl?: unknown,
 ): string {
+  const defaultFallback =
+    locale === "en" ? "/en/tai-khoan" : "/tai-khoan";
   const fallback =
-    locale === "en" ? "/en/tao-la-so/tu-vi" : "/tao-la-so/tu-vi";
+    typeof fallbackUrl === "string"
+      ? resolveAuthCallbackUrl(fallbackUrl, locale)
+      : defaultFallback;
 
   if (typeof rawUrl !== "string") {
     return fallback;

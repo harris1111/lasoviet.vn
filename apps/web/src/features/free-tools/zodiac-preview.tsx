@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 
 import { FreeToolCrossSellBanner } from "./free-tool-cross-sell-banner";
+import { buildFreeToolLoginHref } from "./free-tool-login-link";
 
 export type ZodiacPreviewProps = {
   locale: "vi" | "en";
@@ -269,7 +270,7 @@ export function ZodiacPreview({ locale, className }: ZodiacPreviewProps) {
           </nav>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <Link
-              href={isVi ? "/dang-nhap" : "/en/dang-nhap"}
+              href={buildFreeToolLoginHref(locale, "zodiac")}
               style={{ color: "var(--text-body)", textDecoration: "none", fontSize: "14px" }}
             >
               {isVi ? "Đăng nhập" : "Sign in"}

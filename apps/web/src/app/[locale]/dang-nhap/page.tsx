@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 type SignInPageProps = {
   searchParams?: Promise<{
     callbackURL?: string | string[];
+    fallbackURL?: string | string[];
     [key: string]: string | string[] | undefined;
   }>;
 };
@@ -18,7 +19,11 @@ type SignInPageProps = {
 export default async function SignInPage({ searchParams }: SignInPageProps = {}) {
   const locale = (await getLocale()) as "en" | "vi";
   const resolvedParams = searchParams ? await searchParams : undefined;
-  const callbackURL = resolveAuthCallbackUrl(resolvedParams?.callbackURL, locale);
+  const callbackURL = resolveAuthCallbackUrl(
+    resolvedParams?.callbackURL,
+    locale,
+    resolvedParams?.fallbackURL,
+  );
   const forgotPasswordURL = locale === "en" ? "/en/quen-mat-khau" : "/quen-mat-khau";
 
   return (
