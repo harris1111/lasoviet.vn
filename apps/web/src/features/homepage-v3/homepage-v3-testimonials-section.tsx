@@ -65,7 +65,8 @@ function useInView<T extends HTMLElement>(threshold: number) {
  * 15 quotes gets shown. Mobile gets one swipeable row of all 15. Reader quotes stay in Vietnamese
  * on both locales, so quote and attribution carry lang="vi".
  */
-export function HomepageV3Testimonials({ avatars }: {
+export function HomepageV3Testimonials({ avatars, presentation = "legacy" }: {
+  presentation?: "legacy" | "carousel";
   avatars?: Readonly<Record<string, { src: string; srcSet?: string; width?: number; height?: number }>>;
 }) {
   const t = useTranslations("homepage-v3.testimonials");
@@ -74,6 +75,14 @@ export function HomepageV3Testimonials({ avatars }: {
   const [openId, setOpenId] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [start, setStart] = useState(0);
+  const [travel, setTravel] = useState(0);
+  const [announcement, setAnnouncement] = useState("");
+  const trackRef = useRef<HTMLDivElement>(null);
+  const carouselTimer = useRef<number | null>(null);
+  const movingRef = useRef(false);
+  const carousel = presentation === "carousel";
   const [rowTouched, setRowTouched] = useState(false);
   const [phase, setPhase] = useState<{ slot: number; kind: "out" | "in" } | null>(null);
 
@@ -97,9 +106,9 @@ export function HomepageV3Testimonials({ avatars }: {
     setRotation(createRotation(ROTATION_QUEUE, slotCount));
   }
 
-  const blocked = reduced || paused || hovered || Boolean(openId) || expanded || !pageVisible;
-  const gridRunning = !mobile && gridInView && !blocked;
-  const rowRunning = mobile && rowInView && !rowTouched && !blocked;
+  const blocked = reduced || paused || hovered || focused || Boolean(openId) || expanded || !pageVisible;
+  const gridRunning = !carousel && !mobile && gridInView && !blocked;
+  const rowRunning = !carousel && mobile && rowInView && !rowTouched && !blocked;
 
   // The interval owns its own copy of the rotation; React state only drives what is painted.
   const rotationRef = useRef<RotationState>(rotation);
@@ -141,6 +150,49 @@ export function HomepageV3Testimonials({ avatars }: {
     }, ROTATE_MS);
     return () => window.clearInterval(interval);
   }, [rowRunning]);
+
+  const windowCount = wide ? 3 : 2;
+  const carouselRunning = carousel && gridInView && !blocked;
+  const cancelMovement = useCallback(() => {
+    if (carouselTimer.current !== null) window.clearTimeout(carouselTimer.current);
+    carouselTimer.current = null;
+    movingRef.current = false;
+    setTravel(0);
+  }, []);
+  const advance = useCallback((manual = false) => {
+    if (movingRef.current) return;
+    if (reduced) {
+      setStart((current) => (current + 1) % QUEUE_ITEMS.length);
+      if (manual) setAnnouncement(t("next"));
+      return;
+    }
+    const first = trackRef.current?.firstElementChild as HTMLElement | null;
+    if (!first) return;
+    movingRef.current = true;
+    setTravel(first.getBoundingClientRect().width + 16);
+    carouselTimer.current = window.setTimeout(() => {
+      setStart((current) => (current + 1) % QUEUE_ITEMS.length);
+      setTravel(0);
+      movingRef.current = false;
+      carouselTimer.current = null;
+      if (manual) setAnnouncement(t("next"));
+    }, 600);
+  }, [reduced, t]);
+  useEffect(() => {
+    if (!carouselRunning) {
+      if (carouselTimer.current !== null) window.clearTimeout(carouselTimer.current);
+      const reset = window.requestAnimationFrame(cancelMovement);
+      return () => window.cancelAnimationFrame(reset);
+    }
+    const interval = window.setInterval(() => advance(), ROTATE_MS);
+    return () => { window.clearInterval(interval); cancelMovement(); };
+  }, [carouselRunning, advance, cancelMovement]);
+  useEffect(() => {
+    if (!carousel) return;
+    window.addEventListener("resize", cancelMovement);
+    return () => { window.removeEventListener("resize", cancelMovement); cancelMovement(); };
+  }, [carousel, cancelMovement]);
+  const carouselItems = Array.from({ length: windowCount + (travel ? 1 : 0) }, (_, index) => QUEUE_ITEMS[(start + index) % QUEUE_ITEMS.length]!);
 
   const dialog = openId ? testimonialById(openId) : undefined;
   const visible = TESTIMONIALS.filter((item) => filter === "all" || item.group === filter);
@@ -196,13 +248,14 @@ export function HomepageV3Testimonials({ avatars }: {
     row?.scrollBy({ left: direction * ((card?.offsetWidth ?? 300) + 16), behavior: reduced ? "auto" : "smooth" });
   }
 
-  function card(item: Testimonial, variant: "slot" | "row" | "list", index: number) {
+  function card(item: Testimonial, variant: "slot" | "row" | "list" | "carousel", index: number) {
     const avatar = avatars?.[item.id];
     const cardPhase = variant === "slot" && phase?.slot === index ? phase.kind : undefined;
     return (
       <article
         key={variant === "slot" ? `slot-${index}` : `${variant}-${item.id}`}
         className={`hv3-tt-card hv3-tt-card-${variant}`}
+        inert={variant === "carousel" && index >= (mobile ? 1 : windowCount) ? true : undefined}
         data-reveal={variant === "slot" ? "" : undefined}
         data-glow={variant === "list" ? undefined : ""}
         style={{ "--i": index } as CSSProperties}
@@ -260,6 +313,24 @@ export function HomepageV3Testimonials({ avatars }: {
         <p className="hv3-tt-lead">{t("lead")}</p>
       </div>
 
+      {carousel ? (
+        <div className="hv3-tt-carousel" ref={setGridNode} role="region" aria-roledescription={t("rotationLabel")} aria-labelledby="hv3-tt-title" aria-live="off"
+          onPointerEnter={() => { setHovered(true); cancelMovement(); }}
+          onPointerLeave={() => setHovered(false)}
+          onFocus={() => { setFocused(true); cancelMovement(); }}
+          onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); }}>
+          <div className="hv3-tt-viewport">
+            <div className="hv3-tt-track" ref={trackRef} style={{ transform: `translateX(${-travel}px)`, transition: travel ? "transform 600ms ease" : "none" }}>
+              {carouselItems.map((item, index) => card(item, "carousel", index))}
+            </div>
+          </div>
+          <div className="hv3-tt-arrows">
+            <button type="button" aria-label={t("prev")} onClick={() => { cancelMovement(); setStart((current) => (current - 1 + QUEUE_ITEMS.length) % QUEUE_ITEMS.length); setAnnouncement(t("prev")); }}>←</button>
+            <button type="button" aria-label={t("next")} onClick={() => advance(true)}>→</button>
+          </div>
+          <span className="hv3-sr" role="status">{announcement}</span>
+        </div>
+      ) : (<>
       <div
         ref={setGridNode}
         className="hv3-tt-grid"
@@ -269,8 +340,8 @@ export function HomepageV3Testimonials({ avatars }: {
         aria-live="off"
         onPointerEnter={() => setHovered(true)}
         onPointerLeave={() => setHovered(false)}
-        onFocus={() => setHovered(true)}
-        onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setHovered(false); }}
+        onFocus={() => setFocused(true)}
+        onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); }}
       >
         {slots.map((item, index) => card(item, "slot", index))}
       </div>
@@ -289,6 +360,8 @@ export function HomepageV3Testimonials({ avatars }: {
           <button type="button" aria-label={t("next")} onClick={() => scrollRow(1)}>→</button>
         </div>
       </div>
+
+      </>)}
 
       <div className="hv3-tt-actions">
         <div className="hv3-tt-actions-left">

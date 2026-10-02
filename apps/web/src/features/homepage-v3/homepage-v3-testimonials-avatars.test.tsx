@@ -42,12 +42,12 @@ describe("testimonial portrait presentation", () => {
     }
   });
 
-  it("pairs all fifteen portraits with their reader ids in the queue's nonnumeric order", () => {
+  it("pairs the bounded carousel portraits with their stable reader ids", () => {
     const html = renderToStaticMarkup(createElement(TroiNamTestimonials));
-    const cards = rowCards(html);
-    expect(cards).toHaveLength(15);
+    const cards = (html.match(/<article\b[\s\S]*?<\/article>/g) ?? []).filter((card) => card.includes("hv3-tt-card-carousel"));
+    expect(cards).toHaveLength(3);
     expect(html).not.toContain("hv3-tt-mono");
-    for (const [index, id] of ROTATION_QUEUE.entries()) {
+    for (const [index, id] of ROTATION_QUEUE.slice(0, 3).entries()) {
       const item = TESTIMONIALS.find((reader) => reader.id === id)!;
       const asset = manifest[EXPECTED_ASSETS[id as keyof typeof EXPECTED_ASSETS]];
       const card = cards[index]!;
