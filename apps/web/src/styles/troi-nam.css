@@ -457,6 +457,14 @@
 .tn .tn-explore.hv3 {
   position: relative;
   width: 100%;
+  /* 2026-10-02 review fix: the Explore/Story legibility scrim's `::before`
+     uses `inset: -32px` to feather its edge beyond the text column — with
+     no clip here, that 32px bleed pushed past the true viewport edge and
+     made the whole page horizontally scrollable (document.documentElement
+     .scrollWidth > innerWidth, reproduced at 390px). This section already
+     spans full section width edge-to-edge, so clipping at its own box
+     only stops the bleed from escaping the viewport, not from reaching it. */
+  overflow-x: clip;
   /* Solid fallback for no-WebGL/no-JS/reduced-motion, where there's no
      painted world behind this to show through. Once the world is live
      (below), this goes transparent and each section does its own much
