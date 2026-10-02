@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1, type NormalizedZiweiChartV1, type ZiweiHoroscopeResultV1 } from "@lasoviet/contracts";
 import { CANONICAL_BRANCH_SEQUENCE } from "./ziwei-chart-relations";
 import { computeNormalizedPalaceScores } from "../reports/report-palace-score";
+import { buildFreeInsights } from "./ziwei-free-insights";
 import { buildFreeResultModel } from "./ziwei-free-result-model";
 
 const chart = {
@@ -35,10 +36,14 @@ describe("FD109 server-side free-result projection", () => {
   it("serializes one guest insight and aggregate year counts only", () => {
     const model = buildFreeResultModel(input);
     expect(model.insights).toHaveLength(1);
-    expect(model.insights[0]?.description).toBe("VISIBLE");
+    // A02: the first insight is always the chart-grounded structural text, not
+    // the API's generic "life-palace" literal (even though that literal is
+    // unlocked and available here as "VISIBLE" — it must be ignored).
+    expect(model.insights[0]?.description).toBe(buildFreeInsights(chart, "vi").items[0]!.description);
+    expect(model.insights[0]?.description).not.toBe("VISIBLE");
     expect(model.annual).toEqual({ year: 2026, caution: 2, favorable: 3, neutral: 7 });
     const serialized = JSON.stringify(model);
-    for (const secret of ["SECOND_", "LOCKED_", "PAID_", "MONTH_", "YEAR_", "DAILY_"]) {
+    for (const secret of ["VISIBLE", "SECOND_", "LOCKED_", "PAID_", "MONTH_", "YEAR_", "DAILY_"]) {
       expect(serialized).not.toContain(secret);
     }
   });
@@ -186,6 +191,57 @@ describe("FD109 server-side free-result projection", () => {
       const serialized = JSON.stringify(model);
       expect(serialized).not.toContain("SECRET_TITLE");
       expect(serialized).not.toContain("SECRET_LOCKED_PROSE");
+    });
+  });
+
+  describe("A02: chart-grounded first insight (audit finding 1)", () => {
+    const otherChart = {
+      palaces: ZIWEI_PALACE_IDS.map((id, index) => ({
+        id, earthlyBranchId: CANONICAL_BRANCH_SEQUENCE[(index + 3) % 12]!,
+        stars: index === 0
+          ? [{ id: "ziwei.star.tanlang", brightness: "ziwei.brightness.unfavorable", category: "major" }]
+          : [],
+      })),
+      soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career",
+      transformations: [],
+    } as unknown as NormalizedZiweiChartV1;
+
+    it("changes with the source chart's own major star, brightness and branch", () => {
+      const first = buildFreeResultModel(input).insights[0]!.description;
+      const second = buildFreeResultModel({ ...input, chart: otherChart }).insights[0]!.description;
+      expect(first).not.toBe(second);
+      expect(first).toBe(buildFreeInsights(chart, "vi").items[0]!.description);
+      expect(second).toBe(buildFreeInsights(otherChart, "vi").items[0]!.description);
+    });
+
+    it("stays chart-grounded in English too", () => {
+      const model = buildFreeResultModel({ ...input, locale: "en" });
+      expect(model.insights[0]?.description).toBe(buildFreeInsights(chart, "en").items[0]!.description);
+      expect(model.insights[0]?.description).not.toBe("VISIBLE");
+    });
+
+    it("describes a palace with no major stars (vô chính diệu) instead of inventing one", () => {
+      const emptyLifeChart = {
+        ...chart,
+        palaces: chart.palaces.map((p) => (p.id === "ziwei.palace.life" ? { ...p, stars: [] } : p)),
+      } as NormalizedZiweiChartV1;
+      const model = buildFreeResultModel({ ...input, chart: emptyLifeChart });
+      expect(model.insights[0]?.description).toBe(buildFreeInsights(emptyLifeChart, "vi").items[0]!.description);
+      expect(model.insights[0]?.description).toContain("vô chính diệu");
+    });
+
+    it("keeps the provisional-time disclaimer when the chart is provisional", () => {
+      const provisionalChart = { ...chart, provisional: true } as NormalizedZiweiChartV1;
+      const model = buildFreeResultModel({ ...input, chart: provisionalChart });
+      expect(model.insights[0]?.description).toContain("Ước tính tạm tính do chưa rõ giờ sinh");
+    });
+
+    it("still returns exactly one insight for a guest, with its real evidence id", () => {
+      const model = buildFreeResultModel(input);
+      expect(model.insights).toHaveLength(1);
+      expect(model.insights[0]?.id).toBe("life-palace");
+      expect(model.insights[0]?.evidenceId).toBe("ziwei.identity.life-palace");
+      expect(JSON.stringify(model)).not.toContain("costVnd");
     });
   });
 });
