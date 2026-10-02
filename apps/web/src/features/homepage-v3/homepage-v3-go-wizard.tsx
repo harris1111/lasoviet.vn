@@ -8,11 +8,9 @@ import type { HomepageV3Interest } from "./homepage-v3-birth-profile";
 export function scrollToHeroForm() {
   const target = document.getElementById("lap-la-so");
   if (!target) return;
-  const root = target.closest(".tn");
-  root?.dispatchEvent(new Event("tn:open-form"));
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
   target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-  if (!root) window.setTimeout(() => document.getElementById("hv3-day")?.focus({ preventScroll: true }), reduce ? 0 : 450);
+  window.setTimeout(() => document.getElementById("hv3-day")?.focus({ preventScroll: true }), reduce ? 0 : 450);
 }
 
 /**
@@ -33,7 +31,6 @@ export function HomepageV3GoWizard({
 }) {
   const concernCtx = useHomepageV3Concern();
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
     if (topConcern) concernCtx?.setTopConcern(topConcern);
     scrollToHeroForm();

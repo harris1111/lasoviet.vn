@@ -1,6 +1,5 @@
 import * as THREE from "three";
-import { worldThemeConfig, type WorldThemeConfig } from "./troi-nam-world-theme-config";
-import { installPaintedLightRemap } from "./painted-light-remap";
+import { troiNamAsset } from "../troi-nam-assets";
 import type { WorldChartTarget } from "./troi-nam-world-types";
 import type { WorldTextures } from "./troi-nam-world-textures";
 
@@ -31,14 +30,13 @@ export function projectChartRing(camera: THREE.PerspectiveCamera, rect: WorldCha
   }
 }
 
-export function createChartRing(scene: THREE.Scene, textures: WorldTextures, config: WorldThemeConfig = worldThemeConfig("dark", "high")) {
+export function createChartRing(scene: THREE.Scene, textures: WorldTextures) {
   const geometry = new THREE.BufferGeometry();
   const position = new THREE.BufferAttribute(new Float32Array(12), 3);
   geometry.setAttribute("position", position);
   geometry.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 1, 1], 2));
   geometry.setIndex([0, 1, 2, 2, 1, 3]);
-  const material = new THREE.MeshBasicMaterial({ map: textures.load(config.asset("P05").src), transparent: true, depthTest: false, depthWrite: false, opacity: 0 });
-  installPaintedLightRemap(material, config.palette("P05"));
+  const material = new THREE.MeshBasicMaterial({ map: textures.load(troiNamAsset("P05").src), transparent: true, depthTest: false, depthWrite: false, opacity: 0 });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.renderOrder = 31;

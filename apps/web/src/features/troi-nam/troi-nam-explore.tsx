@@ -1,7 +1,8 @@
+"use client";
+
 import { CANONICAL_BRANCH_IDS } from "../birth-profile/homepage-birth-prefill";
 import { palaceOnBranch, type PalaceId } from "../homepage-v3/homepage-v3-data";
 import { HomepageV3Explore } from "../homepage-v3/homepage-v3-explore";
-import { TroiNamThemePicture } from "./troi-nam-theme-art";
 import { troiNamAsset } from "./troi-nam-assets";
 
 const PALACE_ICONS: Record<PalaceId, string> = {
@@ -20,11 +21,22 @@ const palaceArt = CANONICAL_BRANCH_IDS.map((_, index) => `
 `).join("\n");
 
 export function TroiNamExplore({ locale }: { locale: "en" | "vi" }) {
+  const texture = troiNamAsset("T01");
 
   return (
     <div className="hv3 tn-explore" id="la-so-mau">
       <style>{palaceArt}</style>
-      <TroiNamThemePicture desktop="T01" imageClassName="tn-explore-texture" lazy />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="tn-explore-texture"
+        src={texture.src}
+        width={texture.width}
+        height={texture.height}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        decoding="async"
+      />
       <HomepageV3Explore locale={locale} />
     </div>
   );

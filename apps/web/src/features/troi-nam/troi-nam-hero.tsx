@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -9,42 +9,22 @@ import {
 } from "../homepage-v3/homepage-v3-birth-form";
 import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
 import { localizedPath } from "../homepage/homepage-utilities";
-import { TroiNamThemePicture } from "./troi-nam-theme-art";
+import { troiNamAsset } from "./troi-nam-assets";
 import { TroiNamLogoIntro } from "./troi-nam-logo-intro";
 import { clampProgress, scenePhases } from "./troi-nam-motion-math";
 import { createTroiNamProgress } from "./troi-nam-scroll-progress";
 
+const MOBILE = "(max-width: 879px)";
+
 export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   const t = useTranslations("troi-nam");
   const state = useHomepageV3BirthForm(locale);
+  const desktop = troiNamAsset("L01");
+  const mobile = troiNamAsset("L02");
+  const dusk = troiNamAsset("L03");
+  const night = troiNamAsset("L04");
+  const nightMobile = troiNamAsset("L05");
   const sectionRef = useRef<HTMLElement>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [focusRequest, setFocusRequest] = useState(0);
-
-  useEffect(() => {
-    const root = sectionRef.current?.closest(".tn");
-    const open = () => { setFormOpen(true); setFocusRequest((n) => n + 1); };
-    const onHash = () => { if (window.location.hash === "#lap-la-so") open(); };
-    const onHeaderClick = (event: Event) => {
-      const click = event as MouseEvent;
-      if (click.button !== 0 || click.metaKey || click.ctrlKey || click.shiftKey || click.altKey) return;
-      const anchor = (click.target as Element | null)?.closest('a[href="#lap-la-so"]');
-      if (anchor?.closest(".site-header")) open();
-    };
-    root?.addEventListener("click", onHeaderClick);
-    root?.addEventListener("tn:open-form", open);
-    window.addEventListener("hashchange", onHash);
-    onHash();
-    return () => {
-      root?.removeEventListener("click", onHeaderClick);
-      root?.removeEventListener("tn:open-form", open);
-      window.removeEventListener("hashchange", onHash);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (formOpen && focusRequest > 0) document.getElementById("hv3-day")?.focus({ preventScroll: true });
-  }, [formOpen, focusRequest]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -91,16 +71,52 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   return (
     <section className="tn-hero" data-troi-nam-block="hero" id="lap-la-so" ref={sectionRef}>
       <div className="tn-hero-media">
-        <TroiNamThemePicture desktop="L01" mobile="L02" imageClassName="tn-hero-plate" alt={t("hero.plateAlt")} priority />
+        <picture>
+          <source media={MOBILE} srcSet={mobile.srcSet} sizes="100vw" />
+          <img
+            className="tn-hero-plate"
+            src={desktop.src}
+            srcSet={desktop.srcSet}
+            sizes="100vw"
+            width={desktop.width}
+            height={desktop.height}
+            alt={t("hero.plateAlt")}
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
         {/* Desktop-only art direction for now — L03 has no phone crop yet, so the
-            dusk crossfade is scoped to the >=880px layout (see CSS). Dark-only:
-            no light-theme dusk plate exists yet (docs/qa/2026-10-02-light-theme-release.md). */}
-        <TroiNamThemePicture desktop="L03" imageClassName="tn-hero-plate tn-hero-plate-dusk" darkOnly />
+            dusk crossfade is scoped to the >=880px layout (see CSS). */}
+        <img
+          className="tn-hero-plate tn-hero-plate-dusk"
+          src={dusk.src}
+          srcSet={dusk.srcSet}
+          sizes="100vw"
+          width={dusk.width}
+          height={dusk.height}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+        />
         {/* L04/L05 (Hạ Long, Milky Way): unlike L03 above, L05 has a phone crop,
             so the night plate crossfades on mobile too — see CSS for the <880px
-            source swap. `lazy` since it's the last plate reached. Dark-only for
-            the same reason as L03. */}
-        <TroiNamThemePicture desktop="L04" mobile="L05" className="tn-hero-plate-night" imageClassName="tn-hero-plate" darkOnly lazy />
+            source swap. `loading="lazy"` since it's the last plate reached and
+            fetchPriority stays reserved for the dawn plate (LCP). */}
+        <picture className="tn-hero-plate-night">
+          <source media={MOBILE} srcSet={nightMobile.srcSet} sizes="100vw" />
+          <img
+            className="tn-hero-plate"
+            src={night.src}
+            srcSet={night.srcSet}
+            sizes="100vw"
+            width={night.width}
+            height={night.height}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </div>
       <div className="tn-hero-scrim" aria-hidden="true" />
       <div className="tn-hero-scrim-night" aria-hidden="true" />
@@ -114,14 +130,6 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
               <span>{t("hero.h1b")}</span>
             </h1>
             <p className="tn-hero-sub">{t("hero.sub")}</p>
-            <noscript><style>{".tn .tn-hero-form[data-open] { display: block; } .tn .tn-hero-start { display: none; }"}</style>
-              <a href={localizedPath(locale, "/tao-la-so/tu-vi")}>{t("hero.startCta")}</a>
-            </noscript>
-            <button type="button" className="tn-hero-start"
-              aria-expanded={formOpen} aria-controls="tn-birth-form"
-              onClick={() => { setFormOpen(true); setFocusRequest((n) => n + 1); }}>
-              {t("hero.startCta")}
-            </button>
             {/* Visible without filling in the form — the audit's strongest trust gap was
                 marketing claims outrunning anything the visitor could actually see
                 (2026-10-01, F1/CXO). The sample report is real proof, not another adjective. */}
@@ -130,7 +138,7 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
             </a>
           </div>
 
-          <div id="tn-birth-form" className="hv3 tn-hero-form" data-open={formOpen ? "true" : "false"}>
+          <div className="hv3 tn-hero-form">
             <HomepageV3BirthForm state={state} />
             {/* The hero submits into step 1 of a multi-step wizard, not an instant report
                 (2026-10-01 audit, F5) — the handoff note says so instead of implying otherwise. */}

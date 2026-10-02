@@ -13,8 +13,8 @@
     "year": "Year",
     "leap": "Leap month",
     "timeLabel": "Birth time",
-    "modeExact": "Exact time",
-    "modeBranch": "Two-hour window",
+    "modeExact": "I know the exact time",
+    "modeBranch": "I know the time range (shichen)",
     "hourSr": "Birth hour, 00 to 23",
     "minuteSr": "Birth minute, 00 to 59",
     "branchSr": "Birth time range",
@@ -48,12 +48,12 @@
     "close": "Collapse the chart"
   },
   "story": {
-    "title": "What are you trying to understand?",
-    "body": "Work, love or a turning point: your chart reveals the roots and helps you choose your next step.",
-    "q1": "When will my fortune change?",
-    "q2": "Why do my relationships repeat?",
-    "q3": "Which work suits me?",
-    "q4": "What are my strengths?"
+    "title": "Some questions just won't stop nagging at you...",
+    "body": "They visit in the sleepless hours of the night, slip in with the crowd on the way home, or surface in the middle of what seemed like a calm meeting. In the middle of all that, what you need is not a verdict or an empty promise—it is a view deep enough to see the real cause and step forward with confidence.",
+    "q1": "When will fortune finally meet my effort?",
+    "q2": "Why do I keep repeating the same mistake in love?",
+    "q3": "Is the work I'm doing right now actually right for me?",
+    "q4": "What was I really put on this earth to do?"
   },
   "ticker": {
     "label": "Every piece of your life is waiting to be opened",
@@ -68,8 +68,8 @@
   },
   "explore": {
     "eyebrow": "Explore the 12 palaces",
-    "title": "Twelve palaces. One life.",
-    "lead": "Tap a palace to see how character, career, money and relationships connect in one chart.",
+    "title": "One chart. Twelve folds of a life.",
+    "lead": "Don't let unfamiliar terms hold you back. Start with the Life palace to understand your nature, then move on to Career, Wealth or Spouse. You'll see that no event in your life ever stood alone—each one is woven into and held up by the others.",
     "shortcutsLabel": "Palaces most people open first",
     "mobileHint": "Tap the grid to open the other 8 palaces.",
     "chartLabel": "12 palaces",
@@ -78,9 +78,9 @@
     "palacePrefix": "Palace of",
     "trine": "Trine",
     "opposite": "Opposite (facing palace)",
-    "cycles": "Major periods cover ten years. Annual periods reveal each year’s fortune.",
-    "cta": "Start my free chart",
-    "sample": "View a sample reading"
+    "cycles": "Beyond the 12 still palaces there is the rhythm of time itself: a ten-year cycle that reshapes a decade, an annual cycle that tests each year.",
+    "cta": "Build a chart to see your own life",
+    "sample": "Try a full sample chart →"
   },
   "palaces": {
     "menh": {
@@ -145,23 +145,23 @@
     }
   },
   "needs": {
-    "title": "What is on your mind?",
-    "lead": "Choose what you want to understand. Your reading starts there.",
+    "title": "What's weighing on you the most today?",
+    "lead": "A half-made decision to change direction. A relationship you can't quite let go of, or hold onto either. Or simply yourself, feeling unsteady after years of pushing forward.",
     "groupLabel": "What you want to understand",
     "items": {
       "self": {
-        "title": "Understand myself",
+        "title": "Understand yourself",
         "question": "Where am I truly strong? Why do I keep hesitating and missing out at the important turning points?",
-        "path": "Life and Body palaces reveal your strengths, inner resources and recurring patterns.",
-        "cta": "Start my free chart",
+        "path": "Look through the Life palace and the Body palace to see your true footing, your inner anchor, and the psychological knots you've never quite named.",
+        "cta": "Discover your core self",
         "c1": "Life",
         "c2": "Body"
       },
       "work": {
-        "title": "Work and money",
+        "title": "Career & money",
         "question": "Should I quit and start over? Is this the stage to push hard, or to hold back and wait for the right time?",
-        "path": "Career reveals your working path. Wealth reveals money patterns. Major periods show when to act.",
-        "cta": "Start my free chart",
+        "path": "The Career palace shows how you work and where you thrive; the Wealth palace reveals your cash flow; the ten-year cycle shows the rise and fall so you can move at the right moment.",
+        "cta": "See your career fortune",
         "secondary": "Or explore BaZi",
         "c1": "Career",
         "c2": "Wealth",
@@ -170,53 +170,53 @@
       "love": {
         "title": "Relationships",
         "question": "Why do I keep running into the same pattern that hurts me? What kind of person is truly my safe harbor?",
-        "path": "Spouse and Life palaces reveal attraction patterns and ways to resolve conflict.",
-        "cta": "Start my free chart",
+        "path": "Read the Spouse palace alongside the Life palace to uncover the type of person you fall for, and how to resolve conflict at its root.",
+        "cta": "See your love fortune",
         "secondary": "Or explore Astrology",
         "c1": "Spouse",
         "c2": "Life"
       },
       "decision": {
-        "title": "A decision ahead",
+        "title": "A decision right in front of you",
         "question": "Standing at a fork in the road: sign this contract, accept this trip, or take a step back?",
-        "path": "The I Ching reads the timing of a specific situation: move forward or hold back.",
+        "path": "When you need guidance for one specific moment, the wisdom of the I Ching helps you read the times: whether to act decisively or hold steady.",
         "cta": "Consult the I Ching",
         "c1": "I Ching"
       }
     },
-    "lensTitle": "Explore the traditions",
+    "lensTitle": "Each discipline, a clear lens of its own.",
     "lensLead": "Zi Wei helps you read the whole picture of your life. When you want a wider view for a specific situation, explore these other refined ancient disciplines.",
     "disciplines": {
       "tuvi": {
         "name": "Zi Wei Dou Shu",
-        "desc": "Twelve palaces and over 100 stars reveal character, relationships and life’s turning points.",
+        "desc": "A map of 12 palaces and over 100 stars, fully decoding your character, relationships and every turning point in life.",
         "cta": "Explore Zi Wei"
       },
       "batu": {
         "name": "BaZi (Four Pillars)",
-        "desc": "Four birth pillars reveal yin, yang and the cycles of the five elements.",
+        "desc": "Four pillars—Year, Month, Day, Hour—reading the balance of yin and yang and the rise and fall of the five elements.",
         "cta": "Explore BaZi"
       },
       "chiemtinh": {
         "name": "Western Astrology",
-        "desc": "Twelve zodiac signs reveal your inner world and potential from the moment of birth.",
+        "desc": "Where the stars stood at the moment you were born, read through the 12 zodiac signs to reveal your inner world and unconscious potential.",
         "cta": "Explore Astrology"
       },
       "kinhdich": {
         "name": "I Ching",
-        "desc": "Sixty-four hexagrams reveal timing and how to respond to a specific situation.",
+        "desc": "The wisdom of timing through 64 hexagrams, illuminating the nature of change and suggesting how to act in a specific situation.",
         "cta": "Explore the I Ching"
       },
       "thansohoc": {
         "name": "Numerology",
-        "desc": "Your name, birth date and personal-year cycles reveal the rhythm of your life.",
+        "desc": "Discover the vibration frequency of your name and birth date, and the rhythm of your personal-year cycles.",
         "cta": "Explore Numerology"
       }
     }
   },
   "compare": {
-    "title": "Why choose Lá Số Việt?",
-    "lead": "An accurate chart. Readings with clear foundations. A lifelong companion.",
+    "title": "Speed or a conversation? What will truly stay with you?",
+    "lead": "General horoscope sites offer speed. AI chatbots offer flexibility. Meeting a master offers a listening ear. Lá Số Việt provides an accurate, grounded destiny map that stays with you for life.",
     "tableLabel": "One key advantage and practical limits of each approach",
     "groupLabel": "The options you are considering",
     "colLsv": "Lá Số Việt",
@@ -227,52 +227,52 @@
     "tabWeb": "Horoscope sites",
     "tabAi": "Asking an AI",
     "tabThay": "Meeting a master",
-    "cardTitle": "{name}: the key strength",
+    "cardTitle": "What makes {name} worth choosing?",
     "fixLabel": "At Lá Số Việt:",
-    "ctaDesktop": "Start my free chart",
-    "cta": "Start my free chart",
+    "ctaDesktop": "Create my chart →",
+    "cta": "Start with my chart →",
     "rows": {
       "strength": {
         "k": "Key advantage",
-        "lsv": "Accurate charts, deep personalisation and lifelong storage.",
-        "web": "Free lookup with instant charts and readings.",
-        "ai": "Natural, flexible conversation, available 24/7.",
-        "thay": "Face-to-face conversation and immediate personal attention."
+        "lsv": "Accurate destiny map, deeply personalized and permanently stored for life.",
+        "web": "Free lookup, returning a raw chart and automated reading instantly.",
+        "ai": "Flexible 24/7 Q&A in natural prose, responding instantly to any prompt.",
+        "thay": "Live 1-on-1 dialogue, offering immediate listening and emotional relief."
       },
       "own": {
         "k": "Personalization",
-        "lsv": "Precise star placement by birth minute; readings focused on your concern.",
-        "web": "Preset text gives people with the same stars the same reading.",
-        "ai": "Depends on your prompt and can follow your biases.",
-        "thay": "Depends on the reader’s experience, mood and personal judgement."
+        "lsv": "Exact calculation down to the minute; unravels your exact current focus.",
+        "web": "Template text; different people with the same stars get identical readings.",
+        "ai": "Relies entirely on user prompts; easily biased by user framing.",
+        "thay": "Heavily depends on the individual reader's subjective mood and bias."
       },
       "basis": {
         "k": "Academic basis",
-        "lsv": "Complete transparency, with each star and palace available for comparison.",
-        "web": "Unverified data and vague predictions create confusion.",
-        "ai": "Can place stars incorrectly while still answering confidently.",
-        "thay": "Oral traditions lack standardisation and are difficult to verify."
+        "lsv": "100% transparent logic. Every insight links back to its exact palace and star.",
+        "web": "Unverified generic data; drops vague predictions causing unnecessary anxiety.",
+        "ai": "Prone to AI hallucinations—misplacing stars while sounding confident.",
+        "thay": "Spoken advice lacks standardized logic, making verification difficult."
       },
       "links": {
         "k": "Holistic picture",
-        "lsv": "Tap one palace to see its trine and opposition relationships.",
-        "web": "Fragmented palaces leave you to reconcile contradictory readings.",
-        "ai": "Each question gives a fragment without a coherent overall picture.",
-        "thay": "Spoken readings make the full twelve-palace picture difficult to see."
+        "lsv": "Interactive chart: tap a palace to see trine and opposite links instantly.",
+        "web": "Fragmented claims; contradictory statements force you to guess.",
+        "ai": "Isolated prompts drift away from overall 12-palace consistency.",
+        "thay": "Spoken words fade quickly, making complex palace links hard to visualize."
       },
       "return": {
         "k": "Consistency & Objectivity",
-        "lsv": "Absolute objectivity and consistency; subjective judgement is eliminated.",
-        "web": "Lookup articles are inconsistent and contradict one another.",
-        "ai": "Asking again can produce a contradictory answer.",
-        "thay": "Different readers can interpret the same chart differently."
+        "lsv": "100% objective and consistent; standardized data eliminates all personal bias.",
+        "web": "Unstable info; lookups yield conflicting readings across different visits.",
+        "ai": "Lacks consistency; asking again yields conflicting and shifting responses.",
+        "thay": "Lacks uniformity; different masters give contradictory readings for the same chart."
       },
       "depth": {
         "k": "Cost & Ethics",
-        "lsv": "Start free, then unlock the depth you need at a clear cost.",
-        "web": "Heavy advertising and rigid readings with unnecessary content.",
-        "ai": "Subscription costs leave you responsible for checking the answers.",
-        "thay": "High fees and difficulty scheduling follow-up questions."
+        "lsv": "Free base access; open deeper sections as needed with clear upfront pricing.",
+        "web": "Cluttered with popup ads; rigid one-size-fits-all paid articles.",
+        "ai": "Monthly subscriptions required; you absorb the risk of accuracy.",
+        "thay": "Costly session fees ($20-$100+); appointment queues limit follow-ups."
       }
     }
   },
@@ -280,12 +280,12 @@
     "eyebrow": "Honest words from readers",
     "titleA": "What stays with you",
     "titleB": "after being truly seen.",
-    "lead": "What readers take with them after exploring their charts.",
+    "lead": "Everyone who comes to Lá Số Việt carries a different worry. But everyone leaves carrying something to hold onto.",
     "readFull": "Read in full ↗",
     "readFullAria": "Read the full note from {name}",
     "more": "See more notes from readers ↓",
     "less": "Show fewer notes ↑",
-    "start": "Start my free chart",
+    "start": "Start with your own chart ↗",
     "filterLabel": "Filter notes by topic",
     "filterAll": "All",
     "group": {
@@ -307,77 +307,77 @@
     "rotationLabel": "Notes from readers, changing automatically every few seconds"
   },
   "usp": {
-    "title": "Read deeper into your own chart",
-    "lead": "Classical texts, your birth moment and palace relationships form a reading that is yours alone.",
+    "title": "The deeper you look, the more clearly you see yourself in it.",
+    "lead": "A true chart never ends with a few shallow verdicts. It is a journey of peeling back every layer of causation, understanding every thread that binds you, so that whenever you feel unsteady, you always have a place to return to and see clearly.",
     "n1": {
-      "title": "Rooted in classical texts",
-      "body": "Authentic traditions are clearly organised. Every interpretation has a foundation, with no baseless speculation."
+      "title": "Built on the wisdom of the old texts.",
+      "body": "Every reading is distilled from authentic Eastern methods, structured layer by layer so every line has a clear origin—never a vague or arbitrary guess."
     },
     "n2": {
-      "title": "Starting with you",
-      "body": "Your birth details build the chart. Your present concern guides the reading."
+      "title": "It begins with you.",
+      "body": "The moment you drew your first breath shaped your destiny map. But what's on your mind right now is the key that opens the story."
     },
     "n3": {
-      "title": "See the connections",
-      "body": "Trines, paired relationships and oppositions become visible. Twelve palaces tell your story together.",
-      "link": "Explore the twelve palaces"
+      "title": "A living web of connections.",
+      "body": "Tap a palace and watch its trine, half-trine and opposite links light up at once. The twelve palaces are never isolated—they tell one single story about your life.",
+      "link": "Try touching a chart →"
     },
     "n4": {
-      "title": "Choose the depth you need",
-      "body": "Career, love or yearly fortune: unlock what you need, with value and cost clear before you read."
+      "title": "Move through it at your own pace.",
+      "body": "Career, love, or the fortune of the year ahead: you're fully in control of the journey, seeing exactly what each part offers and costs before you decide to open it."
     }
   },
   "value": {
-    "title": "Start free. Go deeper with Lá.",
-    "lead": "See your chart and core insights free. Sign in to save it. Use Lá to read deeper.",
+    "title": "Understand a part of it first. Go deeper once your heart is sure.",
+    "lead": "You can start completely free by building your chart and reading the most essential insights about yourself. When you find it useful and want to keep it, sign in to save. The deeper layers of interpretation only open when you truly need them, using Lá, with pricing that is transparent down to the last figure.",
     "s1": {
-      "title": "1. Explore free",
-      "body": "Your complete twelve-palace chart and two core insights. No registration required."
+      "title": "Step 1: Experience the full chart",
+      "body": "See your complete 12-palace chart, accurately calculated, along with 2 core insights about your destiny. Completely free, no account required."
     },
     "s2": {
-      "title": "2. Save your chart",
-      "body": "Sign in for lifelong storage, a fortune overview and the year’s key points."
+      "title": "Step 2: Mark it & keep it",
+      "body": "Sign in with one tap to save your chart for life, unlocking a general fortune summary and the key things to note this year."
     },
     "s3": {
-      "title": "3. Unlock depth with Lá",
-      "body": "Choose major periods, yearly fortune or a single palace. Costs are clear before you confirm."
+      "title": "Step 3: Unlock exactly what you need",
+      "body": "Use Lá to open exactly the part you want to understand: the ten-year cycle, a specific year's fortune, or a deep dive into one palace. The Lá cost and the money amount are both shown clearly before you confirm."
     },
     "packsTitle": "Lá top-up packs",
     "packsNote": "Each pack shows both the Lá amount and the VND price side by side. Scan the VietQR code to pay automatically in seconds.",
     "packBonus": "{base} Lá + {bonus} bonus Lá"
   },
   "faq": {
-    "title": "What else would you like to know?",
+    "title": "What you might want to ask before you begin.",
     "more": "See more frequently asked questions →",
     "items": {
       "q1": {
-        "q": "Can I start without my birth time?",
-        "a": "Yes. Choose “I don’t remember my birth time”. Add it later without losing the details you have entered."
+        "q": "I don't remember my exact birth time—can I still build a chart?",
+        "a": "You can still begin. Choose 'I don't remember the exact birth time'. The system will still build a basic chart and show you exactly which palaces depend on your birth time, so you can ask your family later and complete the chart without losing what you've already created."
       },
       "q2": {
-        "q": "What can I see for free?",
-        "a": "Your complete twelve-palace chart, star meanings when you tap a palace, and two core insights. No card required."
+        "q": "What can I read for free?",
+        "a": "You get to see the complete 12-palace chart, accurately calculated by astronomy, look up the meaning of each star by tapping a palace, and receive 2 essential insights about your destiny right away. You don't pay anything and you don't need to enter any card details."
       },
       "q3": {
-        "q": "What is Lá for?",
-        "a": "Lá unlocks deeper readings. Top-up packs show Lá and VND prices; payment uses VietQR. There are no hidden maintenance fees."
+        "q": "What is \"Lá\" used for in the system, and how is it priced?",
+        "a": "Lá is the unit you use to freely unlock deeper interpretations (such as ten-year cycle analysis, detailed yearly forecasts, or palace compatibility readings). Every Lá pack shows its matching VND price clearly, paid via automatic VietQR bank transfer in seconds. We never create a hidden exchange rate or charge silent maintenance fees."
       },
       "q4": {
-        "q": "Where can I find my chart again?",
-        "a": "Sign in and open your account to revisit your chart and unlocked readings on phone or computer."
+        "q": "Where can I find my chart again later?",
+        "a": "Just sign in with your personal account—your chart and every interpretation you've unlocked are stored permanently under Account. You can reopen it on your phone or computer anytime you want to reflect."
       },
       "q5": {
-        "q": "Are my birth details private?",
-        "a": "Anonymous data is deleted after 24 hours. Birth details, names and chart content are not sent to third-party tools.",
+        "q": "Is my birth date and time information kept private?",
+        "a": "Lá Số Việt treats your privacy as an absolute principle. Anonymous users' birth data is automatically deleted after 24 hours. We do not send your birth date and time, your name, or your chart's content to any third-party tool, and you always have the right to permanently delete your profile at any time.",
         "linkLabel": "Privacy Policy"
       }
     }
   },
   "about": {
-    "title": "Classical knowledge, closer to you",
-    "body": "Lá Số Việt brings Eastern and Western traditions closer to Vietnamese readers through clear, grounded readings and practical preparation.",
-    "link": "About Lá Số Việt",
-    "ctaTitle": "Cast your chart. Read your life.",
-    "cta": "Start my free chart"
+    "title": "Simplifying Eastern and Western esoteric wisdom, bringing ancient knowledge closer to Vietnamese users.",
+    "body": "Lá Số Việt unifies classic disciplines—from Ziwei and BaZi to Astrology, I Ching, and Numerology. Delivered in clear, accessible Vietnamese with transparent logic, Lá Số Việt helps you deeply understand yourself and prepare proactively for every life milestone.",
+    "link": "Learn more about Lá Số Việt →",
+    "ctaTitle": "Your journey ahead is ready to be illuminated.",
+    "cta": "Create your chart now"
   }
 }

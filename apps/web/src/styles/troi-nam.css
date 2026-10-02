@@ -2,6 +2,11 @@
 
 .tn {
   --tn-world-opacity: 1;
+  --tn-ink: var(--lacquer-950);
+  --tn-gold: var(--gold-500);
+  --tn-gold-light: var(--gold-400);
+  --tn-text: var(--pearl-100);
+  --tn-text-muted: var(--pearl-400);
 
   /* Display peaks at 120px on desktop and stays readable at 320px. */
   --tn-display: clamp(2.25rem, 1.4rem + 4.3vw, 7.5rem);
@@ -206,7 +211,12 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--tn-scrim-hero-mobile);
+  background: linear-gradient(
+    180deg,
+    rgb(8 7 6 / 0.72) 0%,
+    rgb(8 7 6 / 0.28) 42%,
+    rgb(8 7 6 / 0.88) 100%
+  );
 }
 
 /*
@@ -225,7 +235,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--tn-scrim-phase);
+  background: #050403;
   opacity: calc(var(--tn-hero-night, 0) * 0.55);
   pointer-events: none;
 }
@@ -246,7 +256,7 @@
   display: grid;
   place-items: center;
   pointer-events: none;
-  background: var(--tn-intro-wash);
+  background: radial-gradient(circle, rgb(8 7 6 / 0.82) 0%, rgb(8 7 6 / 0.4) 45%, transparent 72%);
   opacity: 1;
   animation: tn-logo-intro-out 500ms ease 1300ms forwards;
 }
@@ -428,7 +438,8 @@
 
   .tn-hero-scrim {
     background:
-      var(--tn-scrim-hero-desktop);
+      linear-gradient(90deg, rgb(8 7 6 / 0.85) 0%, rgb(8 7 6 / 0.55) 46%, rgb(8 7 6 / 0.2) 78%),
+      linear-gradient(180deg, rgb(8 7 6 / 0.45) 0%, rgb(8 7 6 / 0) 35%);
   }
 }
 
@@ -446,14 +457,6 @@
 .tn .tn-explore.hv3 {
   position: relative;
   width: 100%;
-  /* 2026-10-02 review fix: the Explore/Story legibility scrim's `::before`
-     uses `inset: -32px` to feather its edge beyond the text column — with
-     no clip here, that 32px bleed pushed past the true viewport edge and
-     made the whole page horizontally scrollable (document.documentElement
-     .scrollWidth > innerWidth, reproduced at 390px). This section already
-     spans full section width edge-to-edge, so clipping at its own box
-     only stops the bleed from escaping the viewport, not from reaching it. */
-  overflow-x: clip;
   /* Solid fallback for no-WebGL/no-JS/reduced-motion, where there's no
      painted world behind this to show through. Once the world is live
      (below), this goes transparent and each section does its own much
@@ -520,7 +523,7 @@
   position: absolute;
   inset: -4% -2%;
   z-index: -1;
-  background: var(--tn-story-wash-mobile);
+  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
   pointer-events: none;
 }
 
@@ -536,7 +539,7 @@
   }
 
   .tn .tn-story .hv3-story-panel::before {
-    background: var(--tn-story-wash-desktop);
+    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
   }
 }
 
@@ -547,7 +550,7 @@
 
 .tn .tn-story .hv3-questions p {
   color: var(--tn-text);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-story .hv3-questions .hv3-q-accent {
@@ -570,8 +573,8 @@
 
 .tn .tn-ticker .hv3-marquee-cycle a,
 .tn .tn-ticker .hv3-marquee-chip {
-  background: var(--tn-card);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
   color: var(--tn-text);
 }
 
@@ -632,13 +635,13 @@
 
 .tn .tn-explore .hv3-shortcuts button {
   color: var(--tn-text);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-explore .hv3-shortcuts button[aria-pressed="true"] {
   color: var(--tn-text);
-  border-color: var(--tn-seal);
-  background: var(--tn-panel);
+  border-color: var(--son);
+  background: var(--lacquer-700);
 }
 
 .tn .tn-explore .hv3-explore-body {
@@ -716,18 +719,18 @@
  */
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
-  text-shadow: var(--tn-text-shadow);
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
 }
 
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
-  text-shadow: var(--tn-legend-shadow);
+  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9);
 }
 
 .tn .tn-explore .hv3-cell {
   padding: 6px;
   color: var(--tn-text);
-  border-color: var(--tn-hairline);
-  background: var(--tn-panel);
+  border-color: var(--lacquer-line);
+  background: var(--lacquer-700);
 }
 
 .tn .tn-explore .hv3-cell::before {
@@ -744,18 +747,18 @@
 }
 
 .tn .tn-explore .hv3-cell[data-state="trine"] {
-  border-color: var(--tn-seal);
-  background: var(--tn-card);
+  border-color: var(--son);
+  background: var(--lacquer-800);
 }
 
 .tn .tn-explore .hv3-cell[data-state="opposite"] {
   border-color: var(--tn-gold);
-  background: var(--tn-deep);
+  background: var(--lacquer-900);
 }
 
 .tn .tn-explore .hv3-cell[data-state="selected"] {
-  border-color: var(--tn-seal);
-  background: var(--tn-deep);
+  border-color: var(--son);
+  background: var(--lacquer-900);
   animation: tn-cell-select 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -763,10 +766,10 @@
    animation-fill-mode means it leaves no lingering shadow behind. */
 @keyframes tn-cell-select {
   0% {
-    box-shadow: 0 0 0 0 var(--tn-pulse-start);
+    box-shadow: 0 0 0 0 rgb(242 220 160 / 0.55);
   }
   100% {
-    box-shadow: 0 0 0 12px var(--tn-pulse-end);
+    box-shadow: 0 0 0 12px rgb(242 220 160 / 0);
   }
 }
 
@@ -778,13 +781,13 @@
 }
 
 .tn .tn-explore .hv3-chart-core {
-  background: var(--tn-card);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-explore .hv3-chart-core > div {
-  border-color: var(--tn-seal);
-  outline-color: var(--tn-seal);
+  border-color: var(--son);
+  outline-color: var(--son);
 }
 
 /*
@@ -805,11 +808,11 @@
 }
 
 .tn .tn-explore .hv3-line-trine {
-  stroke: var(--tn-seal);
+  stroke: var(--son);
 }
 
 .tn .tn-explore .hv3-dot-trine {
-  fill: var(--tn-seal);
+  fill: var(--son);
 }
 
 .tn .tn-explore .hv3-line-opposite {
@@ -821,7 +824,7 @@
 }
 
 .tn .tn-explore .hv3-legend-trine {
-  border-color: var(--tn-seal);
+  border-color: var(--son);
 }
 
 .tn .tn-explore .hv3-legend-opposite {
@@ -829,7 +832,7 @@
 }
 
 .tn .tn-explore .hv3-rel-trine {
-  color: var(--tn-seal);
+  color: var(--son);
 }
 
 .tn .tn-explore .hv3-rel-opposite {
@@ -844,21 +847,21 @@
   /* Semi-transparent, not flat solid — this is a real selectable detail
      card (not decoration), so it keeps its own surface, just softened to
      blend with the world behind it (2026-10-01 CX review). */
-  background: var(--tn-detail-surface);
-  border-color: var(--tn-hairline);
+  background: rgb(15 13 10 / 0.88);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-explore .hv3-relations {
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-explore .hv3-btn {
-  color: var(--cta-ink) !important;
-  background: var(--cta-flat);
+  color: var(--tn-ink) !important;
+  background: var(--tn-gold-light);
 }
 
 .tn .tn-explore .hv3-btn:hover {
-  background: var(--cta-flat-hover);
+  background: var(--tn-gold);
 }
 
 @media (min-width: 880px) {
@@ -1019,8 +1022,8 @@
      length one. */
   padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   color: var(--tn-text);
-  background: var(--tn-card);
-  border: 1px solid var(--tn-hairline);
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
 }
 
 .tn .tn-needs .hv3-need::before {
@@ -1037,13 +1040,13 @@
 .tn .tn-needs .hv3-need[aria-pressed="true"] {
   padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   border: 1px solid var(--tn-gold-light);
-  background: var(--tn-panel);
+  background: var(--lacquer-700);
   box-shadow: inset 0 0 0 1px var(--tn-gold-light);
 }
 
 .tn .tn-needs .hv3-need-icon {
-  background-color: var(--tn-deep);
-  border-color: var(--tn-hairline);
+  background-color: var(--lacquer-900);
+  border-color: var(--lacquer-line);
   background-size: 34px 34px;
   background-position: center;
   background-repeat: no-repeat;
@@ -1058,14 +1061,14 @@
   min-width: 0;
   gap: var(--tn-gutter);
   color: var(--tn-text);
-  background: var(--tn-deep);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-needs .hv3-need-art {
   height: clamp(14rem, 45vw, 22rem);
   margin: calc(-1 * var(--tn-gutter)) calc(-1 * var(--tn-gutter)) 0;
-  background-color: var(--tn-card);
+  background-color: var(--lacquer-800);
   background-position: center 44%;
   background-size: cover;
   background-repeat: no-repeat;
@@ -1078,16 +1081,16 @@
 
 .tn .tn-needs .hv3-chips span {
   color: var(--tn-text);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-needs .hv3-btn {
-  color: var(--cta-ink) !important;
-  background: var(--cta-flat);
+  color: var(--tn-ink) !important;
+  background: var(--tn-gold-light);
 }
 
 .tn .tn-needs .hv3-btn:hover {
-  background: var(--cta-flat-hover);
+  background: var(--tn-gold);
 }
 
 /* Keep all existing discipline links and artwork, with the Trời Nam palette. */
@@ -1125,8 +1128,8 @@
 .tn .tn-needs .hv3-disc,
 .tn .tn-needs .hv3-disc-flagship {
   color: var(--tn-text) !important;
-  background: var(--tn-card);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-needs .hv3-disc-flagship {
@@ -1138,9 +1141,9 @@
 .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
   flex: none;
   aspect-ratio: 4 / 3;
-  background: var(--tn-deep);
+  background: var(--lacquer-900);
   border: 0;
-  border-bottom: 1px solid var(--tn-hairline);
+  border-bottom: 1px solid var(--lacquer-line);
 }
 
 .tn .tn-needs .hv3-disc:hover,
@@ -1149,7 +1152,7 @@
 }
 
 .tn .tn-needs .hv3-mask {
-  background: var(--cta-flat-hover);
+  background: var(--tn-gold);
 }
 
 .tn .tn-needs .hv3-disc-cta {
@@ -1174,8 +1177,8 @@
 
 .tn .tn-compare .hv3-compare-head {
   padding: var(--tn-gutter);
-  background: var(--tn-deep);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-900);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-compare .hv3-compare-points {
@@ -1185,8 +1188,8 @@
 
 .tn .tn-compare .hv3-compare-points span {
   padding: var(--tn-gutter);
-  background: var(--tn-card);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-compare .hv3-compare-points svg {
@@ -1194,7 +1197,7 @@
 }
 
 .tn .tn-compare .hv3-compare-details {
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-compare .hv3-compare-details > summary {
@@ -1211,23 +1214,23 @@
   white-space: normal;
   padding-block: calc(var(--tn-gutter) / 4);
   color: var(--tn-text);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-compare .hv3-tabs button[aria-pressed="true"] {
-  background: var(--cta-flat);
-  color: var(--cta-ink);
+  background: var(--tn-gold-light);
+  color: var(--tn-ink);
   border-color: var(--tn-gold-light);
 }
 
 .tn .tn-compare .hv3-cmp-card {
   color: var(--tn-text);
-  background: var(--tn-card);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-800);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-compare .hv3-cmp-top {
-  background: var(--tn-panel);
+  background: var(--lacquer-700);
   border-color: var(--tn-gold);
 }
 
@@ -1243,13 +1246,13 @@
 
 .tn .tn-compare .hv3-cmp-fix {
   color: var(--tn-text-muted);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-compare .hv3-compare-table th,
 .tn .tn-compare .hv3-compare-table td {
   color: var(--tn-text-muted);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
   overflow-wrap: anywhere;
 }
 
@@ -1260,13 +1263,13 @@
 
 .tn .tn-compare .hv3-compare-table [data-col="lsv"] {
   color: var(--tn-text);
-  background: var(--tn-panel);
-  border-color: var(--tn-hairline);
+  background: var(--lacquer-700);
+  border-color: var(--lacquer-line);
   box-shadow: inset 3px 0 0 var(--tn-gold);
 }
 
 .tn .tn-compare .hv3-cmp-mark {
-  color: var(--tn-seal);
+  color: var(--son);
 }
 
 .tn .tn-compare .hv3-cmp-mark[data-strength="true"],
@@ -1300,7 +1303,7 @@
     flex: 0 0 34%;
     aspect-ratio: 4 / 5;
     border-bottom: 0;
-    border-right: 1px solid var(--tn-hairline);
+    border-right: 1px solid var(--lacquer-line);
   }
 
   .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art {
@@ -1365,9 +1368,9 @@
 
 .tn .tn-testimonials .hv3-tt-card {
   padding: var(--tn-gutter);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
   border-radius: 16px;
-  background: var(--tn-card);
+  background: var(--lacquer-800);
   color: var(--tn-text);
 }
 
@@ -1378,7 +1381,7 @@
 
 .tn .tn-testimonials .hv3-tt-mark {
   left: var(--tn-gutter);
-  background: var(--tn-seal);
+  background: var(--son);
 }
 
 .tn .tn-testimonials .hv3-tt-quote {
@@ -1388,7 +1391,7 @@
 
 .tn .tn-testimonials .hv3-tt-foot {
   gap: 0 calc(var(--tn-gutter) / 2);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-testimonials .hv3-tt-who {
@@ -1425,22 +1428,22 @@
 
 .tn .tn-testimonials .hv3-tt-actions {
   margin-top: var(--tn-gutter);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
 }
 
 .tn .tn-testimonials .hv3-tt-arrows button,
 .tn .tn-testimonials .hv3-tt-pause,
 .tn .tn-testimonials .hv3-tt-filters button,
 .tn .tn-testimonials .hv3-tt-dialog-head button {
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
   color: var(--tn-text);
-  background: var(--tn-card);
+  background: var(--lacquer-800);
 }
 
 .tn .tn-testimonials .hv3-tt-filters button[aria-pressed="true"] {
   border-color: var(--tn-gold-light);
-  background: var(--cta-flat);
-  color: var(--cta-ink);
+  background: var(--tn-gold-light);
+  color: var(--tn-ink);
 }
 
 .tn .tn-testimonials .hv3-tt-list {
@@ -1450,8 +1453,8 @@
 
 .tn .tn-testimonials .hv3-tt-dialog {
   padding: var(--tn-gutter);
-  border-color: var(--tn-hairline);
-  background: var(--tn-card);
+  border-color: var(--lacquer-line);
+  background: var(--lacquer-800);
   color: var(--tn-text);
 }
 
@@ -1480,9 +1483,9 @@
   min-width: 0;
   min-height: 0;
   padding: var(--tn-gutter);
-  border-color: var(--tn-hairline);
+  border-color: var(--lacquer-line);
   border-radius: 16px;
-  background: var(--tn-card);
+  background: var(--lacquer-800);
   color: var(--tn-text);
 }
 
@@ -1617,9 +1620,9 @@
 .tn .tn-value .hv3-steps li {
   min-width: 0;
   padding: var(--tn-gutter);
-  border: 1px solid var(--tn-hairline);
+  border: 1px solid var(--lacquer-line);
   border-radius: 1rem;
-  background: var(--tn-deep);
+  background: var(--lacquer-900);
 }
 
 .tn .tn-value .hv3-step-visual {
@@ -1629,6 +1632,65 @@
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/*
+ * Two gold leaves drift down inside the "unlock with Lá" step card (step 3)
+ * on continuous loop — ambient, not scroll-triggered, so no JS is needed.
+ * Backgrounds are set per-leaf in troi-nam-value.tsx. prefers-reduced-motion
+ * already collapses every .tn animation via the existing global rule.
+ */
+.tn .tn-value .hv3-steps li[data-step="3"] {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::before,
+.tn .tn-value .hv3-steps li[data-step="3"]::after {
+  content: "";
+  position: absolute;
+  /* Starts at the visible top edge, not above it — with overflow:hidden on
+     the card, a negative starting offset spent most of the loop clipped out
+     of view before it ever faded in. */
+  top: 0;
+  width: 26px;
+  height: 34px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  pointer-events: none;
+  animation: tn-leaf-fall 6s ease-in infinite;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::before {
+  left: 18%;
+}
+
+.tn .tn-value .hv3-steps li[data-step="3"]::after {
+  left: 68%;
+  width: 20px;
+  height: 26px;
+  animation-duration: 7s;
+  animation-delay: 2s;
+}
+
+@keyframes tn-leaf-fall {
+  0% {
+    transform: translate(0, 0) rotate(-8deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.9;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(8px, 440px) rotate(40deg);
+    opacity: 0;
+  }
 }
 
 .tn .tn-value .hv3-step-visual > svg,
@@ -1662,11 +1724,11 @@
 }
 
 .tn .tn-faq .hv3-faq-item {
-  border-top-color: var(--tn-hairline);
+  border-top-color: var(--lacquer-line);
 }
 
 .tn .tn-faq .hv3-faq-item:last-child {
-  border-bottom: 1px solid var(--tn-hairline);
+  border-bottom: 1px solid var(--lacquer-line);
 }
 
 /*
@@ -1727,9 +1789,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
-  background: var(--tn-deep);
+  background: var(--lacquer-900);
   color: var(--tn-text);
-  border: 1px solid var(--tn-hairline);
+  border: 1px solid var(--lacquer-line);
   border-radius: 1rem;
 }
 
@@ -1785,7 +1847,7 @@
   background-position: center;
   opacity: 0.9;
   pointer-events: none;
-  filter: var(--tn-lantern-shadow);
+  filter: drop-shadow(0 0 10px rgb(255 190 110 / 0.35));
   animation: tn-lantern-float 6s ease-in-out infinite;
 }
 
@@ -1805,17 +1867,15 @@
   0%,
   100% {
     transform: translateY(0) rotate(-2deg);
-    filter: var(--tn-lantern-shadow-start);
+    filter: drop-shadow(0 0 8px rgb(255 190 110 / 0.3));
   }
   50% {
     transform: translateY(-14px) rotate(2deg);
-    filter: var(--tn-lantern-shadow-end);
+    filter: drop-shadow(0 0 14px rgb(255 190 110 / 0.55));
   }
 }
 
 .tn .tn-about .hv3-final-cta-bg {
-  /* Inert until the active-theme style owner supplies the approved landscape. */
-  background-image: none;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1824,11 +1884,8 @@
 
 /* Remove the v3 light-theme side plates in both themes. */
 .tn .tn-about .hv3-final-cta-bg::before,
-.tn .tn-about .hv3-final-cta-bg::after,
-html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg::before,
-html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg::after {
+.tn .tn-about .hv3-final-cta-bg::after {
   display: none;
-  background-image: none;
 }
 
 .tn .tn-about .hv3-final-cta-inner {
@@ -1876,373 +1933,3 @@ html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg
   border-radius: 50%;
   object-fit: cover;
 }
-
-/* Homepage audit corrections — 2026-10-02. */
-
-/* Audit PR1: outer section owns rhythm; inner containers own measure. */
-.tn {
-  --tn-section-y: 48px;
-  --tn-gutter: 20px;
-  --tn-text: var(--pearl-100, #eae4d5);
-  --tn-body-text: var(--pearl-200, #dcd4c3);
-  --tn-text-muted: var(--pearl-400, #a79e8b);
-  --tn-hair: var(--lacquer-line, #3a3227);
-  --tn-radius-control: 12px;
-  --tn-radius-panel: 16px;
-  --tn-h2: clamp(1.875rem, 1.4rem + 2vw, 3.5rem);
-  --tn-body: 1rem;
-  --tn-anchor-offset: 88px;
-  color-scheme: dark;
-}
-.tn .tn-section .hv3-container {
-  max-width: var(--tn-max);
-  margin-inline: auto;
-  padding: 0;
-}
-.tn .hv3 {
-  --action: var(--tn-gold-light);
-  --action-h: var(--tn-gold);
-  --action-t: var(--tn-ink);
-  --seg-bg: var(--tn-gold-light);
-  --seg-t: var(--tn-ink);
-}
-.tn .hv3-btn, .tn .hv3-cta, .tn .button,
-.tn .hv3-seg button, .tn .hv3-tabs button {
-  border-radius: var(--tn-radius-control);
-}
-.tn .hv3-form { border-radius: var(--tn-radius-panel); }
-.tn .tn-world-content .tn-section {
-  padding-inline: var(--tn-gutter);
-}
-.tn .tn-section [id], .tn [data-troi-nam-block] {
-  scroll-margin-top: var(--tn-anchor-offset);
-}
-.tn .tn-explore .hv3-chart-wrap { scroll-margin-top: var(--tn-anchor-offset); }
-.tn .tn-hero-sample-cta, .tn .hv3-tt-start,
-.tn .site-header .brand, .tn .desktop-nav a,
-.tn .locale-link, .tn .login-link, .tn .footer-group a,
-.tn .footer-support-email {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  min-width: 44px;
-}
-.tn .hv3-check { min-height: 44px; gap: 8px; }
-.tn .hv3-seg { gap: 8px; }
-.tn .tn-hero-form .hv3-seg button {
-  flex: 1 1 0;
-  min-width: 0;
-  min-height: 48px;
-  white-space: normal;
-  overflow-wrap: break-word;
-  padding: 8px;
-  line-height: 1.35;
-  border-radius: var(--tn-radius-control);
-}
-.tn .hv3-btn, .tn .hv3-cta { min-height: 48px; }
-.tn .hv3-eyebrow, .tn .hv3-mono, .tn .hv3-tt-label {
-  text-transform: none;
-  letter-spacing: normal;
-}
-.tn .tn-explore .hv3-eyebrow, .tn .tn-testimonials .hv3-eyebrow { display: none; }
-.tn .tn-testimonials .hv3-tt-head, .tn .tn-usp .hv3-usp-head {
-  display: block;
-}
-.tn .tn-testimonials .hv3-tt-lead, .tn .tn-usp .hv3-usp-lead { margin-top: 16px; }
-.tn .tn-usp .hv3-usp-head { padding-top: 0; }
-.tn .tn-explore .hv3-head, .tn .tn-story .hv3-story-copy {
-  position: relative;
-  isolation: isolate;
-  color: var(--tn-text);
-}
-.tn .tn-explore .hv3-head::before, .tn .tn-story .hv3-story-copy::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -32px;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent,
-    rgb(15 13 10 / .86) 32px,
-    rgb(15 13 10 / .86) calc(100% - 32px), transparent);
-  mask-image: linear-gradient(180deg, transparent,
-    #000 32px, #000 calc(100% - 32px), transparent);
-}
-.tn .tn-explore .hv3-lead, .tn .tn-story .hv3-story-body {
-  color: var(--tn-body-text);
-  font-size: var(--tn-body);
-  line-height: 1.6;
-  max-width: 64ch;
-}
-/* A local, edge-free text scrim, never a rounded panel over the painting. */
-.tn .tn-explore .hv3-shortcuts {
-  padding: 8px;
-  background: rgb(15 13 10 / .86);
-  border-radius: var(--tn-radius-control);
-}
-@media (min-width: 768px) {
-  .tn { --tn-section-y: 64px; --tn-gutter: 32px; }
-}
-@media (min-width: 1024px) {
-  .tn { --tn-section-y: 80px; --tn-gutter: 48px; }
-  .tn .hv3-btn, .tn .hv3-cta { white-space: nowrap; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tn *, .tn *::before, .tn *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
-  .tn [data-need-reveal] .hv3-need,
-  .tn [data-reveal-ready] .hv3-disc-slot,
-  .tn [data-faq-reveal] .hv3-faq-item {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-
-/* One clipped, bounded testimonial track; automatic travel is physically left. */
-.tn .hv3-tt-viewport { overflow: hidden; }
-.tn .hv3-tt-track { display: flex; gap: 16px; align-items: stretch; }
-.tn .tn-testimonials .hv3-tt-card-carousel { flex: 0 0 calc(100% - 48px); min-width: 0; height: 280px; min-height: 280px; padding: 20px; }
-.tn .hv3-tt-card-carousel .hv3-tt-body { height: 100%; display: flex; flex-direction: column; }
-.tn .hv3-tt-card-carousel .hv3-tt-foot { margin-top: auto; }
-.tn .hv3-tt-card-carousel .hv3-tt-quote { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; font-size: 16px; line-height: 1.6; }
-.tn .hv3-tt-carousel .hv3-tt-arrows { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
-.tn .hv3-tt-carousel button, .tn .hv3-tt-pause, .tn .hv3-tt-more { min-height: 44px; min-width: 44px; }
-@media (min-width: 768px) { .tn .tn-testimonials .hv3-tt-card-carousel { flex-basis: calc((100% - 16px) / 2); } }
-@media (min-width: 1024px) { .tn .tn-testimonials .hv3-tt-card-carousel { flex-basis: calc((100% - 32px) / 3); } }
-
-
-/* Audit PR2: CSS is the responsive visibility authority, no SSR media guess. */
-.tn .tn-hero-content {
-  min-height: calc(100svh - 72px);
-  justify-content: flex-start;
-  padding-block: 32px;
-}
-.tn .tn-hero { min-height: calc(100svh - 72px); }
-.tn .tn-hero-title { font-size: clamp(2rem, 8vw, 2.5rem); max-width: 100%; }
-.tn .tn-hero-sub { font-family: var(--font-ui); font-size: 1rem; line-height: 1.5; }
-.tn .tn-hero-start {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; min-height: 52px; margin-top: 24px;
-  padding: 12px 16px; border: 0; border-radius: var(--tn-radius-control);
-  background: var(--tn-gold-light); color: var(--tn-ink);
-  font: 600 1rem/1.4 var(--font-ui); cursor: pointer;
-}
-.tn .tn-hero-start:hover { background: var(--tn-gold); }
-.tn .tn-hero-start:active { transform: translateY(1px); }
-.tn .tn-hero-start:focus-visible { outline: 2px solid var(--tn-gold-light); outline-offset: 4px; }
-.tn .tn-hero-form[data-open="false"] { display: none; }
-.tn .tn-hero-form[data-open="true"] { display: block; }
-.tn .tn-hero-sample-cta { margin-top: 8px; }
-.tn .tn-hero-title span { white-space: normal; }
-@media (min-width: 880px) {
-  .tn .tn-hero-content {
-    min-height: 100svh; align-items: center; justify-content: flex-start;
-    padding-block: 64px;
-  }
-  .tn .tn-hero-title { font-size: var(--tn-display); }
-  .tn .tn-hero-form[data-open] { display: block; }
-  .tn .tn-hero-start { display: none; }
-}
-
-
-
-/* Audit PR3: compact choice rows plus one selected visual. */
-.tn .tn-needs .hv3-need-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
-.tn .tn-needs .hv3-needs-body { gap: 24px; }
-.tn .tn-needs .hv3-need, .tn .tn-needs .hv3-need[aria-pressed="true"] {
-  min-height: 64px; padding: 12px 16px 12px 84px;
-  flex-direction: row; align-items: center; gap: 12px;
-  border-radius: var(--tn-radius-control);
-}
-.tn .tn-needs .hv3-need::before { inset: 8px auto 8px 8px; width: 60px; height: auto; border-radius: 8px; }
-.tn .tn-needs .hv3-need-icon, .tn .tn-needs .hv3-need-question { display: none; }
-.tn .tn-needs .hv3-need-title { font-size: 1rem; }
-.tn .tn-needs .hv3-need-detail { padding: 20px; border-radius: var(--tn-radius-panel); gap: 16px; }
-.tn .tn-needs .hv3-need-art { height: 160px; margin: -20px -20px 0; }
-.tn .tn-needs .hv3-need-actions { gap: 8px; }
-.tn .tn-needs .hv3-discipline-disclosure { margin-top: 24px; }
-.tn .tn-needs .hv3-discipline-disclosure summary {
-  min-height: 48px; padding-block: 12px; color: var(--tn-gold-light); cursor: pointer;
-}
-.tn .tn-needs .hv3-disciplines { grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
-.tn .tn-needs .hv3-disc-slot-flagship { grid-column: auto; }
-.tn .tn-needs .hv3-disc, .tn .tn-needs .hv3-disc-flagship {
-  flex-direction: row; min-height: 96px; border-radius: var(--tn-radius-control);
-}
-.tn .tn-needs .hv3-disc-art,
-.tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art,
-.tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
-  flex: 0 0 80px; width: 80px; aspect-ratio: auto;
-  border: 0; border-right: 1px solid var(--tn-hair);
-}
-.tn .tn-needs .hv3-disc-body { padding: 12px; }
-.tn .tn-needs .hv3-disc-name, .tn .tn-needs .hv3-disc-name-lg { font-size: 1.125rem; }
-.tn .tn-needs .hv3-disc-body .hv3-mask { display: none; }
-.tn .tn-needs .hv3-disc-body .hv3-muted { font-size: 1rem; }
-.tn .tn-needs .hv3-disc-flagship-cta { min-height: 44px; padding: 8px 0; background: none; color: var(--tn-gold-light); }
-@media (min-width: 880px) {
-  .tn .tn-needs .hv3-needs-body { grid-template-columns: 1fr 1fr; align-items: start; }
-  .tn .tn-needs .hv3-need-list { grid-template-columns: 1fr; }
-  .tn .tn-needs .hv3-disciplines { grid-template-columns: 1fr 1fr; }
-}
-
-
-
-/* Comparison evidence stays permanently visible on one canvas. */
-.tn .tn-compare-texture { display: none; }
-.tn .tn-compare .hv3-compare-head {
-  padding: 0; background: transparent; border: 0; border-radius: 0;
-}
-.tn .tn-compare .hv3-compare-points { gap: 16px; margin-block: 24px; }
-.tn .tn-compare .hv3-compare-points span {
-  display: flex; align-items: center; gap: 16px; padding: 0;
-  min-height: 56px; background: transparent; border: 0; border-radius: 0;
-}
-.tn .tn-compare .hv3-compare-details { border: 0; padding: 0; }
-.tn .tn-compare .hv3-compare-details > summary { min-height: 48px; padding: 12px 0; cursor: pointer; }
-.tn .tn-compare .hv3-tabs { gap: 8px; }
-.tn .tn-compare .hv3-tabs button { min-height: 48px; min-width: 0; padding: 8px 12px; font-size: 1rem; }
-.tn .tn-compare .hv3-cmp-card {
-  background: transparent; border: 0; border-bottom: 1px solid var(--tn-hair);
-  border-radius: 0; padding: 16px 0;
-}
-.tn .tn-compare .hv3-cmp-top { border-top: 2px solid var(--tn-gold); }
-.tn .tn-compare .hv3-cmp-fix { border: 0; padding-top: 8px; }
-.tn .tn-compare .hv3-cmp-card p,
-.tn .tn-compare .hv3-cmp-card .hv3-cmp-axis,
-.tn .tn-compare .hv3-cmp-card .hv3-cmp-fix { font-size: 1rem !important; line-height: 1.5; }
-.tn .tn-compare .hv3-compare-table { border-collapse: collapse; table-layout: fixed; }
-.tn .tn-compare .hv3-compare-table th,
-.tn .tn-compare .hv3-compare-table td {
-  padding: 16px 12px; font-size: 1rem; line-height: 1.5; vertical-align: top;
-  border: 0; border-bottom: 1px solid var(--tn-hair); overflow-wrap: normal;
-  color: var(--tn-body-text);
-}
-.tn .tn-compare .hv3-compare-table [data-col="lsv"] {
-  background: rgb(201 164 77 / .06); box-shadow: none; color: var(--tn-text);
-}
-.tn .tn-compare .hv3-compare-table thead [data-col="lsv"] { border-top: 2px solid var(--tn-gold); }
-@media (min-width: 880px) {
-  .tn .tn-compare .hv3-compare-points { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-
-
-/* Audit PR6: one job and one layout family per chapter. */
-.tn .tn-topic-ribbon {
-  display: flex; gap: 8px; overflow-x: auto; padding: 8px 0;
-  margin-top: 24px; scroll-snap-type: x proximity;
-}
-.tn .tn-topic-ribbon a {
-  flex: 0 0 auto; display: flex; align-items: center;
-  min-height: 44px; padding: 8px 16px; border: 1px solid var(--tn-hair);
-  border-radius: 999px; color: var(--tn-gold-light); scroll-snap-align: start;
-  font-size: 1rem; text-decoration: none;
-}
-.tn .tn-topic-ribbon a:focus-visible { outline: 2px solid var(--tn-gold-light); outline-offset: 2px; }
-.tn .tn-story .hv3-story-panel { min-height: 0; padding: 0; }
-.tn .tn-story .hv3-story-panel::before { display: none; }
-.tn .tn-story .hv3-story-copy { padding: 0; max-width: 64ch; }
-.tn .tn-story .hv3-questions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
-.tn .tn-story .hv3-questions p { margin: 0; padding: 0; border: 0; font-size: 1rem; line-height: 1.5; }
-.tn .tn-explore .hv3-panel { padding: 20px; border-radius: var(--tn-radius-panel); }
-.tn .tn-explore .hv3-panel-note { margin-block: 16px; }
-.tn .tn-usp .hv3-usp-head { display: none; }
-.tn .tn-usp .hv3-usp-grid { display: grid; grid-template-columns: 1fr; gap: 0; margin-top: 32px; }
-.tn .tn-usp .hv3-usp-card {
-  min-height: 0; padding: 16px 0; border: 0; border-top: 1px solid var(--tn-hair);
-  background: transparent; border-radius: 0;
-}
-.tn .tn-usp .hv3-usp-body { padding: 0; }
-.tn .tn-usp .hv3-usp-body::before { display: none; }
-.tn .tn-usp .hv3-usp-card h3 { font-size: 1.25rem; margin: 0 0 8px; }
-.tn .tn-usp .hv3-usp-card p { font-size: 1rem; line-height: 1.5; max-width: 64ch; }
-.tn .tn-value .hv3-steps { gap: 0; margin-top: 24px; }
-.tn .tn-value .hv3-steps li {
-  padding: 16px 0; border: 0; border-top: 1px solid var(--tn-hair);
-  background: transparent; border-radius: 0;
-}
-.tn .tn-value .hv3-step-visual { display: none; }
-.tn .tn-value .hv3-steps li[data-step="3"]::before,
-.tn .tn-value .hv3-steps li[data-step="3"]::after,
-.tn .tn-about .hv3-final-cta::before,
-.tn .tn-about .hv3-final-cta::after { display: none; animation: none; }
-.tn .tn-value .hv3-steps p { margin: 8px 0 0; line-height: 1.5; max-width: 64ch; }
-.tn .tn-faq .hv3-faq-layout { display: block; }
-.tn .tn-faq .hv3-faq-list { margin-top: 24px; }
-.tn .tn-faq .hv3-faq-q { font-size: 1rem; padding-block: 16px; min-height: 64px; }
-.tn .tn-faq .hv3-faq-a { padding-right: 0; line-height: 1.6; }
-.tn .tn-about .hv3-about-panel { border: 0; border-radius: 0; background: transparent; }
-.tn .tn-about .hv3-about-panel::before { min-height: 180px; }
-.tn .tn-about .hv3-about-body { padding: 24px 0 0; }
-.tn .tn-about .hv3-about-body p { max-width: 64ch; line-height: 1.6; }
-.tn .tn-about .hv3-final-cta-inner { padding: 48px 0 0; }
-.tn .tn-about .hv3-final-cta { margin-top: 24px; }
-@media (min-width: 880px) {
-  .tn .tn-story .hv3-questions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .tn .tn-usp .hv3-usp-grid { grid-template-columns: 1fr 1fr; gap: 0 32px; }
-  .tn .tn-value .hv3-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
-  .tn .tn-about .hv3-about-panel::before { min-height: 240px; }
-  .tn .tn-about .hv3-about-body { padding: 0 0 0 32px; align-self: center; }
-}
-
-.tn .tn-testimonials .hv3-tt-name { white-space: normal; font-size: 14px; }
-.tn .tn-testimonials .hv3-tt-city, .tn .tn-testimonials .hv3-tt-label { font-size: 14px; }
-
-/* Light V2: local paper reading surfaces; geometry and state owners stay shared. */
-html[data-theme="light"]:has([data-light-ready]) .tn :focus-visible {
-  outline-color: var(--tn-focus) !important;
-}
-html[data-theme="light"] .tn :is(.tn-hero-copy,.tn-hero-handoff-note,.hv3-story-copy,.tn-explore .hv3-head) {
-  position: relative;
-  isolation: isolate;
-}
-html[data-theme="light"] .tn :is(.tn-hero-copy,.tn-hero-handoff-note,.hv3-story-copy,.tn-explore .hv3-head)::before {
-  content: "";
-  position: absolute;
-  inset: -32px;
-  z-index: -1;
-  background: var(--tn-scrim-floor);
-  /* Black is mask coverage, not visible palette. Feather outside the text box. */
-  mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent), linear-gradient(180deg, transparent, black 32px, black calc(100% - 32px), transparent);
-  mask-composite: intersect;
-  pointer-events: none;
-}
-html[data-theme="light"] .tn .hv3-form {
-  background: var(--tn-panel);
-  border-color: var(--tn-control-border);
-}
-html[data-theme="light"] .tn :is(.hv3-field input,.hv3-field select,.hv3-pill,.hv3-seg,.hv3-seg button,.hv3-tt-arrows button,.hv3-tt-pause,.hv3-tt-filters button) {
-  border-color: var(--tn-control-border);
-}
-.tn .hv3-seg[aria-labelledby="hv3-time-label"] { flex-wrap: wrap; }
-.tn .hv3-seg[aria-labelledby="hv3-time-label"] button { min-width: 0; min-height: 44px; white-space: normal; line-height: 1.3; padding-block: 8px; }
-html[data-theme="light"] .tn :is(.hv3-need-art,.hv3-disc-art,.hv3-about-panel::before,.hv3-need::before) {
-  box-shadow: inset 0 0 0 1px var(--tn-art-frame), var(--tn-art-shadow);
-}
-html[data-theme="light"] .tn .tn-compare :is(.hv3-compare-table,.hv3-compare-card) {
-  background: var(--tn-panel);
-  border-color: var(--tn-control-border);
-}
-html[data-theme="light"] .tn .tn-compare .hv3-compare-table-wrap { background: var(--tn-ink); box-shadow: none; }
-html[data-theme="light"] .tn .hv3-final-cta-inner {
-  position: relative;
-  background: var(--tn-scrim-floor);
-  color: var(--tn-text);
-}
-html[data-theme="light"] .tn .tn-explore-texture { opacity: .1; }
-html[data-theme="light"] .tn :is(.hv3-inverse,.hv3-lacquer,.hv3-usp-dark,.hv3-usp-ink,.hv3-usp-son) {
-  background-color: var(--tn-panel);
-  color: var(--tn-text);
-}
-html[data-theme="light"] .tn :is(.hv3-inverse,.hv3-lacquer) :is(p,a) { color: var(--tn-text-muted); }
-.tn-world-canvas-host { position: absolute; inset: 0; }
-.tn-world-static { display: none; position: absolute; inset: 0; }
-html[data-theme="light"] .tn-world-static { display: block; }
-html[data-theme="light"] .tn[data-troi-nam-world-ready^="light:"] .tn-world-static { opacity: 0; }
-/* The light static plate must remain visible across the complete stage. */
-html[data-theme="light"] .tn :is(.tn-story.hv3,.tn-ticker.hv3,.tn-explore.hv3) { background: transparent; }
-html[data-theme="light"] .tn :is(.hv3-legend,.hv3-shortcuts) { background-color: var(--tn-scrim-floor); }

@@ -33,9 +33,8 @@ export default async function Page({ params }: PageProps) {
   const { locale } = await params;
 
   return (
-    <div className="tn" data-light-ready>
-      <SiteHeader locale={locale} currentPath={locale === "en" ? "/en" : "/"}
-        chartCtaLabel={locale === "vi" ? "Lập lá số miễn phí" : "Start my free chart"} />
+    <div className="tn">
+      <SiteHeader locale={locale} currentPath={locale === "en" ? "/en" : "/"} />
       {/*
         Page-scoped (2026-10-01 audit F2): wraps a server-rendered subtree in a
         client provider — standard RSC composition, not a client-ification of
@@ -48,6 +47,8 @@ export default async function Page({ params }: PageProps) {
             <TroiNamHero locale={locale} />
             <section className="tn-section" data-troi-nam-block="story">
               <TroiNamStory />
+            </section>
+            <section className="tn-section" data-troi-nam-block="ticker">
               <TroiNamTicker />
             </section>
             <section className="tn-section" data-troi-nam-block="explore">
@@ -59,10 +60,12 @@ export default async function Page({ params }: PageProps) {
           </section>
           <section className="tn-section" data-troi-nam-block="compare" id="so-sanh">
             <TroiNamCompare locale={locale} />
-            <div data-troi-nam-part="usp"><TroiNamUsp /></div>
           </section>
           <section className="tn-section" data-troi-nam-block="testimonials">
             <TroiNamTestimonials />
+          </section>
+          <section className="tn-section" data-troi-nam-block="usp">
+            <TroiNamUsp />
           </section>
           <section className="tn-section" data-troi-nam-block="value" id="gia-tri">
             <TroiNamValue locale={locale} />

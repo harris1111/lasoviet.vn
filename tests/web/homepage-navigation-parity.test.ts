@@ -115,12 +115,12 @@ describe("homepage and navigation prototype parity", () => {
     // Desktop and mobile locale switch links
     const desktopLocale = links.find((l) => l.className === "locale-link");
     expect(desktopLocale).toBeDefined();
-    expect(desktopLocale?.href).toBe("/");
+    expect(desktopLocale?.href).toBe("/vi");
     expect(desktopLocale?.text).toContain("Tiếng Việt");
 
     const mobileLocale = links.find((l) => l.className?.includes("mobile-locale-link"));
     expect(mobileLocale).toBeDefined();
-    expect(mobileLocale?.href).toBe("/");
+    expect(mobileLocale?.href).toBe("/vi");
     expect(mobileLocale?.text).toContain("Tiếng Việt");
 
     // Login link
@@ -156,7 +156,7 @@ describe("homepage and navigation prototype parity", () => {
     )).toBe(true);
     expect(linksEn.some((l) => l.href === "/en/tu-vi" && l.className?.includes("button"))).toBe(true);
     const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
-    expect(mobileEn?.href).toBe("/chiem-tinh");
+    expect(mobileEn?.href).toBe("/vi/chiem-tinh");
     expect(mobileEn?.text).toContain("Tiếng Việt");
   });
 
@@ -226,7 +226,7 @@ describe("homepage and navigation prototype parity", () => {
     const linksEn = extractAllLinks(headerEn);
     const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
     expect(mobileEn).toBeDefined();
-    expect(mobileEn?.href).toBe("/tu-vi");
+    expect(mobileEn?.href).toBe("/vi/tu-vi");
     expect(mobileEn?.text).toContain("Tiếng Việt");
   });
 
@@ -304,7 +304,7 @@ describe("homepage and navigation prototype parity", () => {
     const linksEn = extractAllLinks(pageEn);
     const mobileEn = linksEn.find((l) => l.className?.includes("mobile-locale-link"));
     expect(mobileEn).toBeDefined();
-    expect(mobileEn?.href).toBe("/dieu-khoan");
+    expect(mobileEn?.href).toBe("/vi/dieu-khoan");
     expect(mobileEn?.text).toContain("Tiếng Việt");
   });
 });
