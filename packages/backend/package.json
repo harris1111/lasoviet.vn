@@ -12,6 +12,10 @@
     "./notifications/notification-preference": {
       "types": "./dist/notifications/notification-preference.d.ts",
       "import": "./dist/notifications/notification-preference.js"
+    },
+    "./reports/structural-palace-score": {
+      "types": "./dist/reports/structural-palace-score.d.ts",
+      "import": "./dist/reports/structural-palace-score.js"
     }
   },
   "files": [

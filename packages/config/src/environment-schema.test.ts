@@ -452,7 +452,7 @@ describe("environment loading", () => {
       ...completeSmtp,
       ...completeS3,
     });
-    expect(result).toEqual({ ok: true, value: validNormalizedProduction });
+    expect(result).toEqual({ ok: true, value: { ...validNormalizedProduction, freePalaceGenerationEnabled: false } });
   });
 
   it("enables Garage only with its closed activation group", () => {

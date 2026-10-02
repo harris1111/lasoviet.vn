@@ -216,6 +216,17 @@ describe("database schema integration", () => {
       `;
       await removeOpenRouterPricingForRewind(client);
       await removeGeminiFlashPricingForRewind(client);
+      // 0055 (free_ai): this boundary predates the free-AI gift tables too.
+      // Drop them, or replaying 0055 after the tracking rewind below
+      // collides with the copies the shared beforeAll migration created.
+      await client`DROP TABLE IF EXISTS free_ai_settlements`;
+      await client`DROP TABLE IF EXISTS free_ai_admissions`;
+      await client`DROP TABLE IF EXISTS free_ai_artifacts`;
+      await client`DROP TABLE IF EXISTS free_ai_requests`;
+      await client`DROP TABLE IF EXISTS free_ai_quota_aliases`;
+      await client`DROP TABLE IF EXISTS free_ai_quota_subjects`;
+      await client`DROP TABLE IF EXISTS free_ai_chart_budgets`;
+      await client`DROP TABLE IF EXISTS free_ai_daily_budgets`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
         WHERE created_at > 1790813220000
@@ -553,6 +564,17 @@ describe("database schema integration", () => {
       await removeGeminiFlashPricingForRewind(client);
       await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
+      // 0055 (free_ai): this boundary predates the free-AI gift tables too.
+      // Drop them, or replaying 0055 after the tracking rewind below
+      // collides with the copies the shared beforeAll migration created.
+      await client`DROP TABLE IF EXISTS free_ai_settlements`;
+      await client`DROP TABLE IF EXISTS free_ai_admissions`;
+      await client`DROP TABLE IF EXISTS free_ai_artifacts`;
+      await client`DROP TABLE IF EXISTS free_ai_requests`;
+      await client`DROP TABLE IF EXISTS free_ai_quota_aliases`;
+      await client`DROP TABLE IF EXISTS free_ai_quota_subjects`;
+      await client`DROP TABLE IF EXISTS free_ai_chart_budgets`;
+      await client`DROP TABLE IF EXISTS free_ai_daily_budgets`;
       await client`
         DELETE FROM drizzle.__drizzle_migrations
         WHERE created_at > 1790812920000
@@ -3707,6 +3729,18 @@ describe("database schema integration", () => {
     await removeOpenRouterPricingForRewind(client);
     await removeGeminiFlashPricingForRewind(client);
     await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
+    // 0055 (free_ai): this checkpoint boundary predates the free-AI gift
+    // tables. Drop them too, or replaying 0055 forward after the tracking
+    // rewind below collides with the copies this suite's initial beforeAll
+    // migration already created ("relation already exists").
+    await client`DROP TABLE IF EXISTS free_ai_settlements`;
+    await client`DROP TABLE IF EXISTS free_ai_admissions`;
+    await client`DROP TABLE IF EXISTS free_ai_artifacts`;
+    await client`DROP TABLE IF EXISTS free_ai_requests`;
+    await client`DROP TABLE IF EXISTS free_ai_quota_aliases`;
+    await client`DROP TABLE IF EXISTS free_ai_quota_subjects`;
+    await client`DROP TABLE IF EXISTS free_ai_chart_budgets`;
+    await client`DROP TABLE IF EXISTS free_ai_daily_budgets`;
     await client`
       DELETE FROM drizzle.__drizzle_migrations
       WHERE created_at > 1789977600000

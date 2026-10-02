@@ -3,7 +3,7 @@ import { createAnonymousChart } from "./helpers/create-anonymous-chart";
 
 const blocks = [
   "chart", "insights", "free-palace", "scores", "year",
-  "palaces", "topics", "evidence", "completion",
+  "palaces", "topics", "completion", "evidence",
 ];
 
 for (const locale of ["vi", "en"] as const) {
@@ -85,7 +85,7 @@ test("FD109 URL history and direct preview links restore modal and keyboard stat
   const chartPath = new URL(await createAnonymousChart(page, "vi")).pathname;
   await page.locator("#tab-topics").click();
   await page.locator("#panel-topics button").first().click();
-  await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=topics&open=[a-z]+$`));
+  await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=topics&open=(?:career_wealth|relationship_marriage|[a-z]+)$`));
   await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
   await page.goBack();
   await expect(page.getByTestId("fd109-preview-dialog")).toBeHidden();

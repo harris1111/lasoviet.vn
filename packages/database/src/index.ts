@@ -114,3 +114,5 @@ export {
 
 export { notificationVerifiedSignins } from "./schema/notifications.js";
 export * from "./schema/membership.js";
+
+export * from "./schema/free-ai.js";

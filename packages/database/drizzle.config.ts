@@ -18,6 +18,7 @@ export default defineConfig({
     "./src/schema/ai-cost.ts",
     "./src/schema/wallet-commerce.ts",
     "./src/schema/generated-preview.ts",
+    "./src/schema/free-ai.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

@@ -1,0 +1,25 @@
+export function createFreeResultAnalytics(locale: "vi" | "en") {
+  const emitted = new Set<string>();
+  const started = new Map<string, number>();
+  function claim(section: string, stage: "view" | "engaged" | "door") {
+    const key = `${section}:${stage}`;
+    if (emitted.has(key)) return null;
+    emitted.add(key);
+    return { name: "free_result_interaction" as const,
+      properties: { section_id: section, stage, locale, source_kind: "structural" } };
+  }
+  return {
+    visible(section: string, time: number, foreground: boolean) {
+      if (!foreground) return null;
+      if (!started.has(section)) started.set(section, time);
+      return claim(section, "view");
+    },
+    hidden(section: string) { started.delete(section); },
+    tick(section: string, time: number, foreground: boolean) {
+      if (!foreground) { started.delete(section); return null; }
+      const start = started.get(section);
+      return start !== undefined && time - start >= 8000 ? claim(section, "engaged") : null;
+    },
+    door() { return claim("offer", "door"); },
+  };
+}

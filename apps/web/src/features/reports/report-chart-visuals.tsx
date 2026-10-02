@@ -349,11 +349,15 @@ export function ReportPalaceRadar({
   snapshot,
   scores,
   t,
+  locale = "vi",
 }: {
-  snapshot: ReportChartSnapshotV1;
-  scores: Map<string, PalaceScore>;
+  snapshot: { palaces: readonly { palaceId: string }[] };
+  scores: ReadonlyMap<string, Pick<PalaceScore, "score">>;
+  locale?: "vi" | "en";
   t: Translate;
 }) {
+  const presentation = ziweiPresentation(locale, { strict: false });
+  const name = (id: string) => presentation.palace(id).replace(/^Cung /, "");
   const centre = RADAR_SIZE / 2;
   const point = (index: number, value: number): [number, number] => {
     const angle = ((-90 + index * 30) * Math.PI) / 180;
@@ -388,7 +392,7 @@ export function ReportPalaceRadar({
           const [x, y] = point(i, scores.get(palace.palaceId)?.score ?? 0);
           return (
             <circle key={palace.palaceId} className="rd-dot" cx={x.toFixed(1)} cy={y.toFixed(1)} r={3}>
-              <title>{`${palaceShortName(palace.palaceId)}: ${scores.get(palace.palaceId)?.score ?? 0}`}</title>
+              <title>{`${name(palace.palaceId)}: ${scores.get(palace.palaceId)?.score ?? 0}`}</title>
             </circle>
           );
         })}
@@ -400,7 +404,7 @@ export function ReportPalaceRadar({
           const anchor = Math.abs(x - centre) < 6 ? "middle" : x > centre ? "start" : "end";
           return (
             <text key={palace.palaceId} className="rd-lb" x={x.toFixed(1)} y={(y + 3.5).toFixed(1)} textAnchor={anchor}>
-              {palaceShortName(palace.palaceId)}
+              {name(palace.palaceId)}
             </text>
           );
         })}

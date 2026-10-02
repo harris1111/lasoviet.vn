@@ -29,6 +29,7 @@ describe("analytics-events config and schema", () => {
     "upgrade_view",
     "upgrade_purchased",
     "return_visit",
+    "free_result_interaction",
   ] as const;
 
   it("preserves exact canonical funnel and matches canonical event names", () => {

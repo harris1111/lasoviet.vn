@@ -135,6 +135,7 @@ import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
 import { freeIdentityPreviewLoader } from "../../../../features/reports/load-free-identity-preview";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import ZiweiChartResultPage from "./page";
+import { PrivateApiClientError } from "../../../../api/private-api-client";
 
 describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
   const chartId = "chart-test-123";
@@ -287,9 +288,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Bạn đã đọc xong phần miễn phí");
+    expect(html).toContain("Bạn đã xem phần miễn phí");
+    expect(html).not.toContain("Bạn đã đọc xong phần miễn phí");
     expect(html).toContain("Xem các gói luận giải");
-    expect(html).toContain("chưa phải bản luận giải đầy đủ");
+    expect(html).toContain("Bạn đang xem các sao và điểm cấu trúc của lá số");
     expect(html).toContain("/la-so/chart-test-123/chon-luan-giai");
     expect(html).toContain('class="result-hero-actions"');
     expect(html).toContain('class="result-hero-copy"');
@@ -312,28 +314,32 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Luận giải chuyên sâu Công việc &amp; Tài lộc");
-    expect(html).toContain("Luận giải chuyên sâu Tình duyên &amp; Hôn nhân");
+    expect(html).toContain("Công việc và tài lộc");
+    expect(html).toContain("Tình duyên và hôn nhân");
+    expect(html).toContain('data-topic-id="career_wealth"');
+    expect(html).toContain('data-topic-id="relationship_marriage"');
 
     const topicsPanel = html.match(/<section[^>]*id="panel-topics"[\s\S]*?<\/section>/)?.[0];
     expect(topicsPanel).toBeTruthy();
-    expect((topicsPanel!.match(/<article/g) ?? []).length).toBe(2);
+    expect((topicsPanel!.match(/data-topic-id=/g) ?? []).length).toBe(2);
   });
 
-  // Audit finding 2 (2026-10-02): the completion/bridge block carried
+  // Audit finding 2 (2026-10-02): the completion/bridge block used to carry
   // data-tab="topics", so on desktop (CSS hides every [data-tab] panel except
   // the active one) it was invisible unless the reader happened to click into
-  // the Chủ đề tab — finishing Tổng quan showed no next step at all. Lightest
-  // fix: one data-tabs="overview topics" marker plus the matching CSS rule,
-  // not a layout rebuild. Still exactly one completion node (A08's own
-  // acceptance bar), now reachable from both tabs it is meant to close.
+  // the Chủ đề tab — finishing Tổng quan showed no next step at all. Now the
+  // completion section has no data-tab at all; visibility on desktop is
+  // driven by its own .fd109-completion CSS rule (shown only under
+  // data-active-tab="overview"/"topics"), so it stays exactly one DOM node
+  // (A08's own acceptance bar) and is reachable from both tabs it closes.
   it("makes the one completion node reachable from both the Overview and Chủ đề desktop tabs", async () => {
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
 
     expect((html.match(/data-testid="fd109-completion"/g) ?? []).length).toBe(1);
-    expect(html).toContain('data-free-result-block="completion" data-tabs="overview topics" data-testid="fd109-completion"');
-    expect(html).not.toMatch(/data-free-result-block="completion"[^>]*\sdata-tab="topics"/);
+    const completionTag = html.match(/<section[^>]*data-free-result-block="completion"[^>]*>/)?.[0];
+    expect(completionTag).toBeTruthy();
+    expect(completionTag).not.toMatch(/\sdata-tab="/);
   });
 
   it("uses the localized English offer destination without the old paid section", async () => {
@@ -383,9 +389,28 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     ).items[0]!.description;
     expect(html).toContain(expectedFirstInsight);
     expect(html).not.toContain("VISIBLE_FIRST");
+    expect(html).toContain("data-free-result-block=\"insights\"");
     expect(html).not.toContain("SECOND_SECRET");
     expect(html).toContain("Lưu lá số miễn phí");
     expect(html).toMatch(/data-testid="fd109-sticky" hidden=""/);
+  });
+
+  it("preserves the authorized chart when optional evidence is insufficient", async () => {
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockResolvedValue({ ok: false, error: { code: "INSUFFICIENT_EVIDENCE" } } as never);
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    const html = renderToStaticMarkup(page);
+    expect(html).toContain('data-testid="fd109-free-result"');
+    expect(html).toContain("Bạn đã xem phần miễn phí");
+  });
+
+  it("uses structural fallback for malformed optional preview responses", async () => {
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockRejectedValue(new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"));
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    expect(renderToStaticMarkup(page)).toContain('data-testid="fd109-free-result"');
+  });
+  it("does not suppress preview transport/authorization failures", async () => {
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockRejectedValue(new PrivateApiClientError("PRIVATE_API_UNREACHABLE"));
+    await expect(ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) })).rejects.toThrow("PRIVATE_API_UNREACHABLE");
   });
 
   it("triggers notFound when preview loader fails", async () => {
