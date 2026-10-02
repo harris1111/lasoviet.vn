@@ -1,5 +1,6 @@
-import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1 } from "@lasoviet/contracts";
+import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1, type NormalizedZiweiChartV1 } from "@lasoviet/contracts";
 import { CANONICAL_BRANCH_SEQUENCE } from "../../../../features/ziwei/ziwei-chart-relations";
+import { buildFreeInsights } from "../../../../features/ziwei/ziwei-free-insights";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -335,7 +336,16 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
-    expect(html).toContain("VISIBLE_FIRST");
+    // A02: the first insight is the chart-grounded structural text, not the
+    // preview API's "VISIBLE_FIRST" literal from this fixture; that literal
+    // must never reach the page.
+    const expectedFirstInsight = buildFreeInsights(
+      mockChartSuccess.value.chart as NormalizedZiweiChartV1,
+      "vi",
+      mockChartSuccess.value.birthSummary.displayName,
+    ).items[0]!.description;
+    expect(html).toContain(expectedFirstInsight);
+    expect(html).not.toContain("VISIBLE_FIRST");
     expect(html).not.toContain("SECOND_SECRET");
     expect(html).toContain("Lưu lá số miễn phí");
     expect(html).toMatch(/data-testid="fd109-sticky" hidden=""/);
