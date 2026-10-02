@@ -6,7 +6,7 @@ export type FreeToolLoginRoute =
 
 const routes: Record<FreeToolLoginRoute, string> = {
   tarot: "/boi-bai",
-  zodiac: "/cung-hoang-dao",
+  zodiac: "/12-con-giap",
   dreamSymbols: "/giai-ma-giac-mo",
   fengShui: "/phong-thuy/huong-nha",
 };
