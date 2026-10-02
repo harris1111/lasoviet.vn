@@ -23,7 +23,7 @@ const AVATARS: Readonly<Record<string, TroiNamAsset>> = {
 export function TroiNamTestimonials() {
   return (
     <div className="hv3 tn-testimonials">
-      <HomepageV3Testimonials avatars={AVATARS} />
+      <HomepageV3Testimonials avatars={AVATARS} presentation="carousel" />
     </div>
   );
 }

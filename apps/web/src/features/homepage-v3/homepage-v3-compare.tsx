@@ -17,11 +17,13 @@ const TAB_TITLE = { lsv: "tabLsv", web: "tabWeb", ai: "tabAi", thay: "tabThay" }
  * `lead` and `defaultOpen` are optional so the live homepage keeps its current copy and
  * collapsed-by-default table; Trời Nam passes a shorter lead and opens the table directly.
  */
-export function HomepageV3Compare({ lead, defaultOpen = false }: { lead?: string; defaultOpen?: boolean } = {}) {
+export function HomepageV3Compare({ lead, defaultOpen = false, alwaysVisible = false }: { lead?: string; defaultOpen?: boolean; alwaysVisible?: boolean } = {}) {
   const t = useTranslations("homepage-v3.compare");
   const locale = useLocale();
   const [active, setActive] = useState<Column>("lsv");
   const [strengthRow, ...limitRows] = COMPARE_ROW_IDS;
+
+  const Evidence = alwaysVisible ? "div" : "details";
 
   return (
     <div className="hv3-container">
@@ -37,8 +39,8 @@ export function HomepageV3Compare({ lead, defaultOpen = false }: { lead?: string
         ).map((point, index) => <span key={point}><LsvIcon name={(["chart-palaces", "related-palaces", "reading-depth"] as const)[index] ?? "chart-palaces"} size={40} />{point}</span>)}
       </div>
 
-      <details className="hv3-compare-details" open={defaultOpen}>
-        <summary>{locale === "vi" ? "Xem bảng so sánh đầy đủ" : "View the full comparison"}</summary>
+      <Evidence className="hv3-compare-details" {...(alwaysVisible ? {} : { open: defaultOpen })}>
+        {!alwaysVisible ? <summary>{locale === "vi" ? "Xem bảng so sánh đầy đủ" : "View the full comparison"}</summary> : null}
 
       <table className="hv3-compare-table" role="table">
         <caption className="hv3-sr">{t("tableLabel")}</caption>
@@ -99,7 +101,7 @@ export function HomepageV3Compare({ lead, defaultOpen = false }: { lead?: string
         </div>
         <HomepageV3GoWizard className="hv3-link">{t("cta")}</HomepageV3GoWizard>
       </div>
-      </details>
+      </Evidence>
     </div>
   );
 }
