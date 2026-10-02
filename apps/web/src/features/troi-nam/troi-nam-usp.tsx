@@ -11,7 +11,7 @@ export function TroiNamUsp() {
       className="hv3 tn-usp"
       style={{ "--tn-usp-motifs": `url("${motifs.src}")` } as CSSProperties}
     >
-      <HomepageV3Usp />
+      <HomepageV3Usp showLegacyArtwork={false} />
     </div>
   );
 }

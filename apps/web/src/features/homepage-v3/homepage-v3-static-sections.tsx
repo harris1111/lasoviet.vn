@@ -9,12 +9,12 @@ import { HOMEPAGE_V3_IMAGE_ROOT, LA_PACKS } from "./homepage-v3-data";
 
 type Locale = "en" | "vi";
 
-export function HomepageV3Story() {
+export function HomepageV3Story({ showLegacyArtwork = true }: { showLegacyArtwork?: boolean } = {}) {
   const t = useTranslations("homepage-v3.story");
   return (
     <div className="hv3-container hv3-art-container">
       <div className="hv3-story-panel" data-reveal>
-        <picture className="hv3-story-art" data-parallax="20">
+        {showLegacyArtwork ? <picture className="hv3-story-art" data-parallax="20">
           <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-story-dusk-mobile.webp`} />
           { }
           <img
@@ -27,7 +27,7 @@ export function HomepageV3Story() {
             loading="lazy"
             decoding="async"
           />
-        </picture>
+        </picture> : null}
         <div className="hv3-story-copy">
           <h2 className="hv3-h2">{t("title")}</h2>
           <p className="hv3-story-body">{t("body")}</p>
@@ -72,11 +72,11 @@ export function HomepageV3Ticker() {
   );
 }
 
-export function HomepageV3Usp() {
+export function HomepageV3Usp({ showLegacyArtwork = true }: { showLegacyArtwork?: boolean } = {}) {
   const t = useTranslations("homepage-v3.usp");
   const icon = (name: string, size: number) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${name}`} alt="" width={size} height={size} loading="lazy" className="hv3-usp-icon" />
+    showLegacyArtwork ? <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${name}`} alt="" width={size} height={size} loading="lazy" className="hv3-usp-icon" /> : null
   );
   return (
     <div className="hv3-container">
@@ -87,7 +87,7 @@ export function HomepageV3Usp() {
       <div className="hv3-usp-grid" role="region" aria-label={t("title")}>
         <article className="hv3-usp-card hv3-usp-art hv3-usp-dark" aria-labelledby="hv3-usp-n1-title" data-reveal style={{ "--i": 0 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {showLegacyArtwork ? <img
             src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp`}
             srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu-768.webp 768w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-tang-thu.webp 1536w`}
             sizes="(max-width: 768px) 100vw, 500px"
@@ -97,7 +97,7 @@ export function HomepageV3Usp() {
             loading="lazy"
             decoding="async"
             className="hv3-usp-photo"
-          />
+          /> : null}
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-archive-icon.svg", 54)}
@@ -107,7 +107,7 @@ export function HomepageV3Usp() {
         </article>
         <article className="hv3-usp-card hv3-usp-art hv3-usp-paper" aria-labelledby="hv3-usp-n2-title" data-reveal style={{ "--i": 1 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {showLegacyArtwork ? <img
             src={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp`}
             srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan-768.webp 768w, ${HOMEPAGE_V3_IMAGE_ROOT}/lsv-usp-ca-nhan.webp 1536w`}
             sizes="(max-width: 768px) 100vw, 500px"
@@ -117,7 +117,7 @@ export function HomepageV3Usp() {
             loading="lazy"
             decoding="async"
             className="hv3-usp-photo"
-          />
+          /> : null}
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-personal-icon.svg", 54)}
@@ -127,7 +127,7 @@ export function HomepageV3Usp() {
         </article>
         <article className="hv3-usp-card hv3-usp-art hv3-usp-ink" aria-labelledby="hv3-usp-n3-title" data-reveal style={{ "--i": 2 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/lasoviet/v11/giay-do-lien-ket-can-cu-homepage.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          {showLegacyArtwork ? <img src="/images/lasoviet/v11/giay-do-lien-ket-can-cu-homepage.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" /> : null}
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-links-icon.svg", 62)}
@@ -138,7 +138,7 @@ export function HomepageV3Usp() {
         </article>
         <article className="hv3-usp-card hv3-usp-art hv3-usp-son" aria-labelledby="hv3-usp-n4-title" data-reveal style={{ "--i": 3 } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/lasoviet/v11/lop-son-mai-luan-giai-chuyen-sau-homepage.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" />
+          {showLegacyArtwork ? <img src="/images/lasoviet/v11/lop-son-mai-luan-giai-chuyen-sau-homepage.webp" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="hv3-usp-photo" /> : null}
           <div className="hv3-usp-scrim" />
           <div className="hv3-usp-body">
             {icon("lsv-usp-depth-icon.svg", 62)}
@@ -194,13 +194,13 @@ export function HomepageV3Value({ locale, showPacks = false }: { locale: Locale;
   );
 }
 
-export function HomepageV3About({ locale }: { locale: Locale }) {
+export function HomepageV3About({ locale, showLegacyArtwork = true }: { locale: Locale; showLegacyArtwork?: boolean }) {
   const t = useTranslations("homepage-v3.about");
   return (
     <>
       <div className="hv3-container hv3-art-container">
         <div className="hv3-about-panel" data-reveal>
-          <picture className="hv3-about-art">
+          {showLegacyArtwork ? <picture className="hv3-about-art">
             <source media="(max-width: 699px)" srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-archive-light-mobile.webp`} />
             { }
             <img
@@ -213,7 +213,7 @@ export function HomepageV3About({ locale }: { locale: Locale }) {
               loading="lazy"
               decoding="async"
             />
-          </picture>
+          </picture> : null}
           <div className="hv3-about-body">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/lasoviet-logomark-co-nho-vang-son.svg" alt="" width={56} height={56} loading="lazy" className="hv3-about-seal" />

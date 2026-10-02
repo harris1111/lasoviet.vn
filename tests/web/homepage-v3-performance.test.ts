@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { SITE_THEME_BOOTSTRAP } from "../../apps/web/src/features/theme/site-theme-bootstrap";
 
 describe("Homepage V3 Performance & Responsive Assets (Task #44)", () => {
   const imagesDir = path.resolve(process.cwd(), "apps/web/public/images/lasoviet/v3");
@@ -83,8 +84,14 @@ describe("Homepage V3 Performance & Responsive Assets (Task #44)", () => {
     );
 
     expect(layoutCode).not.toContain("/images/lasoviet/v10/la-so-tu-vi-tranh-son-hero-");
-    expect(layoutCode).toContain("NOT_READY");
-    expect(layoutCode).toContain("data-light-ready");
+    const root = { dataset: {} as Record<string, string>, style: {} };
+    const doc = Object.assign(new EventTarget(), { documentElement: root, querySelector: () => null, querySelectorAll: () => [], readyState: "loading" });
+    const win = Object.assign(new EventTarget(), { document: doc, location: { pathname: "/en/dang-nhap" },
+      matchMedia: () => Object.assign(new EventTarget(), { matches: true }), localStorage: { getItem: () => "light" },
+      MutationObserver: class { observe() {} },
+    });
+    new Function("window", SITE_THEME_BOOTSTRAP)(win);
+    expect(root.dataset.theme).toBe("dark");
   });
 
   it("ensures ticker has off-screen content-visibility optimization", () => {

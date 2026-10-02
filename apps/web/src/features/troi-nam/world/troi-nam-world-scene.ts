@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { worldThemeConfig } from "./troi-nam-world-theme-config";
 
 import { clampProgress, scenePhases } from "../troi-nam-motion-math";
 import { cameraFraming } from "./troi-nam-world-chapters";
@@ -7,7 +8,7 @@ import { createPaintedWorld } from "./troi-nam-world-layers";
 import { createWorldParticles } from "./troi-nam-world-particles";
 import { createWorldRays } from "./troi-nam-world-rays";
 import { createChartProjection, createChartRing, projectChartRing } from "./troi-nam-world-ring";
-import { chartCanvasOpacity, createWorldScheduler } from "./troi-nam-world-runtime";
+import { chartCanvasOpacity, createWorldScheduler, lightWorldPixelRatio } from "./troi-nam-world-runtime";
 import { createStars } from "./troi-nam-world-stars";
 import { createWorldTextures } from "./troi-nam-world-textures";
 import { createWater } from "./troi-nam-world-water";
@@ -17,9 +18,9 @@ import type { WorldChartTarget, WorldDebug, WorldHandle, WorldOptions } from "./
 // visible for a frame before the first real paint, or briefly through gaps
 // between painted layers — it must read as the same warm lacquer-black as
 // the rest of the page, not a cool navy (found in the 2026-10-01 review).
-const SCENE_BACKGROUND = 0x080706;
 
-export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, seed, onFailure, onOpacity, signal, diagnostics = false }: WorldOptions): Promise<WorldHandle> {
+
+export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, seed, onFailure, onOpacity, signal, diagnostics = false, config = worldThemeConfig("dark", quality) }: WorldOptions): Promise<WorldHandle> {
   if (signal?.aborted) throw new Error("World initialization cancelled");
   const resources: Array<{ dispose(): void }> = [];
   const textures = createWorldTextures();
@@ -66,22 +67,33 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
     glRenderer.outputColorSpace = THREE.SRGBColorSpace;
     glRenderer.toneMapping = THREE.NoToneMapping;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(SCENE_BACKGROUND);
+    scene.background = new THREE.Color(config.clearColor);
     const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-    const painted = createPaintedWorld(scene, { quality, textures }); resources.push(painted);
-    const light = createDawnLight(scene, textures); resources.push(light);
-    const water = createWater(scene, { quality, renderer: glRenderer, textures }); resources.push(water);
-    const stars = createStars(scene, { quality, seed, textures }); resources.push(stars);
-    const ring = createChartRing(scene, textures); resources.push(ring);
-    const particles = createWorldParticles(scene, textures, seed, quality); resources.push(particles);
+    const painted = createPaintedWorld(scene, { quality, textures, config }); resources.push(painted);
+    const light = createDawnLight(scene, textures, config); resources.push(light);
+    const water = createWater(scene, { quality, renderer: glRenderer, textures, config }); resources.push(water);
+    const stars = createStars(scene, { quality, seed, textures, config }); resources.push(stars);
+    const ring = createChartRing(scene, textures, config); resources.push(ring);
+    const particles = createWorldParticles(scene, textures, seed, quality, config); resources.push(particles);
     // Water has no alpha cutout (map: null) but must still read as "not open
     // sky" in the ray mask — see troi-nam-world-layers.ts's RayOccluder doc
     // comment for why leaving it out washed the whole lake in flat light.
     const rayOccluders = [...painted.occluders, { mesh: water.mesh, map: null }];
-    const rays = quality === "high" ? createWorldRays(rayOccluders) : null;
+    const rays = quality === "high" && config.rays ? createWorldRays(rayOccluders) : null;
     if (rays) resources.push(rays);
 
     const projection = createChartProjection();
+    let geometryBytes = 0;
+    const measuredGeometry = new Set<THREE.BufferGeometry>();
+    scene.traverse(object => {
+      const mesh = object as THREE.Mesh;
+      if (mesh.geometry && !measuredGeometry.has(mesh.geometry)) {
+        measuredGeometry.add(mesh.geometry);
+        for (const attribute of Object.values(mesh.geometry.attributes)) geometryBytes += attribute.array.byteLength;
+        geometryBytes += mesh.geometry.index?.array.byteLength ?? 0;
+      }
+      if ((object as THREE.InstancedMesh).isInstancedMesh) geometryBytes += (object as THREE.InstancedMesh).instanceMatrix.array.byteLength;
+    });
     const bufferSize = new THREE.Vector2();
     let progress = 0;
     let aspect = 1;
@@ -100,7 +112,10 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
       if (disposed || width <= 0 || height <= 0) return;
       canvasWidth = width; canvasHeight = height; aspect = width / height;
       requestedRatio = ratio;
-      glRenderer.setPixelRatio(scheduler.tier === "high" ? Math.min(ratio, 1.5) : 1);
+      const pixelRatio = config.theme === "light"
+        ? lightWorldPixelRatio(width, height, Math.min(ratio, scheduler.tier === "low" ? 1 : 1.5), quality, textures.decodedBytes, geometryBytes)
+        : scheduler.tier === "high" ? Math.min(ratio, 1.5) : 1;
+      glRenderer.setPixelRatio(pixelRatio);
       glRenderer.setSize(width, height, false);
       stars.setPixelRatio(glRenderer.getPixelRatio());
       rays?.resize(glRenderer);
@@ -136,7 +151,7 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
     function renderFrame(now: number, measure = true) {
       const started = performance.now();
       applyPose();
-      raysEnabled = scheduler.tier === "high" && debug.rays !== false && progress < 0.6;
+      raysEnabled = config.rays && scheduler.tier === "high" && debug.rays !== false && progress < 0.6;
       if (rays && scheduler.tier === "high") rays.render(glRenderer, scene, camera, painted.sun, progress, debug.mask === true, raysEnabled);
       else { glRenderer.setRenderTarget(null); glRenderer.render(scene, camera); }
       frameCpuMs = performance.now() - started;
@@ -183,7 +198,7 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
       handle.setDebug = (next) => { debug = { ...debug, ...next }; dirty = true; };
       handle.getDiagnostics = () => {
         glRenderer.getDrawingBufferSize(bufferSize);
-        return { tier: scheduler.tier, progress, chartWeight: scenePhases(progress).chart, opacity, targetUploads: stars.targetUploads, drawingBuffer: { width: bufferSize.x, height: bufferSize.y }, rayBuffer: rays?.dimensions ?? null, raysEnabled, frameCpuMs, rayPipelineCpuMs: raysEnabled || debug.mask ? rays?.cpuMs ?? 0 : 0, chartRect, ringCorners: Array.from(projection.corners), ringTargets: Array.from(projection.targets) };
+        return { tier: scheduler.tier, textureBytes: textures.decodedBytes, sceneBytes: textures.decodedBytes + geometryBytes + bufferSize.x * bufferSize.y * 8 + (rays ? rays.dimensions.width * rays.dimensions.height * 16 : 0), textures: glRenderer.info?.memory.textures, geometries: glRenderer.info?.memory.geometries, progress, chartWeight: scenePhases(progress).chart, opacity, targetUploads: stars.targetUploads, drawingBuffer: { width: bufferSize.x, height: bufferSize.y }, rayBuffer: rays?.dimensions ?? null, raysEnabled, frameCpuMs, rayPipelineCpuMs: raysEnabled || debug.mask ? rays?.cpuMs ?? 0 : 0, chartRect, ringCorners: Array.from(projection.corners), ringTargets: Array.from(projection.targets) };
       };
     }
 
@@ -191,6 +206,8 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
     await Promise.race([textures.ready(), new Promise<never>((_resolve, reject) => { abortPending = () => reject(new Error("World initialization cancelled")); })]);
     abortPending = undefined;
     if (disposed || signal?.aborted) throw new Error("World initialization cancelled");
+    textures.validateDimensions(glRenderer.capabilities.maxTextureSize ?? Infinity);
+    if (config.theme === "light" && textures.decodedBytes > (quality === "low" ? 24 : 48) * 1024 * 1024) throw new Error("Light world texture budget exceeded");
     resize(Math.max(1, canvas.clientWidth || 1), Math.max(1, canvas.clientHeight || 1), 1);
     renderFrame(performance.now(), false);
     rafId = requestAnimationFrame(loop);

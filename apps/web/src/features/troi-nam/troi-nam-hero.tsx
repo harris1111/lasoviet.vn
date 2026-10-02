@@ -9,16 +9,15 @@ import {
 } from "../homepage-v3/homepage-v3-birth-form";
 import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
 import { localizedPath } from "../homepage/homepage-utilities";
-import { troiNamAsset } from "./troi-nam-assets";
+import { TroiNamThemePicture } from "./troi-nam-theme-art";
 import { TroiNamLogoIntro } from "./troi-nam-logo-intro";
 import { clampProgress, scenePhases } from "./troi-nam-motion-math";
 import { createTroiNamProgress } from "./troi-nam-scroll-progress";
 
-const MOBILE = "(max-width: 879px)";
-
 export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   const t = useTranslations("troi-nam");
   const state = useHomepageV3BirthForm(locale);
+  const sectionRef = useRef<HTMLElement>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [focusRequest, setFocusRequest] = useState(0);
 
@@ -46,12 +45,6 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   useEffect(() => {
     if (formOpen && focusRequest > 0) document.getElementById("hv3-day")?.focus({ preventScroll: true });
   }, [formOpen, focusRequest]);
-  const desktop = troiNamAsset("L01");
-  const mobile = troiNamAsset("L02");
-  const dusk = troiNamAsset("L03");
-  const night = troiNamAsset("L04");
-  const nightMobile = troiNamAsset("L05");
-  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -98,54 +91,16 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
   return (
     <section className="tn-hero" data-troi-nam-block="hero" id="lap-la-so" ref={sectionRef}>
       <div className="tn-hero-media">
-        <picture>
-          <source media={MOBILE} srcSet={mobile.srcSet} sizes="100vw" />
-          <img
-            className="tn-hero-plate"
-            src={desktop.src}
-            srcSet={desktop.srcSet}
-            sizes="100vw"
-            width={desktop.width}
-            height={desktop.height}
-            alt={t("hero.plateAlt")}
-            fetchPriority="high"
-            decoding="async"
-          />
-        </picture>
+        <TroiNamThemePicture desktop="L01" mobile="L02" imageClassName="tn-hero-plate" alt={t("hero.plateAlt")} priority />
         {/* Desktop-only art direction for now — L03 has no phone crop yet, so the
-            dusk crossfade is scoped to the >=880px layout (see CSS). */}
-        <img
-          className="tn-hero-plate tn-hero-plate-dusk"
-          loading="lazy"
-          fetchPriority="low"
-          src={dusk.src}
-          srcSet={dusk.srcSet}
-          sizes="100vw"
-          width={dusk.width}
-          height={dusk.height}
-          alt=""
-          aria-hidden="true"
-          decoding="async"
-        />
+            dusk crossfade is scoped to the >=880px layout (see CSS). Dark-only:
+            no light-theme dusk plate exists yet (docs/qa/2026-10-02-light-theme-release.md). */}
+        <TroiNamThemePicture desktop="L03" imageClassName="tn-hero-plate tn-hero-plate-dusk" darkOnly />
         {/* L04/L05 (Hạ Long, Milky Way): unlike L03 above, L05 has a phone crop,
             so the night plate crossfades on mobile too — see CSS for the <880px
-            source swap. `loading="lazy"` since it's the last plate reached and
-            fetchPriority stays reserved for the dawn plate (LCP). */}
-        <picture className="tn-hero-plate-night">
-          <source media={MOBILE} srcSet={nightMobile.srcSet} sizes="100vw" />
-          <img
-            className="tn-hero-plate"
-            src={night.src}
-            srcSet={night.srcSet}
-            sizes="100vw"
-            width={night.width}
-            height={night.height}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+            source swap. `lazy` since it's the last plate reached. Dark-only for
+            the same reason as L03. */}
+        <TroiNamThemePicture desktop="L04" mobile="L05" className="tn-hero-plate-night" imageClassName="tn-hero-plate" darkOnly lazy />
       </div>
       <div className="tn-hero-scrim" aria-hidden="true" />
       <div className="tn-hero-scrim-night" aria-hidden="true" />

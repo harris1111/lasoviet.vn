@@ -8,7 +8,7 @@ import { HomepageV3Story } from "../homepage-v3/homepage-v3-static-sections";
 export function TroiNamStory() {
   return (
     <div className="hv3 tn-story">
-      <HomepageV3Story />
+      <HomepageV3Story showLegacyArtwork={false} />
     </div>
   );
 }

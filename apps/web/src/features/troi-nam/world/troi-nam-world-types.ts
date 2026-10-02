@@ -1,8 +1,13 @@
+import type { WorldThemeConfig } from "./troi-nam-world-theme-config";
 export type WorldQuality = "low" | "high";
 export type WorldChartTarget = { x: number; y: number; width: number; height: number };
 export type WorldDebug = { rays?: boolean; mask?: boolean };
 export type WorldDiagnostics = {
   tier: WorldQuality | "static";
+  textureBytes?: number;
+  sceneBytes?: number;
+  textures?: number;
+  geometries?: number;
   progress: number;
   chartWeight: number;
   opacity: number;
@@ -26,6 +31,7 @@ export type WorldHandle = {
   getDiagnostics?(): WorldDiagnostics;
 };
 export type WorldOptions = {
+  config?: WorldThemeConfig;
   quality: WorldQuality;
   seed: number;
   onFailure: () => void;
