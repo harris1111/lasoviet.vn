@@ -154,8 +154,7 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
     function loop(now: number) {
       rafId = null;
       if (disposed || !active) return;
-      if (!dirty) lastFrame = null;
-      if (dirty && scheduler.shouldRender(now)) {
+      if (scheduler.shouldRender(now)) {
         try { renderFrame(now); } catch { fail(); return; }
       }
       if (!disposed && active) rafId = requestAnimationFrame(loop);
@@ -174,13 +173,13 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
       },
       setActive(next) {
         if (disposed || active === next) return;
-        active = next; lastFrame = null; stopLoop();
+        active = next; stopLoop();
         if (active) rafId = requestAnimationFrame(loop);
       },
       dispose,
     };
     if (diagnostics) {
-      handle.setDebug = (next) => { debug = { ...debug, ...next }; dirty = true; };
+      handle.setDebug = (next) => { debug = { ...debug, ...next }; };
       handle.getDiagnostics = () => {
         glRenderer.getDrawingBufferSize(bufferSize);
         return { tier: scheduler.tier, progress, chartWeight: scenePhases(progress).chart, opacity, targetUploads: stars.targetUploads, drawingBuffer: { width: bufferSize.x, height: bufferSize.y }, rayBuffer: rays?.dimensions ?? null, raysEnabled, frameCpuMs, rayPipelineCpuMs: raysEnabled || debug.mask ? rays?.cpuMs ?? 0 : 0, chartRect, ringCorners: Array.from(projection.corners), ringTargets: Array.from(projection.targets) };

@@ -1,3 +1,5 @@
+"use client";
+
 import { CANONICAL_BRANCH_IDS } from "../birth-profile/homepage-birth-prefill";
 import { palaceOnBranch, type PalaceId } from "../homepage-v3/homepage-v3-data";
 import { HomepageV3Explore } from "../homepage-v3/homepage-v3-explore";
