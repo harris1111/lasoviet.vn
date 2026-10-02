@@ -318,14 +318,16 @@ describe("Production projection boundary & locked narrative sentinel non-leakage
     expect(clientProps.model).not.toHaveProperty("paidPreview");
   });
 
-  it("proves page composition fails closed with notFound when preview is malformed", async () => {
-    currentMockPreviewResult = { ok: true, value: { version: 1, malformed: true } };
-
-    await expect(
-      ZiweiChartResultPage({
-        params: Promise.resolve({ chartId: "c1", locale: "vi" }),
-        searchParams: Promise.resolve({}),
-      }),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
+  it("rejects malformed preview prose while retaining the authorized structural chart", async () => {
+    currentMockPreviewResult = { ok: true, value: { version: 1, malformed: true, description: EXACT_SENTINEL } };
+    const pageElement = await ZiweiChartResultPage({
+      params: Promise.resolve({ chartId: "c1", locale: "vi" }),
+      searchParams: Promise.resolve({}),
+    });
+    const result = findElementInTree(pageElement, ZiweiFreeResult);
+    expect(result).not.toBeNull();
+    expect(result.props.model.insights).toHaveLength(1);
+    expect(JSON.stringify(result.props)).not.toContain(EXACT_SENTINEL);
+    expect(result.props).not.toHaveProperty("preview");
   });
 });

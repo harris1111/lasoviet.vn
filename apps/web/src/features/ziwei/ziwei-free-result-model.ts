@@ -2,6 +2,7 @@ import type {
   FreeIdentityPreviewV1, NormalizedZiweiChartV1, TopConcernV1, ZiweiHoroscopeResultV1,
 } from "@lasoviet/contracts";
 import { computeNormalizedPalaceScores, type PalaceScoreBandKey } from "../reports/report-palace-score";
+import { buildFreeResultTopics, type FreeResultTopic } from "./free-result-topic-catalog";
 import { buildFreeInsights } from "./ziwei-free-insights";
 import { ziweiPresentation, type ZiweiPresentationLocale } from "./ziwei-presentation";
 
@@ -11,10 +12,13 @@ export type FreeResultPalace = {
   score: number;
   band: PalaceScoreBandKey;
   facts: string;
+  sourceKind: "structural";
+  state: "locked";
 };
 export type FreeResultModel = {
   insights: { id: string; title: string; description: string; evidenceId?: string }[];
   palaces: FreeResultPalace[];
+  topics: FreeResultTopic[];
   selectedPalaceId: string;
   annual: { year: number; caution: number; favorable: number; neutral: number } | null;
   isGuest: boolean;
@@ -33,7 +37,7 @@ const concernPalaces: Record<TopConcernV1, string> = {
  */
 export function buildFreeResultModel(input: {
   chart: NormalizedZiweiChartV1;
-  preview: FreeIdentityPreviewV1;
+  preview: Pick<FreeIdentityPreviewV1, "topConcern">;
   horoscope?: ZiweiHoroscopeResultV1;
   isGuest: boolean;
   locale: ZiweiPresentationLocale;
@@ -49,6 +53,7 @@ export function buildFreeResultModel(input: {
     return {
       id: palace.id, name: presentation.palace(palace.id),
       score: score.score, band: score.band,
+      sourceKind: "structural", state: "locked",
       facts: starNames
         ? `${presentation.branch(palace.earthlyBranchId)} · ${starNames}`
         : `${presentation.branch(palace.earthlyBranchId)} · ${locale === "vi" ? "Không có chính tinh tại cung" : "No main stars in this palace"}`,
@@ -58,40 +63,25 @@ export function buildFreeResultModel(input: {
   const concernId = preview.topConcern ? concernPalaces[preview.topConcern] : undefined;
   const requested = concernId === "ziwei.palace.body" ? chart.bodyPalaceId : concernId;
   const selectedPalaceId = palaces.find((palace) => palace.id === requested)?.id ?? strongest.id;
-  const allowedIds = isGuest ? ["life-palace"] : ["life-palace", "top-concern", "body-palace"];
-  // The current API preview has no locale marker and is authored in Vietnamese.
-  // Do not pass it as English prose; use the localized structural fallback.
-  const details = (locale === "vi" ? preview.insightDetails ?? [] : []).filter(
-    (item) => allowedIds.includes(item.id) && !item.isLocked && item.description,
-  );
+  // The API preview has no validated chart/locale/artifact lineage. Its prose
+  // must not outrank source-grounded structural insights on this surface.
   const fallback = buildFreeInsights(chart, locale, input.displayName).items;
-  const first = details.find((item) => item.id === "life-palace") ?? fallback[0]!;
-  let second: { id: string; title: string; description?: string; evidenceId?: string };
-  const authorizedSecond = details.find((item) => item.id === "top-concern")
-    ?? details.find((item) => item.id === "body-palace");
-  if (authorizedSecond) {
-    second = authorizedSecond;
-  } else if (preview.topConcern) {
-    const matchedPalace = palaces.find((palace) => palace.id === requested);
-    if (matchedPalace) {
-      second = {
-        id: "top-concern",
-        title: matchedPalace.name,
-        description: matchedPalace.facts,
-      };
-    } else {
-      second = fallback[1]!;
-    }
-  } else {
-    second = fallback[1]!;
-  }
+  const first = fallback[0]!;
+  const matchedPalace = preview.topConcern
+    ? palaces.find((palace) => palace.id === requested)
+    : undefined;
+  const second = matchedPalace ? {
+    id: "top-concern", title: matchedPalace.name, description: matchedPalace.facts,
+    // Identity evidence covers Life/Body/transformations, not an arbitrary
+    // concern palace. Omit the link rather than relabel it as Body evidence.
+  } : fallback[1]!;
   const insights = (isGuest ? [first] : [first, second]).map((item) => ({
-    ...(item.evidenceId ? { evidenceId: item.evidenceId } : {}),
+    ...("evidenceId" in item && typeof item.evidenceId === "string" ? { evidenceId: item.evidenceId } : {}),
     id: item.id, title: item.title, description: item.description ?? "",
   }));
   const yearly = input.horoscope?.yearly;
   return {
-    insights, palaces, selectedPalaceId, isGuest,
+    insights, palaces, topics: buildFreeResultTopics(locale, preview.topConcern), selectedPalaceId, isGuest,
     annual: yearly ? {
       year: yearly.targetYear, caution: yearly.hanMonthCount,
       favorable: yearly.favorableMonthCount, neutral: yearly.neutralMonthCount,

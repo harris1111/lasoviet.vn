@@ -44,6 +44,17 @@ describe("computePalaceScores", () => {
     expect(scores.get("ziwei.palace.life")!.score).toBe(76);
   });
 
+  it("applies an auxiliary star's Hoa Ky once without borrowing its transformation", () => {
+    const plain = snapshotWith({ 0: [aux("ziwei.star.wenqu")] });
+    const transformed = snapshotWith({ 0: [{ ...aux("ziwei.star.wenqu"), transformationId: "ziwei.transformation.obstacle" } as Star] });
+    expect(computePalaceScores(plain).get("ziwei.palace.life")!.score).toBe(54);
+    const scores = computePalaceScores(transformed);
+    expect(scores.get("ziwei.palace.life")!.score).toBe(44);
+    expect(scores.get("ziwei.palace.life")!.parts.own).toBe(-6);
+    expect(scores.get("ziwei.palace.travel")!.parts.own).toBe(0);
+    expect(scores.get("ziwei.palace.travel")!.parts.chieu).toBe(-2);
+  });
+
   it("subtracts for an unfavourable main star and a blocking aux star", () => {
     const scores = computePalaceScores(
       snapshotWith({ 0: [main("ziwei.star.tanlang", "ziwei.brightness.unfavorable"), aux("ziwei.star.qingyang")] }),

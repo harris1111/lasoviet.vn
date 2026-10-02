@@ -134,6 +134,7 @@ import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
 import { freeIdentityPreviewLoader } from "../../../../features/reports/load-free-identity-preview";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import ZiweiChartResultPage from "./page";
+import { PrivateApiClientError } from "../../../../api/private-api-client";
 
 describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
   const chartId = "chart-test-123";
@@ -286,9 +287,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Bạn đã đọc xong phần miễn phí");
+    expect(html).toContain("Bạn đã xem phần miễn phí");
+    expect(html).not.toContain("Bạn đã đọc xong phần miễn phí");
     expect(html).toContain("Xem các gói luận giải");
-    expect(html).toContain("chưa phải bản luận giải đầy đủ");
+    expect(html).toContain("Bạn đang xem các sao và điểm cấu trúc của lá số");
     expect(html).toContain("/la-so/chart-test-123/chon-luan-giai");
     expect(html).not.toContain("result-paid-report-cta");
     expect(html).not.toContain("79.000 ₫");
@@ -335,10 +337,29 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
-    expect(html).toContain("VISIBLE_FIRST");
+    expect(html).not.toContain("VISIBLE_FIRST");
+    expect(html).toContain("data-free-result-block=\"insights\"");
     expect(html).not.toContain("SECOND_SECRET");
     expect(html).toContain("Lưu lá số miễn phí");
     expect(html).toMatch(/data-testid="fd109-sticky" hidden=""/);
+  });
+
+  it("preserves the authorized chart when optional evidence is insufficient", async () => {
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockResolvedValue({ ok: false, error: { code: "INSUFFICIENT_EVIDENCE" } } as never);
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    const html = renderToStaticMarkup(page);
+    expect(html).toContain('data-testid="fd109-free-result"');
+    expect(html).toContain("Bạn đã xem phần miễn phí");
+  });
+
+  it("uses structural fallback for malformed optional preview responses", async () => {
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockRejectedValue(new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID"));
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    expect(renderToStaticMarkup(page)).toContain('data-testid="fd109-free-result"');
+  });
+  it("does not suppress preview transport/authorization failures", async () => {
+    vi.mocked(freeIdentityPreviewLoader.loadPreview).mockRejectedValue(new PrivateApiClientError("PRIVATE_API_UNREACHABLE"));
+    await expect(ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) })).rejects.toThrow("PRIVATE_API_UNREACHABLE");
   });
 
   it("triggers notFound when preview loader fails", async () => {

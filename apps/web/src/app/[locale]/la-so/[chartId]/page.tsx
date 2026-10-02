@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 
+import { PrivateApiClientError } from "../../../../api/private-api-client";
 import { resolveCurrentActor } from "../../../../auth/resolve-current-actor";
 import { SiteHeader } from "../../../../components/site-header";
 import { AnonymousDataDeletionControl } from "../../../../features/privacy/anonymous-data-deletion-control";
@@ -13,7 +14,7 @@ import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-ch
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import { ZiweiFreeResult } from "../../../../features/ziwei/ziwei-free-result";
 import { buildFreeResultModel } from "../../../../features/ziwei/ziwei-free-result-model";
-import { projectFreeIdentityPreview } from "../../../../features/ziwei/ziwei-free-preview-projection";
+import { resolveFreeResultSource } from "../../../../features/ziwei/free-result-source-resolver";
 import { Guest24hDeletionBanner } from "../../../../features/ziwei/guest-24h-deletion-banner";
 import {
   parseResultTabState,
@@ -49,16 +50,21 @@ export default async function ZiweiChartResultPage({
   // 1. Authorize actor and load chart/preview FIRST to preserve private route 404/auth boundary
   const [chartResult, previewResult, horoscopeResult, actor, t] = await Promise.all([
     loadZiweiChart.loadChart(chartId),
-    freeIdentityPreviewLoader.loadPreview(chartId),
+    freeIdentityPreviewLoader.loadPreview(chartId).catch((error: unknown) => {
+      if (error instanceof PrivateApiClientError && error.code === "PRIVATE_API_RESPONSE_INVALID") {
+        return { ok: false as const, error: { code: "INSUFFICIENT_EVIDENCE" as const } };
+      }
+      throw error;
+    }),
     loadZiweiChart.loadHoroscope(chartId).catch(() => ({ ok: false as const })),
     resolveCurrentActor(),
     getTranslations("ziwei"),
   ]);
-  if (!chartResult.ok || !previewResult.ok) notFound();
+  if (!chartResult.ok || (!previewResult.ok && previewResult.error.code !== "INSUFFICIENT_EVIDENCE")) notFound();
 
   // 2. Canonicalize query params ONLY AFTER authorized chart loaders pass
   const { topupOrder, ...tabSearchParams } = rawSearchParams ?? {};
-  const tabState = parseResultTabState(tabSearchParams);
+  const tabState = parseResultTabState(tabSearchParams, "free-result");
   const currentChartPath = localizedChartPath(locale, chartId);
   const completion = await loadTopUpCompletion(actor, topupOrder, currentChartPath);
   const canonicalTabUrl = buildCanonicalTabUrl(currentChartPath, tabState);
@@ -69,9 +75,11 @@ export default async function ZiweiChartResultPage({
     redirect(canonicalChartUrl);
   }
 
-  // 3. Project preview data through strict production boundary to prevent arbitrary/locked narrative in RSC props
-  const safePreview = projectFreeIdentityPreview(previewResult.value);
-  if (!safePreview) notFound();
+  // 3. Resolve only structural metadata for this authorized chart/version.
+  const safePreview = resolveFreeResultSource({
+    chartId, chartVersionId: chartResult.value.chartVersionId,
+    preview: previewResult.ok ? previewResult.value : null,
+  });
 
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
   const isGuest = actor.kind !== "account" || actor.emailVerified !== true;
@@ -93,6 +101,7 @@ export default async function ZiweiChartResultPage({
   return (
     <>
       <SiteHeader
+        variant="result"
         currentPath={currentChartPath}
         locale={locale}
         signInReturnPath={canonicalChartUrl}
@@ -108,6 +117,7 @@ export default async function ZiweiChartResultPage({
         <ZiweiFreeResult
           basePath={currentChartPath}
           chart={chartResult.value.chart}
+          birthSummary={chartResult.value.birthSummary}
           chartId={chartId}
           initialState={tabState}
           locale={locale}

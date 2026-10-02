@@ -35,17 +35,20 @@ describe("FD109 server-side free-result projection", () => {
   it("serializes one guest insight and aggregate year counts only", () => {
     const model = buildFreeResultModel(input);
     expect(model.insights).toHaveLength(1);
-    expect(model.insights[0]?.description).toBe("VISIBLE");
+    expect(model.insights[0]?.description).toContain("Tử Vi");
+    expect(model.insights[0]?.description).not.toBe("VISIBLE");
     expect(model.annual).toEqual({ year: 2026, caution: 2, favorable: 3, neutral: 7 });
     const serialized = JSON.stringify(model);
     for (const secret of ["SECOND_", "LOCKED_", "PAID_", "MONTH_", "YEAR_", "DAILY_"]) {
       expect(serialized).not.toContain(secret);
     }
   });
-  it("includes the authorized second insight for verified actors, not locked prose", () => {
+  it("includes the actual structural Body insight for verified actors, not ungrounded API prose", () => {
     const model = buildFreeResultModel({ ...input, isGuest: false });
     expect(model.insights).toHaveLength(2);
-    expect(model.insights[1]?.description).toBe("SECOND_PROSE_SECRET");
+    expect(model.insights[1]?.id).toBe("body-palace");
+    expect(model.insights[1]?.description).toContain("Quan Lộc");
+    expect(JSON.stringify(model)).not.toContain("SECOND_PROSE_SECRET");
     expect(JSON.stringify(model)).not.toContain("LOCKED_");
     expect(JSON.stringify(model)).not.toContain("MONTH_");
   });
@@ -146,7 +149,7 @@ describe("FD109 server-side free-result projection", () => {
       expect(model.insights[0]?.id).toBe("life-palace");
     });
 
-    it("preserves authorized Vietnamese concern prose and its evidenceId when usable", () => {
+    it("uses chart facts instead of unverified Vietnamese concern prose and unknown evidence", () => {
       const model = buildFreeResultModel({
         ...input,
         isGuest: false,
@@ -161,9 +164,9 @@ describe("FD109 server-side free-result projection", () => {
       });
       expect(model.insights).toHaveLength(2);
       expect(model.insights[1]?.id).toBe("top-concern");
-      expect(model.insights[1]?.title).toBe("Quan tâm");
-      expect(model.insights[1]?.description).toBe("Luận giải sự nghiệp");
-      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.career-preview");
+      expect(model.insights[1]?.title).toBe("Cung Quan Lộc");
+      expect(model.insights[1]?.description).toContain("Tử Vi");
+      expect(model.insights[1]?.evidenceId).toBeUndefined();
     });
 
     it("prevents locked or private prose leak and uses structural fallback instead", () => {

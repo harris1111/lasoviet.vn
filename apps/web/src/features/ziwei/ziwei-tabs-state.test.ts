@@ -98,3 +98,14 @@ describe("Ziwei result tabs state parsing & canonical URL building", () => {
     expect(hasNonCanonicalQueryParams({ open: "career" }, { tab: "chart" })).toBe(true);
   });
 });
+
+
+describe("private free-result topic context", () => {
+  it("accepts supported deep dives only in opt-in context", () => {
+    expect(parseResultTabState({ tab: "topics", open: "career_wealth" })).toEqual({ tab: "topics", open: undefined });
+    expect(parseResultTabState({ tab: "topics", open: "career_wealth" }, "free-result")).toEqual({ tab: "topics", open: "career_wealth" });
+    expect(parseResultTabState({ tab: "topics", open: "parents" }, "free-result")).toEqual({ tab: "topics", open: "parents" });
+    expect(parseResultTabState({ tab: "topics", open: ["career_wealth", "parents"] }, "free-result").open).toBeUndefined();
+    expect(parseResultTabState({ tab: "topics", open: "not_a_product" }, "free-result").open).toBeUndefined();
+  });
+});

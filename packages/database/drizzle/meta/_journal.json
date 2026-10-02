@@ -386,6 +386,13 @@
       "when": 1790814000000,
       "tag": "0054_combo_entitlement_authority",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1790935366557,
+      "tag": "0055_free_ai",
+      "breakpoints": true
     }
   ]
 }
