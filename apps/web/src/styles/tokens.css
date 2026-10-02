@@ -165,9 +165,9 @@ html[data-theme="dark"] {
 /* ==========================================================================
    3. SEMANTIC LAYER — LIGHT (PAPER — FD-088 / docs/24)
    ========================================================================== */
-:root[data-theme="paper"],
-:root[data-theme="light"],
-html[data-theme="light"] {
+:root[data-theme="paper"]:has([data-light-ready]),
+:root[data-theme="light"]:has([data-light-ready]),
+html[data-theme="light"]:has([data-light-ready]) {
   --surface-deep:    var(--paper-200);
   --surface-canvas:  var(--paper-100);
   --surface-panel:   var(--paper-50);
