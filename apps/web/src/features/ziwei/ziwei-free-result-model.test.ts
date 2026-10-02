@@ -168,7 +168,11 @@ describe("FD109 server-side free-result projection", () => {
       expect(model.insights[1]?.id).toBe("top-concern");
       expect(model.insights[1]?.title).toBe("Quan tâm");
       expect(model.insights[1]?.description).toBe("Luận giải sự nghiệp");
-      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.career-preview");
+      // A03 / ui-contract.md "Accept exact recognized engine IDs only... Do not
+      // invent career-preview": the prose is kept, but an evidenceId outside
+      // {life-palace, body-palace, transformations} is not a real engine fact
+      // and must not become a link.
+      expect(model.insights[1]?.evidenceId).toBeUndefined();
     });
 
     it("prevents locked or private prose leak and uses structural fallback instead", () => {
@@ -236,12 +240,117 @@ describe("FD109 server-side free-result projection", () => {
       expect(model.insights[0]?.description).toContain("Ước tính tạm tính do chưa rõ giờ sinh");
     });
 
-    it("still returns exactly one insight for a guest, with its real evidence id", () => {
-      const model = buildFreeResultModel(input);
-      expect(model.insights).toHaveLength(1);
-      expect(model.insights[0]?.id).toBe("life-palace");
-      expect(model.insights[0]?.evidenceId).toBe("ziwei.identity.life-palace");
-      expect(JSON.stringify(model)).not.toContain("costVnd");
+  });
+
+  describe("A03: verified concern and evidence boundary (audit finding 7)", () => {
+    // Reproduces packages/backend/src/reports/free-identity-preview.ts as
+    // measured 2026-10-02: for ANY verified concern, insight2's title and
+    // description are built from the concern palace (concernInfo), but id
+    // and evidenceId are hard-coded to "body-palace" /
+    // "ziwei.identity.body-palace" regardless of which palace the prose is
+    // actually about.
+    const mislabeledConcernInsight = (title: string, description: string) => ({
+      id: "body-palace", numeral: "02", title, tagline: "whatever",
+      description, evidenceId: "ziwei.identity.body-palace", isLocked: false,
     });
+
+    it("relabels a concern insight mislabeled as body-palace and drops the mismatched evidence", () => {
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            mislabeledConcernInsight("Cung Tài Bạch", "WEALTH_PALACE_PROSE"),
+          ],
+          topConcern: "money", // -> ziwei.palace.wealth, not chart.bodyPalaceId ("career")
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      expect(model.insights).toHaveLength(2);
+      // The real prose is kept — only the false id/evidence pairing is fixed.
+      expect(model.insights[1]?.title).toBe("Cung Tài Bạch");
+      expect(model.insights[1]?.description).toBe("WEALTH_PALACE_PROSE");
+      expect(model.insights[1]?.id).toBe("top-concern");
+      expect(model.insights[1]?.evidenceId).toBeUndefined();
+    });
+
+    it.each(["love", "family", "wellbeing"] as const)(
+      "also corrects the %s concern, never pointing readers at Cung Thân's evidence",
+    (topConcern) => {
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            mislabeledConcernInsight("Concern title", "Concern prose"),
+          ],
+          topConcern,
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      expect(model.insights[1]?.id).toBe("top-concern");
+      expect(model.insights[1]?.evidenceId).toBeUndefined();
+    });
+
+    it("keeps id and evidence as body-palace when the concern genuinely is the actual Body palace", () => {
+      // chart.bodyPalaceId is "ziwei.palace.career" in this fixture, so the
+      // career concern IS the real Body palace: the API's labelling is
+      // correct here and must not be rewritten.
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            mislabeledConcernInsight("Cung Quan Lộc", "CAREER_IS_BODY_PROSE"),
+          ],
+          topConcern: "career",
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      expect(model.insights[1]?.id).toBe("body-palace");
+      expect(model.insights[1]?.description).toBe("CAREER_IS_BODY_PROSE");
+      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.body-palace");
+    });
+
+    it("keeps id and evidence as body-palace when no concern was chosen", () => {
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            mislabeledConcernInsight("Cung Quan Lộc", "NO_CONCERN_BODY_PROSE"),
+          ],
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      expect(model.insights[1]?.id).toBe("body-palace");
+      expect(model.insights[1]?.evidenceId).toBe("ziwei.identity.body-palace");
+    });
+
+    it("does not break the private page when evidence ends up absent (renders structural facts only)", () => {
+      const model = buildFreeResultModel({
+        ...input,
+        isGuest: false,
+        preview: {
+          insightDetails: [
+            { id: "life-palace", title: "Mệnh", description: "Mệnh info", evidenceId: "ziwei.identity.life-palace", isLocked: false },
+            mislabeledConcernInsight("Cung Tài Bạch", "WEALTH_PALACE_PROSE"),
+          ],
+          topConcern: "money",
+        } as unknown as FreeIdentityPreviewV1,
+      });
+      // No throw, both insights still render, and the second never falls
+      // through to an undefined/empty title.
+      expect(model.insights).toHaveLength(2);
+      expect(model.insights[1]?.title).toBeTruthy();
+    });
+  });
+
+  it("still returns exactly one insight for a guest, with its real evidence id", () => {
+    const model = buildFreeResultModel(input);
+    expect(model.insights).toHaveLength(1);
+    expect(model.insights[0]?.id).toBe("life-palace");
+    expect(model.insights[0]?.evidenceId).toBe("ziwei.identity.life-palace");
+    expect(JSON.stringify(model)).not.toContain("costVnd");
   });
 });
