@@ -16,7 +16,7 @@ export function TroiNamAbout({ locale }: { locale: "en" | "vi" }) {
   return (
     <div className="hv3 tn-about">
       {/* Asset-only rules preserve the original copy, links and wizard CTA. */}
-      <TroiNamThemeStyle dark={`
+      <TroiNamThemeStyle lazy dark={`
           .tn .tn-about .hv3-about-panel::before {
             background-image: url("${lacquer.src}");
           }
@@ -36,8 +36,8 @@ export function TroiNamAbout({ locale }: { locale: "en" | "vi" }) {
           }
         `} light={`
           .tn .tn-about .hv3-about-panel::before { background-image: url("${lacquer.src}"); }
-          .tn .tn-about .hv3-final-cta-bg { background-image: url("${troiNamAsset("L07", "light").src}"); }
-          @media (min-width: 880px) { .tn .tn-about .hv3-final-cta-bg { background-image: url("${troiNamAsset("L06", "light").src}"); } }
+          html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg { background-image: url("${troiNamAsset("L07", "light").src}"); }
+          @media (min-width: 880px) { html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg { background-image: url("${troiNamAsset("L06", "light").src}"); } }
           .tn .tn-about .hv3-final-cta::before { background-image: url("${lanternGold.src}"); }
           .tn .tn-about .hv3-final-cta::after { background-image: url("${lanternPink.src}"); }
         `} />

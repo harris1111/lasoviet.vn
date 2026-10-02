@@ -60,7 +60,7 @@ pnpm exec vitest run tests/web apps/web/src/features/theme apps/web/src/features
 pnpm test:scripts
 ```
 
-Latest focused run: 176 passed, 1 skipped; script tests: 17 passed. i18n, typecheck and production build passed. Lint: zero errors, four pre-existing warnings in wallet navigation, evidence hooks and tarot imagery. Full-repository tests require Docker/PostgreSQL; exact final failure inventory is appended below. Local `/api/auth/get-session` responds `AUTH_CONFIG_INVALID` without the deployment secrets; it is recorded rather than masked. Public homepage checks still passed. No auth/commerce/backend behavior was modified.
+Latest focused run: 180 passed, 1 skipped; script tests: 17 passed. i18n, typecheck and production build passed. Lint: zero errors, four pre-existing warnings in wallet navigation, evidence hooks and tarot imagery. Full-repository tests require Docker/PostgreSQL; exact final failure inventory is appended below. Local `/api/auth/get-session` responds `AUTH_CONFIG_INVALID` without the deployment secrets; it is recorded rather than masked. Public homepage checks still passed. No auth/commerce/backend behavior was modified.
 
 Normal QA reproduction after package/web builds:
 
@@ -76,6 +76,27 @@ Install Playwright Chromium normally, or provide `PLAYWRIGHT_CHROMIUM_EXECUTABLE
 ## Selected review frames
 
 [Phone hero](assets/2026-10-02-light-v2/light-static-390-hero.webp) · [Static story](assets/2026-10-02-light-v2/light-390-story.webp) · [Animated layered scene](assets/2026-10-02-light-v2/light-world-1440-p0.5.webp) · [Explore](assets/2026-10-02-light-v2/light-1440-explore.webp) · [Footer](assets/2026-10-02-light-v2/light-1440-footer.webp) · [320px error/focus](assets/2026-10-02-light-v2/form-error-focus-320.webp) · [English error/focus](assets/2026-10-02-light-v2/form-error-focus-430.webp).
+
+## Final continuation evidence
+
+The final continuation implements responsive preload-before-body with srcset configured before href. On a fresh mobile trace the old controller fetched both 1024w and 828w heroes; the production matrix now requires exactly one primary responsive hero URL. Route changes use the current pathname, avoiding unrelated homepage downloads after client navigation. About/Value CSS art activates within a 600px viewport margin.
+
+Browser review caught an inherited light CTA cascade conflict: the legacy light rule overrode the approved Hội An background and re-enabled legacy side textures. The computed-background E2E failed before the correction. Explicit theme owner specificity and inert pending CTA backgrounds now preserve the approved light/dark landscape and prevent legacy CTA downloads. The two original functional desktop birth-chart paints are explicitly preserved, rather than incorrectly classified as abandoned CTA art.
+
+After the last production build, the matrix, contrast audit and cold-load measurement ran sequentially against the same build, without concurrent builds/tests:
+
+- Eight viewport/theme/static/world cases pass, including the new single-hero and actual CTA-background/network assertions. No observed hydration/shader errors or inactive-theme-only image requests.
+- Seven interaction groups pass; state preservation, rapid swaps, capability fallbacks and no-JavaScript behavior remain covered.
+- All 547 rendered light text samples pass; the latest committed contrast coordinates supersede earlier measurements.
+- Three fresh cold 4G runs per theme: dark LCP median **2.672s**, range **2.652–2.968s**; light median **2.740s**, range **2.648–2.944s**. CLS median **0.000828** for both. The LCP <2.5s gate remains unmet in this software-rendered lab. These are measurements, not physical-device or field acceptance.
+- 180 focused tests pass, one skip; 17 script tests pass. Final parity/typecheck/build pass; lint has zero errors and four existing warnings. Original layer hashes were rechecked: 25/25 match.
+- Independent continuation code review found one navigation preload issue, fixed with a RED→GREEN regression. The browser CTA issue was then fixed with a failing/passing real-app assertion. The original layered-world code was not reimplemented.
+
+GitHub writes failed with HTTP 403 `Resource not accessible by integration`; no remote branch, draft PR, merge or deployment was created. The local feature branch and verified incremental Git bundle carry the complete implementation, assets and QA evidence. Import instructions and a draft PR description accompany the bundle.
+
+### Task closure
+
+Tasks 01–18 are implemented. Task 19 has local accessibility/regression evidence; founder visual approval remains outstanding. Task 20 has actual production lab measurements and a reproducible handoff; performance/device release acceptance remains outstanding. The primitive compatibility bridge remains documented debt outside this homepage scope. Do not convert these outstanding acceptance gates into completed release status.
 
 ## Remaining release gates
 

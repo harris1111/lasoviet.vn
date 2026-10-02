@@ -39,6 +39,7 @@ try {
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: resolve(out, `${theme}-${mode}-${width}-hero.png`) });
     const state = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, ready: document.querySelector('.tn')?.getAttribute('data-troi-nam-world-ready'), currentSrc: document.querySelector('.tn-hero-media .tn-hero-plate')?.currentSrc, preload: document.querySelector('link[data-theme-preload]')?.href, overflow: document.documentElement.scrollWidth > innerWidth, diagnostics: window.__troiNamWorld?.getDiagnostics?.() }));
+    const initialArtworkRequests = [...new Set(requests)];
     assert.equal(state.overflow, false, 'No horizontal overflow');
     if (mode === 'static') assert.equal(state.ready, null, 'Reduced motion stays static');
     if (mode === 'world' && theme === 'light') {
@@ -64,9 +65,17 @@ try {
     const dark = JSON.parse(readFileSync('apps/web/public/images/troi-nam/manifest.json', 'utf8'));
     const light = JSON.parse(readFileSync('apps/web/public/images/troi-nam/manifest-light.json', 'utf8'));
     const forbidden = theme === 'light' ? Object.entries(dark).filter(([id, asset]) => /^(L0[1-7]|L13|W0[1-8]|W10|W11|T01)/.test(id) && light[id]?.src !== asset.src).flatMap(([, asset]) => [asset.src, ...(asset.srcSet ?? '').split(', ').map(candidate => candidate.split(' ')[0])]) : Object.values(light).filter(asset => asset.src.includes('/light/') && !asset.src.includes('-shared')).flatMap(asset => [asset.src, asset.lowSrc, ...(asset.srcSet ?? '').split(', ').map(candidate => candidate.split(' ')[0])]);
+    const activeManifest = theme === 'light' ? light : dark;
+    if (mode === 'static') {
+      const ctaBackground = await page.locator('.tn-about .hv3-final-cta-bg').evaluate(el => getComputedStyle(el).backgroundImage);
+      assert.ok(ctaBackground.includes(activeManifest[width === 390 ? 'L07' : 'L06'].src), 'Closing CTA renders the approved active-theme landscape');
+      assert.deepEqual(requests.filter(url => url.startsWith('/images/lasoviet/v10/') && !/la-so-tu-vi-tranh-son-hero-(dark|light)-desktop\.webp$/.test(url)), [], 'No inherited legacy CTA art requests (shared chart paint is preserved)');
+    }
+    const primaryUrls = ['L01', 'L02'].flatMap(id => [activeManifest[id].src, ...(activeManifest[id].srcSet ?? '').split(', ').map(candidate => candidate.split(' ')[0])]);
+    assert.equal(new Set(requests.filter(url => primaryUrls.includes(url))).size, 1, 'Preload and responsive hero use one resource');
     const inactive = requests.filter(url => forbidden.includes(url));
     assert.deepEqual(inactive, [], 'No inactive-theme-only image requests');
-    results.push({ width, theme, mode, ...state, requests: [...new Set(requests)], pageErrors });
+    results.push({ width, theme, mode, ...state, initialArtworkRequests, requests: [...new Set(requests)], pageErrors });
     errors.push(...pageErrors);
     writeFileSync(resolve(out, 'results.json'), JSON.stringify({ environment: 'Chromium; GPU depends on executable/launch options. Software rendering does not represent mobile GPU performance.', results, errors }, null, 2));
     await browser.close(); browser = undefined;

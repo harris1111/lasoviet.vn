@@ -1,5 +1,5 @@
 'use client';
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { troiNamAsset, type TroiNamAsset } from './troi-nam-assets';
 
 type PictureAssets = { desktop: TroiNamAsset; mobile?: TroiNamAsset };
@@ -26,7 +26,18 @@ export function TroiNamThemePicture({ desktop, mobile, className, imageClassName
   </>;
 }
 
-export function TroiNamThemeStyle({ dark, light }: { dark: string; light: string }) {
-  useLayoutEffect(() => { window.__lsvTheme?.refreshCapability(); }, []);
-  return <template data-theme-style="" data-style-dark={dark} data-style-light={light} suppressHydrationWarning />;
+export function TroiNamThemeStyle({ dark, light, lazy = false }: { dark: string; light: string; lazy?: boolean }) {
+  const ref = useRef<HTMLTemplateElement>(null);
+  useLayoutEffect(() => {
+    const host = ref.current;
+    if (!host) return;
+    const activate = () => { host.dataset.themeStyleReady = ''; window.__lsvTheme?.refreshCapability(); };
+    if (!lazy || typeof IntersectionObserver === 'undefined') { activate(); return; }
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) { activate(); observer.disconnect(); }
+    }, { rootMargin: '600px' });
+    observer.observe(host.parentElement ?? host);
+    return () => observer.disconnect();
+  }, [lazy]);
+  return <template ref={ref} data-theme-style="" data-theme-style-lazy={lazy ? '' : undefined} data-style-dark={dark} data-style-light={light} suppressHydrationWarning />;
 }

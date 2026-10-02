@@ -22,7 +22,7 @@ export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
           `}
         </style>
       ))}
-      <TroiNamThemeStyle dark={`
+      <TroiNamThemeStyle lazy dark={`
           .tn .tn-value .hv3-steps li[data-step="3"] {
             background-image: var(--tn-value-wash), url("${sunlitValley.src}");
             background-size: cover;

@@ -19,7 +19,7 @@ export async function measureColdLoad({ base, launch, out }) {
       await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
       await page.goto(base + '/?troiNamWorldDebug=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
       await page.waitForTimeout(20000);
-      const measured = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, ...window.__qaVitals, worldReady: document.querySelector('.tn').getAttribute('data-troi-nam-world-ready'), heroLoaded: document.querySelector('.tn-hero-media .tn-hero-plate').naturalWidth > 0 }));
+      const measured = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, ...window.__qaVitals, worldReady: document.querySelector('.tn').getAttribute('data-troi-nam-world-ready'), heroLoaded: document.querySelector('.tn-hero-media img[data-preload]').naturalWidth > 0, resources: performance.getEntriesByType('resource').filter(e => /hero|L0[12]|\.css|woff/.test(e.name)).map(e => ({url: new URL(e.name).pathname, start: e.startTime, end: e.responseEnd, bytes: e.transferSize, initiator: e.initiatorType})) }));
       let cls = 0, windowSum = 0, start = -Infinity, last = -Infinity;
       for (const shift of measured.shifts) {
         if (shift.startTime - last > 1000 || shift.startTime - start > 5000) { start = shift.startTime; windowSum = 0; }

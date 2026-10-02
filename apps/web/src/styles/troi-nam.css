@@ -1865,6 +1865,8 @@
 }
 
 .tn .tn-about .hv3-final-cta-bg {
+  /* Inert until the active-theme style owner supplies the approved landscape. */
+  background-image: none;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1873,8 +1875,11 @@
 
 /* Remove the v3 light-theme side plates in both themes. */
 .tn .tn-about .hv3-final-cta-bg::before,
-.tn .tn-about .hv3-final-cta-bg::after {
+.tn .tn-about .hv3-final-cta-bg::after,
+html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg::before,
+html[data-theme="light"]:has([data-light-ready]) .tn .tn-about .hv3-final-cta-bg::after {
   display: none;
+  background-image: none;
 }
 
 .tn .tn-about .hv3-final-cta-inner {

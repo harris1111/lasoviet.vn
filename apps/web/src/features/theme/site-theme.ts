@@ -3,8 +3,10 @@ export type ThemeSnapshot = Readonly<{ preference: Theme; effective: Theme; sour
 export type ThemeController = { getSnapshot(): ThemeSnapshot; subscribe(listener: () => void): () => void; choose(theme: Theme): void; refreshCapability(): void };
 declare global { interface Window { __lsvTheme?: ThemeController } }
 
+export type ThemePictureAssets = { desktop: { src: string; srcSet?: string }; mobile?: { src: string; srcSet?: string } };
+
 /** Self-contained so the exact tested implementation can also run before paint. */
-export function installSiteTheme(win: Window, readyPaths: string[], colors: Record<Theme, string>): ThemeController {
+export function installSiteTheme(win: Window, readyPaths: string[], colors: Record<Theme, string>, heroAssets?: Record<Theme, ThemePictureAssets>): ThemeController {
   if (win.__lsvTheme) return win.__lsvTheme;
   const doc = win.document;
   const root = doc.documentElement;
@@ -20,11 +22,23 @@ export function installSiteTheme(win: Window, readyPaths: string[], colors: Reco
   let ready = readyPaths.some(pattern => new RegExp('^' + pattern.replace(/\{[^}]+\}|\[[^\]]+\]/g, '[^/]+') + '$').test(path));
   let snapshot: ThemeSnapshot;
 
+  function preloadHero(assets: ThemePictureAssets) {
+    let link = doc.querySelector<HTMLLinkElement>('link[data-theme-preload]');
+    const fresh = !link;
+    if (!link) { link = doc.createElement('link'); link.rel = 'preload'; link.as = 'image'; link.setAttribute('data-theme-preload', ''); }
+    const chosen = assets.mobile && win.matchMedia('(max-width: 879px)').matches ? assets.mobile : assets.desktop;
+    // Configure responsive selection before initiating a request or attaching the link.
+    link.imageSrcset = chosen.srcSet ?? ''; link.imageSizes = '100vw'; link.fetchPriority = 'high';
+    if (link.getAttribute?.('href') !== chosen.src) link.href = chosen.src;
+    if (fresh) doc.head.appendChild(link);
+  }
+
   function activateImages() {
     for (const [host, style] of styles) {
       if (!host.isConnected) { style.remove(); styles.delete(host); }
     }
     for (const host of doc.querySelectorAll<HTMLElement>('template[data-theme-style]')) {
+      if (host.dataset.themeStyleLazy !== undefined && host.dataset.themeStyleReady === undefined) continue;
       let style = styles.get(host);
       if (!style) { style = doc.createElement('style'); doc.head.appendChild(style); styles.set(host, style); }
       const css = host.getAttribute('data-style-' + snapshot.effective) ?? '';
@@ -43,12 +57,7 @@ export function installSiteTheme(win: Window, readyPaths: string[], colors: Reco
       if (!data) continue;
       const assets = JSON.parse(data) as { desktop: { src: string; srcSet?: string }; mobile?: { src: string; srcSet?: string } };
       const mobile = assets.mobile;
-      if (img.hasAttribute('data-preload')) {
-        let link = doc.querySelector<HTMLLinkElement>('link[data-theme-preload]');
-        if (!link) { link = doc.createElement('link'); link.rel = 'preload'; link.as = 'image'; link.setAttribute('data-theme-preload', ''); doc.head.appendChild(link); }
-        const chosen = mobile && win.matchMedia('(max-width: 879px)').matches ? mobile : assets.desktop;
-        link.href = chosen.src; link.imageSrcset = chosen.srcSet ?? ''; link.imageSizes = '100vw'; link.fetchPriority = 'high';
-      }
+      if (img.hasAttribute('data-preload')) preloadHero(assets);
       if (source && mobile) source.setAttribute('srcset', mobile.srcSet ?? mobile.src);
       if (assets.desktop.srcSet) img.srcset = assets.desktop.srcSet;
       const generation = String(Number(img.dataset.imageGeneration ?? 0) + 1);
@@ -67,6 +76,8 @@ export function installSiteTheme(win: Window, readyPaths: string[], colors: Reco
     root.dataset.theme = effective;
     root.style.colorScheme = effective;
     doc.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute('content', colors[effective]);
+    const currentPath = win.location.pathname.replace(/^\/(vi|en)(?=\/|$)/, '').replace(/\/$/, '') || '/';
+    if (currentPath === '/' && heroAssets) preloadHero(heroAssets[effective]);
     activateImages();
     if (changed) {
       listeners.forEach(listener => listener());

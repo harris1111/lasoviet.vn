@@ -1,6 +1,6 @@
 # H. Implementation plan: Lá Số Việt Trời Nam light theme
 
-Date:2026-10-02. Status: audit complete; implementation pending. Executor:Claude Sonnet in the full local/git repository. This package does not modify/deploy the website.
+Date: 2026-10-02. Execution status: the authorized homepage/theme implementation is coded and locally verified on `feat/troi-nam-light-v2`. Release acceptance remains pending performance/device evidence, founder visual acceptance and configured integration/deployment checks. See [QA report](../../qa/2026-10-02-light-theme-release.md). The original task instructions below are retained as the implementation contract; no merge or deployment is authorized by this status update.
 
 ## Outcome and scope
 
