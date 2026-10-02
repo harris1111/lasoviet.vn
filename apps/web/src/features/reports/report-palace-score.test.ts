@@ -25,7 +25,8 @@ function snapshotWith(stars: Record<number, Star[]>): ReportChartSnapshotV1 {
 
 const main = (starId: string, brightnessId: string, transformationId?: string): Star =>
   ({ starId, kind: "main", brightnessId, ...(transformationId ? { transformationId } : {}) }) as Star;
-const aux = (starId: string): Star => ({ starId, kind: "aux" }) as Star;
+const aux = (starId: string, transformationId?: string): Star =>
+  ({ starId, kind: "aux", ...(transformationId ? { transformationId } : {}) }) as Star;
 
 describe("computePalaceScores", () => {
   it("gives an empty chart the base score everywhere", () => {
@@ -67,6 +68,43 @@ describe("computePalaceScores", () => {
     );
     // Mệnh không có chính tinh, mượn Thất Sát Miếu của Thiên Di: 12 / 2 = 6.
     expect(scores.get("ziwei.palace.life")!.parts.own).toBe(6);
+  });
+
+  // Audit finding 3 (2026-10-02): a transformation attached to an auxiliary
+  // star was silently dropped, so Văn Khúc scored the same with or without
+  // Hóa Kỵ. FD-107 publishes the -10 Hóa Kỵ weight for every star it lands
+  // on, main or auxiliary; this fixture reproduces the audit's exact numbers.
+  it("applies a transformation on an auxiliary star exactly like the formula publishes", () => {
+    const plain = computePalaceScores(snapshotWith({ 0: [aux("ziwei.star.wenqu")] }));
+    expect(plain.get("ziwei.palace.life")!.parts.own).toBe(4);
+    expect(plain.get("ziwei.palace.life")!.score).toBe(54);
+
+    const withHoaKy = computePalaceScores(
+      snapshotWith({ 0: [aux("ziwei.star.wenqu", "ziwei.transformation.obstacle")] }),
+    );
+    expect(withHoaKy.get("ziwei.palace.life")!.parts.own).toBe(-6);
+    expect(withHoaKy.get("ziwei.palace.life")!.score).toBe(44);
+  });
+
+  it("applies a favourable transformation on an auxiliary star too", () => {
+    const withHoaLoc = computePalaceScores(
+      snapshotWith({ 0: [aux("ziwei.star.lucun", "ziwei.transformation.prosperity")] }),
+    );
+    // Lộc Tồn +6, Hóa Lộc +10.
+    expect(withHoaLoc.get("ziwei.palace.life")!.parts.own).toBe(16);
+  });
+
+  it("still applies a main star's transformation only once when the palace also has aux stars", () => {
+    const scores = computePalaceScores(
+      snapshotWith({
+        0: [
+          main("ziwei.star.tianfu", "ziwei.brightness.exalted", "ziwei.transformation.prosperity"),
+          aux("ziwei.star.zuofu"),
+        ],
+      }),
+    );
+    // Miếu +12, Hóa Lộc +10 cho chính tinh (không lặp), cộng Tả Phù +4.
+    expect(scores.get("ziwei.palace.life")!.parts.own).toBe(26);
   });
 
   it("never leaves the nought to one hundred range", () => {
