@@ -15,7 +15,7 @@ const NEED_ART = {
   decision: "/images/lasoviet/v11/son-mai-nga-re-quyet-dinh-homepage.webp",
 } as const;
 
-export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
+export function HomepageV3Needs({ locale, showLegacyArtwork = true, iconOverrides = {} }: { locale: "en" | "vi"; showLegacyArtwork?: boolean; iconOverrides?: Partial<Record<string, string>> }) {
   const t = useTranslations("homepage-v3.needs");
   const [active, setActive] = useState(0);
   const concernCtx = useHomepageV3Concern();
@@ -49,7 +49,7 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
             <button key={item.id} type="button" className="hv3-need" aria-pressed={active === index} onClick={() => selectNeed(index)}>
               <span className="hv3-need-icon">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon}`} alt="" width={34} height={34} />
+                <img src={iconOverrides[item.id] ?? `${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon}`} alt="" width={34} height={34} />
               </span>
               <span className="hv3-need-text">
                 <span className="hv3-need-title">{t(`items.${item.id}.title`)}</span>
@@ -62,7 +62,7 @@ export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
         <div className="hv3-need-detail" aria-live="polite">
           <div className="hv3-need-art" aria-hidden="true">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img key={need.id} src={NEED_ART[need.id]} alt="" width={1254} height={1254} loading="lazy" decoding="async" />
+            {showLegacyArtwork ? <img key={need.id} src={NEED_ART[need.id]} alt="" width={1254} height={1254} loading="lazy" decoding="async" /> : null}
           </div>
           <p className="hv3-need-path">{t(`items.${need.id}.path`)}</p>
           <div className="hv3-chips">

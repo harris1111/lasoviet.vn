@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
-import { troiNamAsset } from "../troi-nam-assets";
+import { worldThemeConfig, type WorldThemeConfig } from "./troi-nam-world-theme-config";
+import { installPaintedLightRemap } from "./painted-light-remap";
 import { fillFootprint, makeReferenceCamera, unprojectToPlane } from "./troi-nam-world-chapters";
 import { loadWorldTexture, type WorldTextures } from "./troi-nam-world-textures";
 
@@ -21,7 +22,7 @@ import { loadWorldTexture, type WorldTextures } from "./troi-nam-world-textures"
  * the two tuning passes that got here).
  */
 
-export type PaintedWorldPhase = { dusk: number; night: number };
+export type PaintedWorldPhase = { dusk: number; night: number; chart?: number };
 
 /** A god-ray occluder: `map` is the alpha source the mask pass alpha-tests
  * against (keeping real leaf/rock edges instead of a rectangular silhouette);
@@ -67,7 +68,7 @@ type SpriteLayer = {
   duskFade: boolean; // fades out across the dusk interval (the sun itself, gone once the sky turns to night)
 };
 
-export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { quality: "low" | "high"; textures: WorldTextures }): PaintedWorld {
+export function createPaintedWorld(scene: THREE.Scene, { quality, textures, config = worldThemeConfig("dark", quality) }: { quality: "low" | "high"; textures: WorldTextures; config?: WorldThemeConfig }): PaintedWorld {
   const group = new THREE.Group();
   const disposables: Array<{ dispose(): void }> = [];
   const sharedGeometry = new THREE.PlaneGeometry(1, 1);
@@ -94,8 +95,9 @@ export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { 
     opacity?: number;
     crop?: [number, number, number, number];
   }): void {
-    const asset = troiNamAsset(spec.id);
-    const texture = loadWorldTexture(asset.src, textures);
+    const asset = config.asset(spec.id);
+    const texture = textures.load(asset.src, Boolean(spec.crop || spec.flip));
+    texture.userData.sourceId = spec.id;
     if (spec.crop) {
       const [x, y, width, height] = spec.crop;
       texture.offset.set(x, 1 - y - height);
@@ -117,6 +119,7 @@ export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { 
       blending: spec.blending ?? THREE.NormalBlending,
       opacity: spec.opacity ?? 1,
     });
+    installPaintedLightRemap(material, config.palette(spec.id));
     const mesh = new THREE.Mesh(sharedGeometry, material);
     mesh.renderOrder = spec.renderOrder;
     group.add(mesh);
@@ -147,7 +150,7 @@ export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { 
     duskFade?: boolean;
     blending?: THREE.Blending;
   }): void {
-    const asset = troiNamAsset(spec.id);
+    const asset = config.asset(spec.id);
     const texture = loadWorldTexture(asset.src, textures);
     const aspect = (asset.width ?? 1) / (asset.height ?? 1);
     const material = new THREE.MeshBasicMaterial({
@@ -157,6 +160,7 @@ export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { 
       opacity: spec.opacity,
       blending: spec.blending ?? THREE.NormalBlending,
     });
+    installPaintedLightRemap(material, config.palette(spec.id));
     const mesh = new THREE.Mesh(sharedGeometry, material);
     mesh.position.copy(spec.position);
     mesh.scale.set(aspect >= 1 ? spec.size * aspect : spec.size, aspect >= 1 ? spec.size : spec.size / aspect, 1);
@@ -200,11 +204,11 @@ export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { 
   addSpriteLayer({
     id: "W10",
     position: sun,
-    size: 6,
+    size: config.sunSize,
     renderOrder: 0,
-    opacity: 0.8,
+    opacity: config.sunOpacity,
     duskFade: true,
-    blending: THREE.AdditiveBlending,
+    blending: config.theme === "light" ? THREE.NormalBlending : THREE.AdditiveBlending,
   });
 
   function placeFillLayer(layer: FillLayer, aspect: number): void {
@@ -242,17 +246,17 @@ export function createPaintedWorld(scene: THREE.Scene, { quality, textures }: { 
         layer.material.opacity *= 1 - 0.75 * Math.max(0, (progress - 0.6) / 0.4);
       });
     },
-    setPhase({ dusk, night }) {
+    setPhase({ dusk, night, chart = 0 }) {
       if (cloudLayer) cloudLayer.material.opacity = cloudLayer.baseOpacity * dusk * (1 - night);
       for (const layer of fillLayers) {
         if (layer.nightTint <= 0) continue;
-        const weight = night * layer.nightTint;
+        const weight = config.theme === "light" ? 0 : night * layer.nightTint;
         layer.material.color.copy(WHITE).lerp(NIGHT_COLOR, weight);
         layer.material.opacity = layer.baseOpacity * (1 - weight * 0.4);
       }
       for (const sprite of spriteLayers) {
         if (!sprite.duskFade) continue;
-        sprite.material.opacity = sprite.baseOpacity * Math.max(0, 1 - dusk);
+        sprite.material.opacity = sprite.baseOpacity * Math.max(0, 1 - (config.theme === "light" ? chart : dusk));
       }
     },
     resize,

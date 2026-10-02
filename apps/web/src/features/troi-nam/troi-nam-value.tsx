@@ -1,4 +1,5 @@
 import { HomepageV3Value } from "../homepage-v3/homepage-v3-static-sections";
+import { TroiNamThemeStyle } from "./troi-nam-theme-art";
 import { troiNamAsset } from "./troi-nam-assets";
 
 export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
@@ -21,10 +22,9 @@ export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
           `}
         </style>
       ))}
-      <style>
-        {`
+      <TroiNamThemeStyle dark={`
           .tn .tn-value .hv3-steps li[data-step="3"] {
-            background-image: linear-gradient(rgb(16 14 12 / 0.8), rgb(16 14 12 / 0.92)), url("${sunlitValley.src}");
+            background-image: var(--tn-value-wash), url("${sunlitValley.src}");
             background-size: cover;
             background-position: center;
           }
@@ -34,8 +34,11 @@ export function TroiNamValue({ locale }: { locale: "en" | "vi" }) {
           .tn .tn-value .hv3-steps li[data-step="3"]::after {
             background-image: url("${leafBack.src}");
           }
-        `}
-      </style>
+        `} light={`
+          .tn .tn-value .hv3-steps li[data-step="3"] { background-image: var(--tn-value-wash), url("${troiNamAsset("L13", "light").src}"); background-size: cover; background-position: center; }
+          .tn .tn-value .hv3-steps li[data-step="3"]::before { background-image: url("${leafFront.src}"); }
+          .tn .tn-value .hv3-steps li[data-step="3"]::after { background-image: url("${leafBack.src}"); }
+        `} />
       <HomepageV3Value locale={locale} showPacks={false} />
     </div>
   );

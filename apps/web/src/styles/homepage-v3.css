@@ -32,29 +32,7 @@
   transition: background-color 240ms ease, color 240ms ease;
 }
 
-html[data-theme="light"]:has([data-light-ready]) .hv3 {
-  --page: #f6f0e4; --surface: #efe7d7; --raised: #fffcf5; --inset: #ffffff;
-  --text: #1d1812; --muted: #4f4538; --subtle: #6b604f;
-  --hair: #ddd2bc; --hair2: #cdbb98; --focus: #a8402d;
-  --action: #a8402d; --action-h: #8f3423; --action-t: #fff8f0;
-  --accent: #a8402d; --link: #a8402d; --error: #9a2f1f;
-  --seg-bg: #1d1812; --seg-t: #f6f1e6;
-  --chart-face: #f7f1e3; --chart-cell: #fbf6ea; --chart-grid: #d5c5a5; --chart-label: #6b4a2b;
-  --chart-active: #b8472f; --chart-active-bg: #fbe6dd; --chart-rel: #d08a74; --chart-rel-bg: #f8ede4;
-  --chart-opp: #b89a55; --chart-opp-bg: #f6eedb; --chart-opp-line: #8a6a26;
-  --ornament: #a8842f; --ornament-t: #7a5c1e;
-  --inv: #0f0d0a; --inv-line: #0f0d0a;
-  --shadow: 0 1px 0 rgba(29, 24, 18, 0.04), 0 18px 40px -24px rgba(29, 24, 18, 0.3);
-  --art-shadow: 0 36px 60px -34px rgba(74, 53, 34, 0.55);
-  --art-dark: 0; --art-light: 1;
-  --art-line: rgba(122, 84, 40, 0.42); --art-glyph: #5e4127;
-  --tick-off: rgba(122, 84, 40, 0.32); --tick-on: #b8472f; --glow: rgba(206, 91, 69, 0.6);
-  --need-bg: #f3ede1; --need-bg-on: #fffcf5;
-  /* Same fixed per-discipline accent as dark mode — discipline-page-shell.tsx
-     uses one accentColor regardless of theme, so this matches that. */
-  --d1: #4F7A68; --d2: #6E93AC; --d3: #8A7450; --d4: #7A82A0;
-  color-scheme: light;
-}
+
 
 .hv3 h1, .hv3 h2, .hv3 h3 { color: inherit; }
 .hv3 a { color: var(--link); text-underline-offset: 3px; }
@@ -538,28 +516,6 @@ html[data-theme="light"]:has([data-light-ready]) .hv3-final-cta-bg::after { back
 @media (prefers-reduced-motion: reduce) {
   .hv3 *, .hv3 *::before, .hv3 *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
-
-/* Site chrome: header and footer follow the theme on light-ready pages (FD-102). */
-.brand-logo-light { display: none; height: auto; max-height: 28px; width: auto; }
-.theme-toggle { display: none; width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--lacquer-line); background: transparent; color: var(--pearl-200); align-items: center; justify-content: center; cursor: pointer; }
-html:has([data-light-ready]) .theme-toggle { display: inline-flex; }
-.theme-icon-sun { width: 10px; height: 10px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px transparent, 0 0 0 4.5px currentColor; }
-.theme-icon-moon { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset -5px -2px 0 0 currentColor; transform: rotate(-20deg); }
-html[data-theme="light"]:has([data-light-ready]) { color-scheme: light; background: #f6f0e4; }
-html[data-theme="light"]:has([data-light-ready]) body { background: #f6f0e4; color: #1d1812; }
-html[data-theme="light"]:has([data-light-ready]) .site-header { background: rgba(246, 240, 228, 0.92); border-bottom-color: #ddd2bc; }
-html[data-theme="light"]:has([data-light-ready]) .site-header .brand { color: #1d1812; }
-html[data-theme="light"]:has([data-light-ready]) .desktop-nav a, html[data-theme="light"]:has([data-light-ready]) .locale-link, html[data-theme="light"]:has([data-light-ready]) .login-link, html[data-theme="light"]:has([data-light-ready]) .site-header .desktop-nav a:hover { color: #1d1812 !important; }
-html[data-theme="light"]:has([data-light-ready]) .site-header .brand-logo, html[data-theme="light"]:has([data-light-ready]) .site-footer .brand-logo { display: none; }
-html[data-theme="light"]:has([data-light-ready]) .site-header .brand-logo-light, html[data-theme="light"]:has([data-light-ready]) .site-footer .brand-logo-light { display: block; }
-html[data-theme="light"]:has([data-light-ready]) .mobile-menu summary { color: #1d1812; border-color: #cdbb98; }
-html[data-theme="light"]:has([data-light-ready]) .mobile-menu[open] nav { background: #fffcf5; border-color: #ddd2bc; }
-html[data-theme="light"]:has([data-light-ready]) .mobile-menu nav a { color: #1d1812; border-bottom-color: #ddd2bc; }
-html[data-theme="light"]:has([data-light-ready]) .site-footer { background: #efe7d7; border-top-color: #ddd2bc; }
-html[data-theme="light"]:has([data-light-ready]) .footer-policy-links a, html[data-theme="light"]:has([data-light-ready]) .footer-support-email { color: #4f4538; }
-html[data-theme="light"]:has([data-light-ready]) .footer-policy-links a:hover { color: #a8402d; }
-html[data-theme="light"]:has([data-light-ready]) .site-footer .copyright { color: #6b604f; border-top-color: #ddd2bc; }
-html[data-theme="light"]:has([data-light-ready]) .theme-toggle { color: #1d1812; border-color: #cdbb98; }
 
 /* Focus rings on interactive elements */
 .site-header a:focus-visible, .site-header button:focus-visible, .site-header summary:focus-visible, .theme-toggle:focus-visible { outline: 2px solid var(--focus, #e9c987); outline-offset: 2px; }

@@ -50,3 +50,11 @@ export function createWorldScheduler(initial: WorldQuality) {
 export function chartCanvasOpacity(weight: number): number {
   return Math.max(0, Math.min(1, (1 - weight) / 0.1));
 }
+
+/** Explicit allocations, excluding device-specific driver overhead. */
+export function lightWorldPixelRatio(width: number, height: number, requested: number, quality: WorldQuality, textureBytes: number, geometryBytes: number): number {
+  const remaining = (quality === "low" ? 48 : 96) * 1024 * 1024 - textureBytes - geometryBytes - 1024 * 1024;
+  const ratio = Math.min(requested, quality === "low" ? 1 : 1.5, Math.sqrt(Math.max(0, remaining) / (width * height * 8)));
+  if (!Number.isFinite(ratio) || ratio < .5) throw new Error("Light world scene budget exceeded");
+  return ratio;
+}

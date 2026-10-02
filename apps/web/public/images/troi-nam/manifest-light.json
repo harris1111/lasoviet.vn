@@ -1,0 +1,237 @@
+{
+  "L01": {
+    "src": "/images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-desktop-1536w.webp",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-desktop-640w.webp 640w, /images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-desktop-960w.webp 960w, /images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-desktop-1280w.webp 1280w, /images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-desktop-1536w.webp 1536w"
+  },
+  "L02": {
+    "src": "/images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-mobile-1024w.webp",
+    "width": 1024,
+    "height": 1536,
+    "srcSet": "/images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-mobile-420w.webp 420w, /images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-mobile-640w.webp 640w, /images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-mobile-828w.webp 828w, /images/troi-nam/light/trang-an-binh-minh-giay-do-sang-hero-mobile-1024w.webp 1024w"
+  },
+  "L06": {
+    "src": "/images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-desktop-1536w.webp",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-desktop-640w.webp 640w, /images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-desktop-960w.webp 960w, /images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-desktop-1280w.webp 1280w, /images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-desktop-1536w.webp 1536w"
+  },
+  "L07": {
+    "src": "/images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-mobile-1024w.webp",
+    "width": 1024,
+    "height": 1536,
+    "srcSet": "/images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-mobile-420w.webp 420w, /images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-mobile-640w.webp 640w, /images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-mobile-828w.webp 828w, /images/troi-nam/light/hoi-an-song-hoai-chieu-vang-sang-cta-mobile-1024w.webp 1024w"
+  },
+  "L13": {
+    "src": "/images/troi-nam/light/thung-lung-nui-da-voi-nang-sang-gia-tri-1536w.webp",
+    "width": 1536,
+    "height": 1024,
+    "srcSet": "/images/troi-nam/light/thung-lung-nui-da-voi-nang-sang-gia-tri-640w.webp 640w, /images/troi-nam/light/thung-lung-nui-da-voi-nang-sang-gia-tri-960w.webp 960w, /images/troi-nam/light/thung-lung-nui-da-voi-nang-sang-gia-tri-1280w.webp 1280w, /images/troi-nam/light/thung-lung-nui-da-voi-nang-sang-gia-tri-1536w.webp 1536w"
+  },
+  "T01": {
+    "src": "/images/troi-nam/chat-lieu/giay-do-lien-mach-trang-chu.webp",
+    "width": 732,
+    "height": 744
+  },
+  "W01": {
+    "src": "/images/troi-nam/light/w01-giay-do-sang-1280w.webp",
+    "width": 1280,
+    "height": 720,
+    "lowSrc": "/images/troi-nam/light/w01-giay-do-sang-640w.webp",
+    "lowWidth": 640,
+    "lowHeight": 360
+  },
+  "W02": {
+    "src": "/images/troi-nam/light/w02-giay-do-sang-1280w.webp",
+    "width": 1280,
+    "height": 720,
+    "lowSrc": "/images/troi-nam/light/w02-giay-do-sang-640w.webp",
+    "lowWidth": 640,
+    "lowHeight": 360
+  },
+  "W03": {
+    "src": "/images/troi-nam/light/w03-giay-do-sang-1280w.webp",
+    "width": 1280,
+    "height": 720,
+    "lowSrc": "/images/troi-nam/light/w03-giay-do-sang-640w.webp",
+    "lowWidth": 640,
+    "lowHeight": 360
+  },
+  "W04": {
+    "src": "/images/troi-nam/light/nui-da-voi-lop-xa-trang-chu-shared-768w.webp",
+    "width": 768,
+    "height": 432,
+    "lowSrc": "/images/troi-nam/light/nui-da-voi-lop-xa-trang-chu-shared-640w.webp",
+    "lowWidth": 640,
+    "lowHeight": 360
+  },
+  "W05": {
+    "src": "/images/troi-nam/light/nui-da-voi-lop-giua-trang-chu-shared-960w.webp",
+    "width": 960,
+    "height": 540,
+    "lowSrc": "/images/troi-nam/light/nui-da-voi-lop-giua-trang-chu-shared-768w.webp",
+    "lowWidth": 768,
+    "lowHeight": 432
+  },
+  "W06": {
+    "src": "/images/troi-nam/light/nui-da-voi-lop-gan-trang-chu-shared-1280w.webp",
+    "width": 1280,
+    "height": 720,
+    "lowSrc": "/images/troi-nam/light/nui-da-voi-lop-gan-trang-chu-shared-960w.webp",
+    "lowWidth": 960,
+    "lowHeight": 540
+  },
+  "W07": {
+    "src": "/images/troi-nam/light/w07-giay-do-sang-1280w.webp",
+    "width": 1280,
+    "height": 512,
+    "lowSrc": "/images/troi-nam/light/w07-giay-do-sang-960w.webp",
+    "lowWidth": 960,
+    "lowHeight": 384
+  },
+  "W08": {
+    "src": "/images/troi-nam/light/khung-tien-canh-vach-da-tan-la-trang-chu-shared-1280w.webp",
+    "width": 1280,
+    "height": 720,
+    "lowSrc": "/images/troi-nam/light/khung-tien-canh-vach-da-tan-la-trang-chu-shared-960w.webp",
+    "lowWidth": 960,
+    "lowHeight": 540
+  },
+  "W09.thuy-dinh-co": {
+    "src": "/images/troi-nam/light/thuy-dinh-co-shared-384w.webp",
+    "width": 384,
+    "height": 384,
+    "lowSrc": "/images/troi-nam/light/thuy-dinh-co-shared-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 256
+  },
+  "W09.thuyen-nan-tren-nuoc": {
+    "src": "/images/troi-nam/light/thuyen-nan-tren-nuoc-shared-384w.webp",
+    "width": 384,
+    "height": 384,
+    "lowSrc": "/images/troi-nam/light/thuyen-nan-tren-nuoc-shared-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 256
+  },
+  "T03": {
+    "src": "/images/troi-nam/light/vun-vang-la-roi-trang-chu-shared-512w.webp",
+    "width": 512,
+    "height": 512,
+    "lowSrc": "/images/troi-nam/light/vun-vang-la-roi-trang-chu-shared-384w.webp",
+    "lowWidth": 384,
+    "lowHeight": 384
+  },
+  "T07": {
+    "src": "/images/troi-nam/light/may-kham-xa-cu-trang-chu-shared-512w.webp",
+    "width": 512,
+    "height": 341,
+    "lowSrc": "/images/troi-nam/light/may-kham-xa-cu-trang-chu-shared-384w.webp",
+    "lowWidth": 384,
+    "lowHeight": 256
+  },
+  "T11": {
+    "src": "/images/troi-nam/light/suong-mo-bay-trang-chu-shared-768w.webp",
+    "width": 768,
+    "height": 512,
+    "lowSrc": "/images/troi-nam/light/suong-mo-bay-trang-chu-shared-512w.webp",
+    "lowWidth": 512,
+    "lowHeight": 341
+  },
+  "P05": {
+    "src": "/images/troi-nam/light/vong-12-phan-net-vang-trang-chu-shared-512w.webp",
+    "width": 512,
+    "height": 512,
+    "lowSrc": "/images/troi-nam/light/vong-12-phan-net-vang-trang-chu-shared-384w.webp",
+    "lowWidth": 384,
+    "lowHeight": 384
+  },
+  "W10": {
+    "src": "/images/troi-nam/light/w10-giay-do-sang-384w.webp",
+    "width": 384,
+    "height": 384,
+    "lowSrc": "/images/troi-nam/light/w10-giay-do-sang-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 256
+  },
+  "W11.hat-sao-1": {
+    "src": "/images/troi-nam/light/w11-giay-do-sang-256w.webp",
+    "width": 256,
+    "height": 256,
+    "lowSrc": "/images/troi-nam/light/w11-giay-do-sang-128w.webp",
+    "lowWidth": 128,
+    "lowHeight": 128
+  },
+  "W11.hat-sao-2": {
+    "src": "/images/troi-nam/light/w11-giay-do-sang-256w.webp",
+    "width": 256,
+    "height": 256,
+    "lowSrc": "/images/troi-nam/light/w11-giay-do-sang-128w.webp",
+    "lowWidth": 128,
+    "lowHeight": 128
+  },
+  "W11.hat-sao-3": {
+    "src": "/images/troi-nam/light/w11-giay-do-sang-256w.webp",
+    "width": 256,
+    "height": 256,
+    "lowSrc": "/images/troi-nam/light/w11-giay-do-sang-128w.webp",
+    "lowWidth": 128,
+    "lowHeight": 128
+  },
+  "W11.hat-sao-4": {
+    "src": "/images/troi-nam/light/w11-giay-do-sang-256w.webp",
+    "width": 256,
+    "height": 256,
+    "lowSrc": "/images/troi-nam/light/w11-giay-do-sang-128w.webp",
+    "lowWidth": 128,
+    "lowHeight": 128
+  },
+  "W11.hat-sao-5": {
+    "src": "/images/troi-nam/light/w11-giay-do-sang-256w.webp",
+    "width": 256,
+    "height": 256,
+    "lowSrc": "/images/troi-nam/light/w11-giay-do-sang-128w.webp",
+    "lowWidth": 128,
+    "lowHeight": 128
+  },
+  "W11.hat-sao-6": {
+    "src": "/images/troi-nam/light/w11-giay-do-sang-256w.webp",
+    "width": 256,
+    "height": 256,
+    "lowSrc": "/images/troi-nam/light/w11-giay-do-sang-128w.webp",
+    "lowWidth": 128,
+    "lowHeight": 128
+  },
+  "E02.hoa-dang-kem": {
+    "src": "/images/troi-nam/light/hoa-dang-kem-shared-256w.webp",
+    "width": 256,
+    "height": 201,
+    "lowSrc": "/images/troi-nam/light/hoa-dang-kem-shared-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 201
+  },
+  "E02.hoa-dang-hong": {
+    "src": "/images/troi-nam/light/hoa-dang-hong-shared-256w.webp",
+    "width": 256,
+    "height": 219,
+    "lowSrc": "/images/troi-nam/light/hoa-dang-hong-shared-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 219
+  },
+  "E02.hoa-dang-do": {
+    "src": "/images/troi-nam/light/hoa-dang-do-shared-256w.webp",
+    "width": 256,
+    "height": 198,
+    "lowSrc": "/images/troi-nam/light/hoa-dang-do-shared-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 198
+  },
+  "E02.hoa-dang-vang": {
+    "src": "/images/troi-nam/light/hoa-dang-vang-shared-256w.webp",
+    "width": 256,
+    "height": 197,
+    "lowSrc": "/images/troi-nam/light/hoa-dang-vang-shared-256w.webp",
+    "lowWidth": 256,
+    "lowHeight": 197
+  }
+}

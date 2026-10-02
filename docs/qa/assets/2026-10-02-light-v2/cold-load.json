@@ -1,0 +1,196 @@
+{
+  "environment": "Fresh Chrome per run; localhost production; HTTP cache disabled; real CDP emulation 150ms latency,1.6Mbps download,750Kbps upload,4x CPU;20s observation after DOMContentLoaded;390x844,DPR2,touch. GPU software rendering. These are lab session observations, not field Web Vitals.",
+  "results": [
+    {
+      "theme": "dark",
+      "run": 1,
+      "LCPms": 3004,
+      "CLS": 0.0008279296603907461,
+      "lcp": [
+        {
+          "startTime": 1912,
+          "renderTime": 1912,
+          "loadTime": 0,
+          "size": 17280,
+          "tag": ""
+        },
+        {
+          "startTime": 3004,
+          "renderTime": 3004,
+          "loadTime": 2981.7000000001863,
+          "size": 303810,
+          "tag": "tn-hero-plate"
+        }
+      ],
+      "shifts": [
+        {
+          "value": 0.0006110772271685099,
+          "startTime": 2711.2000000001863
+        },
+        {
+          "value": 0.00021685243322223623,
+          "startTime": 2860.2999999998137
+        }
+      ],
+      "worldReady": null,
+      "heroLoaded": false
+    },
+    {
+      "theme": "dark",
+      "run": 2,
+      "LCPms": 4748,
+      "CLS": 0,
+      "lcp": [
+        {
+          "startTime": 1720,
+          "renderTime": 1720,
+          "loadTime": 0,
+          "size": 17280,
+          "tag": ""
+        },
+        {
+          "startTime": 4748,
+          "renderTime": 4748,
+          "loadTime": 4621.600000000559,
+          "size": 303810,
+          "tag": "tn-hero-plate"
+        }
+      ],
+      "shifts": [],
+      "worldReady": null,
+      "heroLoaded": false
+    },
+    {
+      "theme": "dark",
+      "run": 3,
+      "LCPms": 3492,
+      "CLS": 0.0008279296603907461,
+      "lcp": [
+        {
+          "startTime": 1808,
+          "renderTime": 1808,
+          "loadTime": 0,
+          "size": 17280,
+          "tag": ""
+        },
+        {
+          "startTime": 3492,
+          "renderTime": 3492,
+          "loadTime": 2891.5999999996275,
+          "size": 303810,
+          "tag": "tn-hero-plate"
+        }
+      ],
+      "shifts": [
+        {
+          "value": 0.0006110772271685099,
+          "startTime": 2636.5
+        },
+        {
+          "value": 0.00021685243322223623,
+          "startTime": 2872.5
+        }
+      ],
+      "worldReady": null,
+      "heroLoaded": false
+    },
+    {
+      "theme": "light",
+      "run": 1,
+      "LCPms": 2804,
+      "CLS": 0.0008279296603907461,
+      "lcp": [
+        {
+          "startTime": 1748,
+          "renderTime": 1748,
+          "loadTime": 0,
+          "size": 17280,
+          "tag": ""
+        },
+        {
+          "startTime": 2804,
+          "renderTime": 2804,
+          "loadTime": 2769.2999999998137,
+          "size": 317460,
+          "tag": "tn-hero-plate"
+        }
+      ],
+      "shifts": [
+        {
+          "value": 0.0006110772271685099,
+          "startTime": 2513.5999999996275
+        },
+        {
+          "value": 0.00021685243322223623,
+          "startTime": 2693.399999999441
+        }
+      ],
+      "worldReady": null,
+      "heroLoaded": true
+    },
+    {
+      "theme": "light",
+      "run": 2,
+      "LCPms": 4900,
+      "CLS": 0.00021685243322223623,
+      "lcp": [
+        {
+          "startTime": 1452,
+          "renderTime": 1452,
+          "loadTime": 0,
+          "size": 17280,
+          "tag": ""
+        },
+        {
+          "startTime": 4900,
+          "renderTime": 4900,
+          "loadTime": 4872.799999999814,
+          "size": 317460,
+          "tag": "tn-hero-plate"
+        }
+      ],
+      "shifts": [
+        {
+          "value": 0.00021685243322223623,
+          "startTime": 2409
+        }
+      ],
+      "worldReady": null,
+      "heroLoaded": true
+    },
+    {
+      "theme": "light",
+      "run": 3,
+      "LCPms": 2672,
+      "CLS": 0.0008279296603907461,
+      "lcp": [
+        {
+          "startTime": 1708,
+          "renderTime": 1708,
+          "loadTime": 0,
+          "size": 17280,
+          "tag": ""
+        },
+        {
+          "startTime": 2672,
+          "renderTime": 2672,
+          "loadTime": 2639.0999999996275,
+          "size": 317460,
+          "tag": "tn-hero-plate"
+        }
+      ],
+      "shifts": [
+        {
+          "value": 0.0006110772271685099,
+          "startTime": 2401
+        },
+        {
+          "value": 0.00021685243322223623,
+          "startTime": 2549.0999999996275
+        }
+      ],
+      "worldReady": null,
+      "heroLoaded": true
+    }
+  ]
+}

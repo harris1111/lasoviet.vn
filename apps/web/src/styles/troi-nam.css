@@ -2,11 +2,6 @@
 
 .tn {
   --tn-world-opacity: 1;
-  --tn-ink: var(--lacquer-950);
-  --tn-gold: var(--gold-500);
-  --tn-gold-light: var(--gold-400);
-  --tn-text: var(--pearl-100);
-  --tn-text-muted: var(--pearl-400);
 
   /* Display peaks at 120px on desktop and stays readable at 320px. */
   --tn-display: clamp(2.25rem, 1.4rem + 4.3vw, 7.5rem);
@@ -211,12 +206,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(
-    180deg,
-    rgb(8 7 6 / 0.72) 0%,
-    rgb(8 7 6 / 0.28) 42%,
-    rgb(8 7 6 / 0.88) 100%
-  );
+  background: var(--tn-scrim-hero-mobile);
 }
 
 /*
@@ -235,7 +225,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: #050403;
+  background: var(--tn-scrim-phase);
   opacity: calc(var(--tn-hero-night, 0) * 0.55);
   pointer-events: none;
 }
@@ -256,7 +246,7 @@
   display: grid;
   place-items: center;
   pointer-events: none;
-  background: radial-gradient(circle, rgb(8 7 6 / 0.82) 0%, rgb(8 7 6 / 0.4) 45%, transparent 72%);
+  background: var(--tn-intro-wash);
   opacity: 1;
   animation: tn-logo-intro-out 500ms ease 1300ms forwards;
 }
@@ -438,8 +428,7 @@
 
   .tn-hero-scrim {
     background:
-      linear-gradient(90deg, rgb(8 7 6 / 0.85) 0%, rgb(8 7 6 / 0.55) 46%, rgb(8 7 6 / 0.2) 78%),
-      linear-gradient(180deg, rgb(8 7 6 / 0.45) 0%, rgb(8 7 6 / 0) 35%);
+      var(--tn-scrim-hero-desktop);
   }
 }
 
@@ -523,7 +512,7 @@
   position: absolute;
   inset: -4% -2%;
   z-index: -1;
-  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
+  background: var(--tn-story-wash-mobile);
   pointer-events: none;
 }
 
@@ -539,7 +528,7 @@
   }
 
   .tn .tn-story .hv3-story-panel::before {
-    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
+    background: var(--tn-story-wash-desktop);
   }
 }
 
@@ -550,7 +539,7 @@
 
 .tn .tn-story .hv3-questions p {
   color: var(--tn-text);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-story .hv3-questions .hv3-q-accent {
@@ -573,8 +562,8 @@
 
 .tn .tn-ticker .hv3-marquee-cycle a,
 .tn .tn-ticker .hv3-marquee-chip {
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
+  background: var(--tn-card);
+  border-color: var(--tn-hairline);
   color: var(--tn-text);
 }
 
@@ -635,13 +624,13 @@
 
 .tn .tn-explore .hv3-shortcuts button {
   color: var(--tn-text);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-explore .hv3-shortcuts button[aria-pressed="true"] {
   color: var(--tn-text);
-  border-color: var(--son);
-  background: var(--lacquer-700);
+  border-color: var(--tn-seal);
+  background: var(--tn-panel);
 }
 
 .tn .tn-explore .hv3-explore-body {
@@ -719,18 +708,18 @@
  */
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
-  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
+  text-shadow: var(--tn-text-shadow);
 }
 
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
-  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9);
+  text-shadow: var(--tn-legend-shadow);
 }
 
 .tn .tn-explore .hv3-cell {
   padding: 6px;
   color: var(--tn-text);
-  border-color: var(--lacquer-line);
-  background: var(--lacquer-700);
+  border-color: var(--tn-hairline);
+  background: var(--tn-panel);
 }
 
 .tn .tn-explore .hv3-cell::before {
@@ -747,18 +736,18 @@
 }
 
 .tn .tn-explore .hv3-cell[data-state="trine"] {
-  border-color: var(--son);
-  background: var(--lacquer-800);
+  border-color: var(--tn-seal);
+  background: var(--tn-card);
 }
 
 .tn .tn-explore .hv3-cell[data-state="opposite"] {
   border-color: var(--tn-gold);
-  background: var(--lacquer-900);
+  background: var(--tn-deep);
 }
 
 .tn .tn-explore .hv3-cell[data-state="selected"] {
-  border-color: var(--son);
-  background: var(--lacquer-900);
+  border-color: var(--tn-seal);
+  background: var(--tn-deep);
   animation: tn-cell-select 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
@@ -766,10 +755,10 @@
    animation-fill-mode means it leaves no lingering shadow behind. */
 @keyframes tn-cell-select {
   0% {
-    box-shadow: 0 0 0 0 rgb(242 220 160 / 0.55);
+    box-shadow: 0 0 0 0 var(--tn-pulse-start);
   }
   100% {
-    box-shadow: 0 0 0 12px rgb(242 220 160 / 0);
+    box-shadow: 0 0 0 12px var(--tn-pulse-end);
   }
 }
 
@@ -781,13 +770,13 @@
 }
 
 .tn .tn-explore .hv3-chart-core {
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
+  background: var(--tn-card);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-explore .hv3-chart-core > div {
-  border-color: var(--son);
-  outline-color: var(--son);
+  border-color: var(--tn-seal);
+  outline-color: var(--tn-seal);
 }
 
 /*
@@ -808,11 +797,11 @@
 }
 
 .tn .tn-explore .hv3-line-trine {
-  stroke: var(--son);
+  stroke: var(--tn-seal);
 }
 
 .tn .tn-explore .hv3-dot-trine {
-  fill: var(--son);
+  fill: var(--tn-seal);
 }
 
 .tn .tn-explore .hv3-line-opposite {
@@ -824,7 +813,7 @@
 }
 
 .tn .tn-explore .hv3-legend-trine {
-  border-color: var(--son);
+  border-color: var(--tn-seal);
 }
 
 .tn .tn-explore .hv3-legend-opposite {
@@ -832,7 +821,7 @@
 }
 
 .tn .tn-explore .hv3-rel-trine {
-  color: var(--son);
+  color: var(--tn-seal);
 }
 
 .tn .tn-explore .hv3-rel-opposite {
@@ -847,21 +836,21 @@
   /* Semi-transparent, not flat solid — this is a real selectable detail
      card (not decoration), so it keeps its own surface, just softened to
      blend with the world behind it (2026-10-01 CX review). */
-  background: rgb(15 13 10 / 0.88);
-  border-color: var(--lacquer-line);
+  background: var(--tn-detail-surface);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-explore .hv3-relations {
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-explore .hv3-btn {
-  color: var(--tn-ink) !important;
-  background: var(--tn-gold-light);
+  color: var(--cta-ink) !important;
+  background: var(--cta-flat);
 }
 
 .tn .tn-explore .hv3-btn:hover {
-  background: var(--tn-gold);
+  background: var(--cta-flat-hover);
 }
 
 @media (min-width: 880px) {
@@ -1022,8 +1011,8 @@
      length one. */
   padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   color: var(--tn-text);
-  background: var(--lacquer-800);
-  border: 1px solid var(--lacquer-line);
+  background: var(--tn-card);
+  border: 1px solid var(--tn-hairline);
 }
 
 .tn .tn-needs .hv3-need::before {
@@ -1040,13 +1029,13 @@
 .tn .tn-needs .hv3-need[aria-pressed="true"] {
   padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
   border: 1px solid var(--tn-gold-light);
-  background: var(--lacquer-700);
+  background: var(--tn-panel);
   box-shadow: inset 0 0 0 1px var(--tn-gold-light);
 }
 
 .tn .tn-needs .hv3-need-icon {
-  background-color: var(--lacquer-900);
-  border-color: var(--lacquer-line);
+  background-color: var(--tn-deep);
+  border-color: var(--tn-hairline);
   background-size: 34px 34px;
   background-position: center;
   background-repeat: no-repeat;
@@ -1061,14 +1050,14 @@
   min-width: 0;
   gap: var(--tn-gutter);
   color: var(--tn-text);
-  background: var(--lacquer-900);
-  border-color: var(--lacquer-line);
+  background: var(--tn-deep);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-needs .hv3-need-art {
   height: clamp(14rem, 45vw, 22rem);
   margin: calc(-1 * var(--tn-gutter)) calc(-1 * var(--tn-gutter)) 0;
-  background-color: var(--lacquer-800);
+  background-color: var(--tn-card);
   background-position: center 44%;
   background-size: cover;
   background-repeat: no-repeat;
@@ -1081,16 +1070,16 @@
 
 .tn .tn-needs .hv3-chips span {
   color: var(--tn-text);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-needs .hv3-btn {
-  color: var(--tn-ink) !important;
-  background: var(--tn-gold-light);
+  color: var(--cta-ink) !important;
+  background: var(--cta-flat);
 }
 
 .tn .tn-needs .hv3-btn:hover {
-  background: var(--tn-gold);
+  background: var(--cta-flat-hover);
 }
 
 /* Keep all existing discipline links and artwork, with the Trời Nam palette. */
@@ -1128,8 +1117,8 @@
 .tn .tn-needs .hv3-disc,
 .tn .tn-needs .hv3-disc-flagship {
   color: var(--tn-text) !important;
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
+  background: var(--tn-card);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-needs .hv3-disc-flagship {
@@ -1141,9 +1130,9 @@
 .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
   flex: none;
   aspect-ratio: 4 / 3;
-  background: var(--lacquer-900);
+  background: var(--tn-deep);
   border: 0;
-  border-bottom: 1px solid var(--lacquer-line);
+  border-bottom: 1px solid var(--tn-hairline);
 }
 
 .tn .tn-needs .hv3-disc:hover,
@@ -1152,7 +1141,7 @@
 }
 
 .tn .tn-needs .hv3-mask {
-  background: var(--tn-gold);
+  background: var(--cta-flat-hover);
 }
 
 .tn .tn-needs .hv3-disc-cta {
@@ -1177,8 +1166,8 @@
 
 .tn .tn-compare .hv3-compare-head {
   padding: var(--tn-gutter);
-  background: var(--lacquer-900);
-  border-color: var(--lacquer-line);
+  background: var(--tn-deep);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-compare .hv3-compare-points {
@@ -1188,8 +1177,8 @@
 
 .tn .tn-compare .hv3-compare-points span {
   padding: var(--tn-gutter);
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
+  background: var(--tn-card);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-compare .hv3-compare-points svg {
@@ -1197,7 +1186,7 @@
 }
 
 .tn .tn-compare .hv3-compare-details {
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-compare .hv3-compare-details > summary {
@@ -1214,23 +1203,23 @@
   white-space: normal;
   padding-block: calc(var(--tn-gutter) / 4);
   color: var(--tn-text);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-compare .hv3-tabs button[aria-pressed="true"] {
-  background: var(--tn-gold-light);
-  color: var(--tn-ink);
+  background: var(--cta-flat);
+  color: var(--cta-ink);
   border-color: var(--tn-gold-light);
 }
 
 .tn .tn-compare .hv3-cmp-card {
   color: var(--tn-text);
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
+  background: var(--tn-card);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-compare .hv3-cmp-top {
-  background: var(--lacquer-700);
+  background: var(--tn-panel);
   border-color: var(--tn-gold);
 }
 
@@ -1246,13 +1235,13 @@
 
 .tn .tn-compare .hv3-cmp-fix {
   color: var(--tn-text-muted);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-compare .hv3-compare-table th,
 .tn .tn-compare .hv3-compare-table td {
   color: var(--tn-text-muted);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
   overflow-wrap: anywhere;
 }
 
@@ -1263,13 +1252,13 @@
 
 .tn .tn-compare .hv3-compare-table [data-col="lsv"] {
   color: var(--tn-text);
-  background: var(--lacquer-700);
-  border-color: var(--lacquer-line);
+  background: var(--tn-panel);
+  border-color: var(--tn-hairline);
   box-shadow: inset 3px 0 0 var(--tn-gold);
 }
 
 .tn .tn-compare .hv3-cmp-mark {
-  color: var(--son);
+  color: var(--tn-seal);
 }
 
 .tn .tn-compare .hv3-cmp-mark[data-strength="true"],
@@ -1303,7 +1292,7 @@
     flex: 0 0 34%;
     aspect-ratio: 4 / 5;
     border-bottom: 0;
-    border-right: 1px solid var(--lacquer-line);
+    border-right: 1px solid var(--tn-hairline);
   }
 
   .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art {
@@ -1368,9 +1357,9 @@
 
 .tn .tn-testimonials .hv3-tt-card {
   padding: var(--tn-gutter);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
   border-radius: 16px;
-  background: var(--lacquer-800);
+  background: var(--tn-card);
   color: var(--tn-text);
 }
 
@@ -1381,7 +1370,7 @@
 
 .tn .tn-testimonials .hv3-tt-mark {
   left: var(--tn-gutter);
-  background: var(--son);
+  background: var(--tn-seal);
 }
 
 .tn .tn-testimonials .hv3-tt-quote {
@@ -1391,7 +1380,7 @@
 
 .tn .tn-testimonials .hv3-tt-foot {
   gap: 0 calc(var(--tn-gutter) / 2);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-testimonials .hv3-tt-who {
@@ -1428,22 +1417,22 @@
 
 .tn .tn-testimonials .hv3-tt-actions {
   margin-top: var(--tn-gutter);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
 }
 
 .tn .tn-testimonials .hv3-tt-arrows button,
 .tn .tn-testimonials .hv3-tt-pause,
 .tn .tn-testimonials .hv3-tt-filters button,
 .tn .tn-testimonials .hv3-tt-dialog-head button {
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
   color: var(--tn-text);
-  background: var(--lacquer-800);
+  background: var(--tn-card);
 }
 
 .tn .tn-testimonials .hv3-tt-filters button[aria-pressed="true"] {
   border-color: var(--tn-gold-light);
-  background: var(--tn-gold-light);
-  color: var(--tn-ink);
+  background: var(--cta-flat);
+  color: var(--cta-ink);
 }
 
 .tn .tn-testimonials .hv3-tt-list {
@@ -1453,8 +1442,8 @@
 
 .tn .tn-testimonials .hv3-tt-dialog {
   padding: var(--tn-gutter);
-  border-color: var(--lacquer-line);
-  background: var(--lacquer-800);
+  border-color: var(--tn-hairline);
+  background: var(--tn-card);
   color: var(--tn-text);
 }
 
@@ -1483,9 +1472,9 @@
   min-width: 0;
   min-height: 0;
   padding: var(--tn-gutter);
-  border-color: var(--lacquer-line);
+  border-color: var(--tn-hairline);
   border-radius: 16px;
-  background: var(--lacquer-800);
+  background: var(--tn-card);
   color: var(--tn-text);
 }
 
@@ -1620,9 +1609,9 @@
 .tn .tn-value .hv3-steps li {
   min-width: 0;
   padding: var(--tn-gutter);
-  border: 1px solid var(--lacquer-line);
+  border: 1px solid var(--tn-hairline);
   border-radius: 1rem;
-  background: var(--lacquer-900);
+  background: var(--tn-deep);
 }
 
 .tn .tn-value .hv3-step-visual {
@@ -1724,11 +1713,11 @@
 }
 
 .tn .tn-faq .hv3-faq-item {
-  border-top-color: var(--lacquer-line);
+  border-top-color: var(--tn-hairline);
 }
 
 .tn .tn-faq .hv3-faq-item:last-child {
-  border-bottom: 1px solid var(--lacquer-line);
+  border-bottom: 1px solid var(--tn-hairline);
 }
 
 /*
@@ -1789,9 +1778,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
-  background: var(--lacquer-900);
+  background: var(--tn-deep);
   color: var(--tn-text);
-  border: 1px solid var(--lacquer-line);
+  border: 1px solid var(--tn-hairline);
   border-radius: 1rem;
 }
 
@@ -1847,7 +1836,7 @@
   background-position: center;
   opacity: 0.9;
   pointer-events: none;
-  filter: drop-shadow(0 0 10px rgb(255 190 110 / 0.35));
+  filter: var(--tn-lantern-shadow);
   animation: tn-lantern-float 6s ease-in-out infinite;
 }
 
@@ -1867,11 +1856,11 @@
   0%,
   100% {
     transform: translateY(0) rotate(-2deg);
-    filter: drop-shadow(0 0 8px rgb(255 190 110 / 0.3));
+    filter: var(--tn-lantern-shadow-start);
   }
   50% {
     transform: translateY(-14px) rotate(2deg);
-    filter: drop-shadow(0 0 14px rgb(255 190 110 / 0.55));
+    filter: var(--tn-lantern-shadow-end);
   }
 }
 
@@ -1933,3 +1922,58 @@
   border-radius: 50%;
   object-fit: cover;
 }
+
+/* Light V2: local paper reading surfaces; geometry and state owners stay shared. */
+html[data-theme="light"]:has([data-light-ready]) .tn :focus-visible {
+  outline-color: var(--tn-focus) !important;
+}
+html[data-theme="light"] .tn :is(.tn-hero-copy,.tn-hero-handoff-note,.hv3-story-copy,.tn-explore .hv3-head) {
+  position: relative;
+  isolation: isolate;
+}
+html[data-theme="light"] .tn :is(.tn-hero-copy,.tn-hero-handoff-note,.hv3-story-copy,.tn-explore .hv3-head)::before {
+  content: "";
+  position: absolute;
+  inset: -32px;
+  z-index: -1;
+  background: var(--tn-scrim-floor);
+  /* Black is mask coverage, not visible palette. Feather outside the text box. */
+  mask-image: linear-gradient(90deg, transparent, black 32px, black calc(100% - 32px), transparent), linear-gradient(180deg, transparent, black 32px, black calc(100% - 32px), transparent);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+html[data-theme="light"] .tn .hv3-form {
+  background: var(--tn-panel);
+  border-color: var(--tn-control-border);
+}
+html[data-theme="light"] .tn :is(.hv3-field input,.hv3-field select,.hv3-pill,.hv3-seg,.hv3-seg button,.hv3-tt-arrows button,.hv3-tt-pause,.hv3-tt-filters button) {
+  border-color: var(--tn-control-border);
+}
+.tn .hv3-seg[aria-labelledby="hv3-time-label"] { flex-wrap: wrap; }
+.tn .hv3-seg[aria-labelledby="hv3-time-label"] button { min-width: 0; min-height: 44px; white-space: normal; line-height: 1.3; padding-block: 8px; }
+html[data-theme="light"] .tn :is(.hv3-need-art,.hv3-disc-art,.hv3-about-panel::before,.hv3-need::before) {
+  box-shadow: inset 0 0 0 1px var(--tn-art-frame), var(--tn-art-shadow);
+}
+html[data-theme="light"] .tn .tn-compare :is(.hv3-compare-table,.hv3-compare-card) {
+  background: var(--tn-panel);
+  border-color: var(--tn-control-border);
+}
+html[data-theme="light"] .tn .tn-compare .hv3-compare-table-wrap { background: var(--tn-ink); box-shadow: none; }
+html[data-theme="light"] .tn .hv3-final-cta-inner {
+  position: relative;
+  background: var(--tn-scrim-floor);
+  color: var(--tn-text);
+}
+html[data-theme="light"] .tn .tn-explore-texture { opacity: .1; }
+html[data-theme="light"] .tn :is(.hv3-inverse,.hv3-lacquer,.hv3-usp-dark,.hv3-usp-ink,.hv3-usp-son) {
+  background-color: var(--tn-panel);
+  color: var(--tn-text);
+}
+html[data-theme="light"] .tn :is(.hv3-inverse,.hv3-lacquer) :is(p,a) { color: var(--tn-text-muted); }
+.tn-world-canvas-host { position: absolute; inset: 0; }
+.tn-world-static { display: none; position: absolute; inset: 0; }
+html[data-theme="light"] .tn-world-static { display: block; }
+html[data-theme="light"] .tn[data-troi-nam-world-ready^="light:"] .tn-world-static { opacity: 0; }
+/* The light static plate must remain visible across the complete stage. */
+html[data-theme="light"] .tn :is(.tn-story.hv3,.tn-ticker.hv3,.tn-explore.hv3) { background: transparent; }
+html[data-theme="light"] .tn :is(.hv3-legend,.hv3-shortcuts) { background-color: var(--tn-scrim-floor); }

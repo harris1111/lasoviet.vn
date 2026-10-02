@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import { troiNamAsset } from "../troi-nam-assets";
+import { worldThemeConfig, type WorldThemeConfig } from "./troi-nam-world-theme-config";
 import { applyAnisotropy, loadWorldTexture, type WorldTextures } from "./troi-nam-world-textures";
 
 /**
@@ -28,14 +28,18 @@ const fragmentShader = /* glsl */ `
   varying vec2 vUv;
   uniform sampler2D uMap;
   uniform float uNightWeight;
+  uniform float uLight;
+  uniform vec3 uPhaseTone;
 
   void main() {
     vec4 tex = texture2D(uMap, vUv);
     // The sun's reflection in the painting fades and cools toward a flat
     // moonlit tone as night rises — the same move the karst layers make.
     vec3 nightTone = tex.rgb * vec3(0.22, 0.26, 0.4) * 0.6;
-    vec3 color = mix(tex.rgb, nightTone, uNightWeight);
-    gl_FragColor = vec4(color, tex.a);
+    vec3 color = mix(tex.rgb, mix(nightTone, uPhaseTone, uLight), uNightWeight * mix(1.0, 0.08, uLight));
+    // With flipY=true, vUv.y=1 samples the authored top edge.
+    float seam = mix(1.0, smoothstep(0.0, 0.15, 1.0 - vUv.y), uLight);
+    gl_FragColor = vec4(color, tex.a * seam);
     // A custom ShaderMaterial bypasses the automatic sRGB output conversion
     // that MeshBasicMaterial applies to the surrounding painted layers —
     // without this, W07 renders too dark/washed relative to them.
@@ -51,9 +55,9 @@ export type Water = {
   dispose(): void;
 };
 
-export function createWater(scene: THREE.Scene, { quality, renderer, textures }: { quality: "low" | "high"; renderer: THREE.WebGLRenderer; textures: WorldTextures }): Water {
+export function createWater(scene: THREE.Scene, { quality, renderer, textures, config = worldThemeConfig("dark", quality) }: { quality: "low" | "high"; renderer: THREE.WebGLRenderer; textures: WorldTextures; config?: WorldThemeConfig }): Water {
   const segments = quality === "high" ? 48 : 16;
-  const asset = troiNamAsset("W07");
+  const asset = config.asset("W07");
   const texture = loadWorldTexture(asset.src, textures);
   applyAnisotropy(texture, renderer); // the one plane viewed at a shallow angle
 
@@ -64,6 +68,8 @@ export function createWater(scene: THREE.Scene, { quality, renderer, textures }:
     uTime: { value: 0 },
     uMap: { value: texture },
     uNightWeight: { value: 0 },
+    uLight: { value: config.theme === "light" ? 1 : 0 },
+    uPhaseTone: { value: new THREE.Color(config.phaseTone) },
   };
   const material = new THREE.ShaderMaterial({
     vertexShader,

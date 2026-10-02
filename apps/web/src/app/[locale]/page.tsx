@@ -33,7 +33,7 @@ export default async function Page({ params }: PageProps) {
   const { locale } = await params;
 
   return (
-    <div className="tn">
+    <div className="tn" data-light-ready>
       <SiteHeader locale={locale} currentPath={locale === "en" ? "/en" : "/"} />
       {/*
         Page-scoped (2026-10-01 audit F2): wraps a server-rendered subtree in a

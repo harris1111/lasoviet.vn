@@ -95,18 +95,11 @@ export function TroiNamNeeds({ locale }: { locale: "en" | "vi" }) {
             .tn .tn-needs:has(.hv3-need:nth-child(${index + 1})[aria-pressed="true"]) .hv3-need-art {
               background-image: url("${asset.plate.src}");
             }
-            ${asset.icon ? `
-              .tn .tn-needs .hv3-need:nth-child(${index + 1}) .hv3-need-icon {
-                background-image: url("${asset.icon.src}");
-              }
-              .tn .tn-needs .hv3-need:nth-child(${index + 1}) .hv3-need-icon img {
-                display: none;
-              }
-            ` : ""}
+
           `}
         </style>
       ))}
-      <HomepageV3Needs locale={locale} />
+      <HomepageV3Needs locale={locale} showLegacyArtwork={false} iconOverrides={Object.fromEntries(assets.filter(asset => asset.icon).map(asset => [asset.id, asset.icon!.src]))} />
     </div>
   );
 }

@@ -124,3 +124,11 @@ describe("painted world runtime contracts", () => {
     expect(callbacks[1]!.texture.dispose).toHaveBeenCalled();
   });
 });
+import { lightWorldPixelRatio } from './troi-nam-world-runtime';
+
+it('fits a light 4K drawing buffer into the scene budget without keeping a full-resolution DPR', () => {
+  const ratio = lightWorldPixelRatio(3840, 2160, 1.5, 'high', 44.3 * 1024 * 1024, 50000);
+  expect(ratio).toBeGreaterThan(.5); expect(ratio).toBeLessThan(1);
+  expect(3840 * 2160 * ratio * ratio * 8 + 44.3 * 1024 * 1024 + 50000).toBeLessThan(96 * 1024 * 1024);
+  expect(() => lightWorldPixelRatio(16000, 16000, 1.5, 'high', 44.3 * 1024 * 1024, 50000)).toThrow('budget');
+});
