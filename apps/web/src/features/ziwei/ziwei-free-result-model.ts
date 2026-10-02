@@ -65,7 +65,10 @@ export function buildFreeResultModel(input: {
     (item) => allowedIds.includes(item.id) && !item.isLocked && item.description,
   );
   const fallback = buildFreeInsights(chart, locale, input.displayName).items;
-  const first = details.find((item) => item.id === "life-palace") ?? fallback[0]!;
+  // A02: the first insight is always this chart's own stars/branch/brightness,
+  // never the preview API's generic "life-palace" literal (it does not vary
+  // by chart and was being shown to every guest as if it were personal).
+  const first = fallback[0]!;
   let second: { id: string; title: string; description?: string; evidenceId?: string };
   const authorizedSecond = details.find((item) => item.id === "top-concern")
     ?? details.find((item) => item.id === "body-palace");
