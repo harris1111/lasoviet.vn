@@ -1232,3 +1232,14 @@ html[data-theme="light"]:has([data-light-ready]) .result-tab-button.is-active {
 .part-feedback-guarantee { max-width: 40rem; }
 @media print { .part-feedback { display: none !important; } }
 .topic-report-reader h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.2; margin-block: 16px 24px; }
+.result-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.result-hero-copy {
+  max-width: 650px;
+  color: var(--pearl-400);
+  line-height: 1.7;
+}

@@ -291,6 +291,9 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     expect(html).toContain("Xem các gói luận giải");
     expect(html).toContain("chưa phải bản luận giải đầy đủ");
     expect(html).toContain("/la-so/chart-test-123/chon-luan-giai");
+    expect(html).toContain('class="result-hero-actions"');
+    expect(html).toContain('class="result-hero-copy"');
+    expect(html).toContain("Chọn chủ đề luận giải");
     expect(html).not.toContain("result-paid-report-cta");
     expect(html).not.toContain("79.000 ₫");
     expect(html).not.toContain("240 Lá");
@@ -340,6 +343,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const html = renderToStaticMarkup(page);
 
     expect(html).toContain("/en/la-so/chart-test-123/chon-luan-giai");
+    expect(html).toContain('class="result-hero-actions"');
     expect(html).not.toContain("result-paid-report-cta");
     expect(html).not.toContain("79,000 VND");
   });
