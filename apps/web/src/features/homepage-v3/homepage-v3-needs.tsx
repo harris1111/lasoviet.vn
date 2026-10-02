@@ -15,7 +15,7 @@ const NEED_ART = {
   decision: "/images/lasoviet/v11/son-mai-nga-re-quyet-dinh-homepage.webp",
 } as const;
 
-export function HomepageV3Needs({ locale, compact = false }: { locale: "en" | "vi"; compact?: boolean }) {
+export function HomepageV3Needs({ locale }: { locale: "en" | "vi" }) {
   const t = useTranslations("homepage-v3.needs");
   const [active, setActive] = useState(0);
   const concernCtx = useHomepageV3Concern();
@@ -46,7 +46,7 @@ export function HomepageV3Needs({ locale, compact = false }: { locale: "en" | "v
       <div className="hv3-needs-body">
         <div role="group" aria-label={t("groupLabel")} className="hv3-need-list">
           {NEEDS.map((item, index) => (
-            <button key={item.id} type="button" className="hv3-need" data-need-id={item.id} aria-pressed={active === index} onClick={() => selectNeed(index)}>
+            <button key={item.id} type="button" className="hv3-need" aria-pressed={active === index} onClick={() => selectNeed(index)}>
               <span className="hv3-need-icon">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.icon}`} alt="" width={34} height={34} />
@@ -83,9 +83,7 @@ export function HomepageV3Needs({ locale, compact = false }: { locale: "en" | "v
         </div>
       </div>
 
-      <details className="hv3-discipline-disclosure" open={compact ? undefined : true}>
-      <summary id="bo-mon" hidden={!compact}>{t("lensTitle")}</summary>
-      <div className="hv3-lens-head" hidden={compact}>
+      <div id="bo-mon" className="hv3-lens-head">
         <h3 className="hv3-h3">{t("lensTitle")}</h3>
         <p className="hv3-lead">{t("lensLead")}</p>
       </div>
@@ -97,7 +95,7 @@ export function HomepageV3Needs({ locale, compact = false }: { locale: "en" | "v
               <img
                 src={`${HOMEPAGE_V3_IMAGE_ROOT}/${TUVI_ART}`}
                 srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/lsv-discipline-tu-vi-560.webp 560w, ${HOMEPAGE_V3_IMAGE_ROOT}/${TUVI_ART} 1122w`}
-                sizes={compact ? "80px" : "(max-width: 768px) 50vw, 280px"}
+                sizes="(max-width: 768px) 50vw, 280px"
                 alt=""
                 width={1122}
                 height={1402}
@@ -121,7 +119,7 @@ export function HomepageV3Needs({ locale, compact = false }: { locale: "en" | "v
                 <img
                   src={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.art}`}
                   srcSet={`${HOMEPAGE_V3_IMAGE_ROOT}/${item.art.replace(".webp", "-560.webp")} 560w, ${HOMEPAGE_V3_IMAGE_ROOT}/${item.art} 1122w`}
-                  sizes={compact ? "80px" : "(max-width: 768px) 50vw, 280px"}
+                  sizes="(max-width: 768px) 50vw, 280px"
                   alt=""
                   width={1122}
                   height={1402}
@@ -139,7 +137,6 @@ export function HomepageV3Needs({ locale, compact = false }: { locale: "en" | "v
           </div>
         ))}
       </div>
-      </details>
     </div>
   );
 }

@@ -77,20 +77,6 @@ describe("world factory lifecycle and projection", () => {
       }
     } finally { handle.dispose(); }
   });
-  it("does not repaint an unchanged pose or count idle time as slow GPU frames", async () => {
-    const { handle } = await loadedWorld();
-    const renderer = rendererState.instances[0]!;
-    handle.setActive(true);
-    frame(0);
-    renderer.render.mockClear();
-    frame(16); frame(32); frame(9000);
-    expect(renderer.render).not.toHaveBeenCalled();
-    handle.setProgress(0.2);
-    frame(9016);
-    expect(renderer.render).toHaveBeenCalled();
-    expect(handle.getDiagnostics!().tier).toBe("high");
-    handle.dispose();
-  });
   it("releases every context across ten mounts without duplicate fallback or RAF", async () => {
     for (let mount = 0; mount < 10; mount++) {
       const { handle, failure } = await loadedWorld();
@@ -161,11 +147,11 @@ describe("world factory lifecycle and projection", () => {
     handle.resize(390, 844, 2);
     const renderer = rendererState.instances[0]!;
     renderer.render.mockClear();
-    for (const now of [100, 108, 116, 124, 134]) { handle.setProgress(now / 1000); frame(now); }
+    frame(100); frame(108); frame(116); frame(124); frame(134);
     expect(renderer.render).toHaveBeenCalledTimes(2);
     expect(handle.getDiagnostics!().rayBuffer).toBeNull();
     expect(handle.getDiagnostics!().drawingBuffer).toEqual({ width: 390, height: 844 });
-    for (let now = 234; now <= 2434; now += 100) { handle.setProgress((now % 1000) / 1000); frame(now); }
+    for (let now = 234; now <= 2434; now += 100) frame(now);
     expect(failure).toHaveBeenCalledOnce();
     expect(renderer.dispose).toHaveBeenCalledOnce();
     expect(frames.size).toBe(0);

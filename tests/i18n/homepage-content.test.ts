@@ -32,10 +32,12 @@ describe("homepage content and structure requirements", () => {
 
     expect(blockMatches).toEqual([
       "story",
+      "ticker",
       "explore",
       "needs",
       "compare",
       "testimonials",
+      "usp",
       "value",
       "faq",
       "about",

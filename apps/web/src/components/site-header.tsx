@@ -56,7 +56,6 @@ export type SiteHeaderProps = {
   contactPath?: string;
   accentColor?: string;
   account?: HeaderAccountUser | null;
-  chartCtaLabel?: string;
 };
 
 function route(locale: "en" | "vi", path: string) {
@@ -89,7 +88,6 @@ export function SiteHeader({
   contactPath = "/lien-he",
   accentColor,
   account,
-  chartCtaLabel,
 }: SiteHeaderProps) {
   const contactHref = route(locale, contactPath);
   const isVietnamese = locale === "vi";
@@ -115,7 +113,7 @@ export function SiteHeader({
 
   const localeSwitcherHref = isVietnamese
     ? (currentPath ? (currentPath === "/" ? "/en" : "/en" + currentPath) : "/en")
-    : (currentPath ? (currentPath === "/en" ? "/" : currentPath.replace(/^\/en/, "") || "/") : "/");
+    : (currentPath ? (currentPath === "/en" ? "/vi" : "/vi" + currentPath.replace(/^\/en/, "")) : "/vi");
 
   return React.createElement(
     React.Fragment,
@@ -211,8 +209,8 @@ export function SiteHeader({
           ),
           React.createElement(
             Link,
-            { className: "button button-small", href: chartCtaLabel ? "#lap-la-so" : route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
-            chartCtaLabel ?? (isVietnamese ? "Lập lá số ngay" : "Build my chart"),
+            { className: "button button-small", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
+            isVietnamese ? "Lập lá số ngay" : "Build my chart",
           ),
           React.createElement(
             "details",
@@ -269,8 +267,8 @@ export function SiteHeader({
               ),
               React.createElement(
                 Link,
-                { className: "button", href: chartCtaLabel ? "#lap-la-so" : route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
-                chartCtaLabel ?? (isVietnamese ? "Lập lá số ngay" : "Build my chart"),
+                { className: "button", href: route(locale, isDiscipline ? "/tu-vi" : "/tao-la-so/tu-vi") },
+                isVietnamese ? "Lập lá số ngay" : "Build my chart",
               ),
             ),
           ),
