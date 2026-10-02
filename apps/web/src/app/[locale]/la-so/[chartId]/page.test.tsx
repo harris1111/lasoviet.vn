@@ -300,6 +300,39 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     expect(html).not.toMatch(/ZIWEI-[A-Z]+/);
   });
 
+  // Audit finding 5 (2026-10-02): the Chủ đề tab rendered model.palaces.map(...),
+  // the exact same twelve rows as the 12 cung tab, so it answered no real life
+  // question. Lightest fix: show the two real multi-palace topics the product
+  // actually sells (packages/contracts/src/ziwei-topic-deep-dive-v1.ts), not a
+  // new topic-catalog module.
+  it("shows the two real multi-palace topics in Chủ đề, not a second twelve-palace map", async () => {
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    const html = renderToStaticMarkup(page);
+
+    expect(html).toContain("Luận giải chuyên sâu Công việc &amp; Tài lộc");
+    expect(html).toContain("Luận giải chuyên sâu Tình duyên &amp; Hôn nhân");
+
+    const topicsPanel = html.match(/<section[^>]*id="panel-topics"[\s\S]*?<\/section>/)?.[0];
+    expect(topicsPanel).toBeTruthy();
+    expect((topicsPanel!.match(/<article/g) ?? []).length).toBe(2);
+  });
+
+  // Audit finding 2 (2026-10-02): the completion/bridge block carried
+  // data-tab="topics", so on desktop (CSS hides every [data-tab] panel except
+  // the active one) it was invisible unless the reader happened to click into
+  // the Chủ đề tab — finishing Tổng quan showed no next step at all. Lightest
+  // fix: one data-tabs="overview topics" marker plus the matching CSS rule,
+  // not a layout rebuild. Still exactly one completion node (A08's own
+  // acceptance bar), now reachable from both tabs it is meant to close.
+  it("makes the one completion node reachable from both the Overview and Chủ đề desktop tabs", async () => {
+    const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
+    const html = renderToStaticMarkup(page);
+
+    expect((html.match(/data-testid="fd109-completion"/g) ?? []).length).toBe(1);
+    expect(html).toContain('data-free-result-block="completion" data-tabs="overview topics" data-testid="fd109-completion"');
+    expect(html).not.toMatch(/data-free-result-block="completion"[^>]*\sdata-tab="topics"/);
+  });
+
   it("uses the localized English offer destination without the old paid section", async () => {
     const page = await ZiweiChartResultPage({
       params: Promise.resolve({ chartId, locale: "en" }),

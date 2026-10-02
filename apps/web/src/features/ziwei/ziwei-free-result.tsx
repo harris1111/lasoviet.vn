@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { NormalizedZiweiChartV1, ZiweiEvidenceViewV1 } from "@lasoviet/contracts";
+import {
+  CANONICAL_TOPIC_DEEP_DIVE_TITLES_EN, CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI,
+  TOPIC_PALACE_SCOPES, ZIWEI_TOPIC_DEEP_DIVE_IDS,
+} from "@lasoviet/contracts";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportScoreExplainer } from "../reports/report-chart-visuals";
 import { PartFeedback } from "../reports/part-feedback";
@@ -192,13 +196,29 @@ export function ZiweiFreeResult({
           <section className="fd109-block" id="panel-topics" data-free-result-block="topics" data-tab="topics" tabIndex={-1}>
             <p className="eyebrow">08</p><h2>{t("tabs.topics")}</h2>
             <p>{t("freeResult.topicDescription")}</p>
+            {/* Audit finding 5: this used to repeat the exact twelve-palace map from
+                the 12 cung tab. These are the two real multi-palace deep dives the
+                product sells (packages/contracts/src/ziwei-topic-deep-dive-v1.ts);
+                each card previews its primary palace through the existing dialog. */}
             <div className="fd109-map">
-              {model.palaces.map((palace) => <article key={palace.id}>
-                <h3>{palace.name}</h3><p>{palace.facts}</p>
-                <button type="button" onClick={(event) => openPreview(palace.id.split(".").pop()!, event.currentTarget, "topics")}>
-                  {t("freeResult.preview")} · {palace.name}
-                </button>
-              </article>)}
+              {ZIWEI_TOPIC_DEEP_DIVE_IDS.map((topicId) => {
+                const scope = TOPIC_PALACE_SCOPES[topicId];
+                const title = (locale === "vi" ? CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI : CANONICAL_TOPIC_DEEP_DIVE_TITLES_EN)[topicId];
+                const scopePalaces = [...scope.primaryPalaces, ...scope.supportingPalaces]
+                  .map((id) => model.palaces.find((palace) => palace.id === id))
+                  .filter((palace): palace is NonNullable<typeof palace> => !!palace);
+                const primaryPalace = scopePalaces[0];
+                if (!primaryPalace) return null;
+                return (
+                  <article key={topicId}>
+                    <h3>{title}</h3>
+                    <p>{scopePalaces.map((palace) => palace.name).join(" · ")}</p>
+                    <button type="button" onClick={(event) => openPreview(primaryPalace.id.split(".").pop()!, event.currentTarget, "topics")}>
+                      {t("freeResult.preview")} · {title}
+                    </button>
+                  </article>
+                );
+              })}
             </div>
           </section>
           <section className="fd109-block" id="panel-evidence" data-free-result-block="evidence" data-tab="evidence" tabIndex={-1}>
@@ -211,7 +231,13 @@ export function ZiweiFreeResult({
               </div>
             ))}
           </section>
-          <section className="fd109-block fd109-completion" data-free-result-block="completion" data-tab="topics"
+          {/* Audit finding 2: data-tab="topics" made this invisible on desktop
+              unless the reader happened to be on the Chủ đề tab — finishing
+              Tổng quan showed no next step at all. data-tabs (plural) is matched
+              by a `~=` CSS rule instead of the single-tab `data-tab` rule, so
+              this one node stays reachable from both tabs without being
+              duplicated (A08 still wants exactly one completion node). */}
+          <section className="fd109-block fd109-completion" data-free-result-block="completion" data-tabs="overview topics"
             data-testid="fd109-completion" ref={completionRef}>
             <p className="eyebrow">09 · {t("freeResult.complete")}</p>
             <h2>{t("freeResult.bridge")}</h2>
