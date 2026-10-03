@@ -14,7 +14,7 @@ Five stacked PRs off `master @ 066479f` (merge in this order; each is based on t
 | #265 | B15–B17 | Read-only reader, private endpoint + web loader, mobile-first gift UI |
 | #266 | B18–B19 | Optional chart-ready request hook, API composition |
 | #267 | B20–B21 | End-to-end preflight test, evidence, this handoff |
-| #268 | owner decisions | English gifts (reader's locale), engagement-based guest trust, labels parity test |
+| #269 | owner decisions | English gifts (reader's locale), engagement-based guest trust, labels parity test |
 
 Diff vs base (through #266): 64 files, +4,515 / −86. **No migration was added** (`git diff 066479f -- packages/database/drizzle` is empty); migration `0055_free_ai` already shipped with PR #258. **No paid file changed**
 (`packages/backend/src/ai`, `…/reports`, `…/outbox` diff is empty).
