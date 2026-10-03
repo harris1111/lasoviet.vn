@@ -288,7 +288,9 @@
         "ai": "Monthly subscriptions required; you absorb the risk of accuracy.",
         "thay": "Costly session fees ($20-$100+); appointment queues limit follow-ups."
       }
-    }
+    },
+    "expand": "Show every reason",
+    "collapse": "Collapse"
   },
   "testimonials": {
     "eyebrow": "Honest words from readers",

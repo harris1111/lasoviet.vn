@@ -1263,171 +1263,318 @@
   }
 }
 
-/* Compare: subtle paper texture behind the existing disclosure and data. */
-.tn .tn-compare {
-  isolation: isolate;
+/*
+ * Compare board (troi-nam-compare-board.tsx). One surface only: the section sits on the page
+ * ink, the board is a single raised panel, and nothing inside it paints its own card on top
+ * (the previous version stacked a texture image, a head card, three point cards and a details
+ * panel). Lá Số Việt is the one tinted, framed column; the other ways stay muted.
+ */
+.tn .tnc-head {
+  max-width: 46rem;
 }
 
-.tn .tn-compare-texture {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.06;
-  pointer-events: none;
+.tn .tnc-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: var(--tn-gutter) 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.tn .tn-compare .hv3-compare-head {
-  padding: var(--tn-gutter);
+.tn .tnc-proof li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem 0.4rem 0.6rem;
+  border: 1px solid var(--lacquer-line);
+  border-radius: 999px;
+  color: var(--tn-text);
+  font-size: 0.95rem;
+}
+
+.tn .tnc-proof svg {
+  color: var(--tn-gold);
+  flex: none;
+}
+
+.tn .tnc-board {
+  margin-top: var(--tn-gutter);
+  padding: clamp(0.75rem, 2vw, 1.5rem);
   background: var(--lacquer-900);
-  border-color: var(--lacquer-line);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 20px;
 }
 
-.tn .tn-compare .hv3-compare-points {
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--tn-gutter);
+.tn .tnc-table {
+  display: none;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
-.tn .tn-compare .hv3-compare-points span {
-  padding: var(--tn-gutter);
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
+.tn .tnc-table th,
+.tn .tnc-table td {
+  padding: 0.9rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--lacquer-line);
+  color: var(--tn-text-muted);
+  font-weight: 400;
 }
 
-.tn .tn-compare .hv3-compare-points svg {
+.tn .tnc-table thead th,
+.tn .tnc-table thead td,
+.tn .tnc-table tfoot td {
+  border-top: 0;
+}
+
+.tn .tnc-table thead th {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--tn-text);
+  vertical-align: bottom;
+}
+
+.tn .tnc-table tbody th {
+  width: 19%;
+  padding-left: 0;
+}
+
+.tn .tnc-axis {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--tn-text);
+  font-weight: 600;
+}
+
+.tn .tnc-axis svg {
+  flex: none;
   color: var(--tn-gold);
 }
 
-.tn .tn-compare .hv3-compare-details {
-  border-color: var(--lacquer-line);
+.tn .tnc-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
 }
 
-.tn .tn-compare .hv3-compare-details > summary {
+.tn .tnc-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-top: 0.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--lacquer-line);
+  color: var(--tn-text-muted);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.tn .tnc-mark[data-kind="star"] {
+  border-color: var(--tn-gold);
   color: var(--tn-gold-light);
 }
 
-.tn .tn-compare .hv3-tabs {
-  flex-wrap: wrap;
-  overflow-x: visible;
+.tn .tnc-mark[data-kind="yes"] {
+  border-color: var(--tn-gold);
+  background: var(--tn-gold);
+  color: var(--lacquer-900);
+  font-weight: 700;
 }
 
-.tn .tn-compare .hv3-tabs button {
-  flex: 1 1 auto;
+/* The other ways: two lines each until the reader asks for the rest. */
+.tn .tnc-table td:not([data-col="lsv"]) .tnc-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.tn .tnc-board[data-open="true"] .tnc-table td:not([data-col="lsv"]) .tnc-text {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+/* Lá Số Việt: the one framed, tinted column. */
+.tn .tnc-table [data-col="lsv"] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tn-gold) 16%, transparent), color-mix(in srgb, var(--tn-gold) 7%, transparent));
+  border-left: 1px solid color-mix(in srgb, var(--tn-gold) 55%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--tn-gold) 55%, transparent);
+  border-top-color: color-mix(in srgb, var(--tn-gold) 25%, transparent);
+  color: var(--tn-text);
+  font-weight: 500;
+}
+
+.tn .tnc-table thead th[data-col="lsv"] {
+  border-top: 3px solid var(--tn-gold);
+  border-radius: 14px 14px 0 0;
+  padding-top: 1.1rem;
+  font-size: 1.3rem;
+  color: var(--tn-gold-light);
+}
+
+.tn .tnc-table tfoot td[data-col="lsv"] {
+  border-bottom: 1px solid color-mix(in srgb, var(--tn-gold) 55%, transparent);
+  border-radius: 0 0 14px 14px;
+  padding-bottom: 1.1rem;
+}
+
+.tn .tnc-foot-note {
+  vertical-align: middle;
+}
+
+.tn .tnc-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   white-space: normal;
-  padding-block: calc(var(--tn-gutter) / 4);
-  color: var(--tn-text);
-  border-color: var(--lacquer-line);
+  text-align: center;
 }
 
-.tn .tn-compare .hv3-tabs button[aria-pressed="true"] {
-  background: var(--tn-gold-light);
-  color: var(--tn-ink);
-  border-color: var(--tn-gold-light);
+.tn .tnc-toggle {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--lacquer-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--tn-gold-light);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
-.tn .tn-compare .hv3-cmp-card {
-  color: var(--tn-text);
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-cmp-top {
-  background: var(--lacquer-700);
+.tn .tnc-toggle:hover {
   border-color: var(--tn-gold);
 }
 
-.tn .tn-compare .hv3-cmp-card-title,
-.tn .tn-compare .hv3-cmp-value {
+/* Phones and tablets: tabs and cards. */
+.tn .tnc-mobile {
+  display: block;
+}
+
+.tn .tnc-tabs {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.tn .tnc-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tn .tnc-tabs button {
+  flex: none;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--lacquer-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--tn-text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tn .tnc-tabs button[aria-pressed="true"] {
+  background: var(--tn-gold-light);
+  border-color: var(--tn-gold-light);
+  color: var(--lacquer-900);
+  font-weight: 600;
+}
+
+.tn .tnc-cards {
+  display: grid;
+  gap: 0;
+  margin-top: 1rem;
+}
+
+.tn .tnc-card {
+  padding: 1rem 0;
+  border-top: 1px solid var(--lacquer-line);
+}
+
+.tn .tnc-card p {
+  margin: 0;
+  font-size: 0.97rem;
+  line-height: 1.55;
+  color: var(--tn-text-muted);
+}
+
+.tn .tnc-card-top {
+  margin-top: 0;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--tn-gold) 55%, transparent);
+  border-top: 3px solid var(--tn-gold);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tn-gold) 14%, transparent), color-mix(in srgb, var(--tn-gold) 6%, transparent));
+}
+
+.tn .tnc-card-top p {
   color: var(--tn-text);
 }
 
-.tn .tn-compare .hv3-cmp-axis,
-.tn .tn-compare .hv3-cmp-fix strong {
+.tn .tnc-card-title {
+  margin-bottom: 0.35rem !important;
+  font-family: var(--font-display);
+  font-size: 1.15rem !important;
+  font-weight: 600;
+  color: var(--tn-gold-light) !important;
+}
+
+.tn .tnc-card-axis {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem !important;
+  font-weight: 600;
+  color: var(--tn-text) !important;
+}
+
+.tn .tnc-card-axis svg {
+  color: var(--tn-gold);
+  flex: none;
+}
+
+.tn .tnc-card-fix {
+  margin-top: 0.6rem !important;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--tn-gold);
+  font-size: 0.9rem !important;
+}
+
+.tn .tnc-card-fix strong {
   color: var(--tn-gold-light);
 }
 
-.tn .tn-compare .hv3-cmp-fix {
-  color: var(--tn-text-muted);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-compare-table th,
-.tn .tn-compare .hv3-compare-table td {
-  color: var(--tn-text-muted);
-  border-color: var(--lacquer-line);
-  overflow-wrap: anywhere;
-}
-
-.tn .tn-compare .hv3-compare-table thead th,
-.tn .tn-compare .hv3-compare-table tbody th {
-  color: var(--tn-text);
-}
-
-.tn .tn-compare .hv3-compare-table [data-col="lsv"] {
-  color: var(--tn-text);
-  background: var(--lacquer-700);
-  border-color: var(--lacquer-line);
-  box-shadow: inset 3px 0 0 var(--tn-gold);
-}
-
-.tn .tn-compare .hv3-cmp-mark {
-  color: var(--son);
-}
-
-.tn .tn-compare .hv3-cmp-mark[data-strength="true"],
-.tn .tn-compare .hv3-cmp-mark[data-lsv="true"] {
-  color: var(--tn-gold-light);
+.tn .tnc-mobile .tnc-cta {
+  margin-top: 1rem;
+  width: 100%;
 }
 
 @media (min-width: 880px) {
-  .tn .tn-needs .hv3-needs-body {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
+  .tn .tnc-table {
+    display: table;
   }
 
-  .tn .tn-needs .hv3-need-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  /* The detail panel becomes a wide band under the four cards: story on the left, chips and CTA on the right. */
-  .tn .tn-needs .hv3-need-detail {
-    display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    grid-template-areas: "path chips" "path actions";
-    align-items: start;
-    column-gap: calc(var(--tn-gutter) * 1.5);
-  }
-
-  .tn .tn-needs .hv3-need-path {
-    grid-area: path;
-  }
-
-  .tn .tn-needs .hv3-need-detail .hv3-chips {
-    grid-area: chips;
-  }
-
-  .tn .tn-needs .hv3-need-detail .hv3-need-actions {
-    grid-area: actions;
-    margin-top: 0;
-  }
-
-  .tn .tn-needs .hv3-disciplines {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .tn .tn-compare .hv3-compare-points {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  /* Preserve v3's 1180px table threshold; cards remain at narrow desktops. */
-  .tn .tn-compare .hv3-compare-head {
-    max-width: 60rem;
+  .tn .tnc-mobile {
+    display: none;
   }
 }
-
-
 
 /* ---- PLAN2-C: Testimonials, Usp ---- */
 /* Append only. Original v3 components, reader data and avatar rendering stay intact. */

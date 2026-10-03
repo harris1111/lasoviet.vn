@@ -288,7 +288,9 @@
         "ai": "Tốn phí thuê bao tháng; người dùng phải tự gánh rủi ro tự kiểm chứng.",
         "thay": "Chi phí đắt đỏ từ trăm nghìn đến tiền triệu; khó đặt lịch để hỏi thêm."
       }
-    }
+    },
+    "expand": "Xem đầy đủ lý do",
+    "collapse": "Thu gọn"
   },
   "testimonials": {
     "eyebrow": "Lời hồi đáp chân thực",
