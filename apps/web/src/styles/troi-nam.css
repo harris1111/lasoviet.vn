@@ -971,8 +971,34 @@
 }
 
 .tn .tn-needs .hv3-need-list {
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--tn-gutter);
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.tn .tn-needs .hv3-need-list::-webkit-scrollbar {
+  display: none;
+}
+
+.tn .tn-needs .hv3-need-list > .hv3-need {
+  flex: 0 0 min(76%, 20rem);
+}
+
+@media (min-width: 600px) {
+  .tn .tn-needs .hv3-need-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tn-gutter);
+    overflow: visible;
+  }
+
+  .tn .tn-needs .hv3-need-list > .hv3-need {
+    flex: none;
+  }
 }
 
 /*
@@ -1003,23 +1029,24 @@
 }
 
 /*
- * Plates are portrait (2:3). The card is a horizontal row: the plate fills the left edge at its
- * own ratio (card min-height = 1.5 x plate width), so almost none of the picture is cropped and
- * text keeps the rest of the row. Focal point per plate is set in troi-nam-needs.tsx.
+ * Image-first cards. Each plate is a 1:1 crop centred on its subject (see troi-nam-needs.tsx),
+ * shown full width on top of the card; the title and question sit below. Phones scroll the four
+ * cards sideways with snap (the next card peeks in as the affordance); from 600 px they form a
+ * 2x2 grid and from 880 px a single row of four, with the detail panel as a wide band below.
  */
 .tn .tn-needs .hv3-need {
-  --plate-w: clamp(6rem, 27vw, 8.5rem);
   position: relative;
   overflow: hidden;
   flex-direction: column;
+  align-items: stretch;
   min-width: 0;
-  min-height: calc(var(--plate-w) * 1.5);
-  gap: calc(var(--tn-gutter) / 2);
-  padding: var(--tn-gutter) var(--tn-gutter) var(--tn-gutter) calc(var(--plate-w) + var(--tn-gutter));
+  gap: 0;
+  padding: 0;
   color: var(--tn-text);
   background: var(--lacquer-800);
   border: 1px solid var(--lacquer-line);
   touch-action: manipulation;
+  scroll-snap-align: start;
 }
 
 .tn .tn-needs .hv3-need:active {
@@ -1028,25 +1055,32 @@
 
 .tn .tn-needs .hv3-need::before {
   content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--plate-w);
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   background-size: cover;
-  background-position: center 62%;
+  background-position: center;
   background-repeat: no-repeat;
-  border-right: 1px solid var(--lacquer-line);
-  pointer-events: none;
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-need-text {
+  padding: calc(var(--tn-gutter) * 0.75) var(--tn-gutter) var(--tn-gutter);
 }
 
 .tn .tn-needs .hv3-need[aria-pressed="true"] {
-  padding: var(--tn-gutter) var(--tn-gutter) var(--tn-gutter) calc(var(--plate-w) + var(--tn-gutter));
+  padding: 0;
   border: 1px solid var(--tn-gold-light);
   background: var(--lacquer-700);
   box-shadow: inset 0 0 0 1px var(--tn-gold-light);
 }
 
 .tn .tn-needs .hv3-need-icon {
-  background-color: var(--lacquer-900);
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1;
+  background-color: rgba(15, 13, 10, 0.78);
   border-color: var(--lacquer-line);
   background-size: 34px 34px;
   background-position: center;
@@ -1066,15 +1100,9 @@
   border-color: var(--lacquer-line);
 }
 
+/* The card already carries the picture; repeating it in the detail panel only pushed the text down. */
 .tn .tn-needs .hv3-need-art {
-  /* Near-square on phones, 4:5 on wider screens: shows 67% / 83% of the 2:3 plate instead of a thin strip. */
-  height: auto;
-  aspect-ratio: 1 / 1;
-  margin: calc(-1 * var(--tn-gutter)) calc(-1 * var(--tn-gutter)) 0;
-  background-color: var(--lacquer-800);
-  background-position: center 62%;
-  background-size: cover;
-  background-repeat: no-repeat;
+  display: none;
 }
 
 /* Decorative detail image follows aria-pressed via the wrapper's asset rules. */
@@ -1282,12 +1310,34 @@
 
 @media (min-width: 880px) {
   .tn .tn-needs .hv3-needs-body {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
   }
 
-  .tn .tn-needs .hv3-need-art {
-    aspect-ratio: 4 / 5;
+  .tn .tn-needs .hv3-need-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* The detail panel becomes a wide band under the four cards: story on the left, chips and CTA on the right. */
+  .tn .tn-needs .hv3-need-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-areas: "path chips" "path actions";
+    align-items: start;
+    column-gap: calc(var(--tn-gutter) * 1.5);
+  }
+
+  .tn .tn-needs .hv3-need-path {
+    grid-area: path;
+  }
+
+  .tn .tn-needs .hv3-need-detail .hv3-chips {
+    grid-area: chips;
+  }
+
+  .tn .tn-needs .hv3-need-detail .hv3-need-actions {
+    grid-area: actions;
+    margin-top: 0;
   }
 
   .tn .tn-needs .hv3-disciplines {
