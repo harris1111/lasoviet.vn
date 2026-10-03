@@ -78,3 +78,13 @@ Verification: `pnpm vitest run tests/free-ai packages/backend/src/ziwei` — 13 
 Not verified: provider token-bound proof (open gate); real provider behaviour; worker scheduling of `settleAbandoned`.
 Remaining concern: a worker killed between fence and settlement burns the slot by design.
 Next dependency-ready card: B11.
+
+## B11 — Deletion-safe publication and private retention
+State: VERIFIED (real Postgres), library only — not wired.
+Behavior changed: `createFreePalaceArtifactRepository.publish` writes the artifact and moves `dispatching → ready` in one transaction under the coordination lock, comparing the deletion generation, TTL, settled `resolved` outcome and attempt id; a deletion that commits in between makes it fail. Guest expiry purge, immediate guest deletion and final account purge now bump the chart `deletion_generation`, set `deleted_at`, null every private payload and cancel unfenced requests (hold released), keeping fenced exposure and non-content accounting.
+Files changed: packages/backend/src/ziwei/free-palace-artifact.repository.ts, packages/backend/src/privacy/anonymous-retention.repository.ts, packages/backend/src/privacy/deletion.repository.ts, tests/free-ai/deletion.integration.test.ts.
+Allowlist drift: none beyond ADDENDA notes.
+Verification: `pnpm vitest run packages/backend/src/privacy tests/privacy tests/free-ai tests/workspace packages/database packages/backend/src/ziwei` — all passed (free-ai suite incl. 9 deletion tests: matrix rows 26–30); `apps/api tests/privacy` 85/85 passed after building backend. Two apps/api suites cannot load here because `@lasoviet/engine-adapters` is not built in this worktree (environmental, unrelated).
+Not verified: row 31 (endpoint 404 indistinguishability, B15/B16); single-profile soft delete path.
+Remaining concern: see ADDENDA B11.
+Next dependency-ready card: B12 (batch 2).

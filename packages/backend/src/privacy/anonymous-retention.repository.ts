@@ -5,8 +5,14 @@ import {
   authAnonymousActors,
   authUsers,
   enqueueOutbox,
+  lockFreeAiCoordination,
   type Database,
 } from "@lasoviet/database";
+
+import {
+  collectFreePalaceChartVersionIds,
+  purgeFreePalaceForChartVersions,
+} from "../ziwei/free-palace-artifact.repository.js";
 
 import type {
   AnonymousRetentionError,
@@ -23,6 +29,12 @@ async function deleteActor(
   | { ok: false; error: AnonymousRetentionError }
 > {
   return database.transaction(async (transaction) => {
+    // Free-palace gift payloads follow the guest actor. The coordination lock comes first (same
+    // order as admission and publication) and the chart versions are read before the cascade.
+    await lockFreeAiCoordination(transaction);
+    const chartVersionIds = await collectFreePalaceChartVersionIds(transaction, {
+      anonymousActorId: actorId,
+    });
     const [actor] = await transaction
       .delete(authAnonymousActors)
       .where(
@@ -57,6 +69,7 @@ async function deleteActor(
       return { ok: false, error: "ANONYMOUS_NOT_EXPIRED" };
     }
 
+    await purgeFreePalaceForChartVersions(transaction, chartVersionIds, now);
     await enqueueOutbox(transaction, {
       schemaVersion: 1,
       type: "anonymous.purge.requested.v1",
