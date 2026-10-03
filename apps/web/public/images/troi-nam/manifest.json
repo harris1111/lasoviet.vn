@@ -498,5 +498,29 @@
     "src": "/images/troi-nam/vat-the/hat-sao/hat-sao-6.webp",
     "width": 256,
     "height": 256
+  },
+  "S01.vuong": {
+    "src": "/images/troi-nam/tranh/guong-dong-soi-troi-sao-thau-hieu-chinh-minh-vuong-800w.webp",
+    "srcSet": "/images/troi-nam/tranh/guong-dong-soi-troi-sao-thau-hieu-chinh-minh-vuong-420w.webp 420w, /images/troi-nam/tranh/guong-dong-soi-troi-sao-thau-hieu-chinh-minh-vuong-640w.webp 640w, /images/troi-nam/tranh/guong-dong-soi-troi-sao-thau-hieu-chinh-minh-vuong-800w.webp 800w",
+    "width": 800,
+    "height": 800
+  },
+  "S03.vuong": {
+    "src": "/images/troi-nam/tranh/duong-da-len-nui-den-long-cong-viec-tien-bac-vuong-800w.webp",
+    "srcSet": "/images/troi-nam/tranh/duong-da-len-nui-den-long-cong-viec-tien-bac-vuong-420w.webp 420w, /images/troi-nam/tranh/duong-da-len-nui-den-long-cong-viec-tien-bac-vuong-640w.webp 640w, /images/troi-nam/tranh/duong-da-len-nui-den-long-cong-viec-tien-bac-vuong-800w.webp 800w",
+    "width": 800,
+    "height": 800
+  },
+  "S02.vuong": {
+    "src": "/images/troi-nam/tranh/hai-thuyen-giay-ho-sen-hoang-hon-tinh-duyen-vuong-800w.webp",
+    "srcSet": "/images/troi-nam/tranh/hai-thuyen-giay-ho-sen-hoang-hon-tinh-duyen-vuong-420w.webp 420w, /images/troi-nam/tranh/hai-thuyen-giay-ho-sen-hoang-hon-tinh-duyen-vuong-640w.webp 640w, /images/troi-nam/tranh/hai-thuyen-giay-ho-sen-hoang-hon-tinh-duyen-vuong-800w.webp 800w",
+    "width": 800,
+    "height": 800
+  },
+  "S04.vuong": {
+    "src": "/images/troi-nam/tranh/ruong-bac-thang-bong-trang-van-han-nam-nay-vuong-800w.webp",
+    "srcSet": "/images/troi-nam/tranh/ruong-bac-thang-bong-trang-van-han-nam-nay-vuong-420w.webp 420w, /images/troi-nam/tranh/ruong-bac-thang-bong-trang-van-han-nam-nay-vuong-640w.webp 640w, /images/troi-nam/tranh/ruong-bac-thang-bong-trang-van-han-nam-nay-vuong-800w.webp 800w",
+    "width": 800,
+    "height": 800
   }
 }

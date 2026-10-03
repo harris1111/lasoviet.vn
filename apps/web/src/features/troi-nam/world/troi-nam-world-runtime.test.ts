@@ -7,7 +7,7 @@ import { createWorldTextures } from "./troi-nam-world-textures";
 import type { WorldHandle } from "./troi-nam-world-types";
 
 function mockHandle(): WorldHandle {
-  return { resize: vi.fn(), setProgress: vi.fn(), setChartTarget: vi.fn(), setActive: vi.fn(), dispose: vi.fn() };
+  return { resize: vi.fn(), setProgress: vi.fn(), setChartTarget: vi.fn(), setTextDim: vi.fn(), setActive: vi.fn(), dispose: vi.fn() };
 }
 
 describe("painted world runtime contracts", () => {

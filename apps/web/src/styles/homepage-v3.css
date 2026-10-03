@@ -127,6 +127,20 @@ html[data-theme="light"]:has([data-light-ready]) .hv3 {
 .hv3-cta { height: 56px; border: 0; border-radius: 14px; background: var(--action); color: var(--action-t); font-size: 17px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; transition: background-color 120ms ease, transform 120ms ease; }
 .hv3-cta:hover { background: var(--action-h); }
 .hv3-cta:active { transform: scale(0.99); }
+.hv3-cta:disabled { opacity: 0.72; cursor: progress; transform: none; }
+/* One-step entry: concern chips, "for someone else" disclosure and the consent line */
+.hv3-form .hv3-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.hv3-chip { min-height: 44px; padding: 6px 16px; border: 1px solid var(--hair); border-radius: 12px; background: var(--inset); color: var(--text); font-size: 15px; font-weight: 500; line-height: 1.2; cursor: pointer; touch-action: manipulation; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
+.hv3-chip[aria-pressed="true"] { background: var(--seg-bg); color: var(--seg-t); border-color: var(--action); }
+.hv3-form button.hv3-link { align-self: flex-start; background: none; border: 0; padding: 0; color: var(--action); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; text-align: left; }
+.hv3-other { display: flex; flex-direction: column; gap: 12px; padding: 14px; border: 1px solid var(--hair); border-radius: 14px; background: var(--inset); }
+.hv3-consent { align-items: flex-start; gap: 12px; }
+.hv3-consent input { flex: none; width: 22px; height: 22px; margin-top: 2px; }
+.hv3-consent a { text-decoration: underline; text-underline-offset: 2px; }
+.hv3-form .hv3-hint { flex-basis: auto; }
+/* On phones the CTA stays in view while the form is on screen, so the primary action never hides below the fold */
+@media (max-width: 767px) { .hv3-form .hv3-cta { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 5; box-shadow: 0 10px 24px rgba(15, 13, 10, 0.45); } }
+@media (prefers-reduced-motion: reduce) { .hv3-chip, .hv3-cta { transition: none; } }
 
 /* Hero chart: painted art plus the live 12-branch chart, revealed by wizard stage (see homepage-v3-hero-stage.ts).
    Desktop: right column. Mobile: a strip between the intro and the form that the visitor can expand. */

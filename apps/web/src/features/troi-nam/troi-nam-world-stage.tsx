@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { textDim } from "./troi-nam-motion-math";
 import { initializeWorld } from "./world/troi-nam-world-runtime";
 
 import type { WorldHandle, WorldQuality } from "./world/troi-nam-world-types";
@@ -81,6 +82,22 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       });
     }
 
+    // Text blocks that sit on the painted sky: the story copy and the explore heading + shortcut row.
+    function updateTextDim() {
+      if (!handle) return;
+      const blocks: Array<{ top: number; bottom: number }> = [];
+      const story = stage!.querySelector<HTMLElement>(".tn-story .hv3-story-copy");
+      if (story) blocks.push(story.getBoundingClientRect());
+      const head = stage!.querySelector<HTMLElement>(".tn-explore .hv3-head");
+      const shortcuts = stage!.querySelector<HTMLElement>(".tn-explore .hv3-shortcuts");
+      if (head) {
+        const top = head.getBoundingClientRect().top;
+        const bottom = (shortcuts ?? head).getBoundingClientRect().bottom;
+        blocks.push({ top, bottom });
+      }
+      handle.setTextDim(textDim(blocks, window.innerHeight));
+    }
+
     function onProgress(event: Event) {
       if (!handle) return;
       const detail = (event as CustomEvent<ProgressDetail>).detail;
@@ -90,6 +107,7 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       // rect to the handle on the same cadence as progress itself (already
       // the progress controller's own rAF, so this adds no new loop).
       updateChartTarget();
+      updateTextDim();
     }
 
     function onReducedMotionChange() {
@@ -159,6 +177,7 @@ export function TroiNamWorldStage({ children }: { children: ReactNode }) {
       prepare: (nextHandle) => {
         handle = nextHandle;
         updateChartTarget();
+        updateTextDim();
         const stored = Number(root.dataset.troiNamProgress);
         nextHandle.setProgress(Number.isFinite(stored) ? stored : 0);
         updateActive();

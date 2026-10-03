@@ -13,8 +13,8 @@
     "year": "Năm",
     "leap": "Tháng nhuận",
     "timeLabel": "Khung giờ sinh",
-    "modeExact": "Biết rõ giờ sinh",
-    "modeBranch": "Nhớ khoảng giờ (Canh giờ)",
+    "modeExact": "Chính xác",
+    "modeBranch": "Khoảng giờ",
     "hourSr": "Giờ sinh, từ 00 đến 23",
     "minuteSr": "Phút sinh, từ 00 đến 59",
     "branchSr": "Khoảng giờ sinh",
@@ -26,7 +26,7 @@
     "nameLabel": "Tên người xem",
     "nameOptional": "(để ghi dấu trên lá số)",
     "namePlaceholder": "Ví dụ: An Nhiên",
-    "submit": "Tiếp tục lập lá số",
+    "submit": "Xem lá số của tôi",
     "errors": {
       "dateEmpty": "Vui lòng nhập đủ ngày, tháng và năm sinh (năm gồm 4 chữ số).",
       "dateImpossible": "Ngày này không có trên lịch thực tế. Bạn hãy kiểm tra lại nhé.",
@@ -36,7 +36,15 @@
       "branch": "Vui lòng chọn một khoảng giờ sinh phù hợp.",
       "gender": "Vui lòng chọn giới tính Nam hoặc Nữ.",
       "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé."
-    }
+    },
+    "submitting": "Đang chuẩn bị…",
+    "concernLabel": "Điều bạn bận tâm nhất",
+    "concern": {
+      "self": "Hiểu bản thân",
+      "career": "Công việc, tiền bạc",
+      "love": "Tình duyên"
+    },
+    "concernHint": "Phần luận giải miễn phí sẽ mở trước cung liên quan đến điều này."
   },
   "heroChart": {
     "chartAria": "Đồ hình lá số của bạn",
@@ -69,7 +77,7 @@
   "explore": {
     "eyebrow": "Khám phá 12 cung số",
     "title": "Một đồ hình lá số. Mười hai nếp đời người.",
-    "lead": "Đừng để những thuật ngữ xa lạ làm bạn băn khoăn. Bắt đầu từ cung Mệnh để thấu suốt bản tính, rồi mở sang Quan Lộc, Tài Bạch hay Phu Thê. Bạn sẽ thấy từng sự kiện trong đời chưa bao giờ diễn ra rời rạc—chúng đan cài và nâng đỡ lẫn nhau.",
+    "lead": "Bắt đầu từ cung Mệnh (bản tính), rồi mở sang Quan Lộc (sự nghiệp), Tài Bạch (tiền bạc) hay Phu Thê (tình duyên). Các cung đan cài và nâng đỡ nhau.",
     "shortcutsLabel": "Những cung vị thường được mở xem trước",
     "mobileHint": "Chạm vào lưới để mở 8 cung còn lại.",
     "chartLabel": "12 cung số",
@@ -233,48 +241,50 @@
     "cta": "Bắt đầu với lá số của tôi →",
     "rows": {
       "strength": {
-        "k": "Điểm đáng chọn nhất",
-        "lsv": "Bản đồ vận mệnh chuẩn xác, cá nhân hóa sâu sắc và lưu trữ đồng hành trọn đời.",
-        "web": "Tra cứu miễn phí, trả kết quả lá số thô và bài đọc tự động tức thì.",
-        "ai": "Trò chuyện linh hoạt 24/7 bằng lời văn tự nhiên, phản hồi ngay tức thì.",
-        "thay": "Đối thoại 1-1 trực tiếp, được lắng nghe và an ủi cảm xúc tại chỗ."
+        "k": "Điểm đáng chọn",
+        "lsv": "Bản đồ chuẩn, lưu trọn đời",
+        "web": "Nhanh, miễn phí",
+        "ai": "Trò chuyện 24/7",
+        "thay": "Được lắng nghe 1-1"
       },
       "own": {
-        "k": "Độ cá nhân hóa",
-        "lsv": "An sao chuẩn từng phút sinh; bóc tách đúng trăn trở bạn đang bận tâm.",
-        "web": "Văn mẫu đóng sẵn; hai người cùng sao nhận bài đọc giống hệt nhau.",
-        "ai": "Phụ thuộc câu lệnh tự nhập; dễ bị định kiến người dùng dẫn dắt.",
-        "thay": "Phụ thuộc lớn vào kinh nghiệm, tâm trạng và cảm quan cá nhân của thầy."
+        "k": "Cá nhân hóa",
+        "lsv": "An sao theo từng phút sinh",
+        "web": "Văn mẫu đóng sẵn",
+        "ai": "Tùy câu hỏi, dễ lệch",
+        "thay": "Tùy kinh nghiệm thầy"
       },
       "basis": {
-        "k": "Căn cứ học thuật",
-        "lsv": "Minh bạch tuyệt đối. Mọi luận giải đều gắn đường dẫn đối chiếu sao và cung.",
-        "web": "Dữ liệu đại trà chưa kiểm chứng; buông lời phán mơ hồ gây hoang hoảng.",
-        "ai": "Dễ bị 'ảo giác' an sai vị trí sao nhưng vẫn trả lời rất tự tin.",
-        "thay": "Truyền miệng thiếu cơ sở logic chuẩn hóa; khó kiểm chứng tính đúng sai."
+        "k": "Căn cứ",
+        "lsv": "Mỗi luận giải gắn sao và cung",
+        "web": "Khó kiểm chứng",
+        "ai": "Dễ bịa vị trí sao",
+        "thay": "Truyền miệng, khó đối chiếu"
       },
       "links": {
-        "k": "Nhìn nhận toàn diện",
-        "lsv": "Đồ hình tương tác trực quan: chạm một cung để thấy trọn vẹn Tam hợp, Xung chiếu.",
-        "web": "Nội dung cắt vụn; các cung phán mâu thuẫn buộc bạn tự chắp vá.",
-        "ai": "Mỗi lần hỏi là một lát cắt rời rạc, mất đi tính nhất quán toàn cục.",
-        "thay": "Lời phán thoảng qua, khó hình dung rõ bức tranh tổng thể mười hai cung."
+        "k": "Toàn diện",
+        "lsv": "Chạm một cung, thấy Tam hợp và Xung chiếu",
+        "web": "Rời rạc, hay mâu thuẫn",
+        "ai": "Từng câu hỏi rời rạc",
+        "thay": "Khó hình dung 12 cung"
       },
       "return": {
-        "k": "Tính nhất quán & Khách quan",
-        "lsv": "Khách quan & Nhất quán tuyệt đối; chuẩn hóa dữ liệu, loại bỏ hoàn toàn cảm tính.",
-        "web": "Thông tin thiếu ổn định; các bài tra cứu mâu thuẫn nhau giữa các lần đọc.",
-        "ai": "Thiếu tính nhất quán; mỗi lượt hỏi lại cho ra một kết quả mâu thuẫn.",
-        "thay": "Thiếu tính đồng nhất; cùng lá số nhưng mỗi thầy phán một kiểu khác nhau."
+        "k": "Nhất quán",
+        "lsv": "Chuẩn hóa dữ liệu, không cảm tính",
+        "web": "Bài đọc mâu thuẫn nhau",
+        "ai": "Mỗi lần hỏi một kết quả",
+        "thay": "Mỗi thầy một kiểu"
       },
       "depth": {
-        "k": "Chi phí & Trải nghiệm",
-        "lsv": "Xem miễn phí nền tảng; chủ động mở sâu đúng phần bạn cần với chi phí minh bạch.",
-        "web": "Giao diện tràn ngập quảng cáo; bài viết đóng gói cứng nhắc, thừa thãi.",
-        "ai": "Tốn phí thuê bao tháng; người dùng phải tự gánh rủi ro tự kiểm chứng.",
-        "thay": "Chi phí đắt đỏ từ trăm nghìn đến tiền triệu; khó đặt lịch để hỏi thêm."
+        "k": "Chi phí",
+        "lsv": "Xem miễn phí, mở sâu khi cần",
+        "web": "Nhiều quảng cáo",
+        "ai": "Tốn phí thuê bao",
+        "thay": "Từ trăm nghìn đến triệu"
       }
-    }
+    },
+    "expand": "Xem đầy đủ lý do",
+    "collapse": "Thu gọn"
   },
   "testimonials": {
     "eyebrow": "Lời hồi đáp chân thực",
@@ -307,43 +317,43 @@
     "rotationLabel": "Chia sẻ từ người đọc, tự động chuyển sau vài giây"
   },
   "usp": {
-    "title": "Càng nhìn sâu, càng thấy rõ bóng hình mình trong đó.",
-    "lead": "Một lá số chân chính không bao giờ kết thúc ở vài lời phán xét nông cạn. Nó là hành trình bóc tách từng lớp căn duyên, hiểu từng mối dây ràng buộc, để rồi mỗi khi chông chênh, bạn luôn có một chốn trở về soi chiếu.",
+    "title": "Càng nhìn sâu, càng thấy mình rõ hơn.",
+    "lead": "Hàng trăm quyển cổ thư Đông Tây làm gốc cho từng lời luận giải, và là chốn bạn quay về mỗi khi chông chênh.",
     "n1": {
-      "title": "Kế thừa tinh hoa cổ thư.",
-      "body": "Mỗi lời luận giải đều được đúc kết từ thuật số chính tông phương Đông, hệ thống hóa lớp lang để từng câu chữ đều có gốc có ngọn, tuyệt đối không suy diễn hàm hồ."
+      "title": "Mỗi câu đều có xuất xứ.",
+      "body": "Đối chiếu Tử Vi Đẩu Số Toàn Thư, Tử Vi Đại Toàn, Uyên Hải Tử Bình, Tam Mệnh Thông Hội, Tetrabiblos của Ptolemy và hàng trăm quyển khác."
     },
     "n2": {
-      "title": "Khởi phát từ chính bạn.",
-      "body": "Thời khắc bạn cất tiếng khóc chào đời dựng nên đồ hình số phận. Nhưng chính nỗi bận tâm của bạn ở hiện tại mới là chiếc chìa khóa mở lối cho câu chuyện."
+      "title": "Bắt đầu từ chính bạn.",
+      "body": "Giờ sinh dựng nên đồ hình. Nỗi bận tâm hiện tại mở lối cho câu chuyện."
     },
     "n3": {
-      "title": "Mạch ngầm liên kết.",
-      "body": "Chạm vào một cung số để thấy thế tam hợp, nhị hợp và xung chiếu cùng lúc bừng sáng. Mười hai cung không bao giờ cô lập—chúng cùng kể một câu chuyện về đời bạn.",
-      "link": "Chạm thử vào lá số →"
+      "title": "Các cung nối với nhau.",
+      "body": "Chạm một cung, thấy cả Tam hợp và Xung chiếu cùng sáng lên."
     },
     "n4": {
-      "title": "Thong dong theo nhịp riêng.",
-      "body": "Sự nghiệp, tình cảm hay vận hạn một năm trước mắt: bạn làm chủ hoàn toàn hành trình khám phá, thấy rõ từng giá trị và chi phí trước khi quyết định mở đọc."
-    }
+      "title": "Mở theo nhịp của bạn.",
+      "body": "Chọn phần muốn đọc, thấy rõ số Lá cần dùng trước khi mở."
+    },
+    "cta": "Chạm thử vào lá số →"
   },
   "value": {
-    "title": "Thấu hiểu trước một phần. Đi sâu khi lòng đã tỏ.",
-    "lead": "Bạn hoàn toàn có thể khởi đầu bằng việc lập lá số và đọc những nhận định cốt lõi nhất về mình mà không tốn một đồng. Khi thấy hữu ích và muốn giữ lại cho riêng mình, bạn đăng nhập lưu trữ. Những tầng luận giải chuyên sâu chỉ mở ra khi bạn thực sự cần, bằng Lá, với chi phí minh bạch đến từng con số.",
+    "title": "Xem trước miễn phí. Mở sâu khi bạn cần.",
+    "lead": "Lập lá số và đọc nhận định cốt lõi về mình mà không tốn một đồng. Phần sâu hơn mở bằng Lá, số Lá hiện rõ trước khi bạn xác nhận.",
     "s1": {
-      "title": "Bước 1: Trải nghiệm trọn vẹn đồ hình",
-      "body": "Xem đầy đủ lá số 12 cung an sao chuẩn xác cùng 2 nhận định trọng tâm về bản mệnh. Hoàn toàn miễn phí, không cần đăng ký tài khoản."
+      "title": "Bước 1: Xem lá số",
+      "body": "Lá số 12 cung và 2 nhận định về bản mệnh. Miễn phí, không cần đăng ký."
     },
     "s2": {
-      "title": "Bước 2: Ghi dấu & Lưu giữ",
-      "body": "Đăng nhập một chạm để lưu lại lá số trọn đời, mở khóa bản tóm lược vận khí tổng quan và những lưu ý quan trọng trong năm."
+      "title": "Bước 2: Lưu lại",
+      "body": "Đăng nhập một chạm để giữ lá số trọn đời và mở bản tóm lược vận khí cùng lưu ý trong năm."
     },
     "s3": {
-      "title": "Bước 3: Mở khóa theo nhu cầu riêng",
-      "body": "Dùng Lá để mở đúng phần bạn muốn thấu tỏ: Đại vận 10 năm, thời vận từng năm hay chuyên sâu từng cung. Số Lá và số tiền hiện rõ ràng trước khi bạn bấm xác nhận."
+      "title": "Bước 3: Mở phần bạn cần",
+      "body": "Dùng Lá để mở Đại vận 10 năm, vận từng năm hay từng cung."
     },
     "packsTitle": "Gói nạp Lá",
-    "packsNote": "Mỗi gói hiển thị song song số Lá và số tiền VNĐ. Quét mã VietQR tự động trong vài giây.",
+    "packsNote": "Mỗi gói hiện số Lá và số tiền. Quét VietQR, nhận Lá sau vài giây.",
     "packBonus": "{base} Lá + {bonus} Lá tặng thêm"
   },
   "faq": {

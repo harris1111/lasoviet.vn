@@ -63,6 +63,8 @@ export function toHomepageV3Draft(
   values: HomepageV3BirthValues,
   now: Date = new Date(),
   existing?: Pick<BirthProfileDraftInput, "forWhom" | "consentOther" | "place" | "readingContext"> | null,
+  /** The hero form now owns "who is this for": when given, it wins over `existing` and the draft opens at `step`. */
+  options?: { forWhom: "self" | "other"; consentOther: boolean; step: 1 | 2 | 3 },
 ): BirthProfileDraftInput | null {
   const timeState = getTimeState(values);
   if (!timeState || !values.gender || !hasValidBirthDate(values, now)) return null;
@@ -84,11 +86,11 @@ export function toHomepageV3Draft(
       : existingContext;
 
   return {
-    // Land on step 1 so the visitor can still choose "for someone else" before reviewing.
-    step: 1,
+    // Without explicit options, land on step 1 so the visitor can still choose "for someone else".
+    step: options?.step ?? 1,
     displayName: values.displayName.trim().slice(0, 80),
-    forWhom: existing?.forWhom ?? "self",
-    consentOther: existing?.consentOther ?? false,
+    forWhom: options?.forWhom ?? existing?.forWhom ?? "self",
+    consentOther: options?.consentOther ?? existing?.consentOther ?? false,
     ...(existing?.place !== undefined ? { place: existing.place } : {}),
     gender: values.gender,
     calendarType: values.calendarType,

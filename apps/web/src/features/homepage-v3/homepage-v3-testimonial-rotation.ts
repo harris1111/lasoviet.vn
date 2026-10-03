@@ -16,11 +16,14 @@ export function createRotation(queue: readonly string[], slotCount: number): Rot
   return { queue, slots: queue.slice(0, count), cursor: queue.length ? count % queue.length : 0, tick: 0, changedSlot: null };
 }
 
-/** Swap exactly one slot for the next quote that is not already on screen. */
-export function advanceRotation(state: RotationState): RotationState {
+/**
+ * Swap exactly one slot for the next quote that is not already on screen. `visibleSlots` limits which
+ * slots may change: on tablet only the first four cards are shown, so a change never happens unseen.
+ */
+export function advanceRotation(state: RotationState, visibleSlots: number = state.slots.length): RotationState {
   const { queue, slots } = state;
   if (queue.length <= slots.length) return { ...state, changedSlot: null };
-  const order = SLOT_ORDER.filter((slot) => slot < slots.length);
+  const order = SLOT_ORDER.filter((slot) => slot < Math.min(slots.length, visibleSlots));
   const slot = order[state.tick % order.length] ?? 0;
   let cursor = state.cursor;
   while (slots.includes(queue[cursor] ?? "")) cursor = (cursor + 1) % queue.length;

@@ -1,7 +1,7 @@
 ---
 phase: 3
 title: "One-step entry homepage to chart"
-status: pending
+status: in-review
 priority: P1
 effort: "2d"
 dependencies: [1]
@@ -11,6 +11,9 @@ dependencies: [1]
 
 ## Overview
 Today the homepage hero form saves a draft and `router.push`es to the 3-step wizard `/tao-la-so/tu-vi` (subject → birth → review/consent), so the visitor enters/confirms data twice (`homepage-v3-birth-form.tsx:138-161`). AiTuvi goes straight from the homepage form to the chart. Make the homepage form create the chart directly. **Needs founder decision #2 in plan.md.** Mobile-first.
+
+## Prototype (2026-10-03, approved by founder)
+`prototype/revamp-2026-09/lap-la-so-mot-buoc.html` (serve `prototype/` with any static server). Decisions taken in the prototype, to confirm: field order is date, gender, time (date first so the first field sits at y≈309 on a 390×844 phone; a full-form-above-the-fold target is not achievable with this many fields, so the criterion is "first field and CTA visible without scrolling"); consent is an **unticked checkbox** (Decree 13 needs an affirmative act; the implicit "bấm là đồng ý" variant stays off until legal text allows it); place of birth collapses to a "Việt Nam (giờ Việt Nam)" row with Đổi; concern chips are three fixed ids (self_understanding, career, love) matching `HomepageV3Interest`, with the "Công việc, tiền bạc" chip mapping to `career`; loading shows four real stages and lasts at least ~2 s.
 
 ## Requirements
 - Functional:
@@ -44,8 +47,13 @@ Today the homepage hero form saves a draft and `router.push`es to the 3-step wiz
 - [ ] Homepage → chart page in one submit, no wizard.
 - [ ] Third-party consent only shown when "Cho người khác" is chosen.
 - [ ] Concern chosen on homepage = full palace shown on the free result.
-- [ ] Form fully visible above the fold on 390×844.
+- [ ] First field and the CTA visible without scrolling on 390×844.
 
 ## Risk Assessment
 - Consent wording is a legal surface → copy taken from existing wizard review step; no new legal claims.
 - Wizard analytics (`wizard_step_complete`) will drop; dashboards updated in phase 2 runbook.
+
+## Implementation status (2026-10-03)
+Built on branch `feat/phase-3-one-step-entry`. Founder changed the consent rule while reviewing: **no consent line on the homepage form**; the visitor confirms and consents once, on the wizard's review step ("Kiểm tra & riêng tư"). So the homepage form is the only data-entry step: it saves the draft at step 3 (`toHomepageV3Draft(..., { forWhom, consentOther, step: 3 })`) and opens the wizard straight on the review step; the subject and birth steps are skipped. The planned `createChartFromHomepage` server action was therefore dropped (the wizard already does save and calculate after consent).
+Form details: day, month and year are dropdown lists on phone and desktop; concern chips carry no "optional" label (still optional in the backend, founder wants to read it as marketing input); "Tôi xem cho người khác" holds the name field and the third-party consent; on phones the submit button is sticky so it is in view with the first field. Unknown birth time still ends in the wizard's saved-without-chart screen.
+Verified: unit tests, 11 Playwright cases without backend (`tests/e2e/homepage-one-step-entry.spec.ts`), production build boundary test. **Not yet run:** the full-stack case "form, one confirmation, then the chart page" (needs API, Postgres, Redis; CI or An's environment).

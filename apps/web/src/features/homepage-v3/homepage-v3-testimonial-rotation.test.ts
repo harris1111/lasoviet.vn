@@ -35,6 +35,18 @@ describe("testimonial rotation", () => {
     expect(seen.size).toBe(QUEUE.length);
   });
 
+  it("only changes the visible slots when fewer than all are shown", () => {
+    let state = createRotation(QUEUE, 6);
+    const changed = new Set<number>();
+    for (let i = 0; i < 12; i++) {
+      state = advanceRotation(state, 4);
+      if (state.changedSlot !== null) changed.add(state.changedSlot);
+      expect(new Set(state.slots).size).toBe(6);
+    }
+    expect([...changed].every((slot) => slot < 4)).toBe(true);
+    expect(changed.size).toBe(4);
+  });
+
   it("uses fewer slots when asked (tablet: 4)", () => {
     const state = advanceRotation(createRotation(QUEUE, 4));
     expect(state.slots).toHaveLength(4);

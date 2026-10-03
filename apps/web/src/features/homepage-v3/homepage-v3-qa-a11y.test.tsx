@@ -26,11 +26,15 @@ vi.mock("next-intl", () => {
     ),
   );
 
+  const viProfile = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, "../../../messages/vi/profile.json"), "utf8"),
+  );
+
   return {
     useLocale: () => "vi",
     useTranslations: (ns: string) => {
       const section = ns.replace("homepage-v3.", "");
-      const msgs = viMessages[section] ?? {};
+      const msgs = ns === "profile" ? viProfile : (viMessages[section] ?? {});
 
       const t = (key: string, values?: Record<string, unknown>) => {
         const parts = key.split(".");
@@ -46,6 +50,9 @@ vi.mock("next-intl", () => {
         }
         return val;
       };
+
+      // Rich text: render the plain message, dropping the <link> markers (markup tests only).
+      t.rich = (key: string) => t(key).replace(/<\/?link>/g, "");
 
       t.has = (key: string) => {
         const parts = key.split(".");
