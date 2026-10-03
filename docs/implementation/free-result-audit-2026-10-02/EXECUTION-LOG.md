@@ -97,3 +97,12 @@ Allowlist drift: none.
 Verification: `pnpm vitest run packages/backend/src/ziwei/free-palace-writer.test.ts packages/backend/src/ziwei/free-palace-quality.test.ts` — 30/30 (matrix rows 33–37; the real OpenAI-compatible adapter with a counting fake `fetch` and the in-memory cost service). backend typecheck + eslint clean; paid ai/report files unchanged.
 Not verified: no real provider; token-bound proof gate open; prompt wording not quality-evaluated against real model output (the one-palace quality evaluation in the release gate is still owed).
 Next dependency-ready card: B13.
+
+## B13 — Typed outbox event and dedicated gift runner
+State: VERIFIED (real Postgres + fake provider), library only — not yet constructed by the worker.
+Behavior changed: gift events are now claimable by `createFreePalaceOutboxStore` (own claim query) and processed by `createFreePalaceRunner`: claim → DB fence → one provider call → settle → deletion-safe publish → mark processed. Paid dispatch unchanged.
+Files changed: packages/backend/src/ziwei/free-palace-outbox.ts, free-palace-runner.ts (+ .test.ts), free-palace-artifact.repository.ts, free-ai-budget.repository.ts, free-ai-dispatch.service.ts, packages/backend/src/index.ts, tests/free-ai/outbox.integration.test.ts, free-ai-test-harness.ts, deletion.integration.test.ts (one assertion strengthened).
+Allowlist drift: see ADDENDA.md.
+Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai` — 18 files, 142 assertions passed (matrix rows 38, 39, restart/fence-crash, dead source, unknown capture, quality failure, flag off, malformed event, plus a full fake-provider end-to-end admission→ready path); backend typecheck and eslint clean.
+Not verified: real worker process (B14).
+Next dependency-ready card: B14.

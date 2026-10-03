@@ -88,3 +88,29 @@ export async function admitRequest(
   if (result.kind !== "admitted") throw new Error(`admission failed in test setup: ${JSON.stringify(result)}`);
   return result.requestId;
 }
+
+// Seeds an owner + the profile/revision/run/chart/chart-version chain for one chart version id.
+export async function seedChartVersion(
+  database: TestDatabase,
+  chartVersionId: string,
+  owner: { kind: "account"; userId: string } | { kind: "guest"; anonymousActorId: string; expiresAt: Date },
+  options: { profileDeletedAt?: Date } = {},
+): Promise<void> {
+  const { authAnonymousActors, authUsers } = await import("../../packages/database/src/schema/auth.js");
+  const birth = await import("../../packages/database/src/schema/birth-profile.js");
+  const n = Math.random().toString(36).slice(2, 10);
+  if (owner.kind === "account") await database.insert(authUsers).values({ id: owner.userId, name: owner.userId, email: `${owner.userId}-${n}@example.test` }).onConflictDoNothing();
+  else {
+    await database.insert(authUsers).values({ id: owner.anonymousActorId, name: owner.anonymousActorId, email: `${owner.anonymousActorId}-${n}@example.test`, isAnonymous: true }).onConflictDoNothing();
+    await database.insert(authAnonymousActors).values({ id: owner.anonymousActorId, expiresAt: owner.expiresAt }).onConflictDoNothing();
+  }
+  const profileId = `profile-${n}`;
+  await database.insert(birth.birthProfiles).values({
+    id: profileId, deletedAt: options.profileDeletedAt,
+    ...(owner.kind === "account" ? { userId: owner.userId } : { anonymousActorId: owner.anonymousActorId, anonymousExpiresAt: owner.expiresAt }),
+  });
+  await database.insert(birth.birthProfileRevisions).values({ id: `rev-${n}`, profileId, revisionNumber: 1, originalInput: {}, consentVersion: "v1" });
+  await database.insert(birth.calculationRuns).values({ id: `run-${n}`, profileId, profileRevisionId: `rev-${n}`, idempotencyKey: `k-${n}`, engineId: "e", engineVersion: "1", adapterId: "a", adapterVersion: "1", schemaId: "s", ruleSetId: "r", inputHash: "i", configHash: "c", rawSnapshotHash: "h" });
+  await database.insert(birth.ziweiCharts).values({ id: `chart-${n}`, profileId, profileRevisionId: `rev-${n}` });
+  await database.insert(birth.ziweiChartVersions).values({ id: chartVersionId, chartId: `chart-${n}`, calculationRunId: `run-${n}`, normalizedOutput: {}, privateRawSnapshot: {}, warnings: [], provenance: {} });
+}

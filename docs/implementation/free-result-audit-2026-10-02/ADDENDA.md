@@ -51,3 +51,12 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - Versions to freeze at admission: `FREE_PALACE_PROMPT_VERSION`, `FREE_PALACE_RULES_VERSION` (= `free-palace-quality-v1`), `FREE_PALACE_SCHEMA_VERSION`.
 - Quality gate `validateFreePalaceGift` is a new one-palace function; the mapping to the paid gates it mirrors is documented at the top of `free-palace-quality.ts`. No paid file was touched (`git diff -- packages/backend/src/ai packages/backend/src/reports` is empty). The gift allows no date/year/age unless a supplied fact carries it; English locale skips only the Vietnamese-brightness-label rule.
 - Brand-voice review of the prompt text in `free-palace-writer.ts` (`RULES`) is still owed by the owner; the prompt is deliberately plain and prohibits promises.
+
+## B13
+
+- **aggregateType decision closed:** `"chart"` (see B08). Event type is now `free_palace.generation.requested.v1` (the card's name); B08's earlier `free-palace.gift.requested.v1` was renamed, its tests updated.
+- 🔶 Edits outside the allowlist: `free-ai-budget.repository.ts` (imports the constant from `free-palace-outbox.ts`), `free-ai-dispatch.service.ts` (`isSourceAvailable` now receives the request's `chartVersionId`), `free-palace-artifact.repository.ts` (a charged result that can no longer be published — wrong palace, bad content, expired — now ends `terminal_failure` instead of lingering as `dispatching`; new `closeStalePublications` sweep), `free-palace-runner.ts` also holds `createFreePalaceSourceCheck` and `createFreePalaceTariffPort` (DB ports for B14), `tests/free-ai/free-ai-test-harness.ts` (`seedChartVersion`). One B11 assertion was updated to the stronger behaviour (wrong-palace publish → `terminal_failure`); nothing was removed or weakened.
+- The gift claim query uses `FOR UPDATE SKIP LOCKED`, a 5-minute lease, and parks malformed events as `failed`. It matches only the gift event type, so the paid dispatcher still cannot see it (tested), and it grants no entitlement or wallet spend.
+- A flag switched off between claim and fence defers the event 60s (`FREE_PALACE_FLAG_OFF`); a halted dispatch defers 5 min. Runner errors defer 60s and are safe to redeliver because the DB fence decides.
+- B14 must schedule on the maintenance tick: `settleAbandoned`, `closeStalePublications`, `purgeExpiredPayloads`.
+- `packages/backend/src/index.ts` now exports the free-palace factories (additive; paid exports untouched).

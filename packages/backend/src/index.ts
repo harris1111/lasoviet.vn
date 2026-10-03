@@ -818,3 +818,29 @@ export type {
 } from "./reports/topic-deep-dive-writer-v4.js";
 
 export { createHanMonthReminderService, dueComputedHanPeriod, type LunarReminderDay } from "./notifications/han-month-reminder.service.js";
+
+// Free one-palace gift (FD-109/109a). Library only: nothing here runs unless the worker constructs it.
+export {
+  FREE_AI_CHART_CEILING_MICRO_VND,
+  FREE_AI_DAILY_CEILING_MICRO_VND,
+  createFreeAiBudgetRepository,
+} from "./ziwei/free-ai-budget.repository.js";
+export type { FreePalaceReservationInput, FreePalaceReservationResult } from "./ziwei/free-ai-budget.repository.js";
+export { createFreeAiDispatchService } from "./ziwei/free-ai-dispatch.service.js";
+export { createFreeAiSettlementService } from "./ziwei/free-ai-settlement.service.js";
+export { createFreePalaceArtifactRepository } from "./ziwei/free-palace-artifact.repository.js";
+export { FREE_PALACE_GENERATION_REQUESTED_EVENT, createFreePalaceOutboxStore } from "./ziwei/free-palace-outbox.js";
+export {
+  createFreePalaceRunner,
+  createFreePalaceSourceCheck,
+  createFreePalaceTariffPort,
+} from "./ziwei/free-palace-runner.js";
+export type { FreePalaceRunner, FreePalaceRunnerDependencies } from "./ziwei/free-palace-runner.js";
+export {
+  FREE_PALACE_PROMPT_VERSION,
+  FREE_PALACE_RULES_VERSION,
+  FREE_PALACE_SCHEMA_VERSION,
+  buildFreePalacePrompt,
+  createFreePalaceWriter,
+  serializeFreePalacePrompt,
+} from "./ziwei/free-palace-writer.js";

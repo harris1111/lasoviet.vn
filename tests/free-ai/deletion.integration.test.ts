@@ -90,7 +90,8 @@ describe("free AI deletion-safe publication and retention (real Postgres)", () =
     const settled = await provision("pub-attempt", { kind: "account", id: user }, "settled");
     expect(await publish({ requestId: settled.requestId, attemptId: "123e4567-e89b-42d3-a456-426614174000" })).toEqual({ kind: "refused", reason: "not_publishable" });
     expect(await publish(settled, "ziwei.palace.wealth")).toEqual({ kind: "refused", reason: "not_publishable" });
-    expect((await request(settled.requestId)).status).toBe("dispatching");
+    // a charged result that cannot be published (wrong palace) ends terminally, never lingering as dispatching
+    expect((await request(settled.requestId)).status).toBe("terminal_failure");
   });
 
   it("row 26/27: deletion landing between the worker's initial check and its final publish blocks the publish — no resurrection", async () => {
@@ -186,7 +187,7 @@ describe("free AI deletion-safe publication and retention (real Postgres)", () =
     const everything = JSON.stringify([
       await h.raw`SELECT * FROM free_ai_requests WHERE id=${r.requestId}`, await h.raw`SELECT * FROM free_ai_artifacts WHERE request_id=${r.requestId}`,
       await h.raw`SELECT * FROM free_ai_chart_budgets WHERE chart_version_id='acct-del'`, await h.raw`SELECT * FROM free_ai_settlements WHERE request_id=${r.requestId}`,
-      await h.raw`SELECT * FROM free_ai_admissions WHERE request_id=${r.requestId}`, await h.raw`SELECT payload FROM outbox WHERE event_type='free-palace.gift.requested.v1'`,
+      await h.raw`SELECT * FROM free_ai_admissions WHERE request_id=${r.requestId}`, await h.raw`SELECT payload FROM outbox WHERE event_type='free_palace.generation.requested.v1'`,
     ]);
     expect(everything).not.toContain(BIRTH_SENTINEL);
     expect(everything).not.toContain(PROSE_SENTINEL);

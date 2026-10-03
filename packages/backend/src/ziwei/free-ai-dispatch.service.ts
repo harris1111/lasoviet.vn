@@ -13,7 +13,7 @@ export type FreeAiCancelReason = "source_unavailable" | "deleted" | "pricing_cha
 export type FreeAiFenceInput = Readonly<{
   requestId: string;
   flagEnabled: boolean;
-  isSourceAvailable: (tx: FreeAiTransaction, now: Date) => Promise<boolean>;
+  isSourceAvailable: (tx: FreeAiTransaction, now: Date, chartVersionId: string) => Promise<boolean>;
   // The currently approved active tariff snapshot for a provider/model, or null when none.
   activePricingSnapshotId: (tx: FreeAiTransaction, now: Date, provider: string, model: string) => Promise<string | null>;
   clock?: FreeAiClock;
@@ -61,7 +61,7 @@ export function createFreeAiDispatchService(database: Database) {
     if (!parsed.success) return cancel("frozen_call_invalid");
     const call = parsed.data;
     if (call.requestId !== request.id || call.pricingSnapshotId !== request.pricingSnapshotId || BigInt(call.reservedMicroVnd) !== request.reservedMicroVnd) return cancel("frozen_call_invalid");
-    if (!(await input.isSourceAvailable(tx, now))) return cancel("source_unavailable");
+    if (!(await input.isSourceAvailable(tx, now, request.chartVersionId))) return cancel("source_unavailable");
     // Never re-price after the fence: the reserved snapshot must still be the approved one.
     if ((await input.activePricingSnapshotId(tx, now, call.provider, call.model)) !== request.pricingSnapshotId) return cancel("pricing_changed");
 

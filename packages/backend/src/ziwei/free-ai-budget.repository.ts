@@ -25,6 +25,7 @@ import {
   type FreeAiSubjectKind,
   type FreeAiTransaction,
 } from "./free-ai-admission.service.js";
+import { FREE_PALACE_GENERATION_REQUESTED_EVENT } from "./free-palace-outbox.js";
 import type { FreePalaceCostContext } from "./free-palace-cost-context.js";
 import { freePalaceArtifactKey, resolveFreePalaceSlot, type FreePalaceArtifactLineage } from "./free-palace-selection.js";
 
@@ -32,7 +33,6 @@ import { freePalaceArtifactKey, resolveFreePalaceSlot, type FreePalaceArtifactLi
 // in this module, and no recovery path, may raise or make them configurable.
 export const FREE_AI_CHART_CEILING_MICRO_VND = 3_000n * 1_000_000n;
 export const FREE_AI_DAILY_CEILING_MICRO_VND = 50_000n * 1_000_000n;
-export const FREE_PALACE_GIFT_REQUESTED_EVENT = "free-palace.gift.requested.v1";
 
 export type FreePalaceRefusalReason =
   | "flag_disabled"
@@ -202,7 +202,7 @@ export function createFreeAiBudgetRepository(database: Database) {
             requestId, deletionGeneration: chart.deletionGeneration, frozenCall, expiresAt: source.expiresAt,
           });
           await enqueueOutbox(tx, {
-            schemaVersion: 1, type: FREE_PALACE_GIFT_REQUESTED_EVENT, eventId: `free-palace-gift:${requestId}`,
+            schemaVersion: 1, type: FREE_PALACE_GENERATION_REQUESTED_EVENT, eventId: `free-palace-gift:${requestId}`,
             occurredAt: now.toISOString(), traceId: input.traceId, actorId: null, aggregateType: "chart",
             aggregateId: lineage.chartVersionId, idempotencyKey: `free-palace-gift:${requestId}`,
             payload: FreePalaceGiftOutboxPayloadV1Schema.parse({ requestId }),
