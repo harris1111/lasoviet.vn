@@ -48,3 +48,13 @@ Scope addendum: update page/sentinel/config/allowlist regression tests affected 
 - B08–B21: not implemented in this checkpoint. Atomic reservations/reconciliation, link/delete integration, one-attempt fence, worker/writer, safe ready-reader/UI/runtime wiring and release tests remain. Do not enable generation based on this checkpoint.
 Final checkpoint verification (fresh, no source edits during run): full pnpm test exit1;375passed files,40failed,3skipped;3255passed assertions,5failed,421skipped. All remaining failures are infrastructure:40 Testcontainers suite startup failures,4 Docker Compose assertions (spawn docker ENOENT), and1 knowledge-ingestion DB assertion (container runtime unavailable). No remaining executed non-DB assertion failed. This is NOT a green full suite and test:scripts was not reached by pnpm test's && chain. Run scripts separately before release. Production web build exit0; full monorepo typecheck exit0; lint exit0 with5warnings; i18n parity exit0. No mobile/LCP claim, no live migration/provider spend, no release acceptance.
 Separate test:scripts exit0,17/17 passed. Saving a local implementation checkpoint on the feature branch; it is not a final reviewed/released milestone. Remaining dependent work is explicitly listed above.
+
+## B08 — Shared chart/day atomic reservation
+State: VERIFIED (real Postgres), library only — not wired.
+Behavior changed: no code previously enforced the 3,000 VND chart / 50,000 VND UTC-day ceilings; `createFreeAiBudgetRepository(db).reserve()` now admits through one locked transaction (global lock → fresh clock → source/TTL authorization → slot/cache check → flag/identity → chart+day row locks → one-time legacy reconciliation → ceilings on reserved+resolved+unknown → rolling quota → request, admission, reservation, frozen call, `chart` outbox event).
+Files changed: packages/backend/src/ziwei/free-ai-budget.repository.ts (+ .test.ts), tests/free-ai/budget.integration.test.ts, tests/free-ai/free-ai-test-harness.ts, packages/database/src/schema/outbox.ts, docs/implementation/free-result-audit-2026-10-02/ADDENDA.md.
+Allowlist drift: see ADDENDA.md (outbox union, harness, deferred index export).
+Verification: `pnpm vitest run packages/backend/src/ziwei/free-ai-budget.repository.test.ts tests/free-ai/budget.integration.test.ts` — 18 integration + 2 unit assertions passed (matrix rows 1–9 incl. held-lock multi-connection races and trigger fault injection on 8 writes); backend typecheck and eslint on touched files clean.
+Not verified: midnight rollover and fence (B10); deletion generation recheck at publication (B11).
+Remaining concern: none known.
+Next dependency-ready card: B09.
