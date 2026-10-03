@@ -49,6 +49,7 @@ export function createZiweiChartCalculation(
 ) {
   return async (
     revisionId: string,
+    locale?: "vi" | "en",
   ): Promise<Result<{ chartId: string }, ZiweiChartCalculationError>> => {
     if (revisionId.trim() === "") {
       return failure("PROFILE_FORBIDDEN", false);
@@ -59,7 +60,7 @@ export function createZiweiChartCalculation(
         await dependencies
           .privateApiClient(actor, actor.requestId)
           .request<unknown>(
-            `/ziwei/revisions/${encodeURIComponent(revisionId)}/calculate`,
+            `/ziwei/revisions/${encodeURIComponent(revisionId)}/calculate${locale ? `?locale=${locale}` : ""}`,
             { method: "POST" },
           ),
       );

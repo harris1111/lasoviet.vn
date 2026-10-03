@@ -79,8 +79,12 @@ export class ZiweiController {
   async calculate(
     @Headers("authorization") authorization: string | undefined,
     @Param("revisionId") revisionId: string,
+    @Query("locale") locale?: string,
   ) {
-    return this.service.calculate(await this.actor(authorization), revisionId);
+    if (locale !== undefined && locale !== "vi" && locale !== "en") {
+      throw new BadRequestException({ code: "LOCALE_INVALID" });
+    }
+    return this.service.calculate(await this.actor(authorization), revisionId, locale ? { locale } : {});
   }
 
   @Get("charts/:chartId")
@@ -149,6 +153,23 @@ export class ZiweiController {
       throw new BadRequestException({ code: "LOCALE_INVALID" });
     }
     return this.queryService.readFreePalaceGift(await this.actor(authorization), chartId, resolved);
+  }
+
+  // Explicit user action only. The body is untrusted: the tab is validated against a closed list and the
+  // outcome (engagement counted, gift requested or not) is decided entirely on the server.
+  @Post("charts/:chartId/free-palace/engagement")
+  @HttpCode(HttpStatus.OK)
+  @Header("Cache-Control", "private, no-store")
+  async freePalaceEngagement(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+    @Body() body: unknown,
+  ) {
+    const input = typeof body === "object" && body !== null ? (body as Record<string, unknown>) : {};
+    if (typeof input.tab !== "string" || (input.locale !== "vi" && input.locale !== "en")) {
+      throw new BadRequestException({ code: "ENGAGEMENT_INVALID" });
+    }
+    return this.queryService.recordFreePalaceEngagement(await this.actor(authorization), chartId, input.tab, input.locale);
   }
 
   @Get("charts/:chartId/daily-reading")

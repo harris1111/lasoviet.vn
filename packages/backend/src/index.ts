@@ -847,10 +847,11 @@ export {
 export { createFreePalaceReadService, mapFreePalaceStatus } from "./ziwei/free-palace-read.service.js";
 export type { FreePalaceReadService } from "./ziwei/free-palace-read.service.js";
 export {
-  FREE_PALACE_GIFT_LOCALE,
   buildFreePalaceFacts,
   createFreePalaceRequestService,
   currentFreePalaceLineageHash,
   freePalaceLineage,
 } from "./ziwei/free-palace-request.service.js";
 export type { FreePalaceRequestOutcome, FreePalaceRequestService } from "./ziwei/free-palace-request.service.js";
+export { createFreePalaceEngagementService, FREE_PALACE_ENGAGEMENT_TABS, FREE_PALACE_ENGAGEMENT_THRESHOLD } from "./ziwei/free-palace-engagement.service.js";
+export type { FreePalaceEngagementService } from "./ziwei/free-palace-engagement.service.js";

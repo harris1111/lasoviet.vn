@@ -105,7 +105,7 @@ releases its hold.
    were not touched.
 6. **Single-profile soft delete** (`birth-profile.repository.ts`) does not purge gift payloads (reader still re-authorizes;
    payload clears at TTL or account purge) — see ADDENDA B11.
-7. **English gift** — not requested (vi only); English readers get the structural fallback.
+7. **English gift quality** — English facts, prompt and quality gate are covered by tests (including the label-parity test), but real English model output has not been evaluated.
 
 **Flag stays OFF.** Missing/unbounded gates: token-bound proof, real-provider quality evaluation, dashboard, deployed smoke,
 A17 matrix, owner/operational approval, and provider-spend authorization.

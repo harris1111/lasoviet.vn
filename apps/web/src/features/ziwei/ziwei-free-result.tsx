@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import type { NormalizedZiweiChartV1, ZiweiBirthSummaryV1, ZiweiEvidenceViewV1 } from "@lasoviet/contracts";
 import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { createFreeResultAnalytics } from "./free-result-analytics";
+import { createEngagementReporter } from "./free-palace-engagement-reporter";
 import { FreePalaceGiftBlock } from "./free-palace-gift-block";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart-visuals";
@@ -29,6 +30,8 @@ export type ZiweiFreeResultProps = {
   initialState: ParsedResultTabState;
   model: FreeResultModel;
   signInHref: string;
+  // Optional, user-action only: tells the server which tab the reader opened (see recordFreePalaceEngagement).
+  recordEngagement?: (tab: string) => Promise<void>;
   loadEvidence(chartId: string, evidenceId: string): Promise<
     { ok: true; value: ZiweiEvidenceViewV1 } | { ok: false; error: { code: string } }
   >;
@@ -46,7 +49,7 @@ const mobileAnchors: Record<ZiweiResultTab, string> = {
 };
 
 export function ZiweiFreeResult({
-  chart, birthSummary, chartId, basePath, locale, initialState, model, signInHref, loadEvidence,
+  chart, birthSummary, chartId, basePath, locale, initialState, model, signInHref, loadEvidence, recordEngagement,
 }: ZiweiFreeResultProps) {
   const t = useTranslations("ziwei");
   const reportT = useTranslations("reports");
@@ -161,7 +164,10 @@ export function ZiweiFreeResult({
     };
   }, [modalId, initialState.tab]);
 
+  const engagementRef = useRef(createEngagementReporter(recordEngagement));
   function navigate(tab: ZiweiResultTab, open?: string) {
+    // A genuine user action (tab click, preview or evidence open): report each tab once, fire-and-forget.
+    engagementRef.current.report(tab);
     router.push(buildCanonicalTabUrl(basePath, { tab, open }), { scroll: false });
   }
   function openPreview(id: string, trigger: HTMLButtonElement, tab: "palaces" | "topics") {

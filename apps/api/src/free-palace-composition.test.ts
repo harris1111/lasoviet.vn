@@ -65,9 +65,12 @@ describe("free palace API composition (fail closed)", () => {
     expect(options.boundProofFor).toBe(NO_REVIEWED_TOKEN_BOUND_PROOF);
     expect(options.isTrustedGuest).toBeUndefined();
     const actor = { kind: "account", userId: "u", sessionId: "s", requestId: "r", emailVerified: true } as const;
-    await composition.onChartReady!(actor, { chartId: "chart-1" });
+    await composition.onChartReady!(actor, { chartId: "chart-1", locale: "en" });
     const request = vi.mocked(backend.createFreePalaceRequestService).mock.results[0]!.value.request;
-    expect(request).toHaveBeenCalledWith(actor, "chart-1");
+    expect(request).toHaveBeenCalledWith(actor, "chart-1", "en");
+    // without a locale the hook requests nothing: the first engagement on the result page will, in the page locale
+    expect(await composition.onChartReady!(actor, { chartId: "chart-2" })).toEqual({ kind: "skipped", reason: "locale_unknown" });
+    expect(request).toHaveBeenCalledTimes(1);
     never();
   });
 

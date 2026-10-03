@@ -6,7 +6,7 @@ import {
   type TopConcernV1,
 } from "@lasoviet/contracts";
 import type { Database } from "@lasoviet/database";
-import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "../reports/comprehensive-report-validator-v4.js";
+import { freePalaceLabel, type FreePalaceLocale } from "./free-palace-labels.js";
 import { createFreeAiBudgetRepository, type FreePalaceRefusalReason } from "./free-ai-budget.repository.js";
 import { freezeFreePalaceCostContext, type FreePalaceTariff, type FreePalaceTokenBoundProof } from "./free-palace-cost-context.js";
 import { createFreePalaceSourceCheck } from "./free-palace-runner.js";
@@ -19,9 +19,8 @@ import type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 
 export const FREE_PALACE_KNOWLEDGE_VERSION = "free-palace-structural-facts-v1";
 export const FREE_PALACE_SCORER_VERSION = "structural-palace-score-v1";
-// The gift is requested in the default locale; an English reader gets the structural fallback
-// (the reader reports "unavailable" for a locale that has no request).
-export const FREE_PALACE_GIFT_LOCALE = "vi" as const;
+// One gift per chart version, in the locale the reader was using when it was requested. A reader
+// who later opens the other locale sees the structural fallback (the slot is never re-granted).
 export const FREE_PALACE_MAX_OUTPUT_TOKENS = 2500;
 
 export function freePalaceLineage(input: { chartVersionId: string; palaceId: FreePalaceArtifactLineage["palaceId"]; locale: "vi" | "en"; provider: string; model: string }): FreePalaceArtifactLineage {
@@ -36,19 +35,22 @@ export const currentFreePalaceLineageHash = (provider: string, model: string) =>
   (slot: { chartVersionId: string; palaceId: string; locale: "vi" | "en" }) =>
     freePalaceArtifactKey(freePalaceLineage({ ...slot, palaceId: slot.palaceId as FreePalaceArtifactLineage["palaceId"], provider, model }));
 
-const label = (id: string) => KNOWN_CANONICAL_IDENTIFIERS_VI[id];
 
 // Authorized, structural facts for ONE palace only: the palace, its branch, its main stars with their
 // brightness, and the transformations that land on those stars. Nothing outside the chart.
-export function buildFreePalaceFacts(chart: NormalizedZiweiChartV1, palaceId: string): FreePalaceGiftFactV1[] {
+export function buildFreePalaceFacts(chart: NormalizedZiweiChartV1, palaceId: string, locale: FreePalaceLocale = "vi"): FreePalaceGiftFactV1[] {
   const palace = chart.palaces.find((item) => item.id === palaceId);
   if (!palace) return [];
+  const vi = locale === "vi";
+  const label = (id: string) => freePalaceLabel(locale, id);
   const suffix = palaceId.split(".").pop()!;
-  const facts: FreePalaceGiftFactV1[] = [];
   const palaceName = label(palaceId);
   if (!palaceName) return [];
   const branch = label(palace.earthlyBranchId);
-  facts.push({ key: `palace:${suffix}`, label: "Cung được chọn", value: branch ? `${palaceName}, tại địa chi ${branch}` : palaceName });
+  const facts: FreePalaceGiftFactV1[] = [{
+    key: `palace:${suffix}`, label: vi ? "Cung được chọn" : "Selected palace",
+    value: branch ? (vi ? `${palaceName}, tại địa chi ${branch}` : `${palaceName}, at earthly branch ${branch}`) : palaceName,
+  }];
   for (const star of palace.stars.filter((item) => item.category === "major")) {
     const name = label(star.id);
     if (!name) continue;
@@ -56,8 +58,10 @@ export function buildFreePalaceFacts(chart: NormalizedZiweiChartV1, palaceId: st
     const transformation = chart.transformations.find((item) => item.starId === star.id);
     const transform = transformation ? label(transformation.id) : undefined;
     facts.push({
-      key: `palace:${suffix}:star:${star.id.split(".").pop()}`, label: "Chính tinh tại cung",
-      value: [name, brightness ? `thế ${brightness}` : null, transform ? `mang ${transform}` : null].filter(Boolean).join(", "),
+      key: `palace:${suffix}:star:${star.id.split(".").pop()}`, label: vi ? "Chính tinh tại cung" : "Principal star in this palace",
+      value: vi
+        ? [name, brightness ? `thế ${brightness}` : null, transform ? `mang ${transform}` : null].filter(Boolean).join(", ")
+        : [name, brightness ? `${brightness.toLowerCase()} brightness` : null, transform ? `with ${transform} transformation` : null].filter(Boolean).join(", "),
     });
   }
   return facts;
@@ -91,10 +95,13 @@ export function createFreePalaceRequestService(options: FreePalaceRequestService
   const budget = createFreeAiBudgetRepository(options.database);
   const sourceCheck = createFreePalaceSourceCheck();
   return {
-    async request(actor: CurrentActor, chartId: string): Promise<FreePalaceRequestOutcome> {
+    async request(actor: CurrentActor, chartId: string, locale: FreePalaceLocale, signals: { guestEngaged?: boolean } = {}): Promise<FreePalaceRequestOutcome> {
       try {
         if (!options.flagEnabled()) return { kind: "skipped", reason: "flag_disabled" };
-        const trusted = actor.kind === "account" ? actor.emailVerified === true : (options.isTrustedGuest?.(actor) ?? false);
+        // A verified account is trusted. Anyone else (a guest or an unverified account) becomes trusted only
+        // through a server-verified engagement signal (see free-palace-engagement.service) or an injected check.
+        const trusted = (actor.kind === "account" && actor.emailVerified === true) || signals.guestEngaged === true ||
+          (actor.kind === "anonymous" && (options.isTrustedGuest?.(actor) ?? false));
         if (!trusted) return { kind: "skipped", reason: "identity_unverified" };
         const at = now();
         const source = await options.sources.readAuthorizedChart(actor, chartId, at);
@@ -102,10 +109,10 @@ export function createFreePalaceRequestService(options: FreePalaceRequestService
         const chart = NormalizedZiweiChartV1Schema.safeParse(source.normalizedOutput);
         if (!chart.success) return { kind: "skipped", reason: "chart_invalid" };
         const palaceId = selectFreePalace(chart.data, source.topConcern as TopConcernV1 | undefined);
-        const facts = buildFreePalaceFacts(chart.data, palaceId);
+        const facts = buildFreePalaceFacts(chart.data, palaceId, locale);
         if (facts.length === 0) return { kind: "skipped", reason: "no_facts" };
         const prompt = buildFreePalacePrompt({
-          locale: FREE_PALACE_GIFT_LOCALE, palaceId, palaceLabel: label(palaceId) ?? palaceId, facts, concern: source.topConcern ?? null,
+          locale, palaceId, palaceLabel: freePalaceLabel(locale, palaceId) ?? palaceId, facts, concern: source.topConcern ?? null,
         });
         const serializedRequest = serializeFreePalacePrompt(prompt);
         const frozen = freezeFreePalaceCostContext({
@@ -117,7 +124,7 @@ export function createFreePalaceRequestService(options: FreePalaceRequestService
         const result = await budget.reserve({
           flagEnabled: true,
           actor: actor.kind === "account" ? { kind: "account", id: actor.userId, trusted } : { kind: "guest", id: actor.anonymousActorId, trusted },
-          lineage: freePalaceLineage({ chartVersionId: source.chartVersionId, palaceId, locale: FREE_PALACE_GIFT_LOCALE, provider: options.provider, model: options.model }),
+          lineage: freePalaceLineage({ chartVersionId: source.chartVersionId, palaceId, locale, provider: options.provider, model: options.model }),
           concern: source.topConcern ?? null, cost: frozen.value, traceId: options.traceId?.(actor) ?? actor.requestId,
           authorizeSource: async (tx, when) => (await sourceCheck(tx, when, source.chartVersionId))
             ? { expiresAt: actor.kind === "anonymous" ? new Date(actor.expiresAt) : null } : null,

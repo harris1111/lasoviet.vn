@@ -7,6 +7,7 @@ import {
   type FreePalaceGiftFactV1,
 } from "@lasoviet/contracts";
 import {
+  auditLogs,
   birthProfiles,
   freeAiArtifacts,
   freeAiChartBudgets,
@@ -63,6 +64,8 @@ export async function purgeFreePalaceForChartVersions(tx: FreeAiTransaction, cha
       await tx.update(freeAiRequests).set({ status: "terminal_failure" }).where(eq(freeAiRequests.id, request.id));
     }
   }
+  // Engagement markers (actor id, chart version id, tab name) follow the chart: no birth data, but still removed.
+  await tx.delete(auditLogs).where(and(eq(auditLogs.targetType, "free_palace_engagement"), inArray(auditLogs.targetId, ids)));
   const requestIds = requests.map((request) => request.id);
   if (requestIds.length > 0) {
     await tx.update(freeAiArtifacts).set({ frozenCall: null, content: null, facts: null, contentHash: null })

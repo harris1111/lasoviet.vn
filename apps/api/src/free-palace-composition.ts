@@ -1,4 +1,5 @@
 import {
+  createFreePalaceEngagementService,
   createFreePalaceReadService,
   createFreePalaceRequestService,
   createFreePalaceTariffPort,
@@ -16,7 +17,11 @@ export const NO_REVIEWED_TOKEN_BOUND_PROOF = () => null;
 
 export type FreePalaceApiComposition = {
   // Present only when the flag is on AND approved production AI is configured.
-  onChartReady?: (actor: Parameters<ReturnType<typeof createFreePalaceRequestService>["request"]>[0], chart: { chartId: string }) => Promise<unknown>;
+  // The chart-ready hook only knows the reader's locale if the calculation call carried it; without
+  // one it requests nothing (the first engagement on the result page will, in the page's locale).
+  onChartReady?: (actor: Parameters<ReturnType<typeof createFreePalaceRequestService>["request"]>[0], chart: { chartId: string; locale?: "vi" | "en" }) => Promise<unknown>;
+  // Explicit user action on the result page; present only when the flag and approved AI are on.
+  engagement?: ReturnType<typeof createFreePalaceEngagementService>;
   onChartReadyError?: (error: unknown) => void;
   // Always present when a database exists: reading an authorized cache must keep working with the flag off.
   reader?: ReturnType<typeof createFreePalaceReadService>;
@@ -42,9 +47,11 @@ export function composeFreePalaceForApi(environment: AppEnvironment, database: D
     loadActiveTariff: createFreePalaceTariffPort(database).loadActiveTariff,
     boundProofFor: NO_REVIEWED_TOKEN_BOUND_PROOF,
   });
+  const sources = createDatabaseZiweiQueryRepository(database);
   return {
     reader,
-    onChartReady: (actor, chart) => request.request(actor, chart.chartId),
+    engagement: createFreePalaceEngagementService({ database, sources, request, flagEnabled: () => true }),
+    onChartReady: async (actor, chart) => (chart.locale ? request.request(actor, chart.chartId, chart.locale) : { kind: "skipped", reason: "locale_unknown" }),
     // Name only: no message, stack or payload can carry birth data into logs.
     onChartReadyError: (error) => console.error("FREE_PALACE_REQUEST_FAILED", error instanceof Error ? error.name : "unknown"),
   };
