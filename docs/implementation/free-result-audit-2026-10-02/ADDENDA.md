@@ -69,3 +69,11 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - Runtime fail-closed beyond startup: every cycle checks that an approved, effective tariff exists for the configured provider/model; if not it claims nothing, so events wait instead of burning slots. A frozen call for a provider/model different from this process's config is cancelled **unsent** (hold released, slot stays consumed).
 - Maintenance (every 15 min, same tick as the existing maintenance, flag-gated): `settleAbandoned`, `closeStalePublications`, `purgeExpiredPayloads`. Stale threshold = AI timeout + 10 min. Retention for deleted/expired owners does not depend on this (B11 hooks run in the privacy purge paths).
 - `ai_model_pricing` and `ai_call_attempts` are append-only; worker integration tests isolate by unique model ids.
+
+## B15
+
+- **Real defect found by the reader test and fixed in `free-palace-artifact.repository.ts` (B11 file):** the content hash was taken over `JSON.stringify`, but `jsonb` does not preserve key order, so a stored artifact could never match the hash computed when it was written (every read would have degraded to "unavailable"). The hash is now taken over a canonical, sorted-key form. No hashes had been persisted outside tests.
+- Reader requires `currentLineageHash(slot)` from its composition (B19): the artifact key the *current* code would produce. A stored `lineage_hash` that differs is a consumed-but-unsupported artifact → structural fallback, never regeneration.
+- Status mapping (stored → contract): `reserved→requested`, `dispatching→generating`, `terminal_failure→terminal_failure`, `cost_unknown→cost_unknown`; no slot, `cancelled`, ready-but-invalid or unknown → `unavailable`. `budget_exhausted` is an admission refusal with no stored state, so the reader never emits it.
+- `ready` additionally requires a resolved settlement, the requested locale, an unexpired artifact of the current deletion generation, an intact canonical hash and a passing `FreePalaceGiftViewV1Schema`. The response is only that view: no model, tariff, prompt or reservation field exists on it.
+- `ziwei-query.service.ts` gained an optional `freePalaceGift` reader and `readFreePalaceGift`; `readPreview` is untouched and still has no generator. Without the reader wired, the method authorizes the chart and reports `unavailable`.

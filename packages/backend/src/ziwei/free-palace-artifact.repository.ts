@@ -29,8 +29,18 @@ export type FreePalaceOwner = Readonly<{ userId: string } | { anonymousActorId: 
 
 const factsSchema = FreePalaceGiftFactV1Schema.array().min(1).max(64);
 
+// jsonb does not preserve object key order, so the hash must be taken over a canonical form
+// (sorted keys) or a stored artifact would never match the hash computed when it was written.
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
 export function freePalaceContentHash(content: FreePalaceGiftContentV1, facts: ReadonlyArray<FreePalaceGiftFactV1>): string {
-  return createHash("sha256").update(JSON.stringify({ content, facts })).digest("hex");
+  return createHash("sha256").update(canonicalJson({ content, facts })).digest("hex");
 }
 
 // Nulls every private payload and keeps only non-content accounting (ids, amounts, days, status).

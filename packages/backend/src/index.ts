@@ -844,3 +844,5 @@ export {
   createFreePalaceWriter,
   serializeFreePalacePrompt,
 } from "./ziwei/free-palace-writer.js";
+export { createFreePalaceReadService, mapFreePalaceStatus } from "./ziwei/free-palace-read.service.js";
+export type { FreePalaceReadService } from "./ziwei/free-palace-read.service.js";

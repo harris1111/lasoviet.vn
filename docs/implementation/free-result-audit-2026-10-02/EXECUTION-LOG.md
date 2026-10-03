@@ -115,3 +115,12 @@ Allowlist drift: worker-heartbeat.ts (declared), writer guard — see ADDENDA.md
 Verification: `pnpm vitest run packages/database packages/backend packages/contracts apps/api apps/worker apps/web/src/features/ziwei tests/free-ai tests/workspace tests/privacy` — 229 files, 2232 tests passed; `pnpm i18n:check` pass; `pnpm lint` 0 errors (4 pre-existing warnings); `pnpm -r --if-present run build` and `typecheck` exit 0. Paid ai/reports/outbox files unchanged (empty diff).
 Not verified: a live worker container, real provider, Redis/health probe in a deployed environment.
 Next dependency-ready card: B15 (batch 3).
+
+## B15 — Authorized private cache/status reader service
+State: VERIFIED (real Postgres), library only.
+Behavior changed: `createFreePalaceReadService().read(actor, chartId, locale)` returns the validated one-palace gift or a structural-fallback status; it can only select (tested with a database proxy that throws on any write), never admits, enqueues or touches quota.
+Files changed: packages/backend/src/ziwei/free-palace-read.service.ts (+ .test.ts), ziwei-query.service.ts, free-palace-artifact.repository.ts (canonical hash fix), packages/backend/src/index.ts, tests/free-ai/reader.integration.test.ts, free-ai-test-harness.ts.
+Allowlist drift: artifact repository hash fix (see ADDENDA.md).
+Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai/reader.integration.test.ts` — 88 passed (matrix rows 43–46, one test per mapped state, wrong-owner = missing, wrong locale / unsupported lineage / tampered hash / stale generation / deleted chart / expired TTL / unresolved cost never exposed).
+Not verified: HTTP exposure (B16).
+Next dependency-ready card: B16.

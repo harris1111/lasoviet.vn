@@ -8,6 +8,7 @@ import {
   PaidTopicSelectionViewV1Schema,
   type CurrentActor,
   type FreeIdentityPreviewV1,
+  type FreePalaceGiftViewV1,
   type PaidTopicSelectionViewV1,
   type Result,
   type ZiweiBirthSummaryV1,
@@ -24,6 +25,7 @@ import {
   buildGuardedFreeIdentityPreview,
 } from "../reports/free-identity-preview.js";
 import type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
+import type { FreePalaceReadService } from "./free-palace-read.service.js";
 
 export type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 
@@ -37,6 +39,9 @@ export type ZiweiQueryError =
 export type ZiweiQueryServiceOptions = {
   repository: ZiweiQueryRepository;
   personalDailyReading?: DailyReadingService;
+  // Read-only gift reader. Optional: without it the endpoint authorizes the chart and reports
+  // "unavailable", so the structural fallback is always what renders.
+  freePalaceGift?: FreePalaceReadService;
   now?: () => Date;
   calculateHoroscope?: (
     profile: import("@lasoviet/contracts").NormalizedBirthProfileV1,
@@ -192,6 +197,19 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
   }
 
   return {
+    async readFreePalaceGift(
+      actor: CurrentActor,
+      chartId: string,
+      locale: "vi" | "en",
+    ): Promise<Result<FreePalaceGiftViewV1, ZiweiQueryError>> {
+      if (options.freePalaceGift) {
+        const result = await options.freePalaceGift.read(actor, chartId, locale);
+        return result.ok ? result : error(result.error.code as ZiweiQueryError);
+      }
+      const record = await authorizedRecord(actor, chartId);
+      return "ok" in record ? record : { ok: true, value: { version: 1, status: "unavailable" } };
+    },
+
     async readChart(
       actor: CurrentActor,
       chartId: string,
