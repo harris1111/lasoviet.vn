@@ -58,3 +58,13 @@ Verification: `pnpm vitest run packages/backend/src/ziwei/free-ai-budget.reposit
 Not verified: midnight rollover and fence (B10); deletion generation recheck at publication (B11).
 Remaining concern: none known.
 Next dependency-ready card: B09.
+
+## B09 — Merge quota history with ownership linking
+State: VERIFIED (real Postgres).
+Behavior changed: `linkAnonymousActorToAccount` now takes the global free-AI coordination lock first, then, before deleting the anonymous auth row, unions the guest quota subject into the account subject (re-pointing admissions and merged children). Previously linking left a guest's usage orphaned, so a guest could effectively reset allowance.
+Files changed: packages/database/src/free-ai-quota-link.ts (new), packages/database/src/runtime.ts, packages/database/src/index.ts, packages/backend/src/ziwei/free-ai-admission.service.ts, tests/free-ai/linking.integration.test.ts.
+Allowlist drift: index.ts and free-ai-admission.service.ts (decision A), see ADDENDA.md.
+Verification: `pnpm vitest run packages/database/src/schema/schema.integration.test.ts packages/backend/src/ziwei tests/free-ai` — 89/89 passed, 12 files, including existing link tests and 8 new linking tests (matrix rows 10–15 plus no-cross-account merge); database and backend typecheck and eslint clean.
+Not verified: nothing known.
+Remaining concern: B18 must pass the anonymous actor id / user id as `actor.id` (see ADDENDA).
+Next dependency-ready card: B10.
