@@ -1,13 +1,14 @@
 import { createHash } from "node:crypto";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CurrentActor } from "../../packages/contracts/src/index.js";
 import { createFreePalaceEngagementService } from "../../packages/backend/src/ziwei/free-palace-engagement.service.js";
 import { createFreePalaceRequestService } from "../../packages/backend/src/ziwei/free-palace-request.service.js";
 import { createDatabaseZiweiQueryRepository } from "../../packages/backend/src/ziwei/ziwei-query.repository.js";
 import { createDatabaseAnonymousRetentionRepository } from "../../packages/backend/src/privacy/anonymous-retention.repository.js";
+import { createDatabaseDeletionRepository } from "../../packages/backend/src/privacy/deletion.repository.js";
 import { createFreeAiDispatchService } from "../../packages/backend/src/ziwei/free-ai-dispatch.service.js";
 import { createFreeAiSettlementService } from "../../packages/backend/src/ziwei/free-ai-settlement.service.js";
-import { raceBehindLock, seedChartVersion, startFreeAiDatabase, type TestDatabase } from "./free-ai-test-harness.js";
+import { COORDINATION_LOCK_KEY, raceBehindLock, seedChartVersion, startFreeAiDatabase, type TestDatabase } from "./free-ai-test-harness.js";
 
 type Harness = Awaited<ReturnType<typeof startFreeAiDatabase>>;
 const TABLES = ["outbox", "free_ai_artifacts", "free_ai_settlements", "free_ai_admissions", "free_ai_requests", "free_ai_quota_aliases", "free_ai_quota_subjects", "free_ai_daily_budgets", "free_ai_chart_budgets", "audit_logs"];
@@ -47,6 +48,178 @@ describe("free palace engagement → guest trust → gift request (real Postgres
     return { actor, chartId, chartVersionId, anonymousActorId };
   }
   const count = async (table: string) => Number((await h.raw.unsafe(`SELECT count(*)::int AS n FROM ${table}`))[0]!.n);
+
+  async function deletionFixture(kind: "guest" | "account", at: Date) {
+    if (kind === "guest") {
+      const g = await guestChart({ expiresAt: new Date("2026-10-03T14:00:00.000Z") });
+      return { ...g, delete: (database: TestDatabase) =>
+        createDatabaseAnonymousRetentionRepository(database).deleteNow(g.anonymousActorId) };
+    }
+    const userId = `eng-delete-user-${++seq}`;
+    const chartVersionId = `eng-delete-chart-${++seq}`;
+    const { chartId } = await seedChartVersion(main, chartVersionId, { kind: "account", userId }, { normalizedOutput: chart });
+    const requested = await createDatabaseDeletionRepository(main).request({
+      userId, requestId: `delete-${seq}`, requestedAt: new Date(at.getTime() - 86_400_000), recoverUntil: new Date(at.getTime() - 1),
+    });
+    if (!requested.ok) throw new Error("ACCOUNT_DELETION_FIXTURE_FAILED");
+    const actor: CurrentActor = { kind: "account", userId, sessionId: "s", requestId: "r", emailVerified: false };
+    return { actor, chartId, chartVersionId, delete: async (database: TestDatabase) => {
+      const purged = await createDatabaseDeletionRepository(database).purgeExpired(at, 100);
+      return { ok: purged.includes(requested.value.requestId) };
+    } };
+  }
+
+  it.each(["guest", "account"] as const)("engagement authorized first cannot recreate a marker after concurrent %s deletion", async (kind) => {
+    const at = new Date("2026-10-03T12:00:00.000Z");
+    const g = await deletionFixture(kind, at);
+    const sources = createDatabaseZiweiQueryRepository(h.connect());
+    let authorized = false;
+    let resume!: () => void;
+    const gate = new Promise<void>((resolve) => { resume = resolve; });
+    const request = { request: vi.fn(async () => ({ kind: "skipped", reason: "test_no_dispatch" } as const)) };
+    const service = createFreePalaceEngagementService({
+      database: h.connect(), flagEnabled: () => true, now: () => at, request,
+      sources: {
+        async readAuthorizedChart(...args) {
+          const source = await sources.readAuthorizedChart(...args);
+          authorized = true;
+          await gate;
+          return source;
+        },
+      },
+    });
+    const recording = service.record(g.actor, g.chartId, "palaces", "vi");
+    await vi.waitFor(() => expect(authorized).toBe(true));
+    let deleted = false;
+    const deletion = g.delete(h.connect())
+      .then((result) => { deleted = true; return result; });
+    try {
+      // Original code finishes deletion while authorization is paused, then writes an orphan.
+      // Fixed code queues deletion behind the engagement transaction instead.
+      await vi.waitFor(async () => {
+        const [locks] = await h.raw`SELECT EXISTS (SELECT 1 FROM pg_locks WHERE locktype='advisory' AND NOT granted) AS waiting`;
+        expect(deleted || locks!.waiting).toBe(true);
+      });
+    } finally {
+      resume();
+      await Promise.all([recording, deletion]);
+    }
+    expect(await deletion).toMatchObject({ ok: true });
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g.chartVersionId}`).toHaveLength(0);
+    expect(request.request).not.toHaveBeenCalled();
+    expect(await count("free_ai_requests")).toBe(0);
+  });
+
+  it.each(["guest", "account"] as const)("%s deletion holding the coordination lock prevents later engagement authorization", async (kind) => {
+    const at = new Date("2026-10-03T12:00:00.000Z");
+    const g = await deletionFixture(kind, at);
+    let lockAcquired = false;
+    let resume!: () => void;
+    const gate = new Promise<void>((resolve) => { resume = resolve; });
+    // Pause the actual privacy transaction immediately after its first SQL statement,
+    // the shared advisory lock. Its remaining cascade/purge runs without modification.
+    const deletionDatabase = new Proxy(h.connect(), {
+      get(database, key, receiver) {
+        if (key !== "transaction") return Reflect.get(database, key, receiver);
+        return (run: Parameters<TestDatabase["transaction"]>[0]) => database.transaction(async (transaction) => {
+          let paused = false;
+          return run(new Proxy(transaction, {
+            get(target, property, proxy) {
+              if (property !== "execute") return Reflect.get(target, property, proxy);
+              return async (query: Parameters<typeof transaction.execute>[0]) => {
+                const result = await transaction.execute(query);
+                if (!paused) {
+                  paused = true;
+                  lockAcquired = true;
+                  await gate;
+                }
+                return result;
+              };
+            },
+          }));
+        });
+      },
+    });
+    const deletion = g.delete(deletionDatabase);
+    let recording: ReturnType<ReturnType<typeof make>["record"]> | undefined;
+    try {
+      await vi.waitFor(() => expect(lockAcquired).toBe(true));
+      recording = make(h.connect(), true, { now: () => at }).record(g.actor, g.chartId, "palaces", "vi");
+      await vi.waitFor(async () => {
+        const [locks] = await h.raw`SELECT EXISTS (SELECT 1 FROM pg_locks WHERE locktype='advisory' AND NOT granted) AS waiting`;
+        expect(locks!.waiting).toBe(true);
+      });
+    } finally {
+      resume();
+      await Promise.all([deletion, recording]);
+    }
+    expect(await deletion).toMatchObject({ ok: true });
+    expect(await recording).toEqual({ kind: "ignored", reason: "source_unavailable" });
+    if (g.actor.kind === "account") {
+      // The asynchronous deletion worker has not removed these rows yet; purge state
+      // alone must already revoke the captured actor's source authorization.
+      expect(await h.raw`SELECT 1 FROM birth_profiles WHERE user_id=${g.actor.userId}`).toHaveLength(1);
+    }
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g.chartVersionId}`).toHaveLength(0);
+    expect(await count("free_ai_requests")).toBe(0);
+  });
+
+  it("recoverable and cancelled account deletion retain their existing chart authorization", async () => {
+    const at = new Date("2026-10-03T12:00:00.000Z");
+    const userId = `eng-recoverable-user-${++seq}`;
+    const { chartId } = await seedChartVersion(main, `eng-recoverable-chart-${++seq}`, { kind: "account", userId }, { normalizedOutput: chart });
+    const actor: CurrentActor = { kind: "account", userId, sessionId: "s", requestId: "r", emailVerified: false };
+    const deletions = createDatabaseDeletionRepository(main);
+    const requested = await deletions.request({ userId, requestId: "recoverable", requestedAt: at,
+      recoverUntil: new Date("2026-10-03T13:00:00.000Z") });
+    if (!requested.ok) throw new Error("ACCOUNT_DELETION_FIXTURE_FAILED");
+    const sources = createDatabaseZiweiQueryRepository(main);
+    expect(await sources.readAuthorizedChart(actor, chartId, at)).toMatchObject({ chartId });
+    expect(await deletions.cancel(userId, "cancel-recovery", at)).toMatchObject({ ok: true });
+    expect(await sources.readAuthorizedChart(actor, chartId, at)).toMatchObject({ chartId });
+    expect(await make(main, true, { now: () => at }).record(actor, chartId, "palaces", "vi"))
+      .toEqual({ kind: "recorded", distinctTabs: 1 });
+    expect(await count("free_ai_requests")).toBe(0);
+  });
+
+  it("a guest expiring while queued is authorized against the clock after the lock wait", async () => {
+    let at = new Date("2026-10-03T12:00:00.000Z");
+    const g = await guestChart({ expiresAt: new Date("2026-10-03T13:00:00.000Z") });
+    let lockAcquired = false;
+    let resume!: () => void;
+    const gate = new Promise<void>((resolve) => { resume = resolve; });
+    const holder = h.rawClient().begin(async (transaction) => {
+      await transaction`SELECT pg_advisory_xact_lock(hashtextextended(${COORDINATION_LOCK_KEY}, 0))`;
+      lockAcquired = true;
+      await gate;
+    });
+    let recording: ReturnType<ReturnType<typeof make>["record"]> | undefined;
+    try {
+      await vi.waitFor(() => expect(lockAcquired).toBe(true));
+      recording = make(h.connect(), true, { now: () => at }).record(g.actor, g.chartId, "palaces", "vi");
+      await vi.waitFor(async () => {
+        const [locks] = await h.raw`SELECT EXISTS (SELECT 1 FROM pg_locks WHERE locktype='advisory' AND NOT granted) AS waiting`;
+        expect(locks!.waiting).toBe(true);
+      });
+      at = new Date("2026-10-03T14:00:00.000Z");
+    } finally {
+      resume();
+      await Promise.all([holder, recording]);
+    }
+    expect(await recording).toEqual({ kind: "ignored", reason: "source_unavailable" });
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g.chartVersionId}`).toHaveLength(0);
+    expect(await count("free_ai_requests")).toBe(0);
+  });
+
+  it("concurrent repeats of one tab persist one marker and never trigger a gift request", async () => {
+    const at = new Date("2026-10-03T12:00:00.000Z");
+    const g = await guestChart({ expiresAt: new Date("2026-10-03T14:00:00.000Z") });
+    const results = await raceBehindLock(h.rawClient(), Array.from({ length: 6 }, () =>
+      () => make(h.connect(), true, { now: () => at }).record(g.actor, g.chartId, "palaces", "vi")));
+    expect(results).toEqual(Array.from({ length: 6 }, () => ({ kind: "recorded", distinctTabs: 1 })));
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g.chartVersionId}`).toHaveLength(1);
+    expect(await count("free_ai_requests")).toBe(0);
+  });
 
   it("a guest is not trusted by one or two tabs, and becomes trusted at the third distinct tab", async () => {
     const g = await guestChart();

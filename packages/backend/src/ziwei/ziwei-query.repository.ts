@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, notExists } from "drizzle-orm";
 
 import type { CurrentActor, TopConcernV1 } from "@lasoviet/contracts";
 import {
@@ -6,6 +6,7 @@ import {
   birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
+  deletionRequests,
   evidenceItems,
   evidenceSets,
   type Database,
@@ -31,6 +32,7 @@ export type ZiweiQueryRepository = {
     actor: CurrentActor,
     chartId: string,
     now: Date,
+    transaction?: Pick<Database, "select">,
   ): Promise<AuthorizedZiweiChartRecord | null>;
   readEvidenceItem(
     evidenceSetId: string,
@@ -38,9 +40,15 @@ export type ZiweiQueryRepository = {
   ): Promise<{ id: string; payload: Record<string, unknown> } | null>;
 };
 
-function ownerFilter(actor: CurrentActor, now: Date) {
+function ownerFilter(actor: CurrentActor, now: Date, database: Pick<Database, "select">) {
   return actor.kind === "account"
-    ? eq(birthProfiles.userId, actor.userId)
+    ? and(
+        eq(birthProfiles.userId, actor.userId),
+        // Purge closes access before the asynchronous outbox removes the profile rows.
+        notExists(database.select({ id: deletionRequests.id }).from(deletionRequests).where(
+          and(eq(deletionRequests.userId, actor.userId), eq(deletionRequests.status, "purged")),
+        )),
+      )
     : and(
         eq(birthProfiles.anonymousActorId, actor.anonymousActorId),
         gt(birthProfiles.anonymousExpiresAt, now),
@@ -51,8 +59,9 @@ export function createDatabaseZiweiQueryRepository(
   database: Database,
 ): ZiweiQueryRepository {
   return {
-    async readAuthorizedChart(actor, chartId, now) {
-      const [record] = await database
+    async readAuthorizedChart(actor, chartId, now, transaction) {
+      const sourceDatabase = transaction ?? database;
+      const [record] = await sourceDatabase
         .select({
           chartId: ziweiCharts.id,
           chartVersionId: ziweiChartVersions.id,
@@ -85,7 +94,7 @@ export function createDatabaseZiweiQueryRepository(
         .where(
           and(
             eq(ziweiCharts.id, chartId),
-            ownerFilter(actor, now),
+            ownerFilter(actor, now, sourceDatabase),
             isNull(birthProfiles.deletedAt),
           ),
         )
@@ -94,7 +103,7 @@ export function createDatabaseZiweiQueryRepository(
       if (record === undefined) {
         return null;
       }
-      const [evidenceSet] = await database
+      const [evidenceSet] = await sourceDatabase
         .select({
           evidenceSetId: evidenceSets.id,
           capabilityId: evidenceSets.capabilityId,
@@ -120,7 +129,7 @@ export function createDatabaseZiweiQueryRepository(
           items: [],
         };
       }
-      const items = await database
+      const items = await sourceDatabase
         .select({ id: evidenceItems.id, payload: evidenceItems.payload })
         .from(evidenceItems)
         .where(eq(evidenceItems.evidenceSetId, evidenceSet.evidenceSetId))
