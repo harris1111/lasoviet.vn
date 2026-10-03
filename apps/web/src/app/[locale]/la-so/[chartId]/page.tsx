@@ -11,6 +11,7 @@ import { AnonymousDataDeletionControl } from "../../../../features/privacy/anony
 import { deleteAnonymousDataAction } from "../../../../features/privacy/delete-anonymous-data-action";
 import { freeIdentityPreviewLoader } from "../../../../features/reports/load-free-identity-preview";
 import { freePalaceGiftLoader } from "../../../../features/ziwei/load-free-palace-gift";
+import { recordFreePalaceEngagement } from "../../../../features/ziwei/record-free-palace-engagement-action";
 import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import { ZiweiFreeResult } from "../../../../features/ziwei/ziwei-free-result";
@@ -136,6 +137,7 @@ export default async function ZiweiChartResultPage({
           locale={locale}
           loadEvidence={loadZiweiEvidence}
           model={freeResultModel}
+          recordEngagement={recordFreePalaceEngagement.bind(null, chartId, locale)}
           signInHref={signInHref}
         />
 

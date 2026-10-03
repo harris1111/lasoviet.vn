@@ -11,6 +11,7 @@ import {
 const serviceSecret = "synthetic-free-palace-secret";
 const secret = new TextEncoder().encode(serviceSecret);
 const readFreePalaceGift = vi.fn();
+const recordFreePalaceEngagement = vi.fn();
 const calculate = vi.fn();
 const otherReads = { readChart: vi.fn(), readEvidence: vi.fn(), readPreview: vi.fn(), listTopics: vi.fn(), selectTopic: vi.fn(), readHoroscope: vi.fn() };
 
@@ -27,7 +28,7 @@ Module({
     { provide: ZIWEI_CALCULATION_SERVICE, useValue: { calculate } },
     { provide: ZIWEI_CALCULATION_SERVICE_SECRET, useValue: serviceSecret },
     { provide: ZIWEI_CALCULATION_DATABASE, useValue: undefined },
-    { provide: ZIWEI_QUERY_SERVICE, useValue: { ...otherReads, readFreePalaceGift } },
+    { provide: ZIWEI_QUERY_SERVICE, useValue: { ...otherReads, readFreePalaceGift, recordFreePalaceEngagement } },
   ],
 })(FreePalaceHttpTestModule);
 
@@ -39,7 +40,7 @@ describe("free palace gift private endpoint", () => {
     await app.getHttpAdapter().getInstance().ready();
   });
   afterAll(async () => { await app.close(); });
-  beforeEach(() => { vi.clearAllMocks(); readFreePalaceGift.mockResolvedValue({ ok: true, value: { version: 1, status: "unavailable" } }); });
+  beforeEach(() => { vi.clearAllMocks(); recordFreePalaceEngagement.mockResolvedValue({ ok: true, value: { recorded: true } }); readFreePalaceGift.mockResolvedValue({ ok: true, value: { version: 1, status: "unavailable" } }); });
   const inject = async (options: { url?: string; method?: "GET" | "POST" | "PUT" | "DELETE"; auth?: boolean }) =>
     app.getHttpAdapter().getInstance().inject({
       method: options.method ?? "GET", url: options.url ?? "/ziwei/charts/chart-1/free-palace",
@@ -84,4 +85,31 @@ describe("free palace gift private endpoint", () => {
     expect(missing.body).toBe(notOwned.body);
     expect(JSON.parse(missing.body)).toEqual(notFound);
   });
+
+  describe("engagement report (explicit user action)", () => {
+    const post = async (body: unknown, auth = true) => app.getHttpAdapter().getInstance().inject({
+      method: "POST", url: "/ziwei/charts/chart-1/free-palace/engagement", payload: body as never,
+      headers: auth ? { authorization: `Bearer ${await token()}` } : {},
+    });
+    it("uses the verified actor, forwards only a tab and a locale, and is uncacheable", async () => {
+      const response = await post({ tab: "palaces", locale: "en", userId: "untrusted", count: 99 });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["cache-control"]).toBe("private, no-store");
+      expect(response.headers["x-robots-tag"]).toBe("noindex, nofollow");
+      expect(recordFreePalaceEngagement).toHaveBeenCalledWith(expect.objectContaining({ kind: "account", userId: "verified-account" }), "chart-1", "palaces", "en");
+    });
+    it("rejects a missing token and a malformed body before doing anything", async () => {
+      expect((await post({ tab: "palaces", locale: "vi" }, false)).statusCode).toBe(401);
+      expect((await post({ locale: "vi" })).statusCode).toBe(400);
+      expect((await post({ tab: "palaces", locale: "fr" })).statusCode).toBe(400);
+      expect([400, 415]).toContain((await post("nonsense")).statusCode); // not JSON: refused before the handler
+      expect(recordFreePalaceEngagement).not.toHaveBeenCalled();
+    });
+    it("is a POST only: a GET on the same path reads nothing and records nothing", async () => {
+      const response = await app.getHttpAdapter().getInstance().inject({ method: "GET", url: "/ziwei/charts/chart-1/free-palace/engagement", headers: { authorization: `Bearer ${await token()}` } });
+      expect(response.statusCode).toBe(404);
+      expect(recordFreePalaceEngagement).not.toHaveBeenCalled();
+    });
+  });
 });
+

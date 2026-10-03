@@ -63,6 +63,20 @@ describe("admin private route state", () => {
     });
   });
 
+  it("registers free-palace engagement as a private live_noindex route outside every sitemap", () => {
+    const route = routeRegistry.find((entry) => entry.id === "api.ziwei.free-palace-engagement");
+    expect(route).toMatchObject({
+      path: "/ziwei/charts/{chartId}/free-palace/engagement",
+      status: "live_noindex",
+      private: true,
+      sitemap: false,
+      robots: "noindex,nofollow",
+    });
+    expect(getSitemapIndexEntries().map((entry) => entry.url)).not.toContain(
+      "https://lasoviet.net/ziwei/charts",
+    );
+  });
+
   it("keeps the admin route out of public navigation", async () => {
     const header = await readFile(
       "apps/web/src/components/site-header.tsx",

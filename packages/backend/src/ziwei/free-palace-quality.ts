@@ -11,6 +11,7 @@ import {
   wholeWord,
 } from "../reports/comprehensive-report-quality-v4.js";
 import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "../reports/comprehensive-report-validator-v4.js";
+import { freePalaceLabel, freePalaceStarNames } from "./free-palace-labels.js";
 
 // One-palace equivalent of the paid report's deterministic prose gates. It is a NEW function and
 // changes no paid gate. Mapping to the paid gates it mirrors (comprehensive-report-quality-v4):
@@ -41,6 +42,7 @@ const PROHIBITED: ReadonlyArray<readonly [string, RegExp]> = [
   ["lottery", /(?<![\p{L}\p{N}])(?:xổ\s+số|số\s+đề|trúng\s+số|trúng\s+thưởng|đánh\s+đề|cá\s+độ|cờ\s+bạc|đánh\s+bạc|lottery|jackpot|gambl(?:e|ing)|betting\s+numbers)(?![\p{L}\p{N}])/iu],
 ];
 const DISCIPLINE_NAME = /Tử Vi Đẩu Số|(?:trong|môn|lá số|xem|học|sách|người học) Tử Vi/giu;
+const DISCIPLINE_NAME_EN = /Zi Wei Dou Shu|Zi Wei Dou Shu\b|Purple Star Astrology|the Zi Wei system|Zi Wei astrology|Zi Wei chart/giu;
 const CANONICAL_ID = /ziwei\.[a-z0-9_.-]*[a-z0-9_]/iu;
 const DATE_PATTERNS: ReadonlyArray<RegExp> = [
   /(?<![\p{L}\p{N}])(?:năm\s+)?(?:1[89]|20)\d{2}(?![\p{L}\p{N}])/giu,
@@ -50,9 +52,8 @@ const DATE_PATTERNS: ReadonlyArray<RegExp> = [
   /(?<![\p{L}\p{N}])(?:in|during|by|around)\s+(?:the\s+)?(?:next\s+(?:one|two|three|\d+)\s+years?|20\d{2})(?![\p{L}\p{N}])/giu,
 ];
 const normalize = (text: string) => text.normalize("NFC").replace(/\s+/gu, " ").trim().toLowerCase();
-const ALL_STARS = Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI).filter(([id]) => id.startsWith("ziwei.star."))
-  .map(([, label]) => label.replace(/^sao\s+/u, ""));
-const PALACES = Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI).filter(([id]) => id.startsWith("ziwei.palace.")) as Array<[ZiweiPalaceId, string]>;
+const PALACES = (locale: "vi" | "en") => Object.keys(KNOWN_CANONICAL_IDENTIFIERS_VI).filter((id) => id.startsWith("ziwei.palace."))
+  .map((id) => [id as ZiweiPalaceId, freePalaceLabel(locale, id) ?? ""] as const).filter(([, label]) => label !== "");
 
 function proseOf(content: FreePalaceGiftContentV1): string[] {
   return [content.title, content.conclusion, content.narrative,
@@ -74,7 +75,7 @@ export function validateFreePalaceGift(input: {
   const blocks = proseOf(content);
   const all = blocks.join("\n");
   // "Tử Vi" is both a star and the name of the discipline; only the star needs a supporting fact.
-  const starText = all.replace(DISCIPLINE_NAME, " ");
+  const starText = all.replace(DISCIPLINE_NAME, " ").replace(DISCIPLINE_NAME_EN, " ");
 
   if (content.palaceId !== input.palaceId) add("wrong_palace_focus", "content palace differs from the frozen selection");
   if (HAN_IDEOGRAPH_PATTERN.test(all)) add("han_ideograph", "Han ideographs in customer-visible prose");
@@ -92,13 +93,14 @@ export function validateFreePalaceGift(input: {
     }
   }
   // A named star must be among the supplied facts; invented stars are the most damaging error.
-  for (const star of ALL_STARS) {
+  for (const star of freePalaceStarNames(input.locale)) {
     if (wholeWord(starText, star) && !factText.includes(normalize(star))) add("invented_star", star);
   }
   // Title and conclusion are about the selected palace; naming a different palace there is a focus error.
   const headline = `${content.title} ${content.conclusion}`;
-  for (const [id, label] of PALACES) {
-    if (id !== input.palaceId && wholeWord(headline, label) && !wholeWord(headline, KNOWN_CANONICAL_IDENTIFIERS_VI[input.palaceId] ?? "")) {
+  const selectedLabel = freePalaceLabel(input.locale, input.palaceId) ?? "";
+  for (const [id, label] of PALACES(input.locale)) {
+    if (id !== input.palaceId && wholeWord(headline, label) && !wholeWord(headline, selectedLabel)) {
       add("wrong_palace_focus", label);
     }
   }

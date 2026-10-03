@@ -169,3 +169,10 @@ Not verified: real provider, token-bound proof, deployed environment, dashboard,
 ## B21 — Final PR handoff, owner gate and deployed smoke
 State: IMPLEMENTED (documents only). Not merged, not deployed, no tracker status changed.
 Handoff: docs/implementation/free-result-audit-2026-10-02/B21-HANDOFF.md — PR stack, no migration, backout plan, open gates, proposed (unapproved) amendments, deployed-smoke plan.
+
+## Owner decisions (2026-10-03): English gifts and engagement-based guest trust
+State: VERIFIED (real Postgres + unit/HTTP tests), flag stays OFF.
+Behavior changed: gifts are requested in the reader's locale (en or vi); a guest/unverified account becomes eligible after opening ≥ 3 distinct tabs of the free reading (server-recorded, POST-only), a verified account on its first tab.
+Files changed: packages/backend/src/ziwei/{free-palace-labels,free-palace-engagement.service,free-palace-request.service,free-palace-quality,free-palace-writer,free-palace-artifact.repository,ziwei.service,ziwei-query.service}.ts (+ tests), apps/api/src/{ziwei/ziwei.controller,free-palace-composition,api.module}.ts (+ tests), apps/web (calculate action/page locale binding, engagement action + reporter, ziwei-free-result.tsx), tests/free-ai/{engagement.integration,free-palace-labels.parity}.test.ts, docs ADDENDA/B20/B21.
+Verification: `pnpm vitest run packages apps tests` — 3976 passed, 21 failed (only `tests/deployment/cd-scripts.test.ts`, identical on base 066479f); `pnpm i18n:check` pass; lint 0 errors; `pnpm -r --if-present run build` and `typecheck` exit 0.
+Not verified: real English model output; engagement from a real browser session.

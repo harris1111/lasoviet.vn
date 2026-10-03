@@ -41,7 +41,7 @@ export type ZiweiCalculationServiceOptions = {
   // Optional, best-effort and strictly after the chart source AND its evidence are persisted.
   // It may only REQUEST a free gift asynchronously; its failure or slowness never fails the
   // calculation. Consumers that omit it behave exactly as before.
-  onChartReady?: (actor: CurrentActor, chart: { chartId: string; chartVersionId: string; reused: boolean }) => Promise<unknown>;
+  onChartReady?: (actor: CurrentActor, chart: { chartId: string; chartVersionId: string; reused: boolean; locale?: "vi" | "en" }) => Promise<unknown>;
   onChartReadyError?: (error: unknown) => void;
   onChartReadyTimeoutMs?: number;
 };
@@ -87,7 +87,7 @@ export function createZiweiCalculationService(
   const config = options.config ?? defaultConfig;
 
   return {
-    async calculate(actor: CurrentActor, revisionId: string) {
+    async calculate(actor: CurrentActor, revisionId: string, calculateOptions: { locale?: "vi" | "en" } = {}) {
       const revision = await options.repository.readAuthorizedRevision(
         actor,
         revisionId,
@@ -136,7 +136,7 @@ export function createZiweiCalculationService(
         let timer: ReturnType<typeof setTimeout> | undefined;
         try {
           await Promise.race([
-            options.onChartReady(actor, value),
+            options.onChartReady(actor, calculateOptions.locale ? { ...value, locale: calculateOptions.locale } : value),
             new Promise<void>((resolve) => { timer = setTimeout(resolve, options.onChartReadyTimeoutMs ?? 2000); }),
           ]);
         } catch (hookError) {

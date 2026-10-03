@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Icon } from "../../../../components/icon";
 import { BirthProfileForm } from "../../../../features/birth-profile/birth-profile-form";
 import { submitBirthProfile } from "../../../../features/birth-profile/birth-profile-actions";
-import { calculateZiweiChart } from "../../../../features/ziwei/calculate-ziwei-chart-action";
+import { calculateZiweiChartInLocale } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import {
   parseToolBirthPrefill,
   type ToolBirthPrefillSearchParams,
@@ -25,7 +25,7 @@ export default async function ZiweiBirthProfilePage(props: ZiweiBirthProfilePage
         {t("nav.privacy")}
       </div>
       <BirthProfileForm
-        calculateZiweiChart={calculateZiweiChart}
+        calculateZiweiChart={calculateZiweiChartInLocale.bind(null, locale)}
         fromSource={searchParams?.from}
         locale={locale}
         referenceYear={referenceYear}

@@ -70,4 +70,33 @@ describe("free palace one-palace quality gate", () => {
     dup.do = [point(dup.keyPoints[0]!.text)];
     expect(codes(run(dup))).toContain("duplicate_points");
   });
+
+  describe("English gifts", () => {
+    const enFacts: FreePalaceGiftFactV1[] = [
+      { key: "fact:one", label: "Selected palace", value: "Life Palace, at earthly branch Rat" },
+      { key: "fact:two", label: "Principal star in this palace", value: "Zi Wei, exalted brightness, with Power transformation" },
+    ];
+    const enProse = "You tend to lead small groups and decide with care before committing to anything important, which people around you notice and trust. ".repeat(5);
+    const enGood = (over: Record<string, unknown> = {}) => ({
+      palaceId: "ziwei.palace.life", title: "Your core pattern", conclusion: "Your Life Palace leans toward deliberate initiative.",
+      keyPoints: [point("You like to arrange the order of your own work."), point("You need time before locking in a big choice."), point("People find you reliable when you speak from certainty.")],
+      narrative: enProse, do: [point("Set aside an hour each week to review your priorities.")], avoid: [point("Avoid carrying every task alone.")], evidenceKeys: ["fact:one", "fact:two"], ...over,
+    });
+    const runEn = (content: unknown) => validateFreePalaceGift({ content, facts: enFacts, palaceId: "ziwei.palace.life", locale: "en" });
+    const enCodes = (result: ReturnType<typeof runEn>) => (result.ok ? [] : result.findings.map((f) => f.code));
+    it("accepts a grounded English gift, including the discipline name and a supported star", () => {
+      expect(runEn(enGood())).toEqual({ ok: true });
+      expect(runEn(enGood({ narrative: `${enProse} In Zi Wei Dou Shu every palace speaks about one area of life, and Zi Wei is the star sitting here.` })).ok).toBe(true);
+    });
+    it("rejects an English star that no supplied fact supports", () => {
+      expect(enCodes(runEn(enGood({ narrative: `${enProse} Tian Fu brings a steady temperament.` })))).toContain("invented_star");
+    });
+    it("applies the same prohibited-content, date and focus rules in English", () => {
+      expect(enCodes(runEn(enGood({ narrative: `${enProse} You may face cancer later.` })))).toContain("prohibited_claim");
+      expect(enCodes(runEn(enGood({ narrative: `${enProse} Around 2031 things change.` })))).toContain("uncomputed_date");
+      expect(enCodes(runEn(enGood({ conclusion: "Your Wealth Palace is strong." })))).toContain("wrong_palace_focus");
+      expect(enCodes(runEn(enGood({ narrative: `${enProse} This is a weak position, not a verdict.` })))).not.toContain("english_brightness");
+    });
+  });
 });
+

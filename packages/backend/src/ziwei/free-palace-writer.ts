@@ -56,10 +56,11 @@ const RULES: Record<"vi" | "en", string> = {
 
 export function buildFreePalacePrompt(input: FreePalacePromptInput): FreePalaceFrozenPrompt {
   const factLines = input.facts.map((fact) => `[${fact.key}] ${fact.label}: ${fact.value}`).join("\n");
-  const focus = input.concern ? `Chủ đề người đọc quan tâm: ${input.concern}\n` : "";
+  const vi = input.locale === "vi";
+  const focus = input.concern ? `${vi ? "Chủ đề người đọc quan tâm" : "Topic the reader cares about"}: ${input.concern}\n` : "";
   return FrozenPromptSchema.parse({
     v: 1, locale: input.locale, palaceId: input.palaceId, schemaName: FREE_PALACE_SCHEMA_NAME, system: RULES[input.locale],
-    user: `${focus}Cung được chọn: ${input.palaceLabel} (palaceId=${input.palaceId})\nDữ kiện được phép dùng:\n${factLines}`,
+    user: `${focus}${vi ? "Cung được chọn" : "Selected palace"}: ${input.palaceLabel} (palaceId=${input.palaceId})\n${vi ? "Dữ kiện được phép dùng" : "Facts you may use"}:\n${factLines}`,
     facts: input.facts,
   });
 }

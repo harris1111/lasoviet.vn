@@ -13,7 +13,8 @@ Five stacked PRs off `master @ 066479f` (merge in this order; each is based on t
 | #264 | B12–B14 | Gift-only writer (one attempt), one-palace quality gate, gift outbox claim path + runner, worker composition (fail closed) |
 | #265 | B15–B17 | Read-only reader, private endpoint + web loader, mobile-first gift UI |
 | #266 | B18–B19 | Optional chart-ready request hook, API composition |
-| this | B20–B21 | End-to-end preflight test, evidence, this handoff |
+| #267 | B20–B21 | End-to-end preflight test, evidence, this handoff |
+| #269 | owner decisions | English gifts (reader's locale), engagement-based guest trust, labels parity test |
 
 Diff vs base (through #266): 64 files, +4,515 / −86. **No migration was added** (`git diff 066479f -- packages/database/drizzle` is empty); migration `0055_free_ai` already shipped with PR #258. **No paid file changed**
 (`packages/backend/src/ai`, `…/reports`, `…/outbox` diff is empty).
@@ -65,14 +66,12 @@ Per the repository convention these are for the owner to adopt or reject in `rul
 - **P1 (clarify FD-109a):** record that the legacy "unique import key" for historic free attempts is enforced by locking the
   chart row and writing `legacy_reconciled_at` in the same transaction, and that any legacy attempt without a resolved outcome
   blocks admission for that chart.
-- **P2 (new, owner decision):** English gifts. Today the gift is requested in Vietnamese only; English readers get the
-  structural fallback. Decide whether to request per locale (costs up to 2× admissions per chart) or stay vi-only.
-- **P3 (new, owner decision):** guest dispatch. Guests are untrusted by default and cannot dispatch. Decide what first-party
-  signal, if any, makes a guest trustworthy for the pilot.
+- **P2 (DECIDED by the owner 2026-10-03):** English gifts — yes. One gift per chart version, in the reader's locale at request time (see ADDENDA, "Owner decisions of 2026-10-03").
+- **P3 (DECIDED by the owner 2026-10-03):** guest trust = real engagement with the free reading (≥ 3 distinct tabs opened), recorded and decided server-side. An must confirm it reads the "no browser effect" rule the way ADDENDA explains.
 - **P4 (clarify FD-109a):** an actual cost above its reserved bound is recorded uncapped, halts all free dispatch, and is lifted
   only by an attributed owner acknowledgement (`acknowledgeOvershoot`). Confirm that is the intended operating procedure.
-- **P5 (clarify FD-109a):** a fenced request whose worker dies is settled as *unknown exposure* after (AI timeout + 10 min) and
-  its slot is burned, with no refund or re-admission. Confirm.
+- **P5 (CONFIRMED by the owner 2026-10-03):** a fenced request whose worker dies is settled as *unknown exposure* after (AI timeout + 10 min) and
+  its slot is burned, with no refund or re-admission.
 - **P6 (clarify privacy):** account-deletion purge of gift payloads happens at the final purge, not at request time (so a
   cancelled deletion does not lose the one-time gift).
 

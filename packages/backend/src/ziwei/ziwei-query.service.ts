@@ -26,6 +26,7 @@ import {
 } from "../reports/free-identity-preview.js";
 import type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 import type { FreePalaceReadService } from "./free-palace-read.service.js";
+import type { FreePalaceEngagementService } from "./free-palace-engagement.service.js";
 
 export type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
 
@@ -42,6 +43,8 @@ export type ZiweiQueryServiceOptions = {
   // Read-only gift reader. Optional: without it the endpoint authorizes the chart and reports
   // "unavailable", so the structural fallback is always what renders.
   freePalaceGift?: FreePalaceReadService;
+  // Optional: absent unless the flag and approved AI are on, in which case an engagement report is a no-op.
+  freePalaceEngagement?: FreePalaceEngagementService;
   now?: () => Date;
   calculateHoroscope?: (
     profile: import("@lasoviet/contracts").NormalizedBirthProfileV1,
@@ -197,6 +200,20 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
   }
 
   return {
+    // Explicit user action (POST). Ownership is checked first; the service then records and decides.
+    async recordFreePalaceEngagement(
+      actor: CurrentActor,
+      chartId: string,
+      tab: string,
+      locale: "vi" | "en",
+    ): Promise<Result<{ recorded: boolean }, ZiweiQueryError>> {
+      const record = await authorizedRecord(actor, chartId);
+      if ("ok" in record) return record;
+      if (!options.freePalaceEngagement) return { ok: true, value: { recorded: false } };
+      const outcome = await options.freePalaceEngagement.record(actor, chartId, tab, locale);
+      return { ok: true, value: { recorded: outcome.kind !== "ignored" } };
+    },
+
     async readFreePalaceGift(
       actor: CurrentActor,
       chartId: string,

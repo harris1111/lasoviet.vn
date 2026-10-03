@@ -996,6 +996,14 @@ routes:
     owner: engineering
 
   - <<: *private_defaults
+    id: api.ziwei.free-palace-engagement
+    path: /ziwei/charts/{chartId}/free-palace/engagement
+    locale_behavior: unlocalized
+    intent: api.ziwei.free-palace-engagement
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
     id: api.ziwei.personal-daily-reading
     path: /ziwei/charts/{chartId}/daily-reading
     locale_behavior: unlocalized

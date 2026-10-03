@@ -237,6 +237,17 @@ describe("route registry", () => {
   });
 });
 
+it("keeps free palace endpoints private, unlocalized, noindex and outside sitemaps", () => {
+  expect(routeRegistry.find((route) => route.id === "api.ziwei.free-palace-gift")).toMatchObject({
+    path: "/ziwei/charts/{chartId}/free-palace", status: "live_noindex", private: true,
+    localeBehavior: "unlocalized", robots: "noindex,nofollow", sitemap: false, purchasable: false,
+  });
+  expect(routeRegistry.find((route) => route.id === "api.ziwei.free-palace-engagement")).toMatchObject({
+    path: "/ziwei/charts/{chartId}/free-palace/engagement", status: "live_noindex", private: true,
+    localeBehavior: "unlocalized", robots: "noindex,nofollow", sitemap: false, purchasable: false,
+  });
+});
+
 it("keeps the authenticated daily reading API private and out of search indexes", () => {
   expect(routeRegistry.find((route) => route.id === "api.ziwei.personal-daily-reading")).toMatchObject({
     path: "/ziwei/charts/{chartId}/daily-reading", status: "live_noindex", private: true,

@@ -119,7 +119,19 @@ describe("Zi Wei private HTTP flow", () => {
     expect(calculate).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "account", userId: "verified-account" }),
       "revision-1",
+      {},
     );
+  });
+
+  it("passes only a validated reader locale to the calculation, for the chart-ready gift request", async () => {
+    calculate.mockClear();
+    const inject = async (query: string) => app.getHttpAdapter().getInstance().inject({
+      method: "POST", url: `/ziwei/revisions/revision-1/calculate${query}`, headers: { authorization: `Bearer ${await actorToken()}` },
+    });
+    expect((await inject("?locale=en")).statusCode).toBe(200);
+    expect(calculate).toHaveBeenLastCalledWith(expect.anything(), "revision-1", { locale: "en" });
+    expect((await inject("?locale=fr")).statusCode).toBe(400);
+    expect(calculate).toHaveBeenCalledTimes(1);
   });
 
   it("derives the chart query actor from the bearer token", async () => {

@@ -98,7 +98,7 @@ describe("B20 preflight: chart completion → request → outbox → worker → 
     await seedPricing();
     const userId = `e2e-user-${seq}`;
     const { request } = api();
-    const { chartId, calc } = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId));
+    const { chartId, calc } = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId, "vi"));
     expect(await calc.calculate(account(userId), "r")).toMatchObject({ ok: true });
     expect(await status()).toBe("reserved");
     expect(await read(userId, chartId)).toEqual({ ok: true, value: { version: 1, status: "requested" } });
@@ -131,14 +131,14 @@ describe("B20 preflight: chart completion → request → outbox → worker → 
     await seedPricing();
     const userId = `e2e-user-${seq}`;
     const { request } = api();
-    const first = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId));
+    const first = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId, "vi"));
     await first.calc.calculate(account(userId), "r");
     await createFreePalaceGiftRunner({ fetchImpl }).runOnce();
     expect(await status()).toBe("ready");
 
     // a second user is queued, then the switch is flipped
     const queuedUser = `e2e-queued-${seq}`;
-    const second = await chartComplete(queuedUser, (actor, v) => request.request(actor, v.chartId));
+    const second = await chartComplete(queuedUser, (actor, v) => request.request(actor, v.chartId, "vi"));
     await second.calc.calculate(account(queuedUser), "r");
     delete process.env.FREE_PALACE_GENERATION_ENABLED;
     const off = api();
@@ -161,11 +161,11 @@ describe("B20 preflight: chart completion → request → outbox → worker → 
     await seedPricing();
     const userId = `e2e-user-${seq}`;
     const { request } = api();
-    const done = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId));
+    const done = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId, "vi"));
     await done.calc.calculate(account(userId), "r");
     await createFreePalaceGiftRunner({ fetchImpl }).runOnce();
     const pendingUser = `e2e-pending-${seq}`;
-    const pending = await chartComplete(pendingUser, (actor, v) => request.request(actor, v.chartId));
+    const pending = await chartComplete(pendingUser, (actor, v) => request.request(actor, v.chartId, "vi"));
     await pending.calc.calculate(account(pendingUser), "r");
     // no runner is constructed from here on: the worker never runs gift work
     expect((await read(userId, done.chartId)).value).toMatchObject({ status: "ready" });
@@ -178,7 +178,7 @@ describe("B20 preflight: chart completion → request → outbox → worker → 
     await seedPricing();
     const userId = `e2e-user-${seq}`;
     const { request } = api();
-    const queued = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId));
+    const queued = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId, "vi"));
     await queued.calc.calculate(account(userId), "r");
     await seedPricing(model, "2026-06-01"); // a newer, also-approved tariff for the same provider/model
     await createFreePalaceGiftRunner({ fetchImpl }).runOnce();
@@ -194,7 +194,7 @@ describe("B20 preflight: chart completion → request → outbox → worker → 
     await h.raw`INSERT INTO ai_call_attempts(call_id,purpose,provider_id,requested_model_id,chart_version_id,max_output_tokens,pricing_version,input_price_per_million,output_price_per_million,cached_input_price_per_million,currency,source_currency,source_reference,fx_source,fx_rate,fx_timestamp,pricing_source)
       VALUES (${"legacy-" + seq},'free_preview','legacy','legacy-model',${chartVersionId},100,'v0',1,1,1,'VND','VND','ref','fx',1,now(),'src')`; // attempt with no recorded outcome
     const { request } = api();
-    const done = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId));
+    const done = await chartComplete(userId, (actor, v) => request.request(actor, v.chartId, "vi"));
     await done.calc.calculate(account(userId), "r");
     expect(await status()).toBeUndefined(); // unknown legacy exposure blocks admission
     expect(attempts).toBe(0);

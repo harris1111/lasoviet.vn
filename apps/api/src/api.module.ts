@@ -499,7 +499,9 @@ function privacyDatabase() {
       useFactory: () =>
         createZiweiQueryService({
           repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
-          freePalaceGift: composeFreePalaceForApi(applicationEnvironment(), privacyDatabase()).reader,
+          ...((composition) => ({ freePalaceGift: composition.reader, freePalaceEngagement: composition.engagement }))(
+            composeFreePalaceForApi(applicationEnvironment(), privacyDatabase()),
+          ),
           calculateHoroscope: calculateZiweiHoroscope,
           personalDailyReading: createPersonalDailyReadingService({
             charts: createDatabaseZiweiQueryRepository(privacyDatabase()),

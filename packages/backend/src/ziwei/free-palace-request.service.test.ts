@@ -37,6 +37,13 @@ describe("free palace request service (never reaches the database unless every g
     expect(JSON.stringify(facts)).not.toContain("lucun");
     expect(buildFreePalaceFacts(chart, "ziwei.palace.unknown")).toEqual([]);
   });
+  it("builds English facts from the English label table, with the same keys and one palace only", () => {
+    const facts = buildFreePalaceFacts(chart, "ziwei.palace.life", "en");
+    expect(facts.map((f) => f.key)).toEqual(["palace:life", "palace:life:star:ziwei", "palace:life:star:tianfu"]);
+    expect(facts[0]).toEqual({ key: "palace:life", label: "Selected palace", value: "Life Palace, at earthly branch Rat" });
+    expect(facts[1]!.value).toBe("Zi Wei, exalted brightness, with Power transformation");
+    expect(JSON.stringify(facts)).not.toMatch(/[ÀÁẠĂÂÊÔƠƯĐ]|Cung|sao /u);
+  });
   it("the lineage hash the reader expects matches the one admission would freeze", () => {
     const slot = { chartVersionId: "cv", palaceId: "ziwei.palace.life", locale: "vi" as const };
     expect(currentFreePalaceLineageHash("p", "m")(slot)).toBe(freePalaceArtifactKey(freePalaceLineage({ ...slot, palaceId: "ziwei.palace.life", provider: "p", model: "m" })));
@@ -44,24 +51,24 @@ describe("free palace request service (never reaches the database unless every g
   });
   it("flag off skips before reading anything", async () => {
     const { subject, readAuthorizedChart } = service({ flag: false });
-    expect(await subject.request(account(), "c")).toEqual({ kind: "skipped", reason: "flag_disabled" });
+    expect(await subject.request(account(), "c", "vi")).toEqual({ kind: "skipped", reason: "flag_disabled" });
     expect(readAuthorizedChart).not.toHaveBeenCalled();
   });
   it("an unverified account and an untrusted guest cannot dispatch", async () => {
-    expect(await service().subject.request(account({ emailVerified: false }), "c")).toEqual({ kind: "skipped", reason: "identity_unverified" });
-    expect(await service().subject.request(guest, "c")).toEqual({ kind: "skipped", reason: "identity_unverified" });
+    expect(await service().subject.request(account({ emailVerified: false }), "c", "vi")).toEqual({ kind: "skipped", reason: "identity_unverified" });
+    expect(await service().subject.request(guest, "c", "vi")).toEqual({ kind: "skipped", reason: "identity_unverified" });
   });
   it("skips when the chart is not readable by the actor or is malformed", async () => {
-    expect(await service({ source: null }).subject.request(account(), "c")).toEqual({ kind: "skipped", reason: "source_unavailable" });
-    expect(await service({ source: { chartVersionId: "cv", normalizedOutput: { nope: true } } }).subject.request(account(), "c")).toEqual({ kind: "skipped", reason: "chart_invalid" });
+    expect(await service({ source: null }).subject.request(account(), "c", "vi")).toEqual({ kind: "skipped", reason: "source_unavailable" });
+    expect(await service({ source: { chartVersionId: "cv", normalizedOutput: { nope: true } } }).subject.request(account(), "c", "vi")).toEqual({ kind: "skipped", reason: "chart_invalid" });
   });
   it("fails closed without an approved tariff or a proven token bound", async () => {
-    expect(await service({ tariff: null }).subject.request(account(), "c")).toEqual({ kind: "skipped", reason: "unapproved_pricing" });
-    expect(await service().subject.request(account(), "c")).toEqual({ kind: "skipped", reason: "unproven_bound" }); // no proof supplier exists in production
+    expect(await service({ tariff: null }).subject.request(account(), "c", "vi")).toEqual({ kind: "skipped", reason: "unapproved_pricing" });
+    expect(await service().subject.request(account(), "c", "vi")).toEqual({ kind: "skipped", reason: "unproven_bound" }); // no proof supplier exists in production
   });
   it("never throws: an internal error is a redacted skip", async () => {
     const { subject, readAuthorizedChart } = service();
     readAuthorizedChart.mockRejectedValueOnce(new Error("birth data in this message"));
-    expect(await subject.request(account(), "c")).toEqual({ kind: "skipped", reason: "error" });
+    expect(await subject.request(account(), "c", "vi")).toEqual({ kind: "skipped", reason: "error" });
   });
 });

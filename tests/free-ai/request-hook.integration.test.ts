@@ -44,7 +44,7 @@ describe("free palace request hook (real Postgres)", () => {
 
   it("reserves through the shared path: one request, one frozen palace prompt, one typed outbox event", async () => {
     const s = await seed();
-    const outcome = await make(main).request(account(s.userId), s.chartId);
+    const outcome = await make(main).request(account(s.userId), s.chartId, "vi");
     expect(outcome.kind).toBe("admitted");
     const [request] = await h.raw`SELECT palace_id, locale, status FROM free_ai_requests`;
     expect(request).toEqual({ palace_id: "ziwei.palace.life", locale: "vi", status: "reserved" });
@@ -56,16 +56,16 @@ describe("free palace request hook (real Postgres)", () => {
 
   it("row 53: a repeated calculation (reused chart) and concurrent duplicates reuse the one slot", async () => {
     const s = await seed();
-    const first = await make(main).request(account(s.userId), s.chartId);
-    const again = await make(main).request(account(s.userId), s.chartId);
+    const first = await make(main).request(account(s.userId), s.chartId, "vi");
+    const again = await make(main).request(account(s.userId), s.chartId, "vi");
     expect(first.kind).toBe("admitted");
     expect(again).toMatchObject({ kind: "existing", requestId: (first as { requestId: string }).requestId });
-    const racers = await raceBehindLock(h.rawClient(), [0, 1, 2].map(() => () => make(h.connect()).request(account(s.userId), s.chartId)));
+    const racers = await raceBehindLock(h.rawClient(), [0, 1, 2].map(() => () => make(h.connect()).request(account(s.userId), s.chartId, "vi")));
     expect(racers.every((r) => r.kind === "existing")).toBe(true);
     expect(await count("free_ai_requests")).toBe(1);
     expect(await count("outbox")).toBe(1);
     const fresh = await seed();
-    const parallel = await raceBehindLock(h.rawClient(), [0, 1, 2].map(() => () => make(h.connect()).request(account(fresh.userId), fresh.chartId)));
+    const parallel = await raceBehindLock(h.rawClient(), [0, 1, 2].map(() => () => make(h.connect()).request(account(fresh.userId), fresh.chartId, "vi")));
     expect(parallel.filter((r) => r.kind === "admitted")).toHaveLength(1);
     expect(await count("free_ai_requests")).toBe(2);
   });
@@ -73,9 +73,9 @@ describe("free palace request hook (real Postgres)", () => {
   it("row 51: flag off, no proof, unverified account and untrusted guest all leave the database untouched", async () => {
     const s = await seed();
     const outcomes = [
-      await make(main, { flag: false }).request(account(s.userId), s.chartId),
-      await make(main, { proof: false }).request(account(s.userId), s.chartId),
-      await make(main).request(account(s.userId, false), s.chartId),
+      await make(main, { flag: false }).request(account(s.userId), s.chartId, "vi"),
+      await make(main, { proof: false }).request(account(s.userId), s.chartId, "vi"),
+      await make(main).request(account(s.userId, false), s.chartId, "vi"),
     ];
     expect(outcomes.map((o) => o.kind)).toEqual(["skipped", "skipped", "skipped"]);
     for (const table of TABLES) expect(await count(table), table).toBe(0);
@@ -83,7 +83,7 @@ describe("free palace request hook (real Postgres)", () => {
 
   it("a stranger cannot request a gift for someone else's chart", async () => {
     const s = await seed();
-    expect(await make(main).request(account("someone-else"), s.chartId)).toEqual({ kind: "skipped", reason: "source_unavailable" });
+    expect(await make(main).request(account("someone-else"), s.chartId, "vi")).toEqual({ kind: "skipped", reason: "source_unavailable" });
     expect(await count("free_ai_requests")).toBe(0);
   });
 
@@ -92,8 +92,8 @@ describe("free palace request hook (real Postgres)", () => {
     const expiresAt = new Date(Date.now() + 3_600_000);
     const { chartId } = await seedChartVersion(main, `hook-guest-chart-${seq}`, { kind: "guest", anonymousActorId, expiresAt }, { normalizedOutput: chart });
     const actor: CurrentActor = { kind: "anonymous", anonymousActorId, sessionId: "s", requestId: "r", expiresAt: expiresAt.toISOString() };
-    expect(await make(main).request(actor, chartId)).toEqual({ kind: "skipped", reason: "identity_unverified" });
-    expect((await make(main, { trustedGuest: true }).request(actor, chartId)).kind).toBe("admitted");
+    expect(await make(main).request(actor, chartId, "vi")).toEqual({ kind: "skipped", reason: "identity_unverified" });
+    expect((await make(main, { trustedGuest: true }).request(actor, chartId, "vi")).kind).toBe("admitted");
     const [artifact] = await h.raw`SELECT expires_at FROM free_ai_artifacts`;
     expect(new Date(artifact!.expires_at).getTime()).toBe(expiresAt.getTime());
   });
@@ -109,7 +109,7 @@ describe("free palace request hook (real Postgres)", () => {
       },
       evidenceService: { async buildAndPersist() { return evidenceOk ? { ok: true as const } : { ok: false as const }; } },
       engine: { async calculateWithPrivateSnapshot() { return { result: { ok: true as const, output: chart as never, provenance: chart.provenance as never, warnings: [] }, rawSnapshot: {} }; } },
-      onChartReady: (actor, value) => request.request(actor, value.chartId),
+      onChartReady: (actor, value) => request.request(actor, value.chartId, "vi"),
     });
     expect(await calc.calculate(account(s.userId), "r")).toMatchObject({ ok: false });
     expect(await count("free_ai_requests")).toBe(0);
