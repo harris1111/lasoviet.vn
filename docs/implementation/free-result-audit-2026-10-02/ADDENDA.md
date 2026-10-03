@@ -60,3 +60,12 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - A flag switched off between claim and fence defers the event 60s (`FREE_PALACE_FLAG_OFF`); a halted dispatch defers 5 min. Runner errors defer 60s and are safe to redeliver because the DB fence decides.
 - B14 must schedule on the maintenance tick: `settleAbandoned`, `closeStalePublications`, `purgeExpiredPayloads`.
 - `packages/backend/src/index.ts` now exports the free-palace factories (additive; paid exports untouched).
+
+## B14
+
+- 🔶 `apps/worker/src/health/worker-heartbeat.ts` (declared in the card): `ExecuteWorkerPollingCycleDependencies` gained optional `runGift?()` and `onGiftError?()`. A gift rejection withholds the heartbeat exactly like the other runners; omitting it keeps every existing caller valid (tested).
+- Gating (all must hold, else a no-op runner and **nothing dispatch-capable is constructed**): `FREE_PALACE_GENERATION_ENABLED=true`, AI enabled + `AI_PRODUCTION_ENABLED` + `AI_FEATURE_JSON_SCHEMA`, `DATABASE_URL`. The environment loader already rejects the flag without production AI. The gift is **not** coupled to `WORKER_QUEUES` (no new registered queue, so health/queue validation is untouched).
+- The gift uses its own adapter instance with `retryCount: 0`; the paid adapter and `AI_MAX_RETRIES` are not touched (a test runs with `AI_MAX_RETRIES=3` and still observes one attempt).
+- Runtime fail-closed beyond startup: every cycle checks that an approved, effective tariff exists for the configured provider/model; if not it claims nothing, so events wait instead of burning slots. A frozen call for a provider/model different from this process's config is cancelled **unsent** (hold released, slot stays consumed).
+- Maintenance (every 15 min, same tick as the existing maintenance, flag-gated): `settleAbandoned`, `closeStalePublications`, `purgeExpiredPayloads`. Stale threshold = AI timeout + 10 min. Retention for deleted/expired owners does not depend on this (B11 hooks run in the privacy purge paths).
+- `ai_model_pricing` and `ai_call_attempts` are append-only; worker integration tests isolate by unique model ids.

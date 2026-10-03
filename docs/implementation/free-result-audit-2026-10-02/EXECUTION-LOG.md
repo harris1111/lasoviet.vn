@@ -106,3 +106,12 @@ Allowlist drift: see ADDENDA.md.
 Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai` — 18 files, 142 assertions passed (matrix rows 38, 39, restart/fence-crash, dead source, unknown capture, quality failure, flag off, malformed event, plus a full fake-provider end-to-end admission→ready path); backend typecheck and eslint clean.
 Not verified: real worker process (B14).
 Next dependency-ready card: B14.
+
+## B14 — Worker composition, polling and health wiring
+State: VERIFIED (real Postgres + fake provider), flag stays OFF by default.
+Behavior changed: the real worker process now builds a gift runner and a gift maintenance runner when, and only when, the flag and approved production AI are on; the polling cycle runs `runGift` beside outbox/report/PDF. Default-off startup constructs nothing that can reach a provider.
+Files changed: apps/worker/src/worker.module.ts, main.ts, health/worker-heartbeat.ts, free-palace-worker.test.ts; packages/backend/src/ziwei/free-palace-writer.ts (`expected` provider/model guard); tests/free-ai/worker.integration.test.ts.
+Allowlist drift: worker-heartbeat.ts (declared), writer guard — see ADDENDA.md.
+Verification: `pnpm vitest run packages/database packages/backend packages/contracts apps/api apps/worker apps/web/src/features/ziwei tests/free-ai tests/workspace tests/privacy` — 229 files, 2232 tests passed; `pnpm i18n:check` pass; `pnpm lint` 0 errors (4 pre-existing warnings); `pnpm -r --if-present run build` and `typecheck` exit 0. Paid ai/reports/outbox files unchanged (empty diff).
+Not verified: a live worker container, real provider, Redis/health probe in a deployed environment.
+Next dependency-ready card: B15 (batch 3).

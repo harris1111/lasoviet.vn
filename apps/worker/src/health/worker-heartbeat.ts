@@ -144,19 +144,22 @@ export type ExecuteWorkerPollingCycleDependencies = {
   runOutbox(): Promise<unknown>;
   runReport(): Promise<unknown>;
   runPdf?(): Promise<unknown>;
+  runGift?(): Promise<unknown>;
   writeHeartbeat(): Promise<void>;
   onOutboxError?(error: unknown): void;
   onReportError?(error: unknown): void;
   onPdfError?(error: unknown): void;
+  onGiftError?(error: unknown): void;
 };
 
 export async function executeWorkerPollingCycle(
   dependencies: ExecuteWorkerPollingCycleDependencies,
 ): Promise<boolean> {
-  const [outboxSettled, reportSettled, pdfSettled] = await Promise.allSettled([
+  const [outboxSettled, reportSettled, pdfSettled, giftSettled] = await Promise.allSettled([
     Promise.resolve().then(() => dependencies.runOutbox()),
     Promise.resolve().then(() => dependencies.runReport()),
     Promise.resolve().then(() => dependencies.runPdf?.()),
+    Promise.resolve().then(() => dependencies.runGift?.()),
   ]);
 
   if (outboxSettled.status === "rejected") {
@@ -168,11 +171,15 @@ export async function executeWorkerPollingCycle(
   if (pdfSettled.status === "rejected") {
     dependencies.onPdfError?.(pdfSettled.reason);
   }
+  if (giftSettled.status === "rejected") {
+    dependencies.onGiftError?.(giftSettled.reason);
+  }
 
   if (
     outboxSettled.status === "fulfilled" &&
     reportSettled.status === "fulfilled" &&
-    pdfSettled.status === "fulfilled"
+    pdfSettled.status === "fulfilled" &&
+    giftSettled.status === "fulfilled"
   ) {
     await dependencies.writeHeartbeat();
     return true;

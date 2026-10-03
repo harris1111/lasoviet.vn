@@ -105,6 +105,8 @@ export function createFreePalaceAttemptRecorder(inner: AiCostRecorder, reservedP
 }
 
 export type FreePalaceWriterDeps = Readonly<{
+  // The provider/model this process will actually call. A frozen call for anything else is not sent.
+  expected?: Readonly<{ provider: string; model: string }>;
   // Builds the gift-only provider (retryCount 0) around the recorder it is handed.
   createProvider: (recorder: AiCostRecorder) => AiProvider;
   costRecorder: AiCostRecorder;
@@ -127,6 +129,7 @@ export function createFreePalaceWriter(deps: FreePalaceWriterDeps) {
       const unsent = (diagnostic: string): FreePalaceWriterOutcome => ({ settlement: { kind: "resolved", actualMicroVnd: 0n, disposition: "failed" }, diagnostic });
       const prompt = parseFreePalacePrompt(call.serializedPrompt);
       if (!prompt || prompt.palaceId !== call.palaceId || prompt.locale !== call.locale) return unsent("frozen_prompt_invalid");
+      if (deps.expected && (deps.expected.provider !== call.provider || deps.expected.model !== call.model)) return unsent("provider_model_mismatch");
       const tariff = await deps.loadTariff(call.pricingSnapshotId);
       if (!tariff) return unsent("pricing_unavailable");
 

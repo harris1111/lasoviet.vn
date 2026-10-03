@@ -6,6 +6,8 @@ import { resolveWorkerQueues } from "@lasoviet/backend";
 import { WorkerModule } from "./worker.module.js";
 import {
   createMaintenanceRunner,
+  createFreePalaceGiftMaintenanceRunner,
+  createFreePalaceGiftRunner,
   createOutboxDispatchRunner,
   createPdfRenderRunner,
   createReportGenerateRunner,
@@ -20,14 +22,21 @@ async function bootstrap(): Promise<void> {
   await provisionReportKnowledge();
   const reportRunner = createReportGenerateRunner();
   const pdfRunner = createPdfRenderRunner();
+  const giftRunner = createFreePalaceGiftRunner();
+  const giftMaintenance = createFreePalaceGiftMaintenanceRunner();
 
   const queuesResult = resolveWorkerQueues(process.env.WORKER_QUEUES);
   const configuredQueues = queuesResult.ok ? queuesResult.value : [];
 
   const runMaintenance = () =>
-    maintenance.runOnce().catch((error: unknown) => {
-      console.error("PHASE_ONE_MAINTENANCE_FAILED", error);
-    });
+    Promise.all([
+      maintenance.runOnce().catch((error: unknown) => {
+        console.error("PHASE_ONE_MAINTENANCE_FAILED", error);
+      }),
+      giftMaintenance.runOnce().catch((error: unknown) => {
+        console.error("FREE_PALACE_MAINTENANCE_FAILED", error);
+      }),
+    ]);
 
   let activeCycle: Promise<void> | undefined;
   const runQueueCycle = (): Promise<void> => {
@@ -37,6 +46,7 @@ async function bootstrap(): Promise<void> {
       runOutbox: () => outbox.runOnce(),
       runReport: () => reportRunner.runOnce(),
       runPdf: () => pdfRunner.runOnce(),
+      runGift: () => giftRunner.runOnce(),
       writeHeartbeat: () => writeWorkerHeartbeat({ queues: configuredQueues }),
       onOutboxError(error) {
         console.error("OUTBOX_DISPATCH_FAILED", error);
@@ -46,6 +56,9 @@ async function bootstrap(): Promise<void> {
       },
       onPdfError(error) {
         console.error("PDF_RENDER_RUNNER_FAILED", error);
+      },
+      onGiftError(error) {
+        console.error("FREE_PALACE_RUNNER_FAILED", error);
       },
     })
       .catch((error: unknown) => {
