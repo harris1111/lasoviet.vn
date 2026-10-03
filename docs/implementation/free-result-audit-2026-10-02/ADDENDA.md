@@ -42,3 +42,30 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - Tombstone policy implemented: after deletion `free_ai_artifacts` keeps its row with `frozen_call/content/facts/content_hash` NULL; `free_ai_requests.concern` is NULLed; budgets, requests (ids, palace id, locale, status, amounts, days), admissions and settlements stay. A sentinel test proves no birth data or prose remains in any of those tables or in the outbox payload.
 - `purgeExpiredPayloads` (guest TTL sweep) must be scheduled by B14's maintenance runner.
 - Matrix row 31 (indistinguishable 404 for non-owner/status reads) is an endpoint property and is covered in B15/B16, not here.
+
+## B12
+
+- Gift cost recorder lives in `free-palace-writer.ts` (`createFreePalaceAttemptRecorder`), moved here from B10 as the B10 note allowed. It wraps the real `AiCostRecorder` for exactly one physical attempt: a second `beginAttempt` is refused, only `free_preview` is accepted (never `synthetic_probe`), the reserved pricing snapshot id must equal the tariff the inner recorder resolves (else the attempt is closed at zero and nothing is sent), and it captures usage even for invalid output so invalid output is still billed.
+- Actual cost is computed in integer micro-VND from the reserved tariff with **no cached-input discount** (`input × inputPrice + output × outputPrice`). Missing/unknown usage ⇒ `unknown` settlement (whole hold kept). A response that never left the process ⇒ resolved 0, `failed`.
+- The frozen `serializedPrompt` is a JSON document `{v, locale, palaceId, schemaName, system, user, facts}`: the authorized facts travel inside the frozen request, so the writer and the publication step need nothing else. B18 must build it with `buildFreePalacePrompt` + `serializeFreePalacePrompt`, and the `FreePalaceTokenBoundProof` must be established for exactly that string plus the adapter's added schema/wrapper text — **still an open gate; no proof supplier exists**.
+- Versions to freeze at admission: `FREE_PALACE_PROMPT_VERSION`, `FREE_PALACE_RULES_VERSION` (= `free-palace-quality-v1`), `FREE_PALACE_SCHEMA_VERSION`.
+- Quality gate `validateFreePalaceGift` is a new one-palace function; the mapping to the paid gates it mirrors is documented at the top of `free-palace-quality.ts`. No paid file was touched (`git diff -- packages/backend/src/ai packages/backend/src/reports` is empty). The gift allows no date/year/age unless a supplied fact carries it; English locale skips only the Vietnamese-brightness-label rule.
+- Brand-voice review of the prompt text in `free-palace-writer.ts` (`RULES`) is still owed by the owner; the prompt is deliberately plain and prohibits promises.
+
+## B13
+
+- **aggregateType decision closed:** `"chart"` (see B08). Event type is now `free_palace.generation.requested.v1` (the card's name); B08's earlier `free-palace.gift.requested.v1` was renamed, its tests updated.
+- 🔶 Edits outside the allowlist: `free-ai-budget.repository.ts` (imports the constant from `free-palace-outbox.ts`), `free-ai-dispatch.service.ts` (`isSourceAvailable` now receives the request's `chartVersionId`), `free-palace-artifact.repository.ts` (a charged result that can no longer be published — wrong palace, bad content, expired — now ends `terminal_failure` instead of lingering as `dispatching`; new `closeStalePublications` sweep), `free-palace-runner.ts` also holds `createFreePalaceSourceCheck` and `createFreePalaceTariffPort` (DB ports for B14), `tests/free-ai/free-ai-test-harness.ts` (`seedChartVersion`). One B11 assertion was updated to the stronger behaviour (wrong-palace publish → `terminal_failure`); nothing was removed or weakened.
+- The gift claim query uses `FOR UPDATE SKIP LOCKED`, a 5-minute lease, and parks malformed events as `failed`. It matches only the gift event type, so the paid dispatcher still cannot see it (tested), and it grants no entitlement or wallet spend.
+- A flag switched off between claim and fence defers the event 60s (`FREE_PALACE_FLAG_OFF`); a halted dispatch defers 5 min. Runner errors defer 60s and are safe to redeliver because the DB fence decides.
+- B14 must schedule on the maintenance tick: `settleAbandoned`, `closeStalePublications`, `purgeExpiredPayloads`.
+- `packages/backend/src/index.ts` now exports the free-palace factories (additive; paid exports untouched).
+
+## B14
+
+- 🔶 `apps/worker/src/health/worker-heartbeat.ts` (declared in the card): `ExecuteWorkerPollingCycleDependencies` gained optional `runGift?()` and `onGiftError?()`. A gift rejection withholds the heartbeat exactly like the other runners; omitting it keeps every existing caller valid (tested).
+- Gating (all must hold, else a no-op runner and **nothing dispatch-capable is constructed**): `FREE_PALACE_GENERATION_ENABLED=true`, AI enabled + `AI_PRODUCTION_ENABLED` + `AI_FEATURE_JSON_SCHEMA`, `DATABASE_URL`. The environment loader already rejects the flag without production AI. The gift is **not** coupled to `WORKER_QUEUES` (no new registered queue, so health/queue validation is untouched).
+- The gift uses its own adapter instance with `retryCount: 0`; the paid adapter and `AI_MAX_RETRIES` are not touched (a test runs with `AI_MAX_RETRIES=3` and still observes one attempt).
+- Runtime fail-closed beyond startup: every cycle checks that an approved, effective tariff exists for the configured provider/model; if not it claims nothing, so events wait instead of burning slots. A frozen call for a provider/model different from this process's config is cancelled **unsent** (hold released, slot stays consumed).
+- Maintenance (every 15 min, same tick as the existing maintenance, flag-gated): `settleAbandoned`, `closeStalePublications`, `purgeExpiredPayloads`. Stale threshold = AI timeout + 10 min. Retention for deleted/expired owners does not depend on this (B11 hooks run in the privacy purge paths).
+- `ai_model_pricing` and `ai_call_attempts` are append-only; worker integration tests isolate by unique model ids.

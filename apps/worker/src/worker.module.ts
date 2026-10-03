@@ -17,6 +17,14 @@ import {
   createDatabaseAnonymousRetentionRepository,
   createDatabaseAuthEmailDeliveryStore,
   createDatabaseAiCostService,
+  createFreeAiDispatchService,
+  createFreeAiSettlementService,
+  createFreePalaceArtifactRepository,
+  createFreePalaceOutboxStore,
+  createFreePalaceRunner,
+  createFreePalaceSourceCheck,
+  createFreePalaceTariffPort,
+  createFreePalaceWriter,
   type AiCostRecorder,
   createDatabaseDeletionRepository,
   createDatabaseOutboxStore,
@@ -365,6 +373,74 @@ export function createPdfRenderRunner(options?: {
           activeRun = undefined;
         });
       return activeRun;
+    },
+  };
+}
+
+// Free one-palace gift. Fails closed: with the flag off, approved production AI missing, or no
+// database, NOTHING that could reach a provider is constructed and the runner is a no-op. The gift
+// uses its own adapter instance with retryCount 0; the paid adapter and its retries are untouched.
+export function createFreePalaceGiftRunner(options?: { fetchImpl?: typeof fetch; now?: () => Date }) {
+  const noop = { async runOnce() { return { processed: 0 }; } };
+  const environment = loadEnvironment(process.env);
+  if (!environment.ok || environment.value.freePalaceGenerationEnabled !== true) return noop;
+  const { ai, databaseUrl } = environment.value;
+  if (!ai.enabled || !ai.productionEnabled || !ai.featureJsonSchema || databaseUrl === undefined) return noop;
+
+  const database = createDatabase(databaseUrl);
+  const providerId = resolveOpenAiCompatibleProviderId(ai.baseUrl);
+  const aiCost = createDatabaseAiCostService(database);
+  const tariff = createFreePalaceTariffPort(database);
+  const gate = createAiProductionGate("approved");
+  const writer = createFreePalaceWriter({
+    expected: { provider: providerId, model: ai.model },
+    costRecorder: aiCost.recorder,
+    loadTariff: tariff.loadTariff,
+    createProvider: (recorder) => createOpenAiCompatibleAdapter({
+      baseUrl: ai.baseUrl, apiKey: ai.apiKey, modelId: ai.model, allowedResolvedModelIds: ai.allowedResolvedModels,
+      providerId, timeoutMs: ai.timeoutMs, retryCount: 0, productionGate: gate, costRecorder: recorder, fetchImpl: options?.fetchImpl,
+    }),
+  });
+  const runner = createFreePalaceRunner({
+    store: createFreePalaceOutboxStore(database, `free-palace-${randomUUID()}`, { now: options?.now }),
+    dispatch: createFreeAiDispatchService(database),
+    writer,
+    artifacts: createFreePalaceArtifactRepository(database),
+    flagEnabled: () => true,
+    isSourceAvailable: createFreePalaceSourceCheck(),
+    // A frozen call for a provider/model this process is not configured for is cancelled unsent.
+    activePricingSnapshotId: (tx, now, provider, model) =>
+      provider === providerId && model === ai.model ? tariff.activePricingSnapshotId(tx, now, provider, model) : Promise.resolve(null),
+  });
+  let activeRun: Promise<{ processed: number }> | undefined;
+  return {
+    // Missing approved pricing at runtime claims nothing, so events wait instead of burning slots.
+    runOnce(): Promise<{ processed: number }> {
+      if (activeRun !== undefined) return activeRun;
+      activeRun = (async () => {
+        if (!(await aiCost.getEffectivePricing(providerId, ai.model, new Date()))) return { processed: 0 };
+        return runner.runOnce();
+      })().finally(() => { activeRun = undefined; });
+      return activeRun;
+    },
+  };
+}
+
+// Accounting self-recovery and payload retention for the gift. Never dispatches.
+export function createFreePalaceGiftMaintenanceRunner() {
+  const noop = { async runOnce() { return { settled: 0, closed: 0, purged: 0 }; } };
+  const environment = loadEnvironment(process.env);
+  if (!environment.ok || environment.value.freePalaceGenerationEnabled !== true || environment.value.databaseUrl === undefined) return noop;
+  const database = createDatabase(environment.value.databaseUrl);
+  const staleAfterMs = (environment.value.ai.enabled ? environment.value.ai.timeoutMs : 120_000) + 10 * 60_000;
+  const settlement = createFreeAiSettlementService(database);
+  const artifacts = createFreePalaceArtifactRepository(database);
+  return {
+    async runOnce() {
+      const settled = await settlement.settleAbandoned({ staleAfterMs, limit: 50 });
+      const closed = await artifacts.closeStalePublications({ staleAfterMs, limit: 50 });
+      const purged = await artifacts.purgeExpiredPayloads({ limit: 100 });
+      return { settled, closed, purged };
     },
   };
 }

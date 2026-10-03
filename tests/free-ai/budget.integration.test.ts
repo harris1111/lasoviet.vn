@@ -40,7 +40,7 @@ describe("free AI shared reservation (real Postgres)", () => {
     expect(artifact!.frozen_call.reservedMicroVnd).toBe(VND(1200).toString());
     const events = await h.raw`SELECT event_type, aggregate_type, payload FROM outbox`;
     expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ event_type: "free-palace.gift.requested.v1", aggregate_type: "chart" });
+    expect(events[0]).toMatchObject({ event_type: "free_palace.generation.requested.v1", aggregate_type: "chart" });
     const [legacy] = await h.raw`SELECT legacy_reconciled_at FROM free_ai_chart_budgets WHERE chart_version_id='c-ok'`;
     expect(legacy!.legacy_reconciled_at).not.toBeNull();
   });

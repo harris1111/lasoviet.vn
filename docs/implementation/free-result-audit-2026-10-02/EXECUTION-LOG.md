@@ -88,3 +88,30 @@ Verification: `pnpm vitest run packages/backend/src/privacy tests/privacy tests/
 Not verified: row 31 (endpoint 404 indistinguishability, B15/B16); single-profile soft delete path.
 Remaining concern: see ADDENDA B11.
 Next dependency-ready card: B12 (batch 2).
+
+## B12 — Gift-only writer adapter and deterministic quality gates
+State: VERIFIED (unit, fake HTTP), library only — not wired.
+Behavior changed: new `createFreePalaceWriter().run(frozenCall, attemptId)` makes exactly one provider call through a retryCount-0 adapter, prices it from the reserved tariff, runs `validateFreePalaceGift` and the contract's ready-view refinement, and returns a settlement (+ publication payload when ready). Quality failure is billed and falls back; unknown usage keeps the hold.
+Files changed: packages/backend/src/ziwei/free-palace-writer.ts (+ .test.ts), free-palace-quality.ts (+ .test.ts).
+Allowlist drift: none.
+Verification: `pnpm vitest run packages/backend/src/ziwei/free-palace-writer.test.ts packages/backend/src/ziwei/free-palace-quality.test.ts` — 30/30 (matrix rows 33–37; the real OpenAI-compatible adapter with a counting fake `fetch` and the in-memory cost service). backend typecheck + eslint clean; paid ai/report files unchanged.
+Not verified: no real provider; token-bound proof gate open; prompt wording not quality-evaluated against real model output (the one-palace quality evaluation in the release gate is still owed).
+Next dependency-ready card: B13.
+
+## B13 — Typed outbox event and dedicated gift runner
+State: VERIFIED (real Postgres + fake provider), library only — not yet constructed by the worker.
+Behavior changed: gift events are now claimable by `createFreePalaceOutboxStore` (own claim query) and processed by `createFreePalaceRunner`: claim → DB fence → one provider call → settle → deletion-safe publish → mark processed. Paid dispatch unchanged.
+Files changed: packages/backend/src/ziwei/free-palace-outbox.ts, free-palace-runner.ts (+ .test.ts), free-palace-artifact.repository.ts, free-ai-budget.repository.ts, free-ai-dispatch.service.ts, packages/backend/src/index.ts, tests/free-ai/outbox.integration.test.ts, free-ai-test-harness.ts, deletion.integration.test.ts (one assertion strengthened).
+Allowlist drift: see ADDENDA.md.
+Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai` — 18 files, 142 assertions passed (matrix rows 38, 39, restart/fence-crash, dead source, unknown capture, quality failure, flag off, malformed event, plus a full fake-provider end-to-end admission→ready path); backend typecheck and eslint clean.
+Not verified: real worker process (B14).
+Next dependency-ready card: B14.
+
+## B14 — Worker composition, polling and health wiring
+State: VERIFIED (real Postgres + fake provider), flag stays OFF by default.
+Behavior changed: the real worker process now builds a gift runner and a gift maintenance runner when, and only when, the flag and approved production AI are on; the polling cycle runs `runGift` beside outbox/report/PDF. Default-off startup constructs nothing that can reach a provider.
+Files changed: apps/worker/src/worker.module.ts, main.ts, health/worker-heartbeat.ts, free-palace-worker.test.ts; packages/backend/src/ziwei/free-palace-writer.ts (`expected` provider/model guard); tests/free-ai/worker.integration.test.ts.
+Allowlist drift: worker-heartbeat.ts (declared), writer guard — see ADDENDA.md.
+Verification: `pnpm vitest run packages/database packages/backend packages/contracts apps/api apps/worker apps/web/src/features/ziwei tests/free-ai tests/workspace tests/privacy` — 229 files, 2232 tests passed; `pnpm i18n:check` pass; `pnpm lint` 0 errors (4 pre-existing warnings); `pnpm -r --if-present run build` and `typecheck` exit 0. Paid ai/reports/outbox files unchanged (empty diff).
+Not verified: a live worker container, real provider, Redis/health probe in a deployed environment.
+Next dependency-ready card: B15 (batch 3).

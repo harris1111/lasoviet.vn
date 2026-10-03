@@ -92,7 +92,14 @@ export function createFreePalaceArtifactRepository(database: Database) {
           }
           return { kind: "refused", reason: "deleted" };
         }
-        if (artifact.expiresAt !== null && artifact.expiresAt <= now) return { kind: "refused", reason: "expired" };
+        // A charged result that can no longer be published ends terminally instead of lingering.
+        const terminal = async (reason: FreePalacePublishRefusal): Promise<FreePalacePublishResult> => {
+          if (request.status === "dispatching" && request.settledAt !== null) {
+            await tx.update(freeAiRequests).set({ status: "terminal_failure" }).where(eq(freeAiRequests.id, request.id));
+          }
+          return { kind: "refused", reason };
+        };
+        if (artifact.expiresAt !== null && artifact.expiresAt <= now) return terminal("expired");
         const [settlement] = await tx.select({ outcome: freeAiSettlements.outcome, attemptId: freeAiSettlements.attemptId })
           .from(freeAiSettlements).where(eq(freeAiSettlements.requestId, request.id)).limit(1);
         // Unknown or unrecorded usage keeps the hold and blocks the ready claim.
@@ -100,13 +107,30 @@ export function createFreePalaceArtifactRepository(database: Database) {
           settlement.attemptId !== input.attemptId || request.attemptId !== input.attemptId) {
           return { kind: "refused", reason: "not_publishable" };
         }
-        const content = FreePalaceGiftContentV1Schema.parse(input.content);
-        const facts = factsSchema.parse(input.facts);
-        if (content.palaceId !== request.palaceId) return { kind: "refused", reason: "not_publishable" };
+        const parsedContent = FreePalaceGiftContentV1Schema.safeParse(input.content);
+        const parsedFacts = factsSchema.safeParse(input.facts);
+        if (!parsedContent.success || !parsedFacts.success || parsedContent.data.palaceId !== request.palaceId) return terminal("not_publishable");
+        const content = parsedContent.data;
+        const facts = parsedFacts.data;
         const contentHash = freePalaceContentHash(content, facts);
         await tx.update(freeAiArtifacts).set({ content, facts, contentHash }).where(eq(freeAiArtifacts.requestId, request.id));
         await tx.update(freeAiRequests).set({ status: "ready" }).where(eq(freeAiRequests.id, request.id));
         return { kind: "published", contentHash };
+      });
+    },
+    // Self-recovery for a crash between settlement and publication: a charged `dispatching`
+    // request that was never published ends as terminal_failure (the structural fallback).
+    closeStalePublications(input: { staleAfterMs: number; limit: number; clock?: FreeAiClock }): Promise<number> {
+      return database.transaction(async (tx) => {
+        await lockFreeAiCoordination(tx);
+        const now = await (input.clock ?? sampleFreeAiClock)(tx);
+        const stale = await tx.select({ id: freeAiRequests.id }).from(freeAiRequests).where(and(
+          eq(freeAiRequests.status, "dispatching"), isNotNull(freeAiRequests.settledAt),
+          lte(freeAiRequests.settledAt, new Date(now.getTime() - input.staleAfterMs)),
+        )).limit(input.limit).for("update");
+        if (stale.length === 0) return 0;
+        await tx.update(freeAiRequests).set({ status: "terminal_failure" }).where(inArray(freeAiRequests.id, stale.map((row) => row.id)));
+        return stale.length;
       });
     },
     // Sweeps private payloads whose guest TTL passed. Reads already ignore expired rows; this
