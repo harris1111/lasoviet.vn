@@ -247,46 +247,46 @@
     "cta": "Bắt đầu với lá số của tôi →",
     "rows": {
       "strength": {
-        "k": "Điểm đáng chọn nhất",
-        "lsv": "Bản đồ vận mệnh chuẩn xác, cá nhân hóa sâu sắc và lưu trữ đồng hành trọn đời.",
-        "web": "Tra cứu miễn phí, trả kết quả lá số thô và bài đọc tự động tức thì.",
-        "ai": "Trò chuyện linh hoạt 24/7 bằng lời văn tự nhiên, phản hồi ngay tức thì.",
-        "thay": "Đối thoại 1-1 trực tiếp, được lắng nghe và an ủi cảm xúc tại chỗ."
+        "k": "Điểm đáng chọn",
+        "lsv": "Bản đồ chuẩn, lưu trọn đời",
+        "web": "Nhanh, miễn phí",
+        "ai": "Trò chuyện 24/7",
+        "thay": "Được lắng nghe 1-1"
       },
       "own": {
-        "k": "Độ cá nhân hóa",
-        "lsv": "An sao chuẩn từng phút sinh; bóc tách đúng trăn trở bạn đang bận tâm.",
-        "web": "Văn mẫu đóng sẵn; hai người cùng sao nhận bài đọc giống hệt nhau.",
-        "ai": "Phụ thuộc câu lệnh tự nhập; dễ bị định kiến người dùng dẫn dắt.",
-        "thay": "Phụ thuộc lớn vào kinh nghiệm, tâm trạng và cảm quan cá nhân của thầy."
+        "k": "Cá nhân hóa",
+        "lsv": "An sao theo từng phút sinh",
+        "web": "Văn mẫu đóng sẵn",
+        "ai": "Tùy câu hỏi, dễ lệch",
+        "thay": "Tùy kinh nghiệm thầy"
       },
       "basis": {
-        "k": "Căn cứ học thuật",
-        "lsv": "Minh bạch tuyệt đối. Mọi luận giải đều gắn đường dẫn đối chiếu sao và cung.",
-        "web": "Dữ liệu đại trà chưa kiểm chứng; buông lời phán mơ hồ gây hoang hoảng.",
-        "ai": "Dễ bị 'ảo giác' an sai vị trí sao nhưng vẫn trả lời rất tự tin.",
-        "thay": "Truyền miệng thiếu cơ sở logic chuẩn hóa; khó kiểm chứng tính đúng sai."
+        "k": "Căn cứ",
+        "lsv": "Mỗi luận giải gắn sao và cung",
+        "web": "Khó kiểm chứng",
+        "ai": "Dễ bịa vị trí sao",
+        "thay": "Truyền miệng, khó đối chiếu"
       },
       "links": {
-        "k": "Nhìn nhận toàn diện",
-        "lsv": "Đồ hình tương tác trực quan: chạm một cung để thấy trọn vẹn Tam hợp, Xung chiếu.",
-        "web": "Nội dung cắt vụn; các cung phán mâu thuẫn buộc bạn tự chắp vá.",
-        "ai": "Mỗi lần hỏi là một lát cắt rời rạc, mất đi tính nhất quán toàn cục.",
-        "thay": "Lời phán thoảng qua, khó hình dung rõ bức tranh tổng thể mười hai cung."
+        "k": "Toàn diện",
+        "lsv": "Chạm một cung, thấy Tam hợp và Xung chiếu",
+        "web": "Rời rạc, hay mâu thuẫn",
+        "ai": "Từng câu hỏi rời rạc",
+        "thay": "Khó hình dung 12 cung"
       },
       "return": {
-        "k": "Tính nhất quán & Khách quan",
-        "lsv": "Khách quan & Nhất quán tuyệt đối; chuẩn hóa dữ liệu, loại bỏ hoàn toàn cảm tính.",
-        "web": "Thông tin thiếu ổn định; các bài tra cứu mâu thuẫn nhau giữa các lần đọc.",
-        "ai": "Thiếu tính nhất quán; mỗi lượt hỏi lại cho ra một kết quả mâu thuẫn.",
-        "thay": "Thiếu tính đồng nhất; cùng lá số nhưng mỗi thầy phán một kiểu khác nhau."
+        "k": "Nhất quán",
+        "lsv": "Chuẩn hóa dữ liệu, không cảm tính",
+        "web": "Bài đọc mâu thuẫn nhau",
+        "ai": "Mỗi lần hỏi một kết quả",
+        "thay": "Mỗi thầy một kiểu"
       },
       "depth": {
-        "k": "Chi phí & Trải nghiệm",
-        "lsv": "Xem miễn phí nền tảng; chủ động mở sâu đúng phần bạn cần với chi phí minh bạch.",
-        "web": "Giao diện tràn ngập quảng cáo; bài viết đóng gói cứng nhắc, thừa thãi.",
-        "ai": "Tốn phí thuê bao tháng; người dùng phải tự gánh rủi ro tự kiểm chứng.",
-        "thay": "Chi phí đắt đỏ từ trăm nghìn đến tiền triệu; khó đặt lịch để hỏi thêm."
+        "k": "Chi phí",
+        "lsv": "Xem miễn phí, mở sâu khi cần",
+        "web": "Nhiều quảng cáo",
+        "ai": "Tốn phí thuê bao",
+        "thay": "Từ trăm nghìn đến triệu"
       }
     },
     "expand": "Xem đầy đủ lý do",

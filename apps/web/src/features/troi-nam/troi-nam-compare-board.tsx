@@ -8,7 +8,7 @@ import { COMPARE_ROW_IDS } from "../homepage-v3/homepage-v3-data";
 import { HomepageV3GoWizard } from "../homepage-v3/homepage-v3-go-wizard";
 
 const COLUMNS = ["lsv", "web", "ai", "thay"] as const;
-type Column = (typeof COLUMNS)[number];
+const OTHER_COLUMNS = ["web", "ai", "thay"] as const;
 const COLUMN_TITLE = { lsv: "colLsv", web: "colWeb", ai: "colAi", thay: "colThay" } as const;
 const TAB_TITLE = { lsv: "tabLsv", web: "tabWeb", ai: "tabAi", thay: "tabThay" } as const;
 const ROW_ICON = {
@@ -17,7 +17,7 @@ const ROW_ICON = {
   basis: "evidence-link",
   links: "related-palaces",
   return: "archive",
-  depth: "reading-depth",
+  depth: "la-balance",
 } as const;
 const PROOF = {
   vi: ["Đọc trên chính lá số", "Thấy quan hệ giữa các cung", "Chọn phần muốn đọc sâu"],
@@ -32,27 +32,28 @@ const PROOF_ICON = ["chart-palaces", "related-palaces", "reading-depth"] as cons
  * button opens them in full), and each criterion carries an icon. Phones keep the tab-and-card
  * layout so the three alternatives are never squeezed into a 340px table.
  */
-export function TroiNamCompareBoard({ lead }: { lead: string }) {
+export function TroiNamCompareBoard({ title, lead, sub }: { title: string; lead: string; sub: string }) {
   const t = useTranslations("homepage-v3.compare");
   const locale = useLocale() === "en" ? "en" : "vi";
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<Column>("lsv");
-  const [strengthRow, ...limitRows] = COMPARE_ROW_IDS;
+  const [strengthRow] = COMPARE_ROW_IDS;
 
   return (
     <div className="hv3-container tnc">
       <div className="tnc-head">
-        <h2 className="hv3-h2">{t("title")}</h2>
+        <h2 className="hv3-h2">{title}</h2>
         <p className="hv3-lead">{lead}</p>
         <ul className="tnc-proof">
           {PROOF[locale].map((point, index) => (
             <li key={point} data-reveal="" style={{ "--i": index } as CSSProperties}>
-              <LsvIcon name={PROOF_ICON[index] ?? "chart-palaces"} size={28} />
-              {point}
+              <LsvIcon name={PROOF_ICON[index] ?? "chart-palaces"} size={40} />
+              <span>{point}</span>
             </li>
           ))}
         </ul>
       </div>
+
+      <h3 className="tnc-sub">{sub}</h3>
 
       <div className="tnc-board" data-open={open} data-reveal="">
         <table className="tnc-table">
@@ -107,31 +108,29 @@ export function TroiNamCompareBoard({ lead }: { lead: string }) {
         </table>
 
         <div className="tnc-mobile">
-          <div role="group" aria-label={t("groupLabel")} className="tnc-tabs">
-            {COLUMNS.map((column) => (
-              <button key={column} type="button" aria-pressed={active === column} onClick={() => setActive(column)}>
-                {t(TAB_TITLE[column])}
-              </button>
-            ))}
-          </div>
-          <div aria-live="polite" className="tnc-cards">
-            <div className="tnc-card tnc-card-top" data-col={active}>
-              <p className="tnc-card-title">{t("cardTitle", { name: t(TAB_TITLE[active]) })}</p>
-              <p>{t(`rows.${strengthRow}.${active}`)}</p>
-            </div>
-            {limitRows.map((id) => (
-              <div key={id} className="tnc-card">
-                <p className="tnc-card-axis">
-                  <LsvIcon name={ROW_ICON[id]} size={22} />
-                  {t(`rows.${id}.k`)}
-                </p>
-                <p>{t(`rows.${id}.${active}`)}</p>
-                {active !== "lsv" ? (
-                  <p className="tnc-card-fix"><strong>{t("fixLabel")} </strong>{t(`rows.${id}.lsv`)}</p>
-                ) : null}
-              </div>
-            ))}
-          </div>
+          {COMPARE_ROW_IDS.map((id) => (
+            <section key={id} className="tnc-m-row" aria-label={t(`rows.${id}.k`)}>
+              <h3 className="tnc-m-axis">
+                <LsvIcon name={ROW_ICON[id]} size={26} />
+                {t(`rows.${id}.k`)}
+              </h3>
+              <p className="tnc-m-lsv">
+                <span aria-hidden="true" className="tnc-mark" data-kind="yes">✓</span>
+                <span>
+                  <span className="tnc-m-name">{t("tabLsv")}</span>
+                  {t(`rows.${id}.lsv`)}
+                </span>
+              </p>
+              <ul className="tnc-m-others">
+                {OTHER_COLUMNS.map((column) => (
+                  <li key={column}>
+                    <span className="tnc-m-name">{t(TAB_TITLE[column])}</span>
+                    <span>{t(`rows.${id}.${column}`)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
           <HomepageV3GoWizard className="hv3-btn tnc-cta">{t("cta")}</HomepageV3GoWizard>
         </div>
       </div>
