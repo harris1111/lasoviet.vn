@@ -35,8 +35,7 @@
       "time": "Enter an hour from 00 to 23 and minutes from 00 to 59.",
       "branch": "Please choose a matching birth time range.",
       "gender": "Please choose Male or Female.",
-      "storage": "Your browser is not allowing storage. Please enable site storage and try again.",
-      "consentOther": "Please confirm you have permission before continuing."
+      "storage": "Your browser is not allowing storage. Please enable site storage and try again."
     },
     "submitting": "Getting ready…",
     "concernLabel": "What matters most to you",
@@ -45,9 +44,7 @@
       "career": "Work and money",
       "love": "Love"
     },
-    "concernHint": "Your free reading opens the palace tied to this first.",
-    "forOther": "I'm viewing for someone else",
-    "forSelf": "I'm viewing for myself"
+    "concernHint": "Your free reading opens the palace tied to this first."
   },
   "heroChart": {
     "chartAria": "Your chart diagram",

@@ -351,23 +351,6 @@ main > .tn-section .hv3-container {
   color: var(--tn-text);
 }
 
-/* Visible proof, not another claim — a real sample reading, reachable before
-   the visitor fills in anything (2026-10-01 audit F1). */
-.tn-hero-sample-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  margin-top: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
-  color: var(--tn-gold-light);
-  font-size: var(--tn-body);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.tn-hero-sample-cta:hover {
-  color: var(--tn-gold);
-}
-
 /*
  * The form itself is the unmodified wizard card from the live homepage
  * (`.hv3-form` in homepage-v3.css): raised surface, hairline border, shadow,
@@ -1730,7 +1713,8 @@ main > .tn-section .hv3-container {
   width: 100%;
 }
 
-@media (min-width: 880px) {
+/* The four-column table needs about 1100px; below that the per-criterion blocks read better than 130px columns. */
+@media (min-width: 1100px) {
   .tn .tnc-table {
     display: table;
   }
@@ -2466,10 +2450,118 @@ main > .tn-section .hv3-container {
 }
 
 /* Text links that were 18-22px tall: a 44px touch target without changing how they look. */
-.tn .tn-hero-sample-cta,
 .tn .tn-testimonials .hv3-tt-start,
 .footer-support-email {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+
+/*
+ * Hero fits one screen on desktop (it ran about 1.5 screens: a 120px headline, a stacked form of
+ * seven full-width rows). The copy column keeps the headline, one sentence and the sample link;
+ * the form becomes a two-column grid: the date row, the time row (label, calendar choice and the
+ * "don't remember" box share a line with the seg and the inputs), gender beside name, the concern
+ * chips, and the "someone else" link beside the submit button. Phones keep the single column.
+ */
+@media (min-width: 880px) {
+  .tn-hero-content {
+    padding-block: 5.25rem 1.75rem;
+  }
+
+  .tn-hero-left {
+    gap: 0.9rem;
+    max-width: 660px;
+  }
+
+  .tn-hero-title {
+    font-size: clamp(2.5rem, 1.3rem + 3.3vw, 4.5rem);
+    max-width: 11em;
+  }
+
+  .tn-hero-sub {
+    margin-top: 0.5rem;
+    max-width: 46ch;
+    font-size: clamp(1.05rem, 0.95rem + 0.45vw, 1.3rem);
+  }
+
+  .tn-hero-form .hv3-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem 1rem;
+    padding: 1.1rem 1.25rem 1.25rem;
+    border-radius: 18px;
+  }
+
+  .tn-hero-form .hv3-form > * {
+    grid-column: 1 / -1;
+  }
+
+  .tn-hero-form .hv3-form > .hv3-field:has(#hv3-gender-male),
+  .tn-hero-form .hv3-form > .hv3-field:has(#hv3-name) {
+    grid-column: auto;
+  }
+
+  .tn-hero-form .hv3-label {
+    font-size: 0.875rem;
+  }
+
+  .tn-hero-form .hv3-field {
+    gap: 0.4rem;
+  }
+
+  .tn-hero-form .hv3-input {
+    height: 44px;
+  }
+
+  .tn-hero-form .hv3-seg button,
+  .tn-hero-form .hv3-chip {
+    min-height: 40px;
+  }
+
+  /* Time row: label and the "I don't remember" box on one line, seg and inputs on the next. */
+  .tn-hero-form .hv3-field:has(#hv3-time-label) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "lbl chk" "seg inp" "err err";
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+  }
+
+  .tn-hero-form #hv3-time-label { grid-area: lbl; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-seg { grid-area: seg; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-time-row,
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > #hv3-branch { grid-area: inp; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-check { grid-area: chk; justify-self: end; min-height: 0; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-error { grid-area: err; }
+
+  .tn-hero-form .hv3-hint {
+    font-size: 0.8125rem;
+    margin: 0;
+  }
+
+  .tn-hero-form .hv3-form > .hv3-cta {
+    height: 52px;
+  }
+}
+
+/*
+ * No orphan words. Order matters (equal specificity, last wins): "pretty" for any running text first
+ * (the browser avoids a last line with one short word), then "balance" for headings, lead-ins and
+ * the short phrases in cards and the comparison board, which evens the lines out. Both are safe to
+ * ignore where unsupported.
+ */
+/* :where() keeps this at the lowest specificity so the balance rules below always win. */
+.tn :where(p, li, .hv3-faq-a, .hv3-tt-quote, .hv3-step p, .hv3-panel-desc, .hv3-panel-note) {
+  text-wrap: pretty;
+}
+
+.tn :is(h1, h2, h3, h4),
+.tn .tn-hero-sub,
+.tn :is(.hv3-lead, .hv3-usp-lead, .hv3-tt-lead, .hv3-story-body, .hv3-need-question, .hv3-need-path, .hv3-usp-card p, .hv3-hint, .hv3-panel-desc, .hv3-panel-note, .hv3-tt-quote),
+.tn :is(.tnc-text, .tnc-m-lsv, .tnc-m-others li, .tnc-m-others li span),
+.tn .hv3-questions p,
+.tn .tnc-proof li,
+.tn .tn-section :is(.hv3-need-question, .hv3-usp-card p, .hv3-lead, .hv3-usp-lead, .hv3-tt-lead, .hv3-story-body) {
+  text-wrap: balance;
 }

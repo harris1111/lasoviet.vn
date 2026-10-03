@@ -22,9 +22,10 @@ for (const viewport of [
   test.describe(`homepage one-step entry (${viewport.name})`, () => {
     test.use({ viewport: { width: viewport.width, height: viewport.height } });
 
-    test("there is no consent checkbox on the homepage form", async ({ page }) => {
+    test("there is no consent checkbox and no 'someone else' option on the homepage form", async ({ page }) => {
       await page.goto("/");
       await expect(page.locator(".hv3-form").getByText(CONSENT)).toHaveCount(0);
+      await expect(page.locator(".hv3-form").getByRole("button", { name: "Tôi xem cho người khác" })).toHaveCount(0);
     });
 
     test("an empty submit lists every missing piece and focuses the first field", async ({ page }) => {
@@ -42,30 +43,6 @@ for (const viewport of [
       await page.waitForURL(/tao-la-so\/tu-vi/);
       await expect(page.getByRole("heading", { name: "Kiểm tra & riêng tư", level: 1 })).toBeVisible();
       await expect(page.getByLabel(CONSENT)).not.toBeChecked();
-    });
-
-    test("the third-party consent only exists after choosing to view for someone else", async ({ page }) => {
-      await page.goto("/");
-      const form = page.locator(".hv3-form");
-      await expect(form.locator("#hv3-consent-other")).toHaveCount(0);
-
-      await form.getByRole("button", { name: "Tôi xem cho người khác" }).click();
-      await expect(form.locator("#hv3-consent-other")).toBeVisible();
-
-      await fillValidBirth(page);
-      await form.getByRole("button", { name: CTA }).click();
-      await expect(form.locator("#hv3-consent-other-error")).toBeVisible();
-      await expect(page.locator("#hv3-consent-other")).toBeFocused();
-
-      await form.locator("#hv3-consent-other").check();
-      await form.getByRole("button", { name: CTA }).click();
-      await page.waitForURL(/tao-la-so\/tu-vi/);
-      await expect(page.getByText("Người khác (đã xác nhận đồng ý)")).toBeVisible();
-
-      await page.goto("/");
-      await form.getByRole("button", { name: "Tôi xem cho người khác" }).click();
-      await form.getByRole("button", { name: "Tôi xem cho chính mình" }).click();
-      await expect(form.locator("#hv3-consent-other")).toHaveCount(0);
     });
 
     test("the name field is always there and the typed name shows on the sample chart", async ({ page }) => {

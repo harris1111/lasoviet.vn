@@ -8,7 +8,6 @@ import {
   useHomepageV3BirthForm,
 } from "../homepage-v3/homepage-v3-birth-form";
 import { HomepageV3HeroChart } from "../homepage-v3/homepage-v3-hero-chart";
-import { localizedPath } from "../homepage/homepage-utilities";
 import { troiNamAsset } from "./troi-nam-assets";
 import { TroiNamLogoIntro } from "./troi-nam-logo-intro";
 import { clampProgress, scenePhases } from "./troi-nam-motion-math";
@@ -130,12 +129,6 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
               <span>{t("hero.h1b")}</span>
             </h1>
             <p className="tn-hero-sub">{t("hero.sub")}</p>
-            {/* Visible without filling in the form — the audit's strongest trust gap was
-                marketing claims outrunning anything the visitor could actually see
-                (2026-10-01, F1/CXO). The sample report is real proof, not another adjective. */}
-            <a href={localizedPath(locale, "/bao-cao-mau/tu-vi")} className="tn-hero-sample-cta">
-              {t("hero.sampleCta")}
-            </a>
           </div>
 
           <div className="hv3 tn-hero-form">

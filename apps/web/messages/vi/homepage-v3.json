@@ -35,8 +35,7 @@
       "time": "Nhập giờ từ 00 đến 23 và phút từ 00 đến 59.",
       "branch": "Vui lòng chọn một khoảng giờ sinh phù hợp.",
       "gender": "Vui lòng chọn giới tính Nam hoặc Nữ.",
-      "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé.",
-      "consentOther": "Vui lòng xác nhận sự đồng ý của người được lập trước khi tiếp tục."
+      "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé."
     },
     "submitting": "Đang chuẩn bị…",
     "concernLabel": "Điều bạn bận tâm nhất",
@@ -45,9 +44,7 @@
       "career": "Công việc, tiền bạc",
       "love": "Tình duyên"
     },
-    "concernHint": "Phần luận giải miễn phí sẽ mở trước cung liên quan đến điều này.",
-    "forOther": "Tôi xem cho người khác",
-    "forSelf": "Tôi xem cho chính mình"
+    "concernHint": "Phần luận giải miễn phí sẽ mở trước cung liên quan đến điều này."
   },
   "heroChart": {
     "chartAria": "Đồ hình lá số của bạn",

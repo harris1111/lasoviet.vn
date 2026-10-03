@@ -11,7 +11,7 @@ export type HomepageV3ValidationErrorKey =
   | "gender";
 
 export type HomepageV3FormErrors = Partial<
-  Record<"date" | "time" | "gender" | "storage" | "consentOther", string>
+  Record<"date" | "time" | "gender" | "storage", string>
 >;
 
 type FieldGroup = "date" | "time" | "gender";

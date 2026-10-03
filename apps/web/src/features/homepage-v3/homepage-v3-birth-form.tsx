@@ -74,8 +74,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
   const concernCtx = useHomepageV3Concern();
   const [values, setValues] = useState<HomepageV3BirthValues>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
-  const [forOther, setForOther] = useState(false);
-  const [consentOther, setConsentOther] = useState(false);
   const [pending, setPending] = useState(false);
   // Armed right before a failing setErrors so the effect below knows to move focus; left
   // false for every reconcile-on-keystroke setErrors so typing never steals focus back.
@@ -136,10 +134,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
       document.getElementById("hv3-gender-male")?.focus();
       return;
     }
-    if (errors.consentOther) {
-      document.getElementById("hv3-consent-other")?.focus();
-      return;
-    }
     if (errors.storage) {
       document.getElementById("hv3-storage-error")?.focus();
     }
@@ -151,26 +145,11 @@ export function useHomepageV3BirthForm(locale: Locale) {
     concernCtx?.setTopConcern(concern);
   }
 
-  function toggleForOther() {
-    const next = !forOther;
-    setForOther(next);
-    if (!next) {
-      setConsentOther(false);
-      setErrors((current) => ({ ...current, consentOther: undefined }));
-    }
-  }
-
-  function changeConsentOther(next: boolean) {
-    setConsentOther(next);
-    if (next) setErrors((current) => ({ ...current, consentOther: undefined }));
-  }
-
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
     const now = new Date();
     const found = validateHomepageV3BirthValues(values, now, message);
-    if (forOther && !consentOther) found.consentOther = t("errors.consentOther");
     if (Object.keys(found).length > 0) {
       shouldFocusRef.current = true;
       setErrors(found);
@@ -184,11 +163,7 @@ export function useHomepageV3BirthForm(locale: Locale) {
       topConcern: concernCtx?.topConcern ?? values.topConcern,
     };
     // Open the wizard straight on its review step: the visitor confirms and consents there, once.
-    const draft = toHomepageV3Draft(effectiveValues, now, existing, {
-      forWhom: forOther ? "other" : "self",
-      consentOther: forOther && consentOther,
-      step: 3,
-    });
+    const draft = toHomepageV3Draft(effectiveValues, now, existing, { forWhom: "self", consentOther: false, step: 3 });
     if (!draft) {
       shouldFocusRef.current = true;
       setErrors({ date: t("errors.dateImpossible") });
@@ -201,7 +176,7 @@ export function useHomepageV3BirthForm(locale: Locale) {
       return;
     }
     const prefill = toHomepageV3Prefill(effectiveValues);
-    if (prefill && !forOther) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
+    if (prefill) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
     setErrors({});
     setPending(true);
     void trackChartFormSubmit({
@@ -226,10 +201,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
     onSubmit,
     hero,
     timeDisabled,
-    forOther,
-    toggleForOther,
-    consentOther,
-    changeConsentOther,
     pending,
     concern,
     chooseConcern,
@@ -239,10 +210,8 @@ export function useHomepageV3BirthForm(locale: Locale) {
 export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState }) {
   const {
     t, locale, values, errors, patch, onSubmit, timeDisabled,
-    forOther, toggleForOther, consentOther, changeConsentOther,
     pending, concern, chooseConcern,
   } = state;
-  const tp = useTranslations("profile");
 
   return (
         <form noValidate onSubmit={onSubmit} aria-label={t("formLabel")} aria-busy={pending} className="hv3-form">
@@ -397,21 +366,6 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
               ))}
             </div>
             <p className="hv3-hint">{t("concernHint")}</p>
-          </div>
-
-          <div className="hv3-field">
-            <button type="button" className="hv3-link" aria-expanded={forOther} aria-controls="hv3-other" onClick={toggleForOther}>
-              {forOther ? t("forSelf") : t("forOther")}
-            </button>
-            {forOther ? (
-              <div id="hv3-other" className="hv3-other">
-                <label className="hv3-check hv3-consent">
-                  <input id="hv3-consent-other" type="checkbox" checked={consentOther} aria-invalid={Boolean(errors.consentOther)} aria-describedby={errors.consentOther ? "hv3-consent-other-error" : undefined} onChange={(e) => changeConsentOther(e.target.checked)} />
-                  <span>{tp("subject.consentCheck")}</span>
-                </label>
-                {errors.consentOther ? <p id="hv3-consent-other-error" role="alert" className="hv3-error">{errors.consentOther}</p> : null}
-              </div>
-            ) : null}
           </div>
 
           {errors.storage ? <p id="hv3-storage-error" role="alert" tabIndex={-1} className="hv3-error">{errors.storage}</p> : null}
