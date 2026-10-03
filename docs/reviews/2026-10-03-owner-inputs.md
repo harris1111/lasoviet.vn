@@ -5,9 +5,9 @@ Reply by number, or fill the `Answer` lines. Either owner can decide; no separat
 ## Work completed without owner input
 
 - Homepage PR [274](https://github.com/harris1111/lasoviet.vn/pull/274): merged and deployed; VI/EN consent → real chart and 22 viewport checks passed.
-- Analytics replay PR [275](https://github.com/harris1111/lasoviet.vn/pull/275): reviewed fix and 76 focused tests passed; final release evidence is tracked in Kaneo LSV57.
+- Analytics replay PR [275](https://github.com/harris1111/lasoviet.vn/pull/275): merged/deployed; real repeated feedback produced one event, replay passed, conflicts/time-skew were rejected, and synthetic fixtures were deleted. Full LSV57 remains In Review.
 - Seven-day funnel counts are now in [the runbook](../runbooks/funnel-dashboard.md). Traffic includes QA, newer steps have incomplete windows, and payment provenance is unverified; these are not customer conversion or revenue figures.
-- Guest browser acceptance and remaining limits are recorded against LSV72. Full member/physical-mobile acceptance remains open.
+- Read-first PR [277](https://github.com/harris1111/lasoviet.vn/pull/277): removed the premature hero purchase link, merged/deployed; 48 guest cases passed across Chromium/Firefox/WebKit, VI/EN, four widths and both themes. Full LSV72 member/physical-mobile/performance acceptance remains open.
 
 ## Decisions and inputs
 
@@ -45,9 +45,11 @@ If no sandbox exists, choose: wait / authorize one owner-funded controlled live 
 
 **Recommendation:** start with lifetime v4.2, using the currently configured model alias `ag/gemini-3.8-flash`, with a hard **200,000 VND total campaign cap including retries**. Verify model routing/pricing first; stop on unknown cost or cap exhaustion. This is a proposed ceiling, not an estimate or a guarantee of 20 passes. Schedule the other campaigns separately after this result.
 
-Review five complete reports for chart grounding, readable Vietnamese, useful specific advice, repeated/filler claims and banned content. Record per-report pass/fail and the sentence/section to fix; failed quality never becomes a saleable product.
+Review five complete reports for chart grounding, readable Vietnamese, useful specific advice, repeated/filler claims and banned content. Record per-report pass/fail and the sentence/section to fix. Stop on a quality failure, resolve it, then restart the consecutive-pass count; failed quality never becomes a saleable product.
 
-**Answer:** model/alias: ___; lifetime cap: ___; reviewer: ___; approve this first campaign / defer: ___
+**Answer:** model/alias: ___; lifetime cap: ___; reviewer: ___; approve first campaign / defer: ___
+
+Other campaign caps (default: defer): career (20 reports) ___; relationship (20) ___; daily ___; monthly (20) ___; annual (20) ___. These are separate ceilings, not included in the proposed lifetime 200,000 VND.
 
 ### 5. Physical mobile Google return — LSV73
 
@@ -57,19 +59,19 @@ Review five complete reports for chart grounding, readable Vietnamese, useful sp
 
 **Answer:** device/browser + pass/fail + failed step/observed return URL (remove tokens): ___
 
-### 6. Member acceptance account — LSV72
+### 6. Member fixture and physical acceptance — LSV72
 
-**Context:** guest checks cannot prove the verified-member side of A17.
+**Context:** guest checks cannot prove verified-member behavior or the physical 360px/4G performance gate.
 
-**Recommendation:** designate a verified owner-controlled account and a chart it owns on the controlled test environment. No password or session cookie in Git; provide access through the existing secure channel.
+**Recommendation:** designate a verified owner-controlled account/owned chart and an available 360px Android/Chrome device over 4G. Engineering supplies the capture procedure for the already specified LCP <2.5s budget; no new threshold decision is needed. No password/session cookie in Git.
 
-**Answer:** environment + account/owned-chart reference: ___
+**Answer:** environment + account/owned-chart reference (same as #3 is fine) + device/operator: ___
 
 ### 7. Exact structural-score weights before paid traffic — FD-107
 
 **Context:** [the tracker](../superpowers/plans/2026-08-31-lasoviet-platform-implementation/rules-and-decisions-tracker.md) still records exact-weight sign-off as pending. [The implemented formula](../../packages/backend/src/reports/structural-palace-score.ts) is deterministic, not an empirical prediction of a person's life.
 
-**Proposal:** base 50; brightness Miếu/Vượng/Đắc/Bình/Hãm/Nhược =+12/+9/+6/+2/−6/−9; Lộc/Quyền/Khoa/Kỵ =+10/+8/+6/−10; six supporting stars +4 each, Lộc Tồn +6, Thiên Mã +3, six blocking stars −5 each, Tuần/Triệt −4 each. Borrowed main-star points count half; add one-third of the sum from the opposite and two triad palaces, round and clamp 0–100. Bands start at 30/45/55/70. The source is authoritative for exact star IDs and double-count prevention.
+**Proposal:** base 50; brightness exalted/prosperous/favorable/neutral/unfavorable/weak =+12/+9/+6/+2/−6/−9; Lộc/Quyền/Khoa/Kỵ =+10/+8/+6/−10; six supporting stars +4 each, Lộc Tồn +6, Thiên Mã +3, six blocking stars −5 each, Tuần/Triệt −4 each. Borrowed main-star points count half; add one-third of the sum from the opposite and two triad palaces, round and clamp 0–100. Bands start at 30/45/55/70. The source is authoritative for exact star IDs and double-count prevention.
 
 **Recommendation:** explicitly approve these exact weights for the published structural indicator, or keep the paid-traffic gate closed while revising them.
 
