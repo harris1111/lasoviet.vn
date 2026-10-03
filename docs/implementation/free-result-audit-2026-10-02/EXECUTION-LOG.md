@@ -88,3 +88,12 @@ Verification: `pnpm vitest run packages/backend/src/privacy tests/privacy tests/
 Not verified: row 31 (endpoint 404 indistinguishability, B15/B16); single-profile soft delete path.
 Remaining concern: see ADDENDA B11.
 Next dependency-ready card: B12 (batch 2).
+
+## B12 — Gift-only writer adapter and deterministic quality gates
+State: VERIFIED (unit, fake HTTP), library only — not wired.
+Behavior changed: new `createFreePalaceWriter().run(frozenCall, attemptId)` makes exactly one provider call through a retryCount-0 adapter, prices it from the reserved tariff, runs `validateFreePalaceGift` and the contract's ready-view refinement, and returns a settlement (+ publication payload when ready). Quality failure is billed and falls back; unknown usage keeps the hold.
+Files changed: packages/backend/src/ziwei/free-palace-writer.ts (+ .test.ts), free-palace-quality.ts (+ .test.ts).
+Allowlist drift: none.
+Verification: `pnpm vitest run packages/backend/src/ziwei/free-palace-writer.test.ts packages/backend/src/ziwei/free-palace-quality.test.ts` — 30/30 (matrix rows 33–37; the real OpenAI-compatible adapter with a counting fake `fetch` and the in-memory cost service). backend typecheck + eslint clean; paid ai/report files unchanged.
+Not verified: no real provider; token-bound proof gate open; prompt wording not quality-evaluated against real model output (the one-palace quality evaluation in the release gate is still owed).
+Next dependency-ready card: B13.
