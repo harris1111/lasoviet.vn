@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { CurrentActor } from "@lasoviet/contracts";
-import { auditLogs, type Database } from "@lasoviet/database";
+import { auditLogs, lockFreeAiCoordination, type Database } from "@lasoviet/database";
 import type { FreePalaceLocale } from "./free-palace-labels.js";
 import type { FreePalaceRequestService } from "./free-palace-request.service.js";
 import type { ZiweiQueryRepository } from "./ziwei-query.repository.js";
@@ -37,26 +37,35 @@ export function createFreePalaceEngagementService(options: FreePalaceEngagementS
       try {
         if (!options.flagEnabled()) return { kind: "ignored", reason: "flag_disabled" };
         if (!(FREE_PALACE_ENGAGEMENT_TABS as readonly string[]).includes(tab)) return { kind: "ignored", reason: "tab_invalid" };
-        const source = await options.sources.readAuthorizedChart(actor, chartId, now());
-        if (!source) return { kind: "ignored", reason: "source_unavailable" };
-        const actorKey = actor.kind === "account" ? actor.userId : actor.anonymousActorId;
-        const same = and(eq(auditLogs.action, FREE_PALACE_ENGAGEMENT_ACTION), eq(auditLogs.targetType, FREE_PALACE_ENGAGEMENT_TARGET),
-          eq(auditLogs.targetId, source.chartVersionId), eq(auditLogs.actorId, actorKey));
-        const [seen] = await options.database.select({ id: auditLogs.id }).from(auditLogs).where(and(same, sql`${auditLogs.metadata}->>'tab' = ${tab}`)).limit(1);
-        const isNew = !seen;
-        if (isNew) {
-          await options.database.insert(auditLogs).values({
-            actorId: actorKey, action: FREE_PALACE_ENGAGEMENT_ACTION, targetType: FREE_PALACE_ENGAGEMENT_TARGET,
-            targetId: source.chartVersionId, requestId: actor.requestId, metadata: { tab },
-          });
-        }
-        const [counted] = await options.database.select({ n: sql<number>`count(distinct ${auditLogs.metadata}->>'tab')::int` }).from(auditLogs).where(same);
-        const distinctTabs = Number(counted?.n ?? 0);
+        const engagement = await options.database.transaction(async (transaction) => {
+          // Match deletion/link/admission lock order. Authorization and time are fresh after
+          // the wait, and every marker query uses this transaction so deletion cannot interleave.
+          await lockFreeAiCoordination(transaction);
+          const source = await options.sources.readAuthorizedChart(actor, chartId, now(), transaction);
+          if (!source) return null;
+          const actorKey = actor.kind === "account" ? actor.userId : actor.anonymousActorId;
+          const same = and(eq(auditLogs.action, FREE_PALACE_ENGAGEMENT_ACTION), eq(auditLogs.targetType, FREE_PALACE_ENGAGEMENT_TARGET),
+            eq(auditLogs.targetId, source.chartVersionId), eq(auditLogs.actorId, actorKey));
+          const [seen] = await transaction.select({ id: auditLogs.id }).from(auditLogs).where(and(same, sql`${auditLogs.metadata}->>'tab' = ${tab}`)).limit(1);
+          const isNew = !seen;
+          if (isNew) {
+            await transaction.insert(auditLogs).values({
+              actorId: actorKey, action: FREE_PALACE_ENGAGEMENT_ACTION, targetType: FREE_PALACE_ENGAGEMENT_TARGET,
+              targetId: source.chartVersionId, requestId: actor.requestId, metadata: { tab },
+            });
+          }
+          const [counted] = await transaction.select({ n: sql<number>`count(distinct ${auditLogs.metadata}->>'tab')::int` }).from(auditLogs).where(same);
+          return { isNew, distinctTabs: Number(counted?.n ?? 0) };
+        });
+        if (!engagement) return { kind: "ignored", reason: "source_unavailable" };
+        const { isNew, distinctTabs } = engagement;
         // Only a newly recorded tab can change the outcome, so repeats stay cheap.
         if (!isNew) return { kind: "recorded", distinctTabs };
         const engaged = distinctTabs >= FREE_PALACE_ENGAGEMENT_THRESHOLD;
         const verified = actor.kind === "account" && actor.emailVerified === true;
         if (!engaged && !verified) return { kind: "recorded", distinctTabs };
+        // Admission takes the same coordination lock and rechecks the source. Invoke it only
+        // after committing engagement, avoiding a nested transaction waiting on our own lock.
         return { kind: "requested", distinctTabs, request: await options.request.request(actor, chartId, locale, { guestEngaged: engaged }) };
       } catch {
         return { kind: "ignored", reason: "error" };

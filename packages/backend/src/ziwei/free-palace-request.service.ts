@@ -9,7 +9,6 @@ import type { Database } from "@lasoviet/database";
 import { freePalaceLabel, type FreePalaceLocale } from "./free-palace-labels.js";
 import { createFreeAiBudgetRepository, type FreePalaceRefusalReason } from "./free-ai-budget.repository.js";
 import { freezeFreePalaceCostContext, type FreePalaceTariff, type FreePalaceTokenBoundProof } from "./free-palace-cost-context.js";
-import { createFreePalaceSourceCheck } from "./free-palace-runner.js";
 import { freePalaceArtifactKey, selectFreePalace, type FreePalaceArtifactLineage } from "./free-palace-selection.js";
 import {
   FREE_PALACE_PROMPT_VERSION, FREE_PALACE_RULES_VERSION, FREE_PALACE_SCHEMA_VERSION,
@@ -93,7 +92,6 @@ export type FreePalaceRequestServiceOptions = Readonly<{
 export function createFreePalaceRequestService(options: FreePalaceRequestServiceOptions) {
   const now = options.now ?? (() => new Date());
   const budget = createFreeAiBudgetRepository(options.database);
-  const sourceCheck = createFreePalaceSourceCheck();
   return {
     async request(actor: CurrentActor, chartId: string, locale: FreePalaceLocale, signals: { guestEngaged?: boolean } = {}): Promise<FreePalaceRequestOutcome> {
       try {
@@ -126,8 +124,13 @@ export function createFreePalaceRequestService(options: FreePalaceRequestService
           actor: actor.kind === "account" ? { kind: "account", id: actor.userId, trusted } : { kind: "guest", id: actor.anonymousActorId, trusted },
           lineage: freePalaceLineage({ chartVersionId: source.chartVersionId, palaceId, locale, provider: options.provider, model: options.model }),
           concern: source.topConcern ?? null, cost: frozen.value, traceId: options.traceId?.(actor) ?? actor.requestId,
-          authorizeSource: async (tx, when) => (await sourceCheck(tx, when, source.chartVersionId))
-            ? { expiresAt: actor.kind === "anonymous" ? new Date(actor.expiresAt) : null } : null,
+          authorizeSource: async (tx, when) => {
+            // Reauthorize the captured actor/version after the admission lock wait. A purge
+            // can leave profile rows queued for deletion without ever creating a budget tombstone.
+            const current = await options.sources.readAuthorizedChart(actor, chartId, when, tx);
+            return current?.chartVersionId === source.chartVersionId
+              ? { expiresAt: actor.kind === "anonymous" ? new Date(actor.expiresAt) : null } : null;
+          },
         });
         if (result.kind === "admitted") return { kind: "admitted", requestId: result.requestId };
         if (result.kind === "refused") return result;
