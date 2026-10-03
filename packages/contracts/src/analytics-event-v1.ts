@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CANONICAL_ANALYTICS_EVENT_NAMES = [
   "landing",
+  "chart_form_submit",
   "wizard_start",
   "wizard_step_complete",
   "chart_success",
@@ -12,6 +13,7 @@ export const CANONICAL_ANALYTICS_EVENT_NAMES = [
   "checkout_created",
   "payment_confirmed",
   "unlock_confirm_view",
+  "unlock_error",
   "unlock_confirmed",
   "la_spent",
   "welcome_grant",

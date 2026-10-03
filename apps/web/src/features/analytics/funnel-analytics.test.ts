@@ -6,6 +6,8 @@ import {
   trackPackSelected,
   trackUnlockConfirmView,
   trackUnlockConfirmed,
+  trackUnlockError,
+  trackChartFormSubmit,
   trackReturnVisit,
   trackUpgradeView,
   trackUpgradePurchased,
@@ -288,6 +290,37 @@ describe("funnel-analytics helpers", () => {
           { fetchImpl: mockFetch as unknown as typeof fetch },
         ),
       ).resolves.toBeUndefined();
+    });
+  });
+  describe("unlock_error and chart_form_submit", () => {
+    it("sends the unlock error code with the sku and no identifiers", async () => {
+      const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+      await trackUnlockError(
+        { sku: "ZIWEI-IDENTITY-P0", error_code: "WALLET_EVIDENCE_MISSING" },
+        { fetchImpl: mockFetch as unknown as typeof fetch },
+      );
+      const body = JSON.parse(mockFetch.mock.calls[0]![1].body);
+      expect(body.event).toEqual({
+        name: "unlock_error",
+        properties: {
+          sku: "ZIWEI-IDENTITY-P0",
+          error_code: "WALLET_EVIDENCE_MISSING",
+          placement: "wallet_unlock_dialog",
+        },
+      });
+    });
+
+    it("sends the chart form submit with entry point and concern only", async () => {
+      const mockFetch = vi.fn().mockResolvedValue({ ok: true });
+      await trackChartFormSubmit(
+        { locale: "vi", entry_point: "homepage_hero", concern: "love", time_precision: "exact_minute" },
+        { fetchImpl: mockFetch as unknown as typeof fetch },
+      );
+      const body = JSON.parse(mockFetch.mock.calls[0]![1].body);
+      expect(body.event).toEqual({
+        name: "chart_form_submit",
+        properties: { locale: "vi", entry_point: "homepage_hero", concern: "love", time_precision: "exact_minute" },
+      });
     });
   });
 });

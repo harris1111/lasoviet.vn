@@ -46,10 +46,14 @@ Steps and event names (existing ones kept, new ones marked NEW):
 4. Write the runbook with a one-screen funnel table (count + step conversion), daily.
 5. Record a 7-day baseline before phases 3–6 ship (phase 1 can ship before; mark its date).
 
+## Status (2026-10-03)
+Audit result: 21 of the 22 registered events already had emitters, so this phase only added what was missing: `chart_form_submit` (homepage form) and `unlock_error` (dialog dead ends). Both are registered in `config/analytics-events.json` and `CANONICAL_ANALYTICS_EVENT_NAMES`, have tracker functions with tests, and are emitted from `homepage-v3-birth-form.tsx` and `wallet-unlock-dialog.tsx`. The separate `free_read_depth` / `locked_preview_open` / `report_read_start` events in the table above were dropped: `free_result_interaction` (`stage` = view/engaged/door), `locked_preview_view` and `report_opened` already carry them. Funnel queries and the baseline table are in `docs/runbooks/funnel-dashboard.md`.
+
 ## Success Criteria
+- [x] Every funnel step has an emitter (audit + two new events).
+- [x] No PII in any payload (registry allowlist + `sanitizeAnalyticsProperties`; tests cover both new events).
 - [ ] Each step fires once per real action in a staging run (checked in network tab / collector).
-- [ ] Baseline numbers written into the runbook with dates.
-- [ ] No PII in any payload (test asserts allowed keys).
+- [ ] Baseline numbers written into the runbook with dates (needs read access to the production database).
 
 ## Risk Assessment
 - Ad blockers drop client events → server-side events (order created, paid, unlock) are the source of truth for money; client events only for upper funnel.

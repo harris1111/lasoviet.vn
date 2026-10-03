@@ -9,6 +9,7 @@ import {
 describe("analytics-events config and schema", () => {
   const canonicalEvents = [
     "landing",
+    "chart_form_submit",
     "wizard_start",
     "wizard_step_complete",
     "chart_success",
@@ -19,6 +20,7 @@ describe("analytics-events config and schema", () => {
     "checkout_created",
     "payment_confirmed",
     "unlock_confirm_view",
+    "unlock_error",
     "unlock_confirmed",
     "la_spent",
     "welcome_grant",

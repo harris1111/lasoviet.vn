@@ -11,6 +11,7 @@ import {
   trackUnlockConfirmed,
   trackTopupView,
   trackPackSelected,
+  trackUnlockError,
 } from "../analytics/funnel-analytics";
 import type { LaSku } from "@lasoviet/contracts";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
@@ -186,6 +187,12 @@ export function WalletUnlockDialog({
     // starts from "loading" without a synchronous setState in the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartId, locale, router, attempt]);
+
+  useEffect(() => {
+    if (state.step === "error") {
+      void trackUnlockError({ sku, error_code: state.code ?? "UNKNOWN" });
+    }
+  }, [state, sku]);
 
   useEffect(() => {
     if (!open) return;

@@ -11,6 +11,7 @@ import {
   saveHomepageBirthPrefill,
   type CanonicalBranchId,
 } from "../birth-profile/homepage-birth-prefill";
+import { trackChartFormSubmit } from "../analytics/funnel-analytics";
 import { localizedPath } from "../homepage/homepage-utilities";
 import { useHomepageV3Concern } from "./homepage-v3-concern-context";
 import { HERO_LENSES } from "./homepage-v3-data";
@@ -158,6 +159,12 @@ export function useHomepageV3BirthForm(locale: Locale) {
     }
     const prefill = toHomepageV3Prefill(effectiveValues);
     if (prefill) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
+    void trackChartFormSubmit({
+      locale,
+      entry_point: "homepage_hero",
+      concern: effectiveValues.topConcern ?? undefined,
+      time_precision: effectiveValues.timeUnknown ? "unknown" : effectiveValues.timeMode,
+    });
     router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
   }
 
