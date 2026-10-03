@@ -35,6 +35,7 @@ vi.mock("next-intl", async () => {
 });
 
 import { PaidTopicSelector, formatUpgradeDeadline } from "./paid-topic-selector";
+import { PaidTopicSelectorClient } from "./paid-topic-selector-client";
 
 function findElementInTree(
   node: unknown,
@@ -137,21 +138,23 @@ describe("PaidTopicSelector", () => {
     expect(activeCardHtml).toContain("Mở luận giải đầy đủ: 960 Lá");
   });
 
-  it("wires the card CTA to the comprehensive wallet unlock entry point", () => {
+  it("hands the client half the chart, the resolved SKU and the Lá price for the comprehensive unlock entry point", () => {
     const elementTree = PaidTopicSelector({ locale: "vi", topics: mockTopics });
-    const unlockButton = findElementInTree(
-      elementTree,
-      (element) => typeof element.type === "function" && element.type.name === "WalletUnlockButton",
-    );
+    const client = findElementInTree(elementTree, (element) => element.type === PaidTopicSelectorClient);
 
-    expect(unlockButton).not.toBeNull();
-    expect(unlockButton?.props).toMatchObject({
-      buttonLabel: "Mở luận giải đầy đủ: 960 Lá",
+    expect(client).not.toBeNull();
+    expect(client?.props).toMatchObject({
       chartId: "chart-123",
       chartVersionId: "version-456",
-      sku: "ZIWEI-IDENTITY-P0",
       locale: "vi",
+      initialTab: "luan-giai",
     });
+    expect(client?.props.offers).toEqual([
+      expect.objectContaining({ offerKey: "ziwei-comprehensive", sku: "ZIWEI-IDENTITY-P0", laPrice: 960 }),
+    ]);
+
+    const html = renderToStaticMarkup(<PaidTopicSelector locale="vi" topics={mockTopics} />);
+    expect(html).toContain("Mở luận giải đầy đủ: 960 Lá");
   });
 
   it("renders English offer title and equivalent scope without promising V3 delivery", () => {
@@ -242,22 +245,8 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain('href="/bao-cao/rep-123"');
     expect(html).toContain("Xem bản mẫu");
     expect(html).not.toContain("Chọn Luận giải toàn diện");
-    expect(
-      findElementInTree(
-        PaidTopicSelector({
-          locale: "vi",
-          ownershipByOfferKey: {
-            "ziwei-comprehensive": {
-              kind: "readable",
-              reportId: "rep-123",
-              readUrl: "/bao-cao/rep-123",
-            },
-          },
-          topics: mockTopics,
-        }),
-        (element) => typeof element.type === "function" && element.type.name === "WalletUnlockButton",
-      ),
-    ).toBeNull();
+    expect(html).not.toContain("Mở khóa");
+    expect(html).not.toContain("Mở luận giải đầy đủ");
     const submitMatches = (html.match(/type="submit"/g) || []).length;
     expect(submitMatches).toBe(0);
     expect(html).not.toMatch(/ZIWEI-[A-Z0-9]+/);
@@ -755,35 +744,20 @@ describe("PaidTopicSelector", () => {
     expect(html).toContain("Mở khóa: 960 Lá");
   });
 
-  it("passes only serializable string labels across the client WalletUnlockButton boundary in both vi and en", () => {
+  it("passes only serializable props across the server to client boundary in both vi and en", () => {
     const checkBoundaryProps = (locale: "vi" | "en") => {
       mockLocale = locale;
       const elementTree = PaidTopicSelector({ locale, topics: mockTopics });
-      const unlockButton = findElementInTree(
-        elementTree,
-        (el) =>
-          typeof el.type === "function" &&
-          (el.type.name === "WalletUnlockButton" ||
-            (Boolean(el.props?.sku) && Boolean(el.props?.labels))),
-      );
+      const client = findElementInTree(elementTree, (element) => element.type === PaidTopicSelectorClient);
 
-      expect(unlockButton).not.toBeNull();
-      const labels = unlockButton!.props.labels as Record<string, unknown>;
-      expect(typeof labels).toBe("object");
-      expect(labels).not.toBeNull();
-
-      const entries = Object.entries(labels);
-      expect(entries.length).toBeGreaterThan(0);
-
-      // Verify no functions cross the client boundary: every label must be a non-empty string
-      for (const [key, value] of entries) {
-        expect(typeof value, `label ${key} should be a string, not function`).toBe("string");
-        expect((value as string).length).toBeGreaterThan(0);
+      expect(client).not.toBeNull();
+      const props = client!.props;
+      // A function, Date or class instance would not survive the RSC payload; a JSON round trip does.
+      expect(JSON.parse(JSON.stringify(props))).toEqual(props);
+      for (const offer of props.offers as Array<Record<string, unknown>>) {
+        expect(typeof offer.laPrice).toBe("number");
+        expect(offer.sku === null || typeof offer.sku === "string").toBe(true);
       }
-
-      // Explicitly check that deprecated client boundary functions are absent
-      expect("shortBalanceBody" in labels).toBe(false);
-      expect("topUpAction" in labels).toBe(false);
     };
 
     try {

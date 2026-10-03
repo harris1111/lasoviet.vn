@@ -13,7 +13,12 @@ import {
   trackPackSelected,
 } from "../analytics/funnel-analytics";
 import type { LaSku } from "@lasoviet/contracts";
-import { resolveWalletUnlockLoadedState } from "./wallet-unlock-dialog-state";
+import { customerContactConfig } from "@lasoviet/config/customer-contact";
+import {
+  classifyWalletUnlockError,
+  resolveWalletUnlockLoadedState,
+  type WalletUnlockErrorKind,
+} from "./wallet-unlock-dialog-state";
 
 export type WalletUnlockDialogSku = LaSku | "ZIWEI-NATAL-EXCERPT-P0" | "ZIWEI-IDENTITY-P0";
 
@@ -44,7 +49,7 @@ type DialogState =
   | ({ step: "confirm" } & ConfirmData)
   | ({ step: "confirming" } & ConfirmData)
   | ({ step: "short_balance" } & ConfirmData)
-  | { step: "error"; message: string };
+  | { step: "error"; kind: WalletUnlockErrorKind; code?: string };
 
 export type WalletUnlockDialogProps = {
   open: boolean;
@@ -71,6 +76,15 @@ export function buildWalletSignInHref(
     `${prefix}/dang-nhap?callbackURL=${encodeURIComponent(callbackURL)}` +
     `&fallbackURL=${encodeURIComponent(fallbackURL)}`
   );
+}
+
+async function readErrorCode(response: Response): Promise<string | undefined> {
+  try {
+    const body = (await response.json()) as { code?: unknown };
+    return typeof body.code === "string" ? body.code : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function randomId(): string {
@@ -104,6 +118,7 @@ export function WalletUnlockDialog({
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const idempotencyKeyRef = useRef<string>(randomId());
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -125,7 +140,11 @@ export function WalletUnlockDialog({
             router.push(buildWalletSignInHref(locale, window.location.href, chartId));
             return;
           }
-          setState({ step: "error", message: labels.genericError });
+          const code =
+            (!intentResponse.ok ? await readErrorCode(intentResponse) : undefined) ??
+            (!balanceResponse.ok ? await readErrorCode(balanceResponse) : undefined);
+          if (!active) return;
+          setState({ step: "error", kind: classifyWalletUnlockError(code), code });
           return;
         }
         const intent = (await intentResponse.json()) as {
@@ -154,7 +173,7 @@ export function WalletUnlockDialog({
           });
         }
       } catch {
-        if (active) setState({ step: "error", message: labels.genericError });
+        if (active) setState({ step: "error", kind: "unavailable", code: "NETWORK_ERROR" });
       }
     }
 
@@ -166,7 +185,7 @@ export function WalletUnlockDialog({
     // every time the dialog opens, so a fresh intent+balance load always
     // starts from "loading" without a synchronous setState in the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartId, locale, router]);
+  }, [chartId, locale, router, attempt]);
 
   useEffect(() => {
     if (!open) return;
@@ -213,7 +232,7 @@ export function WalletUnlockDialog({
           setState({ ...state, step: "short_balance" });
           return;
         }
-        setState({ step: "error", message: labels.genericError });
+        setState({ step: "error", kind: classifyWalletUnlockError(body.code), code: body.code });
         return;
       }
       const value = (await response.json()) as { reportId: string | null };
@@ -226,8 +245,13 @@ export function WalletUnlockDialog({
       onOpenChange(false);
       onUnlocked(value.reportId ?? null);
     } catch {
-      setState({ step: "error", message: labels.genericError });
+      setState({ step: "error", kind: "unavailable", code: "NETWORK_ERROR" });
     }
+  }
+
+  function retry() {
+    setState({ step: "loading" });
+    setAttempt((value) => value + 1);
   }
 
   const balanceAfter =
@@ -270,9 +294,41 @@ export function WalletUnlockDialog({
         {state.step === "loading" && <p role="status">…</p>}
 
         {state.step === "error" && (
-          <p role="alert" className="wallet-unlock-dialog-error">
-            {state.message}
-          </p>
+          <div role="alert" className="wallet-unlock-dialog-error">
+            <p>
+              {state.kind === "chart_not_found"
+                ? t("selection.unlockDialogErrorChartNotFound")
+                : state.kind === "preparing"
+                  ? t("selection.unlockDialogErrorPreparing")
+                  : state.kind === "stale"
+                    ? t("selection.unlockDialogErrorStale")
+                    : state.kind === "unavailable"
+                      ? t("selection.unlockDialogErrorUnavailable")
+                      : labels.genericError}
+            </p>
+            {state.code && (
+              <p className="wallet-unlock-dialog-error-code">
+                {t("selection.unlockDialogErrorCode", { code: state.code })}
+              </p>
+            )}
+            <div className="wallet-unlock-dialog-actions">
+              <button className="button button-secondary" onClick={() => onOpenChange(false)} type="button">
+                {labels.cancel}
+              </button>
+              {state.kind !== "chart_not_found" && (
+                <button className="button button-primary" onClick={retry} type="button">
+                  {t("selection.unlockDialogRetry")}
+                </button>
+              )}
+            </div>
+            {customerContactConfig.email.visible && (
+              <p className="wallet-unlock-dialog-topup-note">
+                <a href={`mailto:${customerContactConfig.email.value}`}>
+                  {t("selection.unlockDialogContactSupport")}
+                </a>
+              </p>
+            )}
+          </div>
         )}
 
         {(state.step === "confirm" || state.step === "confirming") && (

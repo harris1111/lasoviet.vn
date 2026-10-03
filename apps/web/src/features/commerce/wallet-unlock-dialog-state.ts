@@ -32,3 +32,33 @@ export function resolveWalletUnlockLoadedState(
     walletVersion: placeholderWalletVersion,
   };
 }
+
+export type WalletUnlockErrorKind =
+  | "chart_not_found"
+  | "preparing"
+  | "stale"
+  | "unavailable"
+  | "generic";
+
+/**
+ * Maps a server error code to the plain-language message the dialog shows.
+ * `stale` means the intent changed under the customer (chart recalculated,
+ * price moved): a retry with a fresh intent is the right recovery.
+ */
+export function classifyWalletUnlockError(code: string | undefined): WalletUnlockErrorKind {
+  switch (code) {
+    case "WALLET_CHART_NOT_FOUND":
+      return "chart_not_found";
+    case "WALLET_EVIDENCE_MISSING":
+      return "preparing";
+    case "WALLET_INTENT_VERSION_CONFLICT":
+    case "WALLET_IDEMPOTENCY_KEY_REUSED":
+      return "stale";
+    case "PRIVATE_API_UNREACHABLE":
+    case "PRIVATE_API_RESPONSE_INVALID":
+    case "UPSTREAM_UNAVAILABLE":
+      return "unavailable";
+    default:
+      return "generic";
+  }
+}

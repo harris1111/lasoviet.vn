@@ -555,6 +555,52 @@ describe("wallet unlock repository integration", () => {
     } finally { topicCatalogGate.enabled = false; }
   });
 
+  it("replaces an unpaid pending intent when the chart is recalculated into a newer version", async () => {
+    const owner = await ownerFixture("Recalculated chart");
+    const { service } = walletPorts(owner.userId);
+    const first = await service.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "vi",
+    });
+    if (!first.ok) throw new Error("expected first intent");
+
+    const [previousVersion] = await database.select().from(ziweiChartVersions).where(eq(ziweiChartVersions.id, owner.chartVersionId));
+    const newerVersionId = `chart-version-${randomUUID()}`;
+    const newerRunId = randomUUID();
+    const [previousRun] = await database.select().from(calculationRuns).where(eq(calculationRuns.id, previousVersion!.calculationRunId));
+    await database.insert(calculationRuns).values({ ...previousRun!, id: newerRunId, idempotencyKey: `run-${newerRunId}` });
+    await database.insert(ziweiChartVersions).values({
+      id: newerVersionId,
+      chartId: owner.chartId,
+      calculationRunId: newerRunId,
+      normalizedOutput: {},
+      privateRawSnapshot: {},
+      warnings: [],
+      provenance: {},
+    });
+    await database.insert(evidenceSets).values({
+      id: `evidence-${randomUUID()}`,
+      chartVersionId: newerVersionId,
+      capabilityId: "ziwei.identity.p0",
+      ruleVersion: "ziwei.identity.v1",
+    });
+
+    const second = await service.createPurchaseIntent(owner.actor, {
+      chartId: owner.chartId,
+      chartVersionId: newerVersionId,
+      sku: "ZIWEI-NATAL-EXCERPT-P0",
+      locale: "vi",
+    });
+
+    expect(second).toMatchObject({ ok: true, reused: false });
+    if (!second.ok) throw new Error("expected second intent");
+    expect(second.value.id).not.toBe(first.value.id);
+    const [cancelled] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, first.value.id));
+    expect(cancelled?.status).toBe("cancelled");
+  });
+
   it("uses exact 240, 720, and 960 Lá pricing, preserves pending reuse, and closes FD-041 at +7 days", async () => {
     const audit = await ownerFixture("Audit pricing");
     const base = await ownerFixture("Base pricing");

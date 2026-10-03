@@ -92,6 +92,17 @@ describe("POST /api/commerce/wallet/purchase-intents", () => {
     await expect(response.json()).resolves.toEqual({ code: "WALLET_CHART_NOT_FOUND" });
   });
 
+  it("reports an unreachable private API as a coded 502 instead of throwing", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(privateApiClient).mockReturnValue({
+      request: vi.fn().mockRejectedValue(new PrivateApiClientError("PRIVATE_API_UNREACHABLE")),
+    });
+    const { POST } = await import("./route.js");
+    const response = await POST(jsonRequest({ chartId: "chart-1", chartVersionId: "v1", sku: "ZIWEI-IDENTITY-P0", locale: "vi" }));
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({ code: "PRIVATE_API_UNREACHABLE" });
+  });
+
   it("rejects an unparsable request body without calling the private API", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     const { POST } = await import("./route.js");
