@@ -164,6 +164,46 @@ describe("free palace engagement → guest trust → gift request (real Postgres
     expect(await count("free_ai_requests")).toBe(0);
   });
 
+  it.each(["verified", "third-tab"] as const)("account purge after %s engagement commits cannot recreate a request or private payload", async (trigger) => {
+    const at = new Date("2026-10-03T12:00:00.000Z");
+    const g = await deletionFixture("account", at);
+    if (g.actor.kind !== "account") throw new Error("ACCOUNT_DELETION_FIXTURE_FAILED");
+    const actor: CurrentActor = { ...g.actor, emailVerified: trigger === "verified" };
+    if (trigger === "third-tab") {
+      const preliminary = make(main, true, { now: () => at });
+      await preliminary.record(actor, g.chartId, "overview", "vi");
+      await preliminary.record(actor, g.chartId, "palaces", "vi");
+    }
+    const database = h.connect();
+    const sources = createDatabaseZiweiQueryRepository(database);
+    let tariffReached = false;
+    let resume!: () => void;
+    const gate = new Promise<void>((resolve) => { resume = resolve; });
+    const request = createFreePalaceRequestService({
+      database, sources, flagEnabled: () => true, now: () => at, provider: "p", model: "m", boundProofFor: proofFor,
+      loadActiveTariff: async () => { tariffReached = true; await gate; return tariff; },
+    });
+    const service = createFreePalaceEngagementService({ database, sources, request, flagEnabled: () => true, now: () => at });
+    const recording = service.record(actor, g.chartId, "topics", "vi");
+    try {
+      // Engagement has committed and the request has already read an authorized source.
+      // Purge wins before the first reservation, so there is no budget tombstone to rely on.
+      await vi.waitFor(() => expect(tariffReached).toBe(true));
+      expect(await count("free_ai_chart_budgets")).toBe(0);
+      expect(await g.delete(h.connect())).toMatchObject({ ok: true });
+      expect(await h.raw`SELECT 1 FROM birth_profiles WHERE user_id=${actor.userId}`).toHaveLength(1);
+    } finally {
+      resume();
+      await recording;
+    }
+    expect(await recording).toMatchObject({ kind: "requested", distinctTabs: trigger === "verified" ? 1 : 3,
+      request: { kind: "refused", reason: "source_unavailable" } });
+    for (const table of ["free_ai_requests", "free_ai_artifacts", "free_ai_admissions", "free_ai_chart_budgets"]) {
+      expect(await count(table)).toBe(0);
+    }
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g.chartVersionId}`).toHaveLength(0);
+  });
+
   it("recoverable and cancelled account deletion retain their existing chart authorization", async () => {
     const at = new Date("2026-10-03T12:00:00.000Z");
     const userId = `eng-recoverable-user-${++seq}`;

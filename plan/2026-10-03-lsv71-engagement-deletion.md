@@ -7,6 +7,7 @@ Fix the remaining engagement/deletion race identified in LSV-71's 2026-10-03 OFF
 Owned scope:
 - `packages/backend/src/ziwei/free-palace-engagement.service.ts`: acquire the existing shared free-AI coordination lock, authorize on the same transaction, deduplicate, insert and count atomically; release the transaction before invoking the separately coordinated request path.
 - `packages/backend/src/ziwei/ziwei-query.repository.ts`: allow the authorized source read to use the caller's transaction and reject purged accounts while their physical profile deletion is still queued. Existing callers keep their normal connection; cancelled/recoverable deletion requests retain existing semantics.
+- `packages/backend/src/ziwei/free-palace-request.service.ts`: reauthorize the captured actor and chart version inside admission's coordination transaction, including purge before the first budget reservation.
 - `tests/free-ai/engagement.integration.test.ts`: real PostgreSQL regressions for engagement-first and deletion-first order, repeat concurrency, and expiry after a lock wait, with explicit/injected clocks.
 - This evidence document.
 
@@ -15,7 +16,7 @@ Use the existing lock key and privacy purge behavior; no migration, route, UI, t
 ## Acceptance
 
 1. Reproduce the orphan marker on the original service with a controlled engagement-first/deletion overlap.
-2. Both concurrency orders for guests and accounts finish without surviving engagement markers or unauthorized requests, including the account purge-to-outbox interval.
+2. Both concurrency orders for guests and accounts finish without surviving engagement markers or unauthorized requests, including the account purge-to-outbox interval and purge after engagement commits but before first admission.
 3. Authorization samples its time after the coordination lock; a guest expiring while queued cannot insert a marker.
 4. Concurrent same-tab submissions persist one marker; different tabs still reach the existing threshold without duplicate gift admission.
 5. Existing OFF, localization, retention, accounting, and source-ownership tests remain passing. Required i18n/lint/typecheck and focused integration checks pass before PR.
@@ -29,6 +30,10 @@ LSV-71 moves to In Progress for this bounded correction, then In Review when the
 - Reproduced the original guest engagement-first race on real PostgreSQL: deletion completed during the paused authorized read, then recording persisted one orphan engagement marker (expected zero).
 - After coordinating engagement, reproduced the account deletion-first gap: purge had committed and queued physical deletion, but the captured account actor could still record a marker. The source query now rejects `purged` deletion state while profile rows remain; recoverable/cancelled requests keep their existing behavior.
 - Both guest/account orderings, six concurrent repeats, and expiry during the lock wait are covered with controlled gates and injected timestamps. Every authorized source read uses the same transaction as marker queries. Admission runs after that transaction commits and retains its existing source/tombstone checks.
-- Focused regression command: `pnpm exec vitest run tests/free-ai tests/privacy/account-deletion.integration.test.ts packages/backend/src/ziwei/ziwei-query.service.test.ts apps/api/src/free-palace-composition.test.ts --maxWorkers=2`. Result: 17 files / 188 tests passed on 2026-10-03; all 18 engagement tests passed.
+- Original-head focused regression command: `pnpm exec vitest run tests/free-ai tests/privacy/account-deletion.integration.test.ts packages/backend/src/ziwei/ziwei-query.service.test.ts apps/api/src/free-palace-composition.test.ts --maxWorkers=2`. Result: 17 files / 188 tests passed on 2026-10-03; all 18 original engagement tests passed.
 - `pnpm i18n:check && pnpm lint && pnpm typecheck` passed. Lint has four existing web warnings and no errors. Producer packages were rebuilt before dependent typechecks. `git diff --check` passed.
-- No enabled provider call, deployed correction smoke, or independent reviewer approval is claimed by these local checks. The bounded correction is ready for PR review; full LSV-71 release gates remain open.
+- Independent Sol medium review of `f4f6d0fa` returned NO GO (P1): a real request authorized before account purge could create its first reservation/private frozen payload after purge, because no budget tombstone existed. Both verified first-tab and unverified third-tab regressions reproduced `admitted` on the original head instead of `source_unavailable`.
+- Correction: admission now re-reads the actor-authorized source in its own coordination transaction with the fresh admission clock and requires the captured chart version to match.
+- Revised focused command additionally includes `packages/backend/src/ziwei/free-palace-request.service.test.ts`: 18 files / 198 tests passed, including all 20 engagement cases. Required i18n/lint/typecheck passed again with the same four pre-existing web warnings. `git diff --check` passed.
+- Independent Sol medium re-review returned GO for the corrected diff with generation OFF, subject to updated-head CI and deployment smoke. Reviewer independently ran all engagement/request-unit cases: 2 files / 28 tests passed. No unresolved source blocker; full activation remains unapproved.
+- No enabled provider call, deployed correction smoke, or independent reviewer approval is claimed by these local checks. Full LSV-71 release gates remain open.
