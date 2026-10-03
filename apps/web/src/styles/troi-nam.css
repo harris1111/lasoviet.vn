@@ -1887,7 +1887,7 @@ main > .tn-section .hv3-container {
 }
 
 .tn .tn-usp .hv3-usp-card p {
-  max-width: 38ch;
+  max-width: 44ch;
   color: var(--tn-text-muted);
   font-size: 1rem;
   line-height: 1.55;
