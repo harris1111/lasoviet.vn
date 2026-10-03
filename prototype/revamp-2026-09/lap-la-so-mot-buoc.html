@@ -12,7 +12,10 @@
   /* Phase 3 prototype: one-step entry. Homepage form creates the chart directly. */
   :root { --ease: cubic-bezier(.22,.8,.24,1); }
   .proto-bar { background: #1A1612; border-bottom: 1px dashed rgba(206,91,69,.5); padding: 8px 0; }
-  .proto-bar .in { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .proto-bar .in { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .proto-bar button { flex: none; white-space: nowrap; }
+  /* The Messenger bubble covered form hints on phones; the sticky bar is the focus here */
+  .msgr-bubble { display: none; }
   .proto-bar b { font: 500 12px/1 var(--font-mono); color: #EC8A74; margin-right: 4px; }
   .proto-bar button { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-soft); background: transparent; color: var(--text-body); font: 500 13px var(--font-ui); cursor: pointer; }
   .proto-bar button[aria-pressed="true"] { border-color: var(--gold-500); color: var(--gold-400); background: var(--gold-soft); }
@@ -22,7 +25,7 @@
 
   .entry { display: grid; gap: 20px; padding-block: 20px 150px; }
   .entry-copy h1 { font: 600 clamp(30px, 7vw, 48px)/1.1 var(--font-display); color: var(--text-heading); margin: 0 0 10px; text-wrap: balance; letter-spacing: -.01em; }
-  .entry-copy h1 em { font-style: normal; background: var(--gradient-gold); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .entry-copy h1 em { font-style: normal; color: var(--gold-400); }
   .entry-copy .lede { margin: 0; color: var(--text-body); max-width: 44ch; font-size: 16px; }
   .entry-copy .proof { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14.5px; color: var(--text-muted); }
   .entry-copy .proof li { display: inline-flex; gap: 8px; align-items: center; }
@@ -33,8 +36,7 @@
   form.paper::before { content: ""; position: absolute; left: 24px; right: 24px; top: -1px; height: 1px; background: var(--gold-edge); }
   .block { display: grid; gap: 22px; padding: 22px 18px; }
   .block + .block { border-top: 1px solid var(--border-hairline); }
-  .block-head { display: flex; align-items: center; gap: 10px; margin: -2px 0 -6px; font: 600 16px/1.2 var(--font-ui); color: var(--text-heading); }
-  .block-head i { width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; font: 600 12px/1 var(--font-mono); font-style: normal; color: var(--gold-400); background: var(--gold-soft); box-shadow: inset 0 0 0 1px rgba(201,164,77,.35); }
+  .block-head { margin: -2px 0 -6px; font: 600 17px/1.2 var(--font-display); color: var(--text-heading); }
 
   .summary { margin: 16px 18px 0; padding: 14px 16px; border-radius: var(--radius-field); border: 1px solid #E0765F; background: rgba(224,118,95,.08); }
   .summary h2 { margin: 0 0 6px; font: 600 15px/1.3 var(--font-ui); color: #F4B3A3; }
@@ -72,7 +74,7 @@
   .opt:hover { border-color: var(--gold-600); }
   .opt[aria-pressed="true"] { border-color: var(--gold-500); background: var(--gold-soft); color: var(--gold-400); }
   .opts.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .opts.three .opt { padding: 0 8px; text-align: center; }
+  .opts.three .opt { padding: 0 6px; text-align: center; white-space: nowrap; }
   .time-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .link-btn { background: none; border: 0; padding: 0; min-height: 44px; color: var(--gold-400); font: 500 15px var(--font-ui); cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
   .place-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 4px 14px; border-radius: var(--radius-field); border: 1px dashed var(--border-soft); font-size: 15px; color: var(--text-body); }
@@ -107,7 +109,7 @@
   .cell .pn { font: 600 15px/1.15 var(--font-display); opacity: 0; transform: translateY(4px); transition: opacity 320ms var(--ease), transform 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
   .cell.on { background: var(--surface-raised-2); border-color: rgba(201,164,77,.5); color: var(--gold-400); }
   .cell.on .pn { opacity: 1; transform: none; color: var(--text-heading); }
-  .cell.life.on { border-color: var(--gold-400); box-shadow: 0 0 0 1px rgba(201,164,77,.35), 0 0 28px rgba(201,164,77,.16); }
+  .cell.life.on { border-color: var(--gold-400); box-shadow: inset 0 0 0 1px rgba(201,164,77,.35); }
   .cell.center { grid-column: 2 / span 2; grid-row: 2 / span 2; aspect-ratio: auto; text-align: center; place-content: center; justify-items: center; gap: 6px; background: radial-gradient(circle at 50% 40%, rgba(201,164,77,.10), rgba(34,29,22,.6) 70%); }
   .cell.center b { display: block; font: 600 22px/1.2 var(--font-display); color: var(--text-heading); }
   .cell.center small { font-size: 14px; color: var(--text-muted); line-height: 1.4; max-width: 22ch; }
@@ -119,17 +121,22 @@
   .meter { height: 3px; border-radius: 999px; background: var(--border-soft); overflow: hidden; }
   .meter i { display: block; height: 100%; width: 0; background: var(--gradient-gold); transition: width 420ms var(--ease); }
   .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-  .steps li { display: flex; gap: 12px; align-items: center; color: var(--text-faint); font-size: 16px; transition: color 200ms ease; }
+  .steps li { display: flex; gap: 12px; align-items: center; color: var(--text-muted); font-size: 16px; transition: color 200ms ease; }
   .steps li i { width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--border-soft); display: grid; place-items: center; flex: none; }
   .steps li.done { color: var(--text-body); }
   .steps li.done i { background: var(--gold-soft); border-color: var(--gold-500); color: var(--gold-400); }
   .steps li.done i::after { content: ""; width: 6px; height: 10px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px,-1px); }
   .steps li.now { color: var(--text-heading); }
   .steps li.now i { border-color: var(--gold-500); animation: pulse 1.1s ease-in-out infinite; }
-  @keyframes pulse { 50% { box-shadow: 0 0 0 5px rgba(201,164,77,.18); } }
+  @keyframes pulse { 50% { background: var(--gold-soft); } }
   .sk-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .sk { border-radius: 12px; background: linear-gradient(90deg, var(--surface-raised) 0%, var(--surface-raised-2) 50%, var(--surface-raised) 100%); background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite; height: 64px; }
   @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+  button, .opt, .tile, .link-btn, select { touch-action: manipulation; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0ms !important; }
+  }
 
   @media (max-width: 980px) {
     .entry-copy .proof { display: none !important; }
@@ -179,7 +186,7 @@
           <ul id="sumList"></ul>
         </div>
         <section class="block" aria-labelledby="b1">
-          <h2 class="block-head" id="b1"><i>1</i>Ngày giờ sinh</h2>
+          <h2 class="block-head" id="b1">Ngày giờ sinh</h2>
 
           <div class="group" id="gr-dob">
             <span class="lbl" id="dob-l">Ngày sinh<span class="tick" aria-hidden="true"><svg><use href="#ui-check"/></svg></span></span>
@@ -195,7 +202,7 @@
           <div class="group" id="gr-time">
             <span class="lbl" id="tob-l">Giờ sinh<span class="tick" aria-hidden="true"><svg><use href="#ui-check"/></svg></span></span>
             <div class="opts three" role="group" aria-labelledby="tob-l" id="tmode">
-              <button type="button" class="opt" aria-pressed="true" data-t="exact">Giờ và phút</button>
+              <button type="button" class="opt" aria-pressed="true" data-t="exact">Chính xác</button>
               <button type="button" class="opt" aria-pressed="false" data-t="branch">Khoảng giờ</button>
               <button type="button" class="opt" aria-pressed="false" data-t="unknown">Không rõ</button>
             </div>
@@ -212,7 +219,7 @@
         </section>
 
         <section class="block" aria-labelledby="b2">
-          <h2 class="block-head" id="b2"><i>2</i>Về bạn</h2>
+          <h2 class="block-head" id="b2">Về bạn</h2>
 
           <div class="group" id="gr-gender">
             <span class="lbl" id="g-l">Giới tính<span class="tick" aria-hidden="true"><svg><use href="#ui-check"/></svg></span></span>
@@ -236,7 +243,7 @@
         </section>
 
         <section class="block" aria-labelledby="b3">
-          <h2 class="block-head" id="b3"><i>3</i>Hoàn tất</h2>
+          <h2 class="block-head" id="b3">Hoàn tất</h2>
 
           <div class="group">
             <button type="button" class="link-btn" id="otherBtn" aria-expanded="false" aria-controls="other">Tôi xem cho người khác</button>
