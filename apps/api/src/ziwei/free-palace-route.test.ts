@@ -95,6 +95,7 @@ describe("free palace gift private endpoint", () => {
       const response = await post({ tab: "palaces", locale: "en", userId: "untrusted", count: 99 });
       expect(response.statusCode).toBe(200);
       expect(response.headers["cache-control"]).toBe("private, no-store");
+      expect(response.headers["x-robots-tag"]).toBe("noindex, nofollow");
       expect(recordFreePalaceEngagement).toHaveBeenCalledWith(expect.objectContaining({ kind: "account", userId: "verified-account" }), "chart-1", "palaces", "en");
     });
     it("rejects a missing token and a malformed body before doing anything", async () => {

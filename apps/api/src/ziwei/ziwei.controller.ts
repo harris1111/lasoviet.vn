@@ -160,6 +160,7 @@ export class ZiweiController {
   @Post("charts/:chartId/free-palace/engagement")
   @HttpCode(HttpStatus.OK)
   @Header("Cache-Control", "private, no-store")
+  @Header("X-Robots-Tag", "noindex, nofollow")
   async freePalaceEngagement(
     @Headers("authorization") authorization: string | undefined,
     @Param("chartId") chartId: string,

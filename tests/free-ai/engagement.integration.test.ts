@@ -5,6 +5,8 @@ import { createFreePalaceEngagementService } from "../../packages/backend/src/zi
 import { createFreePalaceRequestService } from "../../packages/backend/src/ziwei/free-palace-request.service.js";
 import { createDatabaseZiweiQueryRepository } from "../../packages/backend/src/ziwei/ziwei-query.repository.js";
 import { createDatabaseAnonymousRetentionRepository } from "../../packages/backend/src/privacy/anonymous-retention.repository.js";
+import { createFreeAiDispatchService } from "../../packages/backend/src/ziwei/free-ai-dispatch.service.js";
+import { createFreeAiSettlementService } from "../../packages/backend/src/ziwei/free-ai-settlement.service.js";
 import { raceBehindLock, seedChartVersion, startFreeAiDatabase, type TestDatabase } from "./free-ai-test-harness.js";
 
 type Harness = Awaited<ReturnType<typeof startFreeAiDatabase>>;
@@ -31,17 +33,18 @@ describe("free palace engagement → guest trust → gift request (real Postgres
   const proofFor = ({ serializedRequest, maxOutputTokens }: { serializedRequest: string; maxOutputTokens: number }) => ({
     serializedRequestHash: createHash("sha256").update(serializedRequest).digest("hex"), maxInputTokens: 4000, enforcedMaxOutputTokens: maxOutputTokens, semanticsVersion: "test-adapter-v1",
   });
-  const make = (database: TestDatabase, flag = true) => {
+  const make = (database: TestDatabase, flag = true, over: { now?: () => Date } = {}) => {
     const sources = createDatabaseZiweiQueryRepository(database as never);
     const request = createFreePalaceRequestService({ database: database as never, sources, flagEnabled: () => flag, provider: "p", model: "m", loadActiveTariff: async () => tariff, boundProofFor: proofFor });
-    return createFreePalaceEngagementService({ database: database as never, sources, request, flagEnabled: () => flag });
+    return createFreePalaceEngagementService({ database: database as never, sources, request, flagEnabled: () => flag, now: over.now });
   };
-  async function guestChart() {
-    const anonymousActorId = `eng-guest-${++seq}`;
-    const expiresAt = new Date(Date.now() + 3_600_000);
-    const { chartId } = await seedChartVersion(main, `eng-chart-${seq}`, { kind: "guest", anonymousActorId, expiresAt }, { normalizedOutput: chart });
+  async function guestChart(over: { anonymousActorId?: string; expiresAt?: Date } = {}) {
+    const anonymousActorId = over.anonymousActorId ?? `eng-guest-${++seq}`;
+    const expiresAt = over.expiresAt ?? new Date(Date.now() + 3_600_000);
+    const chartVersionId = `eng-chart-${++seq}`;
+    const { chartId } = await seedChartVersion(main, chartVersionId, { kind: "guest", anonymousActorId, expiresAt }, { normalizedOutput: chart });
     const actor: CurrentActor = { kind: "anonymous", anonymousActorId, sessionId: "s", requestId: "r", expiresAt: expiresAt.toISOString() };
-    return { actor, chartId, chartVersionId: `eng-chart-${seq}`, anonymousActorId };
+    return { actor, chartId, chartVersionId, anonymousActorId };
   }
   const count = async (table: string) => Number((await h.raw.unsafe(`SELECT count(*)::int AS n FROM ${table}`))[0]!.n);
 
@@ -132,5 +135,113 @@ describe("free palace engagement → guest trust → gift request (real Postgres
     await service.record(g.actor, g.chartId, "evidence", "vi");
     expect(await createDatabaseAnonymousRetentionRepository(h.connect()).deleteNow(g.anonymousActorId)).toMatchObject({ ok: true });
     expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement'`).toHaveLength(0);
+  });
+
+  it("manual guest deletion purges engagement markers even when no budget row exists (1 and 2 tab interactions)", async () => {
+    // 1 tab interaction: no budget row ever created
+    const g1 = await guestChart();
+    const service = make(main);
+    expect(await service.record(g1.actor, g1.chartId, "palaces", "vi")).toEqual({ kind: "recorded", distinctTabs: 1 });
+    expect(await count("free_ai_chart_budgets")).toBe(0);
+    const markers1 = await h.raw`SELECT target_id FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g1.chartVersionId}`;
+    expect(markers1).toHaveLength(1);
+    expect(await createDatabaseAnonymousRetentionRepository(h.connect()).deleteNow(g1.anonymousActorId)).toMatchObject({ ok: true });
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g1.chartVersionId}`).toHaveLength(0);
+
+    // 2 tab interactions: still no budget row created
+    const g2 = await guestChart();
+    expect(await service.record(g2.actor, g2.chartId, "palaces", "vi")).toEqual({ kind: "recorded", distinctTabs: 1 });
+    expect(await service.record(g2.actor, g2.chartId, "topics", "vi")).toEqual({ kind: "recorded", distinctTabs: 2 });
+    expect(await count("free_ai_chart_budgets")).toBe(0);
+    const markers2 = await h.raw`SELECT target_id FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g2.chartVersionId}`;
+    expect(markers2).toHaveLength(2);
+    expect(await createDatabaseAnonymousRetentionRepository(h.connect()).deleteNow(g2.anonymousActorId)).toMatchObject({ ok: true });
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement' AND target_id=${g2.chartVersionId}`).toHaveLength(0);
+  });
+
+  it("TTL expiry purges engagement markers without budget rows (1 and 2 tabs), using frozen clock", async () => {
+    const fixedBeforeExpiry = new Date("2026-10-03T12:00:00.000Z");
+    const expiresAt = new Date("2026-10-03T14:00:00.000Z");
+    const frozenNow = new Date("2026-10-03T15:00:00.000Z");
+    const service = make(main, true, { now: () => fixedBeforeExpiry });
+
+    // 1 tab guest interaction recorded before expiry
+    const g1 = await guestChart({ expiresAt });
+    expect(await service.record(g1.actor, g1.chartId, "palaces", "vi")).toEqual({ kind: "recorded", distinctTabs: 1 });
+
+    // 2 tabs guest interaction recorded before expiry
+    const g2 = await guestChart({ expiresAt });
+    expect(await service.record(g2.actor, g2.chartId, "palaces", "vi")).toEqual({ kind: "recorded", distinctTabs: 1 });
+    expect(await service.record(g2.actor, g2.chartId, "topics", "vi")).toEqual({ kind: "recorded", distinctTabs: 2 });
+
+    expect(await count("free_ai_chart_budgets")).toBe(0);
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement'`).toHaveLength(3);
+
+    const purged = await createDatabaseAnonymousRetentionRepository(h.connect()).purgeExpired(frozenNow, 10);
+    expect(purged).toEqual(expect.arrayContaining([g1.anonymousActorId, g2.anonymousActorId]));
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement'`).toHaveLength(0);
+  });
+
+  it("mixed budget and no-budget chart versions remove all markers while retaining resolved accounting history", async () => {
+    const anonymousActorId = `eng-guest-mixed-${++seq}`;
+    const expiresAt = new Date(Date.now() + 3_600_000);
+    const service = make(main);
+
+    // Chart version 1 (with budget): reached 3 tabs -> admitted
+    const gBudget = await guestChart({ anonymousActorId, expiresAt });
+    await service.record(gBudget.actor, gBudget.chartId, "palaces", "vi");
+    await service.record(gBudget.actor, gBudget.chartId, "topics", "vi");
+    const admitted = await service.record(gBudget.actor, gBudget.chartId, "evidence", "vi");
+    expect(admitted).toMatchObject({ kind: "requested", request: { kind: "admitted" } });
+    expect(await count("free_ai_chart_budgets")).toBe(1);
+
+    // Fence and settle the admitted request via actual services
+    const [requestRow] = await h.raw`SELECT id, pricing_snapshot_id FROM free_ai_requests WHERE chart_version_id=${gBudget.chartVersionId}`;
+    const dispatchService = createFreeAiDispatchService(main as never);
+    const fenceResult = await dispatchService.fence({
+      requestId: requestRow!.id,
+      flagEnabled: true,
+      isSourceAvailable: async () => true,
+      activePricingSnapshotId: async () => requestRow!.pricing_snapshot_id,
+    });
+    expect(fenceResult).toMatchObject({ kind: "fenced" });
+    if (fenceResult.kind !== "fenced") throw new Error("fence failed");
+
+    const settlementService = createFreeAiSettlementService(main as never);
+    const settleResult = await settlementService.settle({
+      requestId: requestRow!.id,
+      attemptId: fenceResult.attemptId,
+      settlement: { kind: "resolved", actualMicroVnd: 45_000_000n, disposition: "publishable" },
+    });
+    expect(settleResult).toMatchObject({ kind: "settled" });
+
+    // Chart version 2 (no budget): same anonymous actor, only 2 tabs -> no budget row created
+    const gNoBudget = await guestChart({ anonymousActorId, expiresAt });
+    await service.record(gNoBudget.actor, gNoBudget.chartId, "palaces", "vi");
+    await service.record(gNoBudget.actor, gNoBudget.chartId, "overview", "vi");
+
+    // Total markers: 3 from gBudget + 2 from gNoBudget
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement'`).toHaveLength(5);
+    // Budget rows: only 1 exists (for gBudget)
+    expect(await count("free_ai_chart_budgets")).toBe(1);
+
+    // Single purge call for the anonymous actor owning both chart versions
+    expect(await createDatabaseAnonymousRetentionRepository(h.connect()).deleteNow(anonymousActorId)).toMatchObject({ ok: true });
+
+    // Markers for BOTH chart versions are removed
+    expect(await h.raw`SELECT 1 FROM audit_logs WHERE action='free_palace.engagement'`).toHaveLength(0);
+
+    // Resolved accounting history for the budgeted chart version is retained
+    const [budgetRow] = await h.raw`SELECT resolved_micro_vnd::text AS s, deleted_at FROM free_ai_chart_budgets WHERE chart_version_id=${gBudget.chartVersionId}`;
+    expect(budgetRow).toBeDefined();
+    expect(budgetRow!.s).toBe("45000000");
+    expect(budgetRow!.deleted_at).not.toBeNull();
+
+    const [settlementRow] = await h.raw`SELECT outcome, actual_micro_vnd::text AS actual FROM free_ai_settlements WHERE request_id=${requestRow!.id}`;
+    expect(settlementRow).toEqual({ outcome: "resolved", actual: "45000000" });
+
+    // The no-budget chart version still has no budget row
+    const noBudgetRows = await h.raw`SELECT 1 FROM free_ai_chart_budgets WHERE chart_version_id=${gNoBudget.chartVersionId}`;
+    expect(noBudgetRows).toHaveLength(0);
   });
 });
