@@ -160,3 +160,12 @@ Allowlist drift: composition file, tariff loader — see ADDENDA.md.
 Verification: `pnpm vitest run packages apps tests` — 3903 passed / 21 failed; all 21 failures are `tests/deployment/cd-scripts.test.ts`, which fails identically (21 failed | 7 passed) on the untouched base commit 066479f in a clean worktree, so they are pre-existing and unrelated; no file under tests/deployment, scripts or docker changed. `pnpm i18n:check` pass, `pnpm lint` 0 errors (4 pre-existing warnings), `pnpm -r --if-present run build` and `typecheck` exit 0.
 Not verified: a deployed API; matrix row 54 end-to-end beyond composition (B20).
 Next: B20 (preflight evidence) and B21 (handoff) — Claude/owner gates.
+
+## B20 — Full fault/concurrency/quality preflight and redacted observability
+State: VERIFIED on real Postgres with a fake provider (evidence only; one new end-to-end test, no production edits).
+Evidence: docs/implementation/free-result-audit-2026-10-02/B20-PREFLIGHT-EVIDENCE.md — 98/98 `tests/free-ai`, matrix rows 1–57 mapped, kill-switch and rollback drills, tariff change mid-flight, cross-producer contention, redacted ledger.
+Not verified: real provider, token-bound proof, deployed environment, dashboard, A17 matrix.
+
+## B21 — Final PR handoff, owner gate and deployed smoke
+State: IMPLEMENTED (documents only). Not merged, not deployed, no tracker status changed.
+Handoff: docs/implementation/free-result-audit-2026-10-02/B21-HANDOFF.md — PR stack, no migration, backout plan, open gates, proposed (unapproved) amendments, deployed-smoke plan.
