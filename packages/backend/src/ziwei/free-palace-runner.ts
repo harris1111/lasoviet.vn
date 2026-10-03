@@ -1,6 +1,7 @@
 import { and, desc, eq, isNull, lte, or, gt } from "drizzle-orm";
 import { aiModelPricing, birthProfiles, ziweiChartVersions, ziweiCharts, type Database } from "@lasoviet/database";
 import type { FreeAiTransaction } from "./free-ai-admission.service.js";
+import type { FreePalaceTariff } from "./free-palace-cost-context.js";
 import type { createFreeAiDispatchService } from "./free-ai-dispatch.service.js";
 import type { createFreePalaceArtifactRepository } from "./free-palace-artifact.repository.js";
 import type { FreePalaceOutboxStore } from "./free-palace-outbox.js";
@@ -95,6 +96,19 @@ export function createFreePalaceTariffPort(database: Database) {
       )).orderBy(desc(aiModelPricing.effectiveFrom)).limit(1);
       return row?.id ?? null;
     }) as FreePalaceRunnerDependencies["activePricingSnapshotId"],
+    // The approved active tariff for a provider/model, in the shape the cost freeze requires.
+    async loadActiveTariff(provider: string, model: string, now: Date): Promise<FreePalaceTariff | null> {
+      const [row] = await database.select().from(aiModelPricing).where(and(
+        eq(aiModelPricing.providerId, provider), eq(aiModelPricing.modelId, model), eq(aiModelPricing.status, "active"),
+        eq(aiModelPricing.currency, "VND"), lte(aiModelPricing.effectiveFrom, now),
+      )).orderBy(desc(aiModelPricing.effectiveFrom)).limit(1);
+      if (!row) return null;
+      const input = Number(row.inputPricePerMillion);
+      const output = Number(row.outputPricePerMillion);
+      if (!Number.isSafeInteger(input) || !Number.isSafeInteger(output)) return null;
+      return { id: row.id, pricingVersion: row.pricingVersion, providerId: row.providerId, modelId: row.modelId, currency: row.currency, status: row.status,
+        inputPricePerMillion: input, outputPricePerMillion: output, effectiveFrom: row.effectiveFrom };
+    },
     async loadTariff(pricingSnapshotId: string) {
       const [row] = await database.select().from(aiModelPricing).where(eq(aiModelPricing.id, pricingSnapshotId)).limit(1);
       return row && row.currency === "VND" ? { inputPricePerMillion: row.inputPricePerMillion, outputPricePerMillion: row.outputPricePerMillion } : null;

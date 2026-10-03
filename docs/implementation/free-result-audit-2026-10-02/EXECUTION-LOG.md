@@ -142,3 +142,21 @@ Allowlist drift: messages, css, analytics helper — see ADDENDA.md.
 Verification: `pnpm vitest run packages/database packages/backend packages/contracts apps tests/free-ai tests/workspace tests/privacy tests/i18n tests/content packages/config` — 391 files, 3581 tests passed (matrix rows 48–50 incl. one render test per state); `pnpm i18n:check` pass; `pnpm lint` 0 errors (4 pre-existing warnings); `pnpm -r --if-present run typecheck` and `build` exit 0. Browser: 375px and 1280px, no horizontal overflow, ≥44px reference targets.
 Not verified: the full A17 matrix (themes, focus order, history, LCP) and a 360px device pass; a live end-to-end gift (B20).
 Next dependency-ready card: B18 (batch 4).
+
+## B18 — Server-side request hook and fail-closed flag integration
+State: VERIFIED (real Postgres), library only — composition is B19.
+Behavior changed: after a chart and its evidence are persisted, an optional hook can request a one-palace gift asynchronously through the shared reservation; default-off or any failure leaves chart calculation unchanged.
+Files changed: packages/backend/src/ziwei/free-palace-request.service.ts (+ .test.ts), ziwei.service.ts (+ .test.ts), packages/backend/src/index.ts, tests/free-ai/request-hook.integration.test.ts, free-ai-test-harness.ts.
+Allowlist drift: none.
+Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai/request-hook.integration.test.ts` passed (matrix rows 51–53, hook failure/slow/throwing reporter isolation, reuse + 3-way concurrent duplicates → one request and one outbox row, stranger denied, guest TTL, flag/proof/identity gates leave every table empty); backend typecheck clean.
+Not verified: production composition (B19); a real token-bound proof (open gate).
+Next dependency-ready card: B19.
+
+## B19 — API request-hook composition and flag propagation
+State: VERIFIED (composition unit tests + full typecheck/build); not exercised in a deployed API.
+Behavior changed: the real API composition now passes the optional chart-ready hook (only with the flag on and approved AI, never a proof) and the read-only gift reader into the existing Zi Wei calculation/query services; flag off or missing config composes no hook and changes no chart behaviour.
+Files changed: apps/api/src/api.module.ts, apps/api/src/free-palace-composition.ts (+ free-palace-composition.test.ts), packages/backend/src/ziwei/free-palace-runner.ts.
+Allowlist drift: composition file, tariff loader — see ADDENDA.md.
+Verification: `pnpm vitest run packages apps tests` — 3903 passed / 21 failed; all 21 failures are `tests/deployment/cd-scripts.test.ts`, which fails identically (21 failed | 7 passed) on the untouched base commit 066479f in a clean worktree, so they are pre-existing and unrelated; no file under tests/deployment, scripts or docker changed. `pnpm i18n:check` pass, `pnpm lint` 0 errors (4 pre-existing warnings), `pnpm -r --if-present run build` and `typecheck` exit 0.
+Not verified: a deployed API; matrix row 54 end-to-end beyond composition (B20).
+Next: B20 (preflight evidence) and B21 (handoff) — Claude/owner gates.

@@ -276,4 +276,49 @@ describe("Ziwei calculation service", () => {
     expect(buildAndPersist).toHaveBeenNthCalledWith(1, "chart-version-1");
     expect(buildAndPersist).toHaveBeenNthCalledWith(2, "chart-version-1");
   });
+
+  describe("optional chart-ready hook (free palace request)", () => {
+    function build(over: { hook?: Parameters<typeof createZiweiCalculationService>[0]["onChartReady"]; evidenceOk?: boolean; reused?: boolean; onError?: (e: unknown) => void; timeoutMs?: number } = {}) {
+      return createZiweiCalculationService({
+        repository: {
+          async readAuthorizedRevision() { return { profileId: "profile-1", revisionId: "revision-1", normalized: profile }; },
+          async create() { return { chartId: "chart-1", chartVersionId: "chart-version-1", reused: over.reused ?? false }; },
+        },
+        evidenceService: { async buildAndPersist() { return over.evidenceOk === false ? { ok: false as const } : { ok: true as const }; } },
+        engine: { async calculateWithPrivateSnapshot() { return { result: { ok: true as const, output: chart, provenance: chart.provenance, warnings: [] }, rawSnapshot: {} }; } },
+        onChartReady: over.hook, onChartReadyError: over.onError, onChartReadyTimeoutMs: over.timeoutMs,
+      });
+    }
+    const success = { ok: true, value: { chartId: "chart-1", chartVersionId: "chart-version-1", reused: false } };
+
+    it("row 51: without the hook the result is byte-identical", async () => {
+      expect(await build().calculate(actor, "revision-1")).toEqual(success);
+    });
+    it("runs only after evidence is persisted, with the reuse flag, and returns the same result", async () => {
+      const hook = vi.fn(async () => undefined);
+      expect(await build({ hook, reused: true }).calculate(actor, "revision-1")).toEqual({ ok: true, value: { ...success.value, reused: true } });
+      expect(hook).toHaveBeenCalledWith(actor, { chartId: "chart-1", chartVersionId: "chart-version-1", reused: true });
+    });
+    it("is not called when the chart or its evidence is not persisted", async () => {
+      const hook = vi.fn(async () => undefined);
+      expect(await build({ hook, evidenceOk: false }).calculate(actor, "revision-1")).toMatchObject({ ok: false });
+      expect(hook).not.toHaveBeenCalled();
+    });
+    it("row 52: a failing hook, a throwing hook and a throwing reporter never fail the calculation", async () => {
+      const reports: unknown[] = [];
+      expect(await build({ hook: async () => { throw new Error("db down"); }, onError: (e) => reports.push(e) }).calculate(actor, "revision-1")).toEqual(success);
+      expect(reports).toHaveLength(1);
+      expect(await build({ hook: () => { throw new Error("sync boom"); }, onError: () => { throw new Error("reporter boom"); } }).calculate(actor, "revision-1")).toEqual(success);
+    });
+    it("a slow hook cannot delay the calculation beyond its timeout, and a late rejection is harmless", async () => {
+      let rejectLate!: (error: Error) => void;
+      const hook = () => new Promise<void>((_, reject) => { rejectLate = reject; });
+      const started = Date.now();
+      expect(await build({ hook, timeoutMs: 30 }).calculate(actor, "revision-1")).toEqual(success);
+      expect(Date.now() - started).toBeLessThan(1000);
+      rejectLate(new Error("too late"));
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
+  });
 });
+

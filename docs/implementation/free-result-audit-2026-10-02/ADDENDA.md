@@ -94,3 +94,22 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - The other eleven palaces keep the locked structural rows, and the gift carries an explicit scope note ("the other N palaces show the structural map, not a reading"); a test asserts exactly one gift block and the locked state of the rest.
 - A real defect was found and fixed during the browser check: list items were keyed by their text, so repeated sentences produced duplicate React keys and could drop content; items are now keyed by index.
 - The "Căn cứ" refs are in-page anchors to a numbered facts list; the facts list is a collapsed `<details>`.
+
+## B18
+
+- Hook point: `createZiweiCalculationService` gained optional `onChartReady(actor, {chartId, chartVersionId, reused})`, called **after** the chart source and its evidence are persisted and before the success return. It is raced against a 2 s timeout (`onChartReadyTimeoutMs`), wrapped in try/catch with an optional redacted `onChartReadyError`, and a throwing reporter is also swallowed. Omitting it leaves the result byte-identical (tested). The hook only *requests*: it reserves through the shared B08 path, which writes the typed outbox event; it never calls a provider.
+- `createFreePalaceRequestService.request(actor, chartId)` never throws. Gates, in order: flag; identity (**account needs `emailVerified === true`; a guest needs `isTrustedGuest`, which the composition leaves unset, so guests cannot dispatch in the pilot** — the handoff's "unverifiable guest cannot dispatch" rule); authorized chart read; valid chart; palace selection (`selectFreePalace`); one-palace facts; frozen prompt; B07 cost freeze; shared reservation.
+- **The token-bound proof gate is still open and is not bypassed:** `boundProofFor` is injected, and the production composition (B19) supplies none, so every request ends as `skipped: unproven_bound` and nothing can dispatch even with the flag on, until a reviewed adapter guarantee exists and is wired.
+- Gift locale: requested in `vi` only (the calculation has no locale). An English reader gets the structural fallback because the reader reports `unavailable` for a locale with no request. Owner decision if English gifts are wanted.
+- Facts are built from the chart only: the selected palace, its earthly branch, its **major** stars with brightness, and the transformation on each star (labels from the existing canonical Vietnamese label table). Minor stars are deliberately excluded.
+- Versions frozen at admission: prompt, rules, schema from the writer; `free-palace-structural-facts-v1` (knowledge) and `structural-palace-score-v1` (scorer). `currentFreePalaceLineageHash(provider, model)` is the reader's counterpart and is tested equal to the frozen key.
+- No legacy free producer was migrated; none is enabled (see the producer inventory). `tests/free-ai/free-ai-test-harness.ts`: `seedChartVersion` accepts a `normalizedOutput`.
+
+## B19
+
+- Composition lives in a small new file, `apps/api/src/free-palace-composition.ts` (🔶 outside the card's two-file allowlist; keeps `api.module.ts` edits to two factory call sites and makes the rules unit-testable). `api.module.ts`: the `ZIWEI_CALCULATION_SERVICE` factory passes `onChartReady`/`onChartReadyError` only when composed; the `ZIWEI_QUERY_SERVICE` factory passes the read-only `freePalaceGift` reader.
+- Rules: the **reader** is composed whenever a database exists (the authorized cache must stay readable with the flag off and for rollback); the **request hook** exists only when `FREE_PALACE_GENERATION_ENABLED=true` and approved production AI is configured (the validated environment already rejects the flag without it). No writer, provider adapter, dispatch service or runner is ever constructed in the API (tested).
+- `NO_REVIEWED_TOKEN_BOUND_PROOF` is the explicit, named supplier of "no proof". Combined with B18 it means the API reaches the shared request path when enabled but every request ends `unproven_bound`; nothing can dispatch until a reviewed provider guarantee is wired. `isTrustedGuest` is deliberately unset, so guests cannot dispatch.
+- The reader's current lineage key follows the configured provider/model; with no AI config it is unknown and nothing reads as ready (structural fallback).
+- `free-palace-runner.ts` (B13 file): the tariff port gained `loadActiveTariff(provider, model, now)` for the cost freeze.
+- Hook error reporting logs the error *name* only.
