@@ -42,12 +42,15 @@ export type FreePalaceRefusalReason =
   | "quota_exhausted"
   | "chart_budget_exhausted"
   | "daily_budget_exhausted"
+  | "dispatch_halted"
   | "invalid_reservation";
 
 // Runs inside the coordination lock, so the source, its TTL and its owner are authoritative
 // for the whole admission. Returns the guest TTL (null for accounts) or null when the
 // actor may not read the chart.
 export type FreeAiSourceAuthorizer = (tx: FreeAiTransaction, now: Date) => Promise<{ expiresAt: Date | null } | null>;
+
+export type FreeAiClock = (tx: FreeAiTransaction) => Promise<Date>;
 
 export type FreePalaceReservationInput = Readonly<{
   flagEnabled: boolean;
@@ -58,6 +61,8 @@ export type FreePalaceReservationInput = Readonly<{
   traceId: string;
   authorizeSource: FreeAiSourceAuthorizer;
   requestId?: string;
+  // Test seam for midnight behaviour; always sampled AFTER the coordination lock is held.
+  clock?: FreeAiClock;
 }>;
 
 export type FreePalaceReservationResult =
@@ -69,10 +74,28 @@ class Refusal extends Error {
   constructor(readonly reason: FreePalaceRefusalReason) { super(reason); }
 }
 
-const utcDay = (at: Date) => at.toISOString().slice(0, 10);
-const bigintSql = (value: bigint) => sql`${value.toString()}::bigint`;
-const total = (row: { reservedMicroVnd: bigint; resolvedMicroVnd: bigint; unknownMicroVnd: bigint }) =>
+export const utcDay = (at: Date) => at.toISOString().slice(0, 10);
+export const bigintSql = (value: bigint) => sql`${value.toString()}::bigint`;
+export const totalExposure = (row: { reservedMicroVnd: bigint; resolvedMicroVnd: bigint; unknownMicroVnd: bigint }) =>
   row.reservedMicroVnd + row.resolvedMicroVnd + row.unknownMicroVnd;
+
+// The day gate counts the day's own exposure plus every unresolved hold (reserved or unknown)
+// still sitting on an earlier day: a dispatch that spans midnight is neither discarded at
+// rollover nor counted twice, because a re-reserved hold is moved off its old day row.
+export async function readDailyGateTotal(tx: FreeAiTransaction, day: string): Promise<bigint> {
+  const [row] = await tx.select().from(freeAiDailyBudgets).where(eq(freeAiDailyBudgets.utcDay, day)).limit(1);
+  const carried = await tx.execute<{ held: string }>(sql`SELECT coalesce(sum(reserved_micro_vnd + unknown_micro_vnd), 0)::text AS held FROM free_ai_daily_budgets WHERE utc_day < ${day}::date`);
+  return (row ? totalExposure(row) : 0n) + BigInt(carried[0]!.held);
+}
+
+// An actual cost above its reserved bound halts all free dispatch until an owner acknowledges
+// the incident (an audit row). Derived from the ledger itself, so it cannot be forgotten.
+export async function isFreeAiDispatchHalted(tx: FreeAiTransaction): Promise<boolean> {
+  const rows = await tx.execute(sql`SELECT 1 FROM free_ai_settlements s JOIN free_ai_requests r ON r.id = s.request_id
+    WHERE s.outcome = 'resolved' AND s.actual_micro_vnd > r.reserved_micro_vnd
+    AND NOT EXISTS (SELECT 1 FROM audit_logs a WHERE a.action = 'free_ai.overshoot.acknowledged' AND a.target_id = r.id::text) LIMIT 1`);
+  return rows.length > 0;
+}
 
 // Imports each legacy `free_preview` attempt exactly once: the chart row is locked and
 // `legacy_reconciled_at` is written in the same transaction as the imported amounts.
@@ -114,7 +137,7 @@ export function createFreeAiBudgetRepository(database: Database) {
         return await database.transaction(async (tx): Promise<FreePalaceReservationResult> => {
           await lockFreeAiCoordination(tx);
           // Sampled after any lock wait: a transaction-start `now()` can be a day stale.
-          const now = await sampleFreeAiClock(tx);
+          const now = await (input.clock ?? sampleFreeAiClock)(tx);
           const source = await input.authorizeSource(tx, now);
           if (!source) throw new Refusal("source_unavailable");
 
@@ -138,20 +161,21 @@ export function createFreeAiBudgetRepository(database: Database) {
 
           if (!input.flagEnabled) throw new Refusal("flag_disabled");
           if (!input.actor.trusted) throw new Refusal("identity_unverified");
+          if (await isFreeAiDispatchHalted(tx)) throw new Refusal("dispatch_halted");
 
           await tx.insert(freeAiChartBudgets).values({ chartVersionId: lineage.chartVersionId }).onConflictDoNothing();
           const [chart] = await tx.select().from(freeAiChartBudgets)
             .where(eq(freeAiChartBudgets.chartVersionId, lineage.chartVersionId)).for("update");
           if (!chart || chart.deletedAt) throw new Refusal("source_unavailable");
-          let chartTotal = total(chart);
+          let chartTotal = totalExposure(chart);
           if (!chart.legacyReconciledAt) chartTotal += await reconcileLegacy(tx, lineage.chartVersionId, now);
 
           const admissionDay = utcDay(now);
           await tx.insert(freeAiDailyBudgets).values({ utcDay: admissionDay }).onConflictDoNothing();
-          const [day] = await tx.select().from(freeAiDailyBudgets).where(eq(freeAiDailyBudgets.utcDay, admissionDay)).for("update");
+          await tx.select().from(freeAiDailyBudgets).where(eq(freeAiDailyBudgets.utcDay, admissionDay)).for("update");
           const bound = cost.reservedMicroVnd;
           if (chartTotal + bound > FREE_AI_CHART_CEILING_MICRO_VND) throw new Refusal("chart_budget_exhausted");
-          if (total(day!) + bound > FREE_AI_DAILY_CEILING_MICRO_VND) throw new Refusal("daily_budget_exhausted");
+          if ((await readDailyGateTotal(tx, admissionDay)) + bound > FREE_AI_DAILY_CEILING_MICRO_VND) throw new Refusal("daily_budget_exhausted");
 
           const subject = await resolveLockedFreeAiSubject(tx, freeAiQuotaAlias(input.actor.kind, input.actor.id), input.actor.kind);
           if (!(await readLockedFreeAiQuota(tx, subject, now))) throw new Refusal("quota_exhausted");

@@ -23,3 +23,13 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - Guest quota identity is keyed by the **anonymous actor id** (`authAnonymousActors.id`) and account identity by the **user id**. B18's composition must pass exactly those ids as `actor.id`, or linking will not find the guest history.
 - Semantics of a merge racing an admission: the merge never deletes admitted history. If an account admission lands before the link, the account may show 4 distinct admissions in the window afterwards (each was legal when it ran); every later admission is refused until the window clears. If the link lands first, the new admission is refused at 3.
 - Merging never crosses accounts: a guest subject that has already merged elsewhere is left alone, and a repeated merge returns `merged: false`.
+
+## B10
+
+- 🔶 `packages/backend/src/ziwei/free-ai-budget.repository.ts` (B08 file) was edited again: `clock` test seam (always sampled after the coordination lock), `dispatch_halted` refusal, and the shared day gate `readDailyGateTotal` + `isFreeAiDispatchHalted`, so admission, fence and settlement apply one rule. The day gate now counts the day's own exposure **plus every unresolved hold (reserved or unknown) on an earlier day**; a hold that is re-reserved at fence is moved off its old day row, so nothing is double counted or dropped at midnight.
+- `tests/free-ai/free-ai-test-harness.ts` gained `admitRequest`.
+- Gift cost recorder wrapper around `ai-cost.ts` stays in **B12** (the writer owns the provider call). B10 only takes an injected `activePricingSnapshotId(tx, now, provider, model)` and refuses to fence when it is not the reserved snapshot. No re-pricing and no re-freeze: a changed tariff **cancels** the unfenced request (hold released, admission stays consumed, no re-admission).
+- Status after settlement: `resolved/publishable` stays `dispatching` with `settled_at` set — only B11's deletion-safe publication may move it to `ready`. `resolved/failed` → `terminal_failure`; `unknown` → `cost_unknown` (whole bound moved to unknown exposure).
+- Overshoot halt has no new table: it is derived from the ledger (a resolved settlement above its reserved bound with no `free_ai.overshoot.acknowledged` audit row) and lifted only by `acknowledgeOvershoot` (attributed owner action). The incident is an `audit_logs` row `free_ai.overshoot` with ids and amounts only.
+- Crash between fence and settlement: `settleAbandoned` converts stale `dispatching` requests to unknown exposure. B14's worker must schedule it (suggest every maintenance tick, `staleAfterMs` ≥ provider timeout + margin).
+- Still deferred to B13: exporting these services from `packages/backend/src/index.ts`.

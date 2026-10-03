@@ -70,3 +70,21 @@ export async function insertLegacyAttempt(raw: RawSql, input: { chart: string; s
     await raw`INSERT INTO ai_usage_outcomes(attempt_id,cost_status,tokens_unknown) VALUES (${attempt!.id},'unknown',true)`;
   }
 }
+
+export type TestDatabase = ReturnType<typeof import("../../packages/database/src/client.js").createDatabase>;
+
+// Admits one palace request through the real shared reservation and returns its id.
+export async function admitRequest(
+  database: TestDatabase,
+  chart: string,
+  options: { bound?: bigint; actorId?: string; kind?: "guest" | "account"; clock?: (tx: never) => Promise<Date> } = {},
+): Promise<string> {
+  const { createFreeAiBudgetRepository } = await import("../../packages/backend/src/ziwei/free-ai-budget.repository.js");
+  const result = await createFreeAiBudgetRepository(database).reserve({
+    flagEnabled: true, actor: { kind: options.kind ?? "account", id: options.actorId ?? `actor-${chart}`, trusted: true },
+    lineage: lineage(chart), concern: null, cost: costContext(options.bound ?? 1000n * MICRO), traceId: "t",
+    authorizeSource: async () => ({ expiresAt: null }), clock: options.clock as never,
+  });
+  if (result.kind !== "admitted") throw new Error(`admission failed in test setup: ${JSON.stringify(result)}`);
+  return result.requestId;
+}

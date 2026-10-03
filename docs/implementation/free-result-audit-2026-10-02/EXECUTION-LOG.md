@@ -68,3 +68,13 @@ Verification: `pnpm vitest run packages/database/src/schema/schema.integration.t
 Not verified: nothing known.
 Remaining concern: B18 must pass the anonymous actor id / user id as `actor.id` (see ADDENDA).
 Next dependency-ready card: B10.
+
+## B10 — Dispatch fence, atomic UTC rollover and settlement
+State: VERIFIED (real Postgres), library only — not wired.
+Behavior changed: `createFreeAiDispatchService` fences a `reserved` request in one locked transaction (fresh clock after the lock, source/deletion/pricing recheck, day re-reserve or cancel, pinned `dispatch_day` + immutable `attempt_id`, CAS to `dispatching`) and `dispatch()` sends exactly once, settling any thrown error as unknown. `createFreeAiSettlementService` settles once per attempt on the pinned day, charges quality failures, keeps unknown exposure, records overshoot uncapped with a halt + redacted incident, and recovers abandoned dispatches as unknown.
+Files changed: packages/backend/src/ziwei/free-ai-dispatch.service.ts, free-ai-settlement.service.ts, free-ai-budget.repository.ts (gate/halt/clock), tests/free-ai/dispatch.integration.test.ts, settlement.integration.test.ts, free-ai-test-harness.ts.
+Allowlist drift: see ADDENDA.md.
+Verification: `pnpm vitest run tests/free-ai packages/backend/src/ziwei` — 13 files, 86 assertions passed on real Postgres (matrix rows 16–25, counted fake-provider attempts, held-lock races, fake-clock midnight); backend typecheck and eslint clean. A mutation check (removing the pre-CAS guard) showed the DB-level CAS still holds the one-attempt invariant.
+Not verified: provider token-bound proof (open gate); real provider behaviour; worker scheduling of `settleAbandoned`.
+Remaining concern: a worker killed between fence and settlement burns the slot by design.
+Next dependency-ready card: B11.
