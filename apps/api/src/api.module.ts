@@ -116,6 +116,7 @@ import {
   ZIWEI_QUERY_SERVICE,
   ZiweiController,
 } from "./ziwei/ziwei.controller.js";
+import { composeFreePalaceForApi } from "./free-palace-composition.js";
 import {
   REPORT_QUERY_DATABASE,
   REPORT_QUERY_SERVICE,
@@ -393,14 +394,21 @@ function privacyDatabase() {
     {
       provide: ZIWEI_CALCULATION_SERVICE,
       useFactory: () =>
-        createZiweiCalculationService({
-          repository: createDatabaseZiweiCalculationRepository(
-            privacyDatabase(),
-          ),
-          evidenceService: createEvidenceService(privacyDatabase()),
-          engine: new IztroAdapter(),
-          config: iztroDefaultConfig,
-        }),
+        {
+          const database = privacyDatabase();
+          const freePalace = composeFreePalaceForApi(applicationEnvironment(), database);
+          return createZiweiCalculationService({
+            repository: createDatabaseZiweiCalculationRepository(database),
+            evidenceService: createEvidenceService(database),
+            engine: new IztroAdapter(),
+            config: iztroDefaultConfig,
+            // Optional and best-effort: absent unless the flag and approved AI are both on.
+            onChartReady: freePalace.onChartReady
+              ? (actor, chart) => freePalace.onChartReady!(actor, chart)
+              : undefined,
+            onChartReadyError: freePalace.onChartReadyError,
+          });
+        },
     },
     {
       provide: ZIWEI_CALCULATION_SERVICE_SECRET,
@@ -491,6 +499,7 @@ function privacyDatabase() {
       useFactory: () =>
         createZiweiQueryService({
           repository: createDatabaseZiweiQueryRepository(privacyDatabase()),
+          freePalaceGift: composeFreePalaceForApi(applicationEnvironment(), privacyDatabase()).reader,
           calculateHoroscope: calculateZiweiHoroscope,
           personalDailyReading: createPersonalDailyReadingService({
             charts: createDatabaseZiweiQueryRepository(privacyDatabase()),

@@ -104,3 +104,12 @@ Edits outside a card's allowlist, and decisions the handoff required to be expli
 - Facts are built from the chart only: the selected palace, its earthly branch, its **major** stars with brightness, and the transformation on each star (labels from the existing canonical Vietnamese label table). Minor stars are deliberately excluded.
 - Versions frozen at admission: prompt, rules, schema from the writer; `free-palace-structural-facts-v1` (knowledge) and `structural-palace-score-v1` (scorer). `currentFreePalaceLineageHash(provider, model)` is the reader's counterpart and is tested equal to the frozen key.
 - No legacy free producer was migrated; none is enabled (see the producer inventory). `tests/free-ai/free-ai-test-harness.ts`: `seedChartVersion` accepts a `normalizedOutput`.
+
+## B19
+
+- Composition lives in a small new file, `apps/api/src/free-palace-composition.ts` (🔶 outside the card's two-file allowlist; keeps `api.module.ts` edits to two factory call sites and makes the rules unit-testable). `api.module.ts`: the `ZIWEI_CALCULATION_SERVICE` factory passes `onChartReady`/`onChartReadyError` only when composed; the `ZIWEI_QUERY_SERVICE` factory passes the read-only `freePalaceGift` reader.
+- Rules: the **reader** is composed whenever a database exists (the authorized cache must stay readable with the flag off and for rollback); the **request hook** exists only when `FREE_PALACE_GENERATION_ENABLED=true` and approved production AI is configured (the validated environment already rejects the flag without it). No writer, provider adapter, dispatch service or runner is ever constructed in the API (tested).
+- `NO_REVIEWED_TOKEN_BOUND_PROOF` is the explicit, named supplier of "no proof". Combined with B18 it means the API reaches the shared request path when enabled but every request ends `unproven_bound`; nothing can dispatch until a reviewed provider guarantee is wired. `isTrustedGuest` is deliberately unset, so guests cannot dispatch.
+- The reader's current lineage key follows the configured provider/model; with no AI config it is unknown and nothing reads as ready (structural fallback).
+- `free-palace-runner.ts` (B13 file): the tariff port gained `loadActiveTariff(provider, model, now)` for the cost freeze.
+- Hook error reporting logs the error *name* only.
