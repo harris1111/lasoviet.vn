@@ -64,7 +64,9 @@ test("the private Zi Wei result route renders the free chart flow", async ({
   await expect(page.getByRole("link", { name: "Xem bản luận giải mẫu" })).toBeVisible();
 
   // 6. Topic Selection Page
-  await page.getByRole("link", { name: "Chọn chủ đề luận giải" }).click();
+  const completionDoor = page.getByTestId("fd109-completion").locator('a[href*="/chon-luan-giai"]');
+  await completionDoor.scrollIntoViewIfNeeded();
+  await completionDoor.click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Chọn chủ đề luận giải");
 
   // Layer 1: Disciplines

@@ -117,14 +117,6 @@ export default async function ZiweiChartResultPage({
           <p className="eyebrow">{t("private")}</p>
           <h1>{heroTitle}</h1>
           <p className="result-hero-copy">{heroCopy}</p>
-          <div className="result-hero-actions">
-            <Link
-              className="button"
-              href={locale === "en" ? `/en/la-so/${chartId}/chon-luan-giai` : `/la-so/${chartId}/chon-luan-giai`}
-            >
-              {t("topicLink")}
-            </Link>
-          </div>
         </section>
 
         {completion && <TopUpCompletionNotice continuation={completion} locale={locale} chartId={chartId} />}

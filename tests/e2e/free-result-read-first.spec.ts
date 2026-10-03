@@ -14,6 +14,11 @@ for (const locale of ["vi", "en"] as const) {
       const result = page.getByTestId("fd109-free-result");
       await expect(result).toBeVisible();
       await expect(page.getByTestId("fd109-sticky")).toBeHidden();
+      // The route hero is outside the reading component; check the entire page.
+      await expect(page.locator('.result-hero a[href*="/chon-luan-giai"]')).toHaveCount(0);
+      expect(await page.locator('main a[href*="/chon-luan-giai"]').evaluateAll(
+        (links) => links.every((link) => link.closest('[data-testid="fd109-completion"], [data-testid="fd109-sticky"], [data-testid="fd109-preview-dialog"]')),
+      )).toBe(true);
       expect(await result.locator("[data-free-result-block]").evaluateAll(
         (elements) => elements.map((element) => element.getAttribute("data-free-result-block")),
       )).toEqual(blocks);

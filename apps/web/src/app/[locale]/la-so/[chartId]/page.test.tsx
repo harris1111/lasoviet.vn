@@ -293,9 +293,13 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     expect(html).toContain("Xem các gói luận giải");
     expect(html).toContain("Bạn đang xem các sao và điểm cấu trúc của lá số");
     expect(html).toContain("/la-so/chart-test-123/chon-luan-giai");
-    expect(html).toContain('class="result-hero-actions"');
+    expect(html).not.toContain('class="result-hero-actions"');
+    const firstOfferLink = html.search(/href="[^" ]*\/chon-luan-giai"/);
+    const completionMarker = html.indexOf('data-testid="fd109-completion"');
+    expect(completionMarker).toBeGreaterThanOrEqual(0);
+    expect(firstOfferLink).toBeGreaterThan(completionMarker);
     expect(html).toContain('class="result-hero-copy"');
-    expect(html).toContain("Chọn chủ đề luận giải");
+    expect(html).not.toContain("Chọn chủ đề luận giải");
     expect(html).not.toContain("result-paid-report-cta");
     expect(html).not.toContain("79.000 ₫");
     expect(html).not.toContain("240 Lá");
@@ -349,7 +353,11 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const html = renderToStaticMarkup(page);
 
     expect(html).toContain("/en/la-so/chart-test-123/chon-luan-giai");
-    expect(html).toContain('class="result-hero-actions"');
+    expect(html).not.toContain('class="result-hero-actions"');
+    const firstOfferLink = html.search(/href="[^" ]*\/chon-luan-giai"/);
+    const completionMarker = html.indexOf('data-testid="fd109-completion"');
+    expect(completionMarker).toBeGreaterThanOrEqual(0);
+    expect(firstOfferLink).toBeGreaterThan(completionMarker);
     expect(html).not.toContain("result-paid-report-cta");
     expect(html).not.toContain("79,000 VND");
   });
