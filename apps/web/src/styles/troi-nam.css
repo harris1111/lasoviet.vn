@@ -1156,38 +1156,111 @@
   grid-column: auto;
 }
 
+/*
+ * Discipline cards. Colour is the locked accent of each discipline page: --d1 jade (Bát Tự),
+ * --d2 mineral (Chiêm Tinh), --d3 bronze (Kinh Dịch), --d4 indigo (Thần Số Học), set through
+ * data-tone in homepage-v3.css; Tử Vi, the flagship, keeps the Trời Nam gold. The tone is used
+ * for the top rule, icon, art outline and hover border, never for small text: jade and bronze
+ * fall under 4.5:1 on lacquer, so the link text uses the tone lifted toward white.
+ * The artworks are 4:5 with their own gold frame, so they are shown whole, in a matte inset
+ * from the card edge: cropping or clipping them under the card's rounded corners cuts the frame.
+ * Phones: horizontal rows. 600px: 2 columns. 880px: flagship band plus four columns.
+ */
 .tn .tn-needs .hv3-disc,
 .tn .tn-needs .hv3-disc-flagship {
+  --tone-text: color-mix(in srgb, var(--tone, var(--tn-gold)) 55%, white);
+  flex-direction: row;
+  align-items: flex-start;
   color: var(--tn-text) !important;
   background: var(--lacquer-800);
   border-color: var(--lacquer-line);
+  border-top: 3px solid var(--tone, var(--tn-gold));
+  touch-action: manipulation;
 }
 
 .tn .tn-needs .hv3-disc-flagship {
-  flex-direction: column;
+  --tone: var(--tn-gold);
 }
 
 .tn .tn-needs .hv3-disc-art,
 .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art,
 .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
-  flex: none;
-  aspect-ratio: 4 / 3;
+  flex: 0 0 min(38%, 9.5rem);
+  aspect-ratio: 4 / 5;
+  margin: 0.75rem 0 0.75rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--tone, var(--tn-gold)) 60%, transparent);
+  border-radius: 6px;
   background: var(--lacquer-900);
-  border: 0;
-  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-disc-art img {
+  object-position: center;
+}
+
+.tn .tn-needs .hv3-disc-body,
+.tn .tn-needs .hv3-disc-flagship .hv3-disc-body {
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem 1rem 0.9rem;
+}
+
+.tn .tn-needs .hv3-disc-name {
+  font-size: 1.15rem;
+}
+
+.tn .tn-needs .hv3-disc-name-lg {
+  font-size: clamp(1.5rem, 5vw, 2rem);
 }
 
 .tn .tn-needs .hv3-disc:hover,
 .tn .tn-needs .hv3-disc:focus-visible {
-  border-color: var(--tn-gold);
+  border-color: var(--tone, var(--tn-gold));
 }
 
 .tn .tn-needs .hv3-mask {
-  background: var(--tn-gold);
+  width: 30px;
+  height: 30px;
+  background: var(--tone, var(--tn-gold));
 }
 
 .tn .tn-needs .hv3-disc-cta {
-  color: var(--tn-gold-light);
+  color: var(--tone-text);
+}
+
+@media (min-width: 600px) {
+  .tn .tn-needs .hv3-disciplines {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tn .tn-needs .hv3-disc-slot-flagship {
+    grid-column: 1 / -1;
+  }
+
+  .tn .tn-needs .hv3-disc:not(.hv3-disc-flagship) {
+    flex-direction: column;
+  }
+
+  .tn .tn-needs .hv3-disc:not(.hv3-disc-flagship) .hv3-disc-art {
+    flex: none;
+    margin: 0.75rem 0.75rem 0;
+  }
+
+  .tn .tn-needs .hv3-disc:not(.hv3-disc-flagship) .hv3-disc-body {
+    padding: 1rem;
+  }
+
+  .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
+    flex: 0 0 clamp(11rem, 26%, 16rem);
+    margin: 1rem 0 1rem 1rem;
+  }
+
+  .tn .tn-needs .hv3-disc-flagship .hv3-disc-body {
+    justify-content: center;
+    align-self: stretch;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    gap: 0.75rem;
+  }
 }
 
 /* Compare: subtle paper texture behind the existing disclosure and data. */
@@ -1342,25 +1415,6 @@
 
   .tn .tn-needs .hv3-disciplines {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .tn .tn-needs .hv3-disc-slot-flagship {
-    grid-column: 1 / -1;
-  }
-
-  .tn .tn-needs .hv3-disc-flagship {
-    flex-direction: row;
-  }
-
-  .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
-    flex: 0 0 34%;
-    aspect-ratio: 4 / 5;
-    border-bottom: 0;
-    border-right: 1px solid var(--lacquer-line);
-  }
-
-  .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art {
-    aspect-ratio: 4 / 5;
   }
 
   .tn .tn-compare .hv3-compare-points {
