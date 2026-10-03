@@ -88,7 +88,7 @@ Fill in after each release so every later phase is judged against numbers. Windo
 | Phase shipped | Date live | Window | Visits | Chart created | Door | Dialog | Top-up paid | Unlock confirmed | Notes |
 |---------------|-----------|--------|--------|---------------|------|--------|-------------|------------------|-------|
 | Baseline (before phase 1 live) | Unavailable | No consistently instrumented, QA-separated pre-release window | — | — | — | — | — | — | Historical telemetry is recorded below; do not invent missing baseline values. |
-| Phase 1 money-path hotfix | Included in deployed release 3d4cb47 on 2026-10-03 | Sept 27–Oct 3 Vietnam time, mixed historical window | 144 | 91 | 3 | 3 | 1 recorded test-mode identity | 3 | Overlapping releases and QA; descriptive counts only. |
+| Phase 1 money-path hotfix | Included in deployed release 3d4cb47 on 2026-10-03 | Sept 27–Oct 3 Vietnam time, mixed historical window | 144 | 91 | 3 | 3 | 1, provider provenance unverified | 3 | Overlapping releases and QA; descriptive counts only. |
 
 ## Privacy
 
