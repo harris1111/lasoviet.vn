@@ -189,10 +189,16 @@ describe("free palace outbox, runner and end-to-end fake provider path (real Pos
   });
 
   it("a malformed gift event is parked as failed, not looped", async () => {
-    await h.raw`INSERT INTO outbox(schema_version,event_type,event_id,occurred_at,trace_id,aggregate_type,aggregate_id,idempotency_key,payload)
-      VALUES (1,'free_palace.generation.requested.v1','bad-1',now(),'t','chart','c','bad-1','{"nope":true}'::jsonb)`;
-    expect(await makeRunner(main).runOnce()).toEqual({ processed: 1 });
-    expect(await outboxRow()).toMatchObject({ status: "failed", last_error_code: "FREE_PALACE_EVENT_INVALID" });
+    const fixedNow = new Date("2026-10-03T12:00:00.000Z");
+    await h.raw`INSERT INTO outbox(schema_version,event_type,event_id,occurred_at,available_at,trace_id,aggregate_type,aggregate_id,idempotency_key,payload)
+      VALUES (1,'free_palace.generation.requested.v1','bad-1',${fixedNow},${fixedNow},'t','chart','c','bad-1','{"nope":true}'::jsonb)`;
+    const runner = makeRunner(main, { now: () => fixedNow });
+    expect(await runner.runOnce()).toEqual({ processed: 1 });
+    const firstRow = await outboxRow();
+    expect(firstRow).toMatchObject({ status: "failed", last_error_code: "FREE_PALACE_EVENT_INVALID" });
+    expect(await runner.runOnce()).toEqual({ processed: 0 });
+    const secondRow = await outboxRow();
+    expect(secondRow).toEqual(firstRow);
   });
 
   it("a charged result that was never published ends terminally via the stale-publication sweep", async () => {
