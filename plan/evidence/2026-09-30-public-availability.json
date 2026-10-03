@@ -1,0 +1,48 @@
+{
+  "checkedAt": "2026-09-30T10:42:22.031627+00:00",
+  "scope": "Read-only anonymous public availability; not authenticated money-path or new-branch deployment evidence",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "finalUrl": "https://lasoviet.net/",
+      "contentType": "text/html; charset=utf-8",
+      "bytesObserved": 222617
+    },
+    {
+      "path": "/nap-la",
+      "status": 200,
+      "finalUrl": "https://lasoviet.net/nap-la",
+      "contentType": "text/html; charset=utf-8",
+      "bytesObserved": 148015
+    },
+    {
+      "path": "/dang-nhap",
+      "status": 200,
+      "finalUrl": "https://lasoviet.net/dang-nhap",
+      "contentType": "text/html; charset=utf-8",
+      "bytesObserved": 106807
+    },
+    {
+      "path": "/tai-khoan",
+      "status": 200,
+      "finalUrl": "https://lasoviet.net/dang-nhap?callbackURL=%2Ftai-khoan",
+      "contentType": "text/html; charset=utf-8",
+      "bytesObserved": 106892
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "finalUrl": "https://lasoviet.net/robots.txt",
+      "contentType": "text/plain",
+      "bytesObserved": 93
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "finalUrl": "https://lasoviet.net/sitemap.xml",
+      "contentType": "application/xml; charset=utf-8",
+      "bytesObserved": 336
+    }
+  ]
+}
