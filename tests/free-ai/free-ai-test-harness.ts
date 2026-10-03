@@ -94,7 +94,7 @@ export async function seedChartVersion(
   database: TestDatabase,
   chartVersionId: string,
   owner: { kind: "account"; userId: string } | { kind: "guest"; anonymousActorId: string; expiresAt: Date },
-  options: { profileDeletedAt?: Date } = {},
+  options: { profileDeletedAt?: Date; normalizedOutput?: Record<string, unknown> } = {},
 ): Promise<{ chartId: string }> {
   const { authAnonymousActors, authUsers } = await import("../../packages/database/src/schema/auth.js");
   const birth = await import("../../packages/database/src/schema/birth-profile.js");
@@ -112,6 +112,6 @@ export async function seedChartVersion(
   await database.insert(birth.birthProfileRevisions).values({ id: `rev-${n}`, profileId, revisionNumber: 1, originalInput: {}, consentVersion: "v1" });
   await database.insert(birth.calculationRuns).values({ id: `run-${n}`, profileId, profileRevisionId: `rev-${n}`, idempotencyKey: `k-${n}`, engineId: "e", engineVersion: "1", adapterId: "a", adapterVersion: "1", schemaId: "s", ruleSetId: "r", inputHash: "i", configHash: "c", rawSnapshotHash: "h" });
   await database.insert(birth.ziweiCharts).values({ id: `chart-${n}`, profileId, profileRevisionId: `rev-${n}` });
-  await database.insert(birth.ziweiChartVersions).values({ id: chartVersionId, chartId: `chart-${n}`, calculationRunId: `run-${n}`, normalizedOutput: {}, privateRawSnapshot: {}, warnings: [], provenance: {} });
+  await database.insert(birth.ziweiChartVersions).values({ id: chartVersionId, chartId: `chart-${n}`, calculationRunId: `run-${n}`, normalizedOutput: options.normalizedOutput ?? {}, privateRawSnapshot: {}, warnings: [], provenance: {} });
   return { chartId: `chart-${n}` };
 }

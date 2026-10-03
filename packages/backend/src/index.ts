@@ -846,3 +846,11 @@ export {
 } from "./ziwei/free-palace-writer.js";
 export { createFreePalaceReadService, mapFreePalaceStatus } from "./ziwei/free-palace-read.service.js";
 export type { FreePalaceReadService } from "./ziwei/free-palace-read.service.js";
+export {
+  FREE_PALACE_GIFT_LOCALE,
+  buildFreePalaceFacts,
+  createFreePalaceRequestService,
+  currentFreePalaceLineageHash,
+  freePalaceLineage,
+} from "./ziwei/free-palace-request.service.js";
+export type { FreePalaceRequestOutcome, FreePalaceRequestService } from "./ziwei/free-palace-request.service.js";

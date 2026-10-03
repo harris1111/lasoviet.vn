@@ -38,6 +38,12 @@ export type ZiweiCalculationServiceOptions = {
   engine: ZiweiEngineWithPrivateSnapshot;
   config?: EngineConfig;
   now?: () => Date;
+  // Optional, best-effort and strictly after the chart source AND its evidence are persisted.
+  // It may only REQUEST a free gift asynchronously; its failure or slowness never fails the
+  // calculation. Consumers that omit it behave exactly as before.
+  onChartReady?: (actor: CurrentActor, chart: { chartId: string; chartVersionId: string; reused: boolean }) => Promise<unknown>;
+  onChartReadyError?: (error: unknown) => void;
+  onChartReadyTimeoutMs?: number;
 };
 
 function error(code: ZiweiCalculationError): Result<never, ZiweiCalculationError> {
@@ -121,14 +127,25 @@ export function createZiweiCalculationService(
       if (!evidence.ok) {
         return error("EVIDENCE_PERSISTENCE_FAILED");
       }
-      return {
-        ok: true as const,
-        value: {
-          chartId: record.chartId,
-          chartVersionId: record.chartVersionId,
-          reused: record.reused,
-        },
+      const value = {
+        chartId: record.chartId,
+        chartVersionId: record.chartVersionId,
+        reused: record.reused,
       };
+      if (options.onChartReady) {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          await Promise.race([
+            options.onChartReady(actor, value),
+            new Promise<void>((resolve) => { timer = setTimeout(resolve, options.onChartReadyTimeoutMs ?? 2000); }),
+          ]);
+        } catch (hookError) {
+          try { options.onChartReadyError?.(hookError); } catch { /* the reporter must not fail the calculation either */ }
+        } finally {
+          if (timer !== undefined) clearTimeout(timer);
+        }
+      }
+      return { ok: true as const, value };
     },
   };
 }
