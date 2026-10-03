@@ -165,7 +165,18 @@
     "deepReadingLocked": "Open a reading for the conclusion, key points and suggestions on what to do and avoid.",
     "enlargeChart": "Enlarge chart",
     "strongest": "Strongest structure: {name}",
-    "weakest": "Structure to consider: {name}"
+    "weakest": "Structure to consider: {name}",
+    "giftEyebrow": "Full reading",
+    "giftKeyPoints": "Key points",
+    "giftNarrative": "Interpretation",
+    "giftDo": "What to do",
+    "giftAvoid": "What to avoid",
+    "giftEvidence": "Grounded in your chart",
+    "giftEvidenceRef": "Basis {n}",
+    "giftOnePalace": "This is a full reading for {name} only. The other {count} palaces currently show the structural map, not a reading.",
+    "giftPreparing": "The reading for {name} is being prepared. The structure below is readable now, and you can reload in a few minutes.",
+    "giftBridge": "You have read one palace in full",
+    "giftBridgeDescription": "You have just read one palace of your chart in full. The remaining palaces and deeper topics are in the full reading."
   },
   "dailyReading": {
     "title": "Today’s personal reading",

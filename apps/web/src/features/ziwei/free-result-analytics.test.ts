@@ -21,4 +21,8 @@ describe("free result engagement", () => {
     expect(tracker.door()?.properties.stage).toBe("door");
     expect(tracker.door()).toBeNull();
   });
+  it("labels the source honestly: structural by default, validated_artifact only for a rendered gift", () => {
+    expect(createFreeResultAnalytics("vi").visible("gift", 0, true)?.properties.source_kind).toBe("structural");
+    expect(createFreeResultAnalytics("vi", "validated_artifact").visible("gift", 0, true)?.properties.source_kind).toBe("validated_artifact");
+  });
 });

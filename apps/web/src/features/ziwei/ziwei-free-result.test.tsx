@@ -48,4 +48,48 @@ describe("free-result reader structure", () => {
     expect(html).toContain('id="free-result-board"');
     expect(html).toContain('data-free-result-block="scores"');
   });
+  describe("free palace gift", () => {
+    const point = (text: string) => ({ text, evidenceKeys: ["fact:one"] });
+    const gift = {
+      version: 1, status: "ready", requestId: "123e4567-e89b-42d3-a456-426614174000", chartVersionId: "v1", palaceId: "ziwei.palace.wealth", locale: "vi",
+      sourceKind: "validated_artifact", contentHash: "a".repeat(64),
+      reading: { palaceId: "ziwei.palace.wealth", title: "GIFT_TITLE", conclusion: "GIFT_CONCLUSION", keyPoints: [point("KEY_ONE"), point("KEY_TWO"), point("KEY_THREE")],
+        narrative: "PROSE_ONE\n\nPROSE_TWO", do: [point("DO_ITEM")], avoid: [point("AVOID_ITEM")], evidenceKeys: ["fact:one"] },
+      facts: [{ key: "fact:one", label: "FACT_LABEL", value: "FACT_VALUE" }],
+    } as never;
+    const renderWith = (value: unknown) => renderToStaticMarkup(<ZiweiFreeResult chart={chart} chartId="fixture" basePath="/la-so/fixture" locale="vi"
+      initialState={{ tab: "overview" }} model={buildFreeResultModel({ chart, preview: {} as FreeIdentityPreviewV1, isGuest: true, locale: "vi", gift: value as never })}
+      signInHref="/dang-nhap" loadEvidence={async () => ({ ok: false, error: { code: "EVIDENCE_NOT_FOUND" } })} />);
+
+    it("row 49: a ready gift renders every part of one palace and gates the bridge language on it", () => {
+      const html = renderWith(gift);
+      for (const text of ["GIFT_TITLE", "GIFT_CONCLUSION", "KEY_ONE", "KEY_TWO", "KEY_THREE", "PROSE_ONE", "PROSE_TWO", "DO_ITEM", "AVOID_ITEM", "FACT_LABEL", "FACT_VALUE", "Nên làm", "Nên tránh", "Bạn đã đọc trọn một cung"]) expect(html).toContain(text);
+      expect(html).toContain('data-testid="fd109-palace-gift"');
+      expect(html).toContain('data-free-result-block="gift"');
+      expect(html).not.toContain('data-free-result-block="free-palace"');
+    });
+    it("row 49: never implies the other eleven palaces were written", () => {
+      const html = renderWith(gift);
+      expect(html).toContain("11 cung còn lại hiện chỉ có bản đồ cấu trúc, chưa có bài đọc");
+      expect(html.match(/data-testid="fd109-palace-gift"/g)).toHaveLength(1);
+      expect(html).toContain("Chưa mở"); // the other palaces stay locked structural rows
+    });
+    it("row 49: every non-ready state keeps the honest Phase A copy and the old bridge", () => {
+      for (const value of [null, { version: 1, status: "unavailable" }, { version: 1, status: "terminal_failure" }, { version: 1, status: "cost_unknown" }]) {
+        const html = renderWith(value);
+        expect(html).toContain('data-free-result-block="free-palace"');
+        expect(html).toContain("Đọc sâu hơn từ lá số này");
+        expect(html).not.toContain("fd109-palace-gift");
+        expect(html).not.toContain("Bạn đã đọc trọn một cung");
+        expect(html).not.toContain("đang được chuẩn bị");
+      }
+    });
+    it("row 50: a pending gift says so once, without polling controls or a way to request generation", () => {
+      const html = renderWith({ version: 1, status: "generating" });
+      expect(html).toContain("đang được chuẩn bị");
+      expect(html).toContain('data-testid="fd109-gift-preparing"');
+      expect(html).not.toMatch(/data-testid="fd109-gift-(retry|generate|refresh)"/);
+    });
+  });
 });
+

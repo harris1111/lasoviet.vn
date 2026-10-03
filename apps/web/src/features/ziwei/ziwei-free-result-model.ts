@@ -1,5 +1,5 @@
 import type {
-  FreeIdentityPreviewV1, NormalizedZiweiChartV1, TopConcernV1, ZiweiHoroscopeResultV1,
+  FreeIdentityPreviewV1, FreePalaceGiftViewV1, NormalizedZiweiChartV1, TopConcernV1, ZiweiHoroscopeResultV1,
 } from "@lasoviet/contracts";
 import { computeNormalizedPalaceScores, type PalaceScoreBandKey } from "../reports/report-palace-score";
 import { buildFreeResultTopics, type FreeResultTopic } from "./free-result-topic-catalog";
@@ -15,6 +15,20 @@ export type FreeResultPalace = {
   sourceKind: "structural";
   state: "locked";
 };
+// Allowlisted projection of a validated, ready gift. It carries only prose and numbered facts: no
+// request id, content hash, lineage or any operational field ever reaches the client.
+export type FreeResultGiftPoint = { text: string; refs: number[] };
+export type FreeResultGift = {
+  palaceId: string;
+  palaceName: string;
+  title: string;
+  conclusion: string;
+  keyPoints: FreeResultGiftPoint[];
+  paragraphs: string[];
+  doItems: FreeResultGiftPoint[];
+  avoidItems: FreeResultGiftPoint[];
+  facts: { n: number; label: string; value: string }[];
+};
 export type FreeResultModel = {
   insights: { id: string; title: string; description: string; evidenceId?: string }[];
   palaces: FreeResultPalace[];
@@ -22,7 +36,29 @@ export type FreeResultModel = {
   selectedPalaceId: string;
   annual: { year: number; caution: number; favorable: number; neutral: number } | null;
   isGuest: boolean;
+  // Present ONLY for an actual ready, validated artifact on a palace of this chart.
+  gift: FreeResultGift | null;
+  // A request exists but is not ready yet. Display-only: nothing here can trigger generation.
+  giftPreparing: boolean;
 };
+
+function projectGift(
+  gift: FreePalaceGiftViewV1 | null | undefined,
+  chart: NormalizedZiweiChartV1,
+  presentation: ReturnType<typeof ziweiPresentation>,
+): FreeResultGift | null {
+  if (!gift || gift.status !== "ready" || !chart.palaces.some((palace) => palace.id === gift.palaceId)) return null;
+  const number = new Map(gift.facts.map((fact, index) => [fact.key, index + 1]));
+  const refs = (keys: string[]) => [...new Set(keys.map((key) => number.get(key)).filter((n): n is number => n !== undefined))].sort((a, b) => a - b);
+  const point = (item: { text: string; evidenceKeys: string[] }): FreeResultGiftPoint => ({ text: item.text, refs: refs(item.evidenceKeys) });
+  const { reading } = gift;
+  return {
+    palaceId: gift.palaceId, palaceName: presentation.palace(gift.palaceId), title: reading.title, conclusion: reading.conclusion,
+    keyPoints: reading.keyPoints.map(point), doItems: reading.do.map(point), avoidItems: reading.avoid.map(point),
+    paragraphs: reading.narrative.split(/\n{2,}/u).map((part) => part.trim()).filter(Boolean),
+    facts: gift.facts.map((fact, index) => ({ n: index + 1, label: fact.label, value: fact.value })),
+  };
+}
 
 const concernPalaces: Record<TopConcernV1, string> = {
   career: "ziwei.palace.career", money: "ziwei.palace.wealth",
@@ -42,6 +78,8 @@ export function buildFreeResultModel(input: {
   isGuest: boolean;
   locale: ZiweiPresentationLocale;
   displayName?: string;
+  // The server-loaded gift view. Anything other than a ready artifact leaves Phase A copy untouched.
+  gift?: FreePalaceGiftViewV1 | null;
 }): FreeResultModel {
   const { chart, preview, isGuest, locale } = input;
   const presentation = ziweiPresentation(locale);
@@ -62,7 +100,9 @@ export function buildFreeResultModel(input: {
   const strongest = [...palaces].sort((a, b) => b.score - a.score)[0]!;
   const concernId = preview.topConcern ? concernPalaces[preview.topConcern] : undefined;
   const requested = concernId === "ziwei.palace.body" ? chart.bodyPalaceId : concernId;
-  const selectedPalaceId = palaces.find((palace) => palace.id === requested)?.id ?? strongest.id;
+  const gift = projectGift(input.gift, chart, presentation);
+  // The gift is about one frozen palace, so the surface follows it rather than re-deriving a palace.
+  const selectedPalaceId = gift?.palaceId ?? palaces.find((palace) => palace.id === requested)?.id ?? strongest.id;
   // The API preview has no validated chart/locale/artifact lineage. Its prose
   // must not outrank source-grounded structural insights on this surface.
   const fallback = buildFreeInsights(chart, locale, input.displayName).items;
@@ -90,6 +130,7 @@ export function buildFreeResultModel(input: {
   const yearly = input.horoscope?.yearly;
   return {
     insights, palaces, topics: buildFreeResultTopics(locale, preview.topConcern), selectedPalaceId, isGuest,
+    gift, giftPreparing: !gift && (input.gift?.status === "requested" || input.gift?.status === "generating"),
     annual: yearly ? {
       year: yearly.targetYear, caution: yearly.hanMonthCount,
       favorable: yearly.favorableMonthCount, neutral: yearly.neutralMonthCount,

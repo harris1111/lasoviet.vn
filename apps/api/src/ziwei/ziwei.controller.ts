@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Headers,
   HttpCode,
@@ -131,6 +132,23 @@ export class ZiweiController {
       chartId,
       request,
     );
+  }
+
+  // Cache/status only. A GET can never admit, enqueue or generate: the query service behind it
+  // has no write path. Missing, not-owned and deleted charts share one CHART_NOT_FOUND envelope.
+  @Get("charts/:chartId/free-palace")
+  @Header("Cache-Control", "private, no-store")
+  @Header("X-Robots-Tag", "noindex, nofollow")
+  async freePalaceGift(
+    @Headers("authorization") authorization: string | undefined,
+    @Param("chartId") chartId: string,
+    @Query("locale") locale?: string,
+  ) {
+    const resolved = locale ?? "vi";
+    if (resolved !== "vi" && resolved !== "en") {
+      throw new BadRequestException({ code: "LOCALE_INVALID" });
+    }
+    return this.queryService.readFreePalaceGift(await this.actor(authorization), chartId, resolved);
   }
 
   @Get("charts/:chartId/daily-reading")

@@ -115,3 +115,30 @@ Allowlist drift: worker-heartbeat.ts (declared), writer guard — see ADDENDA.md
 Verification: `pnpm vitest run packages/database packages/backend packages/contracts apps/api apps/worker apps/web/src/features/ziwei tests/free-ai tests/workspace tests/privacy` — 229 files, 2232 tests passed; `pnpm i18n:check` pass; `pnpm lint` 0 errors (4 pre-existing warnings); `pnpm -r --if-present run build` and `typecheck` exit 0. Paid ai/reports/outbox files unchanged (empty diff).
 Not verified: a live worker container, real provider, Redis/health probe in a deployed environment.
 Next dependency-ready card: B15 (batch 3).
+
+## B15 — Authorized private cache/status reader service
+State: VERIFIED (real Postgres), library only.
+Behavior changed: `createFreePalaceReadService().read(actor, chartId, locale)` returns the validated one-palace gift or a structural-fallback status; it can only select (tested with a database proxy that throws on any write), never admits, enqueues or touches quota.
+Files changed: packages/backend/src/ziwei/free-palace-read.service.ts (+ .test.ts), ziwei-query.service.ts, free-palace-artifact.repository.ts (canonical hash fix), packages/backend/src/index.ts, tests/free-ai/reader.integration.test.ts, free-ai-test-harness.ts.
+Allowlist drift: artifact repository hash fix (see ADDENDA.md).
+Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai/reader.integration.test.ts` — 88 passed (matrix rows 43–46, one test per mapped state, wrong-owner = missing, wrong locale / unsupported lineage / tampered hash / stale generation / deleted chart / expired TTL / unresolved cost never exposed).
+Not verified: HTTP exposure (B16).
+Next dependency-ready card: B16.
+
+## B16 — Register private gift read endpoint and web loader
+State: VERIFIED (HTTP-level unit tests), flag-independent read path.
+Behavior changed: new private `GET /ziwei/charts/:chartId/free-palace` returning the B15 view; a defensive server-only web loader that degrades to null.
+Files changed: apps/api/src/ziwei/ziwei.controller.ts, apps/api/src/ziwei/free-palace-route.test.ts, apps/web/src/features/ziwei/load-free-palace-gift.ts (+ .test.ts), config/route-registry.yml.
+Allowlist drift: none.
+Verification: `pnpm vitest run apps/web/src/features/ziwei/load-free-palace-gift.test.ts apps/api tests/content packages/config tests/workspace` — 30 files / 342 tests passed (matrix rows 47–48); api + web typecheck, eslint clean.
+Not verified: end-to-end through a real API process + web server (B20 owner/Claude gate); the endpoint is not yet fed by a composed reader (B19 supplies it).
+Next dependency-ready card: B17.
+
+## B17 — Render the full authorized gift without fabricating paid depth
+State: VERIFIED (unit/render tests + real-browser layout check on a fixture); not verified against a live gift.
+Behavior changed: the free result page now loads the gift server-side and, only for a ready validated artifact, renders conclusion, key points, full prose, Nên làm, Nên tránh, numbered facts/evidence and the feedback control for one palace, with gift-specific bridge copy; every other state is the unchanged Phase A fallback.
+Files changed: apps/web/src/app/[locale]/la-so/[chartId]/page.tsx, features/ziwei/{ziwei-free-result-model,ziwei-free-result,free-palace-gift-block,free-result-analytics}.ts(x) (+ tests), apps/web/messages/{vi,en}/ziwei.json, apps/web/src/styles/free-result-read-first.css.
+Allowlist drift: messages, css, analytics helper — see ADDENDA.md.
+Verification: `pnpm vitest run packages/database packages/backend packages/contracts apps tests/free-ai tests/workspace tests/privacy tests/i18n tests/content packages/config` — 391 files, 3581 tests passed (matrix rows 48–50 incl. one render test per state); `pnpm i18n:check` pass; `pnpm lint` 0 errors (4 pre-existing warnings); `pnpm -r --if-present run typecheck` and `build` exit 0. Browser: 375px and 1280px, no horizontal overflow, ≥44px reference targets.
+Not verified: the full A17 matrix (themes, focus order, history, LCP) and a 360px device pass; a live end-to-end gift (B20).
+Next dependency-ready card: B18 (batch 4).
