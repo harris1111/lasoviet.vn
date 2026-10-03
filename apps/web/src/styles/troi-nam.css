@@ -734,7 +734,49 @@ main > .tn-section .hv3-container {
  */
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
-  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
+  text-shadow: 0 1px 2px rgb(5 4 3 / 0.8);
+}
+
+/*
+ * Contrast over the Milky Way: the painted sky is brightest exactly behind this text, so the
+ * shadow alone left body copy near 2:1. A soft radial dim (no edge, so it is not the rejected
+ * "black box") sits behind the head and the shortcut row, body copy moves up to pearl-200
+ * (13:1 on the dimmed sky), and the shortcut chips get their own dark fill so a control never
+ * depends on the sky behind it.
+ */
+.tn .tn-explore .hv3-head,
+.tn .tn-explore .hv3-shortcuts,
+.tn .tn-explore .hv3-hint {
+  position: relative;
+  isolation: isolate;
+}
+
+.tn .tn-explore .hv3-head::before,
+.tn .tn-explore .hv3-shortcuts::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -2.5rem -3rem -2rem -3rem;
+  background: radial-gradient(ellipse 85% 90% at 22% 50%, rgb(5 4 3 / 0.82) 0%, rgb(5 4 3 / 0.62) 55%, transparent 100%);
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-lead {
+  color: var(--pearl-200);
+}
+
+.tn .tn-explore .hv3-hint {
+  color: var(--pearl-300, var(--pearl-200));
+}
+
+.tn .tn-explore .hv3-shortcuts button {
+  background: rgb(15 13 10 / 0.78);
+  border-color: color-mix(in srgb, var(--tn-gold) 45%, transparent);
+}
+
+.tn .tn-explore .hv3-shortcuts button[aria-pressed="true"] {
+  background: var(--lacquer-700);
+  border-color: var(--tn-gold-light);
 }
 
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
@@ -803,6 +845,77 @@ main > .tn-section .hv3-container {
 .tn .tn-explore .hv3-chart-core > div {
   border-color: var(--son);
   outline-color: var(--son);
+}
+
+/*
+ * Sample chart, same look as the approved free-result chart: lacquer texture under the cells,
+ * la kinh ornament and the LSV seal in the centre. Vietnamese labels are one size up (palace
+ * names 14-18px, branch 13-15px, reading label and name, hint and legend 15-17px), because the
+ * 11-13px originals were hard to read on a phone. Layout, states and lines are unchanged.
+ */
+.tn .tn-explore .hv3-chart {
+  background-color: var(--lacquer-line);
+  background-image: url("/images/lasoviet/nen-la-so-son-mai-lien-mach-lasoviet.webp");
+  background-size: 300px 300px;
+  background-repeat: repeat;
+  border-radius: 10px;
+}
+
+.tn .tn-explore .hv3-cell {
+  background: rgb(15 13 10 / 0.8);
+}
+
+.tn .tn-explore .hv3-chart-core {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, var(--lacquer-700), rgb(15 13 10 / 0.8) 74%);
+}
+
+.tn .tn-explore .hv3-chart-core::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  background: url("/images/lasoviet/hoa-van-la-kinh-trung-tam-la-so-lasoviet.svg") center / contain no-repeat;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-chart-core::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: clamp(34px, 7vw, 62px);
+  aspect-ratio: 1;
+  background: url("/images/lasoviet/dau-trien-la-so-viet-son-do.webp") center / contain no-repeat;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-chart-core > div {
+  position: relative;
+  z-index: 1;
+}
+
+.tn .tn-explore .hv3-cell-name {
+  font-size: clamp(14px, 3.4vw, 18px);
+}
+
+.tn .tn-explore .hv3-cell-branch {
+  font-size: clamp(13px, 3vw, 15px);
+}
+
+.tn .tn-explore .hv3-core-name {
+  font-size: clamp(20px, 5vw, 30px);
+}
+
+.tn .tn-explore .hv3-chart-core .hv3-mono {
+  font-size: clamp(12px, 2.8vw, 14px);
+}
+
+.tn .tn-explore .hv3-hint,
+.tn .tn-explore .hv3-legend {
+  font-size: clamp(15px, 3.8vw, 17px);
 }
 
 /*

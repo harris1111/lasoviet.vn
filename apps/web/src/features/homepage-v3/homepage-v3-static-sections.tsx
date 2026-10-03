@@ -72,7 +72,7 @@ export function HomepageV3Ticker() {
   );
 }
 
-export function HomepageV3Usp({ locale = "vi" }: { locale?: Locale } = {}) {
+export function HomepageV3Usp() {
   const t = useTranslations("homepage-v3.usp");
   const icon = (name: string, size: number) => (
     // eslint-disable-next-line @next/next/no-img-element
@@ -146,9 +146,9 @@ export function HomepageV3Usp({ locale = "vi" }: { locale?: Locale } = {}) {
           </div>
         </article>
       </div>
-      {/* One link for the whole section, below the cards: the interactive sample chart. */}
+      {/* One link for the whole section, below the cards: scrolls to the touchable chart (#la-so-mau). */}
       <div className="hv3-usp-cta">
-        <a href={localizedPath(locale, "/bao-cao-mau/tu-vi")} className="hv3-btn">{t("cta")}</a>
+        <a href="#la-so-mau" className="hv3-btn">{t("cta")}</a>
       </div>
     </div>
   );

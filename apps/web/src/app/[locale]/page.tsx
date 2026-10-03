@@ -66,7 +66,7 @@ export default async function Page({ params }: PageProps) {
             <TroiNamTestimonials />
           </section>
           <section className="tn-section" data-troi-nam-block="usp">
-            <TroiNamUsp locale={locale} />
+            <TroiNamUsp />
           </section>
           <section className="tn-section" data-troi-nam-block="value" id="gia-tri">
             <TroiNamValue locale={locale} />
