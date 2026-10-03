@@ -315,67 +315,71 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
 ```json
 {
   "title": "Tốc độ hay cuộc trò chuyện? Điều gì sẽ thực sự ở lại cùng bạn?",
-  "lead": "Trang tử vi phổ thông cho sự nhanh chóng. Hỏi đáp AI cho sự linh hoạt. Gặp thầy cho sự lắng nghe. Lá Số Việt trao bạn một bản đồ vận mệnh chuẩn xác, có căn cứ cổ thư và đồng hành trọn đời.",
+  "lead": "Trang tử vi phổ thông cho sự nhanh chóng. Hỏi đáp AI cho sự linh hoạt. Gặp thầy cho sự lắng nghe. Lá Số Việt trao bạn một bản đồ vận mệnh chuẩn xác, có căn cứ cổ thư và đồng hành trọn đời.",
   "tableLabel": "Một điểm đáng chọn và các giới hạn thực tế của mỗi cách tìm câu trả lời",
   "groupLabel": "Cách bạn đang cân nhắc",
-  "colLsv": "Lá Số Việt",
+  "colLsv": "Lá Số Việt",
   "colWeb": "Trang tử vi phổ thông",
   "colAi": "Hỏi đáp AI",
   "colThay": "Gặp thầy tử vi",
-  "tabLsv": "Lá Số Việt",
+  "tabLsv": "Lá Số Việt",
   "tabWeb": "Trang tử vi",
   "tabAi": "Hỏi đáp AI",
   "tabThay": "Gặp thầy",
   "cardTitle": "{name} có gì đáng để bạn lựa chọn?",
-  "fixLabel": "Tại Lá Số Việt:",
+  "fixLabel": "Tại Lá Số Việt:",
   "ctaDesktop": "Khai mở lá số của tôi →",
   "cta": "Bắt đầu với lá số của tôi →",
   "rows": {
     "strength": {
-      "k": "Điểm đáng chọn nhất",
-      "lsv": "Bản đồ vận mệnh chuẩn xác, cá nhân hóa sâu sắc và lưu trữ đồng hành trọn đời.",
-      "web": "Tra cứu miễn phí, trả kết quả lá số thô và bài đọc tự động tức thì.",
-      "ai": "Trò chuyện linh hoạt 24/7 bằng lời văn tự nhiên, phản hồi ngay tức thì.",
-      "thay": "Đối thoại 1-1 trực tiếp, được lắng nghe và an ủi cảm xúc tại chỗ."
+      "k": "Điểm đáng chọn",
+      "lsv": "Bản đồ chuẩn, lưu trọn đời",
+      "web": "Nhanh, miễn phí",
+      "ai": "Trò chuyện 24/7",
+      "thay": "Được lắng nghe 1-1"
     },
     "own": {
-      "k": "Độ cá nhân hóa",
-      "lsv": "An sao chuẩn từng phút sinh; bóc tách đúng trăn trở bạn đang bận tâm.",
-      "web": "Văn mẫu đóng sẵn; hai người cùng sao nhận bài đọc giống hệt nhau.",
-      "ai": "Phụ thuộc câu lệnh tự nhập; dễ bị định kiến người dùng dẫn dắt.",
-      "thay": "Phụ thuộc lớn vào kinh nghiệm, tâm trạng và cảm quan cá nhân của thầy."
+      "k": "Cá nhân hóa",
+      "lsv": "An sao theo từng phút sinh",
+      "web": "Văn mẫu đóng sẵn",
+      "ai": "Tùy câu hỏi, dễ lệch",
+      "thay": "Tùy kinh nghiệm thầy"
     },
     "basis": {
-      "k": "Căn cứ học thuật",
-      "lsv": "Minh bạch tuyệt đối. Mọi luận giải đều gắn đường dẫn đối chiếu sao và cung.",
-      "web": "Dữ liệu đại trà chưa kiểm chứng; buông lời phán mơ hồ gây hoang hoảng.",
-      "ai": "Dễ bị 'ảo giác' an sai vị trí sao nhưng vẫn trả lời rất tự tin.",
-      "thay": "Truyền miệng thiếu cơ sở logic chuẩn hóa; khó kiểm chứng tính đúng sai."
+      "k": "Căn cứ",
+      "lsv": "Mỗi luận giải gắn sao và cung",
+      "web": "Khó kiểm chứng",
+      "ai": "Dễ bịa vị trí sao",
+      "thay": "Truyền miệng, khó đối chiếu"
     },
     "links": {
-      "k": "Nhìn nhận toàn diện",
-      "lsv": "Đồ hình tương tác trực quan: chạm một cung để thấy trọn vẹn Tam hợp, Xung chiếu.",
-      "web": "Nội dung cắt vụn; các cung phán mâu thuẫn buộc bạn tự chắp vá.",
-      "ai": "Mỗi lần hỏi là một lát cắt rời rạc, mất đi tính nhất quán toàn cục.",
-      "thay": "Lời phán thoảng qua, khó hình dung rõ bức tranh tổng thể mười hai cung."
+      "k": "Toàn diện",
+      "lsv": "Chạm một cung, thấy Tam hợp và Xung chiếu",
+      "web": "Rời rạc, hay mâu thuẫn",
+      "ai": "Từng câu hỏi rời rạc",
+      "thay": "Khó hình dung 12 cung"
     },
     "return": {
-      "k": "Tính nhất quán & Khách quan",
-      "lsv": "Khách quan & Nhất quán tuyệt đối; chuẩn hóa dữ liệu, loại bỏ hoàn toàn cảm tính.",
-      "web": "Thông tin thiếu ổn định; các bài tra cứu mâu thuẫn nhau giữa các lần đọc.",
-      "ai": "Thiếu tính nhất quán; mỗi lượt hỏi lại cho ra một kết quả mâu thuẫn.",
-      "thay": "Thiếu tính đồng nhất; cùng lá số nhưng mỗi thầy phán một kiểu khác nhau."
+      "k": "Nhất quán",
+      "lsv": "Chuẩn hóa dữ liệu, không cảm tính",
+      "web": "Bài đọc mâu thuẫn nhau",
+      "ai": "Mỗi lần hỏi một kết quả",
+      "thay": "Mỗi thầy một kiểu"
     },
     "depth": {
-      "k": "Chi phí & Trải nghiệm",
-      "lsv": "Xem miễn phí nền tảng; chủ động mở sâu đúng phần bạn cần với chi phí minh bạch.",
-      "web": "Giao diện tràn ngập quảng cáo; bài viết đóng gói cứng nhắc, thừa thãi.",
-      "ai": "Tốn phí thuê bao tháng; người dùng phải tự gánh rủi ro tự kiểm chứng.",
-      "thay": "Chi phí đắt đỏ từ trăm nghìn đến tiền triệu; khó đặt lịch để hỏi thêm."
+      "k": "Chi phí",
+      "lsv": "Xem miễn phí, mở sâu khi cần",
+      "web": "Nhiều quảng cáo",
+      "ai": "Tốn phí thuê bao",
+      "thay": "Từ trăm nghìn đến triệu"
     }
-  }
+  },
+  "expand": "Xem đầy đủ lý do",
+  "collapse": "Thu gọn"
 }
 ```
+
+*Cập nhật 2026-10-03: mỗi ô một dòng ngắn; tiêu đề và đoạn dẫn của section nằm trong `troi-nam-compare.tsx` (nhịp đọc: câu hỏi, lợi ích, 3 thẻ, tiêu đề phụ, bảng).*
 
 ---
 
@@ -450,25 +454,27 @@ Khi bạn muốn áp dụng trực tiếp vào mã nguồn dự án qua Antigrav
 
 ```json
 {
-  "title": "Thấu hiểu trước một phần. Đi sâu khi lòng đã tỏ.",
-  "lead": "Bạn hoàn toàn có thể khởi đầu bằng việc lập lá số và đọc những nhận định cốt lõi nhất về mình mà không tốn một đồng. Khi thấy hữu ích và muốn giữ lại cho riêng mình, bạn đăng nhập lưu trữ. Những tầng luận giải chuyên sâu chỉ mở ra khi bạn thực sự cần, bằng Lá, với chi phí minh bạch đến từng con số.",
+  "title": "Xem trước miễn phí. Mở sâu khi bạn cần.",
+  "lead": "Lập lá số và đọc nhận định cốt lõi về mình mà không tốn một đồng. Phần sâu hơn mở bằng Lá, số Lá hiện rõ trước khi bạn xác nhận.",
   "s1": {
-    "title": "Bước 1: Trải nghiệm trọn vẹn đồ hình",
-    "body": "Xem đầy đủ lá số 12 cung an sao chuẩn xác cùng 2 nhận định trọng tâm về bản mệnh. Hoàn toàn miễn phí, không cần đăng ký tài khoản."
+    "title": "Bước 1: Xem lá số",
+    "body": "Lá số 12 cung và 2 nhận định về bản mệnh. Miễn phí, không cần đăng ký."
   },
   "s2": {
-    "title": "Bước 2: Ghi dấu & Lưu giữ",
-    "body": "Đăng nhập một chạm để lưu lại lá số trọn đời, mở khóa bản tóm lược vận khí tổng quan và những lưu ý quan trọng trong năm."
+    "title": "Bước 2: Lưu lại",
+    "body": "Đăng nhập một chạm để giữ lá số trọn đời và mở bản tóm lược vận khí cùng lưu ý trong năm."
   },
   "s3": {
-    "title": "Bước 3: Mở khóa theo nhu cầu riêng",
-    "body": "Dùng Lá để mở đúng phần bạn muốn thấu tỏ: Đại vận 10 năm, thời vận từng năm hay chuyên sâu từng cung. Số Lá và số tiền hiện rõ ràng trước khi bạn bấm xác nhận."
+    "title": "Bước 3: Mở phần bạn cần",
+    "body": "Dùng Lá để mở Đại vận 10 năm, vận từng năm hay từng cung."
   },
   "packsTitle": "Gói nạp Lá",
-  "packsNote": "Mỗi gói hiển thị song song số Lá và số tiền VNĐ. Quét mã VietQR tự động trong vài giây.",
+  "packsNote": "Mỗi gói hiện số Lá và số tiền. Quét VietQR, nhận Lá sau vài giây.",
   "packBonus": "{base} Lá + {bonus} Lá tặng thêm"
 }
 ```
+
+*Cập nhật 2026-10-03: chữ rút gọn, bản này thay bản dài trước đó.*
 
 ---
 

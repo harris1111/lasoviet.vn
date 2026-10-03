@@ -344,22 +344,22 @@
     }
   },
   "value": {
-    "title": "Understand a part of it first. Go deeper once your heart is sure.",
-    "lead": "You can start completely free by building your chart and reading the most essential insights about yourself. When you find it useful and want to keep it, sign in to save. The deeper layers of interpretation only open when you truly need them, using Lá, with pricing that is transparent down to the last figure.",
+    "title": "Preview free. Go deeper when you need to.",
+    "lead": "Create your chart and read the core insights about yourself at no cost. Deeper readings open with Lá, and the Lá cost shows before you confirm.",
     "s1": {
-      "title": "Step 1: Experience the full chart",
-      "body": "See your complete 12-palace chart, accurately calculated, along with 2 core insights about your destiny. Completely free, no account required."
+      "title": "Step 1: See your chart",
+      "body": "Your 12-palace chart and 2 insights on your life palace. Free, no sign-up."
     },
     "s2": {
-      "title": "Step 2: Mark it & keep it",
-      "body": "Sign in with one tap to save your chart for life, unlocking a general fortune summary and the key things to note this year."
+      "title": "Step 2: Save it",
+      "body": "Sign in with one tap to keep your chart for life and unlock the year overview and key notes."
     },
     "s3": {
-      "title": "Step 3: Unlock exactly what you need",
-      "body": "Use Lá to open exactly the part you want to understand: the ten-year cycle, a specific year's fortune, or a deep dive into one palace. The Lá cost and the money amount are both shown clearly before you confirm."
+      "title": "Step 3: Open what you need",
+      "body": "Spend Lá on the 10-year cycle, a single year or a single palace."
     },
     "packsTitle": "Lá top-up packs",
-    "packsNote": "Each pack shows both the Lá amount and the VND price side by side. Scan the VietQR code to pay automatically in seconds.",
+    "packsNote": "Each pack shows its Lá and VND amount. Scan VietQR and receive Lá in seconds.",
     "packBonus": "{base} Lá + {bonus} bonus Lá"
   },
   "faq": {

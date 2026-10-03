@@ -344,22 +344,22 @@
     }
   },
   "value": {
-    "title": "Thấu hiểu trước một phần. Đi sâu khi lòng đã tỏ.",
-    "lead": "Bạn hoàn toàn có thể khởi đầu bằng việc lập lá số và đọc những nhận định cốt lõi nhất về mình mà không tốn một đồng. Khi thấy hữu ích và muốn giữ lại cho riêng mình, bạn đăng nhập lưu trữ. Những tầng luận giải chuyên sâu chỉ mở ra khi bạn thực sự cần, bằng Lá, với chi phí minh bạch đến từng con số.",
+    "title": "Xem trước miễn phí. Mở sâu khi bạn cần.",
+    "lead": "Lập lá số và đọc nhận định cốt lõi về mình mà không tốn một đồng. Phần sâu hơn mở bằng Lá, số Lá hiện rõ trước khi bạn xác nhận.",
     "s1": {
-      "title": "Bước 1: Trải nghiệm trọn vẹn đồ hình",
-      "body": "Xem đầy đủ lá số 12 cung an sao chuẩn xác cùng 2 nhận định trọng tâm về bản mệnh. Hoàn toàn miễn phí, không cần đăng ký tài khoản."
+      "title": "Bước 1: Xem lá số",
+      "body": "Lá số 12 cung và 2 nhận định về bản mệnh. Miễn phí, không cần đăng ký."
     },
     "s2": {
-      "title": "Bước 2: Ghi dấu & Lưu giữ",
-      "body": "Đăng nhập một chạm để lưu lại lá số trọn đời, mở khóa bản tóm lược vận khí tổng quan và những lưu ý quan trọng trong năm."
+      "title": "Bước 2: Lưu lại",
+      "body": "Đăng nhập một chạm để giữ lá số trọn đời và mở bản tóm lược vận khí cùng lưu ý trong năm."
     },
     "s3": {
-      "title": "Bước 3: Mở khóa theo nhu cầu riêng",
-      "body": "Dùng Lá để mở đúng phần bạn muốn thấu tỏ: Đại vận 10 năm, thời vận từng năm hay chuyên sâu từng cung. Số Lá và số tiền hiện rõ ràng trước khi bạn bấm xác nhận."
+      "title": "Bước 3: Mở phần bạn cần",
+      "body": "Dùng Lá để mở Đại vận 10 năm, vận từng năm hay từng cung."
     },
     "packsTitle": "Gói nạp Lá",
-    "packsNote": "Mỗi gói hiển thị song song số Lá và số tiền VNĐ. Quét mã VietQR tự động trong vài giây.",
+    "packsNote": "Mỗi gói hiện số Lá và số tiền. Quét VietQR, nhận Lá sau vài giây.",
     "packBonus": "{base} Lá + {bonus} Lá tặng thêm"
   },
   "faq": {
