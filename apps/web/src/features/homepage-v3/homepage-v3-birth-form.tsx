@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { saveBirthProfileDraft, readBirthProfileDraft } from "../birth-profile/birth-profile-draft";
@@ -11,7 +12,9 @@ import {
   saveHomepageBirthPrefill,
   type CanonicalBranchId,
 } from "../birth-profile/homepage-birth-prefill";
+import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { trackChartFormSubmit } from "../analytics/funnel-analytics";
+import { createChartFromHomepageAction } from "../birth-profile/create-chart-from-homepage-action";
 import { localizedPath } from "../homepage/homepage-utilities";
 import { useHomepageV3Concern } from "./homepage-v3-concern-context";
 import { HERO_LENSES } from "./homepage-v3-data";
@@ -26,6 +29,7 @@ import {
   toHomepageV3Draft,
   toHomepageV3Prefill,
   type HomepageV3BirthValues,
+  type HomepageV3Interest,
 } from "./homepage-v3-birth-profile";
 
 type Locale = "en" | "vi";
@@ -49,6 +53,11 @@ const INITIAL: HomepageV3BirthValues = {
 
 const digits = (value: string, max: number) => value.replace(/\D/g, "").slice(0, max);
 
+// A chart that is "computed" for under a second reads as canned. The floor is a UX choice, not a wait on the server.
+const MIN_COMPUTE_MS = 1200;
+const pad = (value: string, length: number) => value.trim().padStart(length, "0");
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 export type HomepageV3BirthFormState = ReturnType<typeof useHomepageV3BirthForm>;
 
 /**
@@ -62,6 +71,10 @@ export function useHomepageV3BirthForm(locale: Locale) {
   const concernCtx = useHomepageV3Concern();
   const [values, setValues] = useState<HomepageV3BirthValues>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
+  const [forOther, setForOther] = useState(false);
+  const [consent, setConsent] = useState(false);
+  const [consentOther, setConsentOther] = useState(false);
+  const [pending, setPending] = useState(false);
   // Armed right before a failing setErrors so the effect below knows to move focus; left
   // false for every reconcile-on-keystroke setErrors so typing never steals focus back.
   const shouldFocusRef = useRef(false);
@@ -121,28 +134,67 @@ export function useHomepageV3BirthForm(locale: Locale) {
       document.getElementById("hv3-gender-male")?.focus();
       return;
     }
+    if (errors.consentOther) {
+      document.getElementById("hv3-consent-other")?.focus();
+      return;
+    }
+    if (errors.consent) {
+      document.getElementById("hv3-consent")?.focus();
+      return;
+    }
     if (errors.storage) {
       document.getElementById("hv3-storage-error")?.focus();
+      return;
+    }
+    if (errors.submit) {
+      document.getElementById("hv3-submit-error")?.focus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [errors]);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function chooseConcern(concern: HomepageV3Interest) {
+    patch({ topConcern: concern });
+    concernCtx?.setTopConcern(concern);
+  }
+
+  function toggleForOther() {
+    const next = !forOther;
+    setForOther(next);
+    if (!next) {
+      setConsentOther(false);
+      setErrors((current) => ({ ...current, consentOther: undefined }));
+      patch({ displayName: "" });
+    }
+  }
+
+  function changeConsent(next: boolean) {
+    setConsent(next);
+    if (next) setErrors((current) => ({ ...current, consent: undefined }));
+  }
+
+  function changeConsentOther(next: boolean) {
+    setConsentOther(next);
+    if (next) setErrors((current) => ({ ...current, consentOther: undefined }));
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending) return;
     const now = new Date();
     const found = validateHomepageV3BirthValues(values, now, message);
+    if (!consent) found.consent = t("errors.consent");
+    if (forOther && !consentOther) found.consentOther = t("errors.consentOther");
     if (Object.keys(found).length > 0) {
       shouldFocusRef.current = true;
       setErrors(found);
       return;
     }
     const existing = readBirthProfileDraft();
-    // The provider's concern (set by an explicit needs-card/CTA click) wins when present;
-    // otherwise fall back to whatever this form instance already holds (e.g. restored from
-    // an earlier draft). Outside a provider (shared `/` homepage) concernCtx is null and this
-    // is exactly the old `values.topConcern` behavior.
+    // The visitor's latest explicit pick (chip or needs card) wins; the provider and this form
+    // keep each other in sync through chooseConcern, so either source holds the current value.
     const effectiveValues: HomepageV3BirthValues = {
       ...values,
+      displayName: forOther ? values.displayName : "",
       topConcern: concernCtx?.topConcern ?? values.topConcern,
     };
     const draft = toHomepageV3Draft(effectiveValues, now, existing);
@@ -151,34 +203,112 @@ export function useHomepageV3BirthForm(locale: Locale) {
       setErrors({ date: t("errors.dateImpossible") });
       return;
     }
-    // The draft is what the wizard restores first, so it must be saved before we navigate.
-    if (!saveBirthProfileDraft(draft)) {
-      shouldFocusRef.current = true;
-      setErrors({ storage: t("errors.storage") });
-      return;
-    }
-    const prefill = toHomepageV3Prefill(effectiveValues);
-    if (prefill) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
+    const timePrecision = effectiveValues.timeUnknown ? "unknown" : effectiveValues.timeMode;
     void trackChartFormSubmit({
       locale,
       entry_point: "homepage_hero",
       concern: effectiveValues.topConcern ?? undefined,
-      time_precision: effectiveValues.timeUnknown ? "unknown" : effectiveValues.timeMode,
+      time_precision: timePrecision,
     });
-    router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
+
+    // Without a known birth time or branch no chart can be drawn: keep the old route into the
+    // wizard, which explains how to add the time later.
+    const goToWizard = () => {
+      if (!saveBirthProfileDraft(draft)) {
+        shouldFocusRef.current = true;
+        setErrors({ storage: t("errors.storage") });
+        setPending(false);
+        return;
+      }
+      router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
+    };
+    if (effectiveValues.timeUnknown) {
+      setPending(true);
+      goToWizard();
+      return;
+    }
+
+    setPending(true);
+    setErrors({});
+    try {
+      const [result] = await Promise.all([
+        createChartFromHomepageAction({
+          locale,
+          date: `${pad(effectiveValues.year, 4)}-${pad(effectiveValues.month, 2)}-${pad(effectiveValues.day, 2)}`,
+          calendarType: effectiveValues.calendarType,
+          isLeapMonth: effectiveValues.calendarType === "lunar" && effectiveValues.isLeapMonth,
+          time:
+            effectiveValues.timeMode === "branch_only" && effectiveValues.branch
+              ? { precision: "branch_only", branch: effectiveValues.branch }
+              : { precision: "exact_minute", hour: pad(effectiveValues.hour, 2), minute: pad(effectiveValues.minute, 2) },
+          gender: effectiveValues.gender ?? "female",
+          displayName: effectiveValues.displayName.trim() || undefined,
+          consent,
+          forOther,
+          consentOther,
+          topConcern: effectiveValues.topConcern ?? null,
+        }),
+        wait(MIN_COMPUTE_MS),
+      ]);
+      if (result.ok) {
+        const prefill = toHomepageV3Prefill(effectiveValues);
+        if (prefill && !forOther) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
+        void sendBrowserAnalyticsEvent("chart_success", { time_precision: timePrecision });
+        router.push(localizedPath(locale, `/la-so/${result.chartId}`));
+        return;
+      }
+      if (result.code === "TIME_UNKNOWN_SAVED") {
+        goToWizard();
+        return;
+      }
+      shouldFocusRef.current = true;
+      if (result.code === "CONSENT_REQUIRED") setErrors({ consent: t("errors.consent") });
+      else if (result.code === "CONSENT_OTHER_REQUIRED") setErrors({ consentOther: t("errors.consentOther") });
+      else if (result.code === "INVALID_INPUT") setErrors({ date: t("errors.dateImpossible") });
+      else setErrors({ submit: t("errors.submit") });
+    } catch {
+      shouldFocusRef.current = true;
+      setErrors({ submit: t("errors.submit") });
+    }
+    setPending(false);
   }
 
   const hero = deriveHeroStage(values, new Date());
   const timeDisabled = values.timeUnknown;
 
-  return { t, locale, values, errors, patch, onSubmit, hero, timeDisabled };
+  const concern = concernCtx?.topConcern ?? values.topConcern ?? null;
+  return {
+    t,
+    locale,
+    values,
+    errors,
+    patch,
+    onSubmit,
+    hero,
+    timeDisabled,
+    forOther,
+    toggleForOther,
+    consent,
+    changeConsent,
+    consentOther,
+    changeConsentOther,
+    pending,
+    concern,
+    chooseConcern,
+  };
 }
 
 export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState }) {
-  const { t, locale, values, errors, patch, onSubmit, timeDisabled } = state;
+  const {
+    t, locale, values, errors, patch, onSubmit, timeDisabled,
+    forOther, toggleForOther, consent, changeConsent, consentOther, changeConsentOther,
+    pending, concern, chooseConcern,
+  } = state;
+  const tp = useTranslations("profile");
+  const privacyHref = locale === "en" ? "/en/chinh-sach-bao-mat" : "/chinh-sach-bao-mat";
 
   return (
-        <form noValidate onSubmit={onSubmit} aria-label={t("formLabel")} className="hv3-form">
+        <form noValidate onSubmit={onSubmit} aria-label={t("formLabel")} aria-busy={pending} className="hv3-form">
           <div role="group" aria-labelledby="hv3-date-label" className="hv3-field">
             <div className="hv3-field-head">
               <span id="hv3-date-label" className="hv3-label">{t("dateLabel")}</span>
@@ -333,23 +463,69 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
             {errors.time ? <p id="hv3-time-error" role="alert" className="hv3-error">{errors.time}</p> : null}
           </div>
 
-          <div className="hv3-row">
-            <div role="group" aria-label={t("genderLabel")} aria-describedby={errors.gender ? "hv3-gender-error" : undefined} className="hv3-field hv3-grow-sm">
-              <span className="hv3-label">{t("genderLabel")}</span>
-              <div className="hv3-seg">
-                <button id="hv3-gender-male" type="button" aria-pressed={values.gender === "male"} onClick={() => patch({ gender: "male" })}>{t("male")}</button>
-                <button id="hv3-gender-female" type="button" aria-pressed={values.gender === "female"} onClick={() => patch({ gender: "female" })}>{t("female")}</button>
-              </div>
+          <div role="group" aria-label={t("genderLabel")} aria-describedby={errors.gender ? "hv3-gender-error" : undefined} className="hv3-field">
+            <span className="hv3-label">{t("genderLabel")}</span>
+            <div className="hv3-seg">
+              <button id="hv3-gender-male" type="button" aria-pressed={values.gender === "male"} onClick={() => patch({ gender: "male" })}>{t("male")}</button>
+              <button id="hv3-gender-female" type="button" aria-pressed={values.gender === "female"} onClick={() => patch({ gender: "female" })}>{t("female")}</button>
             </div>
-            <label className="hv3-field hv3-grow">
-              <span className="hv3-label">{t("nameLabel")} <span className="hv3-subtle">{t("nameOptional")}</span></span>
-              <input type="text" autoComplete="given-name" maxLength={80} placeholder={t("namePlaceholder")} value={values.displayName} onChange={(e) => patch({ displayName: e.target.value })} className="hv3-input" />
-            </label>
+            {errors.gender ? <p id="hv3-gender-error" role="alert" className="hv3-error">{errors.gender}</p> : null}
           </div>
-          {errors.gender ? <p id="hv3-gender-error" role="alert" className="hv3-error">{errors.gender}</p> : null}
-          {errors.storage ? <p id="hv3-storage-error" role="alert" tabIndex={-1} className="hv3-error">{errors.storage}</p> : null}
 
-          <button type="submit" className="hv3-cta">{t("submit")}</button>
+          <div role="group" aria-labelledby="hv3-concern-label" className="hv3-field">
+            <span id="hv3-concern-label" className="hv3-label">{t("concernLabel")} <span className="hv3-subtle">{t("concernOptional")}</span></span>
+            <div className="hv3-chips">
+              {HERO_LENSES.map((lens) => (
+                <button key={lens.id} type="button" className="hv3-chip" aria-pressed={concern === lens.concern} onClick={() => chooseConcern(lens.concern)}>
+                  {t(`concern.${lens.id}`)}
+                </button>
+              ))}
+            </div>
+            <p className="hv3-hint">{t("concernHint")}</p>
+          </div>
+
+          <div className="hv3-field">
+            <button type="button" className="hv3-link" aria-expanded={forOther} aria-controls="hv3-other" onClick={toggleForOther}>
+              {forOther ? t("forSelf") : t("forOther")}
+            </button>
+            {forOther ? (
+              <div id="hv3-other" className="hv3-other">
+                <label className="hv3-field">
+                  <span className="hv3-label">{t("otherNameLabel")}</span>
+                  <input type="text" autoComplete="off" maxLength={80} placeholder={t("otherNamePlaceholder")} value={values.displayName} onChange={(e) => patch({ displayName: e.target.value })} className="hv3-input" />
+                  <span className="hv3-hint">{t("otherNameHint")}</span>
+                </label>
+                <label className="hv3-check hv3-consent">
+                  <input id="hv3-consent-other" type="checkbox" checked={consentOther} aria-invalid={Boolean(errors.consentOther)} aria-describedby={errors.consentOther ? "hv3-consent-other-error" : undefined} onChange={(e) => changeConsentOther(e.target.checked)} />
+                  <span>{tp("subject.consentCheck")}</span>
+                </label>
+                {errors.consentOther ? <p id="hv3-consent-other-error" role="alert" className="hv3-error">{errors.consentOther}</p> : null}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="hv3-field">
+            <label className="hv3-check hv3-consent">
+              <input id="hv3-consent" type="checkbox" checked={consent} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "hv3-consent-error" : undefined} onChange={(e) => changeConsent(e.target.checked)} />
+              <span>
+                {tp.rich("review.consent", {
+                  link: (chunks) => (
+                    <Link href={privacyHref} target="_blank" rel="noopener noreferrer">{chunks}</Link>
+                  ),
+                })}
+              </span>
+            </label>
+            {errors.consent ? <p id="hv3-consent-error" role="alert" className="hv3-error">{errors.consent}</p> : null}
+            <p className="hv3-hint">{tp("review.privacy")}</p>
+          </div>
+
+          {errors.storage ? <p id="hv3-storage-error" role="alert" tabIndex={-1} className="hv3-error">{errors.storage}</p> : null}
+          {errors.submit ? <p id="hv3-submit-error" role="alert" tabIndex={-1} className="hv3-error">{errors.submit}</p> : null}
+
+          <button type="submit" className="hv3-cta" disabled={pending} aria-disabled={pending}>
+            {pending ? t("submitting") : t("submit")}
+          </button>
+          {pending ? <p className="hv3-sr" role="status">{t("submitting")}</p> : null}
         </form>
   );
 }

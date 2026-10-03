@@ -26,7 +26,7 @@
     "nameLabel": "Reader's name",
     "nameOptional": "(to mark this chart)",
     "namePlaceholder": "e.g. An Nhien",
-    "submit": "Continue creating your chart",
+    "submit": "See my chart",
     "errors": {
       "dateEmpty": "Please enter the full day, month and year (4-digit year).",
       "dateImpossible": "This date does not exist on the calendar. Please check it again.",
@@ -35,8 +35,25 @@
       "time": "Enter an hour from 00 to 23 and minutes from 00 to 59.",
       "branch": "Please choose a matching birth time range.",
       "gender": "Please choose Male or Female.",
-      "storage": "Your browser is not allowing storage. Please enable site storage and try again."
-    }
+      "storage": "Your browser is not allowing storage. Please enable site storage and try again.",
+      "consent": "Please agree to continue.",
+      "consentOther": "Please confirm you have permission before continuing.",
+      "submit": "We could not create the chart right now. Please try again in a moment."
+    },
+    "submitting": "Placing the stars…",
+    "concernLabel": "What matters most to you",
+    "concernOptional": "(optional)",
+    "concern": {
+      "self": "Understanding myself",
+      "career": "Work and money",
+      "love": "Love"
+    },
+    "concernHint": "Your free reading opens the palace tied to this first.",
+    "forOther": "I'm viewing for someone else",
+    "forSelf": "I'm viewing for myself",
+    "otherNameLabel": "Name",
+    "otherNamePlaceholder": "e.g. Mom, Lan",
+    "otherNameHint": "Only shown on the chart."
   },
   "heroChart": {
     "chartAria": "Your chart diagram",

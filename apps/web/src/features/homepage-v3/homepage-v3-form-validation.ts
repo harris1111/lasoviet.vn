@@ -10,7 +10,9 @@ export type HomepageV3ValidationErrorKey =
   | "branch"
   | "gender";
 
-export type HomepageV3FormErrors = Partial<Record<"date" | "time" | "gender" | "storage", string>>;
+export type HomepageV3FormErrors = Partial<
+  Record<"date" | "time" | "gender" | "storage" | "consent" | "consentOther" | "submit", string>
+>;
 
 type FieldGroup = "date" | "time" | "gender";
 

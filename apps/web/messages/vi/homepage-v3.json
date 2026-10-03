@@ -13,8 +13,8 @@
     "year": "Năm",
     "leap": "Tháng nhuận",
     "timeLabel": "Khung giờ sinh",
-    "modeExact": "Biết rõ giờ sinh",
-    "modeBranch": "Nhớ khoảng giờ (Canh giờ)",
+    "modeExact": "Chính xác",
+    "modeBranch": "Khoảng giờ",
     "hourSr": "Giờ sinh, từ 00 đến 23",
     "minuteSr": "Phút sinh, từ 00 đến 59",
     "branchSr": "Khoảng giờ sinh",
@@ -26,7 +26,7 @@
     "nameLabel": "Tên người xem",
     "nameOptional": "(để ghi dấu trên lá số)",
     "namePlaceholder": "Ví dụ: An Nhiên",
-    "submit": "Tiếp tục lập lá số",
+    "submit": "Xem lá số của tôi",
     "errors": {
       "dateEmpty": "Vui lòng nhập đủ ngày, tháng và năm sinh (năm gồm 4 chữ số).",
       "dateImpossible": "Ngày này không có trên lịch thực tế. Bạn hãy kiểm tra lại nhé.",
@@ -35,8 +35,25 @@
       "time": "Nhập giờ từ 00 đến 23 và phút từ 00 đến 59.",
       "branch": "Vui lòng chọn một khoảng giờ sinh phù hợp.",
       "gender": "Vui lòng chọn giới tính Nam hoặc Nữ.",
-      "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé."
-    }
+      "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé.",
+      "consent": "Cần đồng ý để lập lá số.",
+      "consentOther": "Vui lòng xác nhận sự đồng ý của người được lập trước khi tiếp tục.",
+      "submit": "Chưa lập được lá số lúc này. Bạn thử lại sau ít giây nhé."
+    },
+    "submitting": "Đang an sao…",
+    "concernLabel": "Điều bạn bận tâm nhất",
+    "concernOptional": "(không bắt buộc)",
+    "concern": {
+      "self": "Hiểu bản thân",
+      "career": "Công việc, tiền bạc",
+      "love": "Tình duyên"
+    },
+    "concernHint": "Phần luận giải miễn phí sẽ mở trước cung liên quan đến điều này.",
+    "forOther": "Tôi xem cho người khác",
+    "forSelf": "Tôi xem cho chính mình",
+    "otherNameLabel": "Tên gọi",
+    "otherNamePlaceholder": "Ví dụ: Mẹ, Lan",
+    "otherNameHint": "Chỉ để hiện trên lá số."
   },
   "heroChart": {
     "chartAria": "Đồ hình lá số của bạn",

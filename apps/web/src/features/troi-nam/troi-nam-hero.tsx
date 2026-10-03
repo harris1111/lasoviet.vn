@@ -140,9 +140,6 @@ export function TroiNamHero({ locale }: { locale: "en" | "vi" }) {
 
           <div className="hv3 tn-hero-form">
             <HomepageV3BirthForm state={state} />
-            {/* The hero submits into step 1 of a multi-step wizard, not an instant report
-                (2026-10-01 audit, F5) — the handoff note says so instead of implying otherwise. */}
-            <p className="tn-hero-handoff-note">{t("hero.handoffNote")}</p>
           </div>
         </div>
 

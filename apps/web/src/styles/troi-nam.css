@@ -346,13 +346,6 @@
   color: var(--tn-gold);
 }
 
-.tn-hero-handoff-note {
-  margin: 0.75rem 0 0;
-  color: var(--tn-text-muted);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
 /*
  * The form itself is the unmodified wizard card from the live homepage
  * (`.hv3-form` in homepage-v3.css): raised surface, hairline border, shadow,

@@ -21,7 +21,7 @@ const locales = [
     title: "Lá Số Việt | Lập lá số. Hiểu vận mệnh.",
     description:
       "Lập lá số Tử Vi miễn phí, luận giải có căn cứ rõ ràng — nền tảng khai phóng bản mệnh cho người Việt, nói có sách mách có chứng.",
-    cta: "Lập lá số miễn phí",
+    cta: "Xem lá số của tôi",
     finalCta: "Lập lá số của tôi",
     chartPath: "/tao-la-so/tu-vi",
     menuLabel: "Mở điều hướng",
@@ -47,7 +47,7 @@ const locales = [
     title: "La So Viet | Build your chart. Understand your path.",
     description:
       "A grounded chart-building and interpretation platform, beginning with Tu Vi for Vietnamese users.",
-    cta: "Build your chart for free",
+    cta: "See my chart",
     finalCta: "Create my chart",
     chartPath: "/en/tao-la-so/tu-vi",
     menuLabel: "Open navigation",
@@ -376,20 +376,6 @@ test("footer links to product, discipline, knowledge and support pages", async (
   await page.goto("/en");
   await expect(page.locator('footer.site-footer a[href="/en/bat-tu"]')).toBeAttached();
   await expect(page.locator('footer.site-footer a[href="/en/nap-la"]')).toBeAttached();
-});
-
-test("homepage hand-off opens wizard step 1 so the chart can be made for someone else", async ({ page }) => {
-  await visitLocalizedHome(page, locales[0]);
-  await page.fill("#hv3-day", "25");
-  await page.getByLabel("Tháng", { exact: true }).fill("7");
-  await page.getByLabel("Năm", { exact: true }).fill("1993");
-  await page.fill("#hv3-hour", "6");
-  await page.fill("#hv3-minute", "40");
-  await page.getByRole("button", { name: "Nam" }).click();
-  await page.getByRole("button", { name: locales[0].cta }).click();
-  await page.waitForURL(/tao-la-so\/tu-vi/);
-  await expect(page.getByRole("button", { name: /Lập cho người khác/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Lập cho bản thân/ })).toBeVisible();
 });
 
 test("hero story book reflects the form and carries the chosen topic into the wizard", async ({ page }) => {
