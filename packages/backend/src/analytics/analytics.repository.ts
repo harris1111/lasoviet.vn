@@ -633,7 +633,8 @@ function createDatabaseAnalyticsRepositoryInternal(
         if (existingEvent) {
           const visitorMatch = existingEvent.visitorId === input.visitorId;
           const nameMatch = existingEvent.name === input.name;
-          const occurredAtMatch = existingEvent.occurredAt.getTime() === input.occurredAt.getTime();
+          // A retry may be delivered with a fresh client timestamp. The logical event key,
+          // owner, name and properties identify it; retain the first occurrence and expiry.
           const propertiesMatch = isDeepEqual(existingEvent.properties, input.properties);
 
           let userMatch = true;
@@ -649,7 +650,6 @@ function createDatabaseAnalyticsRepositoryInternal(
           if (
             visitorMatch &&
             nameMatch &&
-            occurredAtMatch &&
             propertiesMatch &&
             userMatch &&
             profileMatch

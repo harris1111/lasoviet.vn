@@ -128,6 +128,33 @@ describe("AnalyticsRepository integration", () => {
     });
   });
 
+  it("replays a deterministic feedback event with a fresh delivery timestamp without changing the first event", async () => {
+    const now = new Date("2026-10-03T17:00:00Z");
+    const payload = {
+      idempotencyKey: "feedback_timestamp_replay",
+      visitorId: "feedback_timestamp_visitor",
+      name: "part_feedback",
+      properties: { section_id: "overview", feedback: "accurate", is_free: true },
+      occurredAt: now,
+      now,
+    };
+    const first = await repository.recordEvent(payload);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const later = new Date(now.getTime() + 60_000);
+    const replay = await repository.recordEvent({ ...payload, occurredAt: later, now: later });
+    expect(replay.ok).toBe(true);
+    if (!replay.ok) return;
+    expect(replay.replayed).toBe(true);
+    expect(replay.event.id).toBe(first.event.id);
+    expect(replay.event.occurredAt).toEqual(now);
+    expect(replay.event.createdAt).toEqual(first.event.createdAt);
+    expect(replay.event.unlinkedExpiresAt).toEqual(first.event.unlinkedExpiresAt);
+    expect(await database.select().from(analyticsEvents).where(eq(analyticsEvents.idempotencyKey, payload.idempotencyKey))).toHaveLength(1);
+    expect(await repository.recordEvent({ ...payload, visitorId: "another_feedback_visitor", occurredAt: later, now: later })).toEqual({ ok: false, error: "IDEMPOTENCY_KEY_CONFLICT" });
+    expect(await repository.recordEvent({ ...payload, properties: { ...payload.properties, feedback: "inaccurate" }, occurredAt: later, now: later })).toEqual({ ok: false, error: "IDEMPOTENCY_KEY_CONFLICT" });
+  });
+
   it("handles concurrent identical requests for the same idempotency key without unique storage errors", async () => {
     const now = new Date("2026-09-14T10:30:00Z");
     const key = "concurrent_idem_test";
@@ -154,6 +181,40 @@ describe("AnalyticsRepository integration", () => {
     const replayedCount = (res1.replayed ? 1 : 0) + (res2.replayed ? 1 : 0);
     expect(replayedCount).toBe(1);
     expect(res1.event.id).toBe(res2.event.id);
+  });
+
+  it("replays linked-account events with a fresh clock without reapplying behavior", async () => {
+    const now = new Date("2026-10-03T17:00:00Z");
+    const userId = "fresh_clock_account";
+    await database.insert(authUsers).values({ id: userId, name: "Synthetic", email: "fresh-clock@example.invalid", createdAt: now, updatedAt: now });
+    const payload = { idempotencyKey: "fresh_clock_account_key", visitorId: "fresh_clock_account_visitor", userId,
+      name: "report_opened", properties: { report_type: "identity" }, occurredAt: now, now };
+    const first = await repository.recordEvent(payload);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const [before] = await database.select().from(accountBehaviorProfiles).where(eq(accountBehaviorProfiles.userId, userId));
+    expect(before).toBeDefined();
+    const later = new Date(now.getTime() + 60_000);
+    const replay = await repository.recordEvent({ ...payload, occurredAt: later, now: later });
+    expect(replay.ok).toBe(true);
+    if (replay.ok) { expect(replay.replayed).toBe(true); expect(replay.event.occurredAt).toEqual(now); }
+    const [after] = await database.select().from(accountBehaviorProfiles).where(eq(accountBehaviorProfiles.userId, userId));
+    expect(after).toEqual(before);
+    expect(await repository.recordEvent({ ...payload, userId: "different_account", occurredAt: later, now: later })).toEqual({ ok: false, error: "VISITOR_ACCOUNT_CONFLICT" });
+    expect(await repository.recordEvent({ ...payload, visitorId: "different_account_device", occurredAt: later, now: later })).toEqual({ ok: false, error: "IDEMPOTENCY_KEY_CONFLICT" });
+  });
+
+  it("serializes concurrent same-key retries with different delivery clocks", async () => {
+    const now = new Date("2026-10-03T17:00:00Z");
+    const results = await Promise.all([0, 1000, 2000].map(delta => repository.recordEvent({
+      idempotencyKey: "concurrent_clock_key", visitorId: "concurrent_clock_visitor", name: "landing",
+      properties: { landing_page: "/" }, occurredAt: new Date(now.getTime() + delta), now: new Date(now.getTime() + delta),
+    })));
+    expect(results.every(result => result.ok)).toBe(true);
+    const successes = results.filter(result => result.ok);
+    expect(successes.filter(result => !result.replayed)).toHaveLength(1);
+    expect(new Set(successes.map(result => result.event.id)).size).toBe(1);
+    expect(await database.select().from(analyticsEvents).where(eq(analyticsEvents.idempotencyKey, "concurrent_clock_key"))).toHaveLength(1);
   });
 
   it("handles concurrent account links safely so only one wins and the other gets VISITOR_ACCOUNT_CONFLICT", async () => {
@@ -756,7 +817,12 @@ describe("AnalyticsRepository integration", () => {
       ...basePayload,
       occurredAt: new Date(t1.getTime() + 1000),
     });
-    expect(diffOccurred).toEqual({ ok: false, error: "IDEMPOTENCY_KEY_CONFLICT" });
+    expect(diffOccurred.ok).toBe(true);
+    if (diffOccurred.ok) {
+      expect(diffOccurred.replayed).toBe(true);
+      expect(diffOccurred.event.occurredAt).toEqual(t1);
+      expect(diffOccurred.event.id).toBe(firstRes.event.id);
+    }
 
     const linkTime = new Date("2026-09-14T22:30:00Z");
     const accountOwner = "user_idempotency_link";
@@ -1035,10 +1101,14 @@ describe("AnalyticsRepository integration", () => {
       occurredAt: new Date(past13Months.getTime() + 1000),
       now: baseTime,
     });
-    expect(changedOccurredAt).toEqual({
-      ok: false,
-      error: "IDEMPOTENCY_KEY_CONFLICT",
-    });
+    expect(changedOccurredAt.ok).toBe(true);
+    if (changedOccurredAt.ok) {
+      expect(changedOccurredAt.replayed).toBe(true);
+      expect(changedOccurredAt.event.id).toBe(evt.id);
+      expect(changedOccurredAt.event.occurredAt).toEqual(past13Months);
+      expect(changedOccurredAt.event.ip).toBeNull();
+      expect(changedOccurredAt.event.ipExpiresAt).toBeNull();
+    }
 
     await database.delete(authUsers).where(eq(authUsers.id, linkedUser));
 
