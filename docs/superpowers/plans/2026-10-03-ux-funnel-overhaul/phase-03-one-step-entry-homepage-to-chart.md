@@ -9,51 +9,37 @@ dependencies: [1]
 
 # Phase 3: One-step entry homepage to chart
 
-## Overview
-Today the homepage hero form saves a draft and `router.push`es to the 3-step wizard `/tao-la-so/tu-vi` (subject → birth → review/consent), so the visitor enters/confirms data twice (`homepage-v3-birth-form.tsx:138-161`). AiTuvi goes straight from the homepage form to the chart. Make the homepage form create the chart directly. **Needs founder decision #2 in plan.md.** Mobile-first.
+## Approved scope (owner review, 2026-10-03)
 
-## Prototype (2026-10-03, approved by founder)
-`prototype/revamp-2026-09/lap-la-so-mot-buoc.html` (serve `prototype/` with any static server). Decisions taken in the prototype, to confirm: field order is date, gender, time (date first so the first field sits at y≈309 on a 390×844 phone; a full-form-above-the-fold target is not achievable with this many fields, so the criterion is "first field and CTA visible without scrolling"); consent is an **unticked checkbox** (Decree 13 needs an affirmative act; the implicit "bấm là đồng ý" variant stays off until legal text allows it); place of birth collapses to a "Việt Nam (giờ Việt Nam)" row with Đổi; concern chips are three fixed ids (self_understanding, career, love) matching `HomepageV3Interest`, with the "Công việc, tiền bạc" chip mapping to `career`; loading shows four real stages and lasts at least ~2 s.
+The homepage is the only data-entry step. Its submit saves a step-3 draft and opens `/tao-la-so/tu-vi` directly on “Review & privacy”; the visitor confirms the entered data and explicitly consents once there. Consent starts unticked. Subject and birth-entry wizard steps are skipped for homepage visitors; direct wizard visits retain their existing flow.
 
-## Requirements
-- Functional:
-  - Hero form fields: ngày sinh (dương/âm toggle), giờ sinh (canh giờ picker + "Không nhớ giờ"), giới tính, tên gọi (optional, defaults "bạn"), mối quan tâm chips (Công việc / Tình duyên / Tiền bạc / Sức khoẻ / Gia đạo) — concern drives which palace is read in full (FD-109b).
-  - "Xem cho ai": default "Cho tôi"; "Cho người khác" reveals the third-party consent checkbox inline (only then).
-  - Consent: one explicit line under the CTA. Decree 13/2023 requires an affirmative act, so either an unticked checkbox that must be ticked, or a CTA whose label/adjacent text states consent ("Bấm xem lá số là bạn đồng ý với Chính sách dữ liệu"). Pick the second only if legal text in `docs/compliance` allows; otherwise checkbox. Never pre-ticked.
-  - Submit → loading state on the button ("Đang an sao…", 600–1500 ms min so it feels computed) → `/la-so/{chartId}` (guest chart allowed, FD-105).
-  - Validation inline, in Vietnamese, field-level; impossible date (31/02) caught before submit.
-- Non-functional: form above the fold on 390×844; tap targets ≥44px; numeric keypad for date; no layout shift when errors appear.
+The owner changed the initial prototype's direct-create/inline-consent proposal during implementation review. That proposal, the proposed `createChartFromHomepage` action, and homepage third-party controls are superseded. PR271's final owner correction also removed the “someone else” action and made the name field always visible. The approved prototype remains `prototype/revamp-2026-09/lap-la-so-mot-buoc.html`; current behavior follows the later owner corrections recorded here and in LSV74.
 
-## Architecture
-- Reuse `submitBirthProfile` + `calculateZiweiChartInLocale` server actions (the wizard already calls them); expose one server action `createChartFromHomepage(values)` that validates with the same zod schema, saves profile with `explicitConsent`, calculates, returns `chartId` or field errors.
-- Keep the wizard for direct `/tao-la-so` visits and for free-tool prefill; it no longer sits in the homepage path.
-- Concern stored in `readingContext` so the free result picks the matching palace.
+## Requirements and architecture
 
-## Related Code Files
-- Modify: `apps/web/src/features/homepage-v3/homepage-v3-birth-form.tsx`
-- Modify: `apps/web/src/features/troi-nam/troi-nam-hero.tsx` (remove "handoff note" that explains the wizard)
-- Create: `apps/web/src/features/birth-profile/create-chart-from-homepage-action.ts` (+ test)
-- Modify: `apps/web/messages/{vi,en}/*.json`
-- Tests: `tests/e2e/free-chart-flow.spec.ts` (homepage → chart in one submit)
+- Birth day/month/year dropdowns, solar/lunar choice, exact/branch/unknown birth time, gender, and optional display name. Entered name updates the sample chart.
+- Three concern chips: `self_understanding`, `career`, `love`. The selected concern persists in `readingContext`; downstream free-result policy remains governed by FD-109 and its generation gates.
+- No homepage consent or third-party action. `toHomepageV3Draft(..., { forWhom: "self", consentOther: false, step: 3 })` transfers the values to review. Existing wizard save/calculate actions run after affirmative consent.
+- Missing/invalid data receives field errors and first-invalid-field focus. Unknown time retains the existing saved-without-chart flow.
+- Phones show the first field and sticky CTA without scrolling; the entire form need not fit the phone viewport. Tablet controls and submit remain reachable by normal vertical scrolling. Desktop CTA fits 1024x768, 1280x720, 1366x768, 1440x900 and 1920x1080 without scrolling.
+- Keep VI/EN parity, existing analytics and consent copy, control dimensions, and approved Trời Nam visual design.
 
-## Implementation Steps
-1. Read `birth-profile-form.tsx` step 3 to reuse its exact payload shape and consent semantics.
-2. Implement the action; return typed errors.
-3. Update the hero form UI (chips, "Cho người khác", consent line, loading button).
-4. Wire funnel event `chart_form_submit` (phase 2).
-5. E2E at 390px and 1440px: fill → one click → chart page renders.
+## Implementation and acceptance
 
-## Success Criteria
-- [ ] Homepage → chart page in one submit, no wizard.
-- [ ] Third-party consent only shown when "Cho người khác" is chosen.
-- [ ] Concern chosen on homepage = full palace shown on the free result.
-- [ ] First field and the CTA visible without scrolling on 390×844.
+PR270/271 merged on 2026-10-03. Their original evidence covered unit checks and 11 browser cases without backend; the full-stack case and tablet acceptance were outstanding. LSV74 stays In Review until the remaining deployment evidence passes.
 
-## Risk Assessment
-- Consent wording is a legal surface → copy taken from existing wizard review step; no new legal claims.
-- Wizard analytics (`wizard_step_complete`) will drop; dashboards updated in phase 2 runbook.
+A live Chromium audit of release `3d4cb478d92d42e680f1c17b3dcc1b78404c8195` measured 22 VI/EN viewport combinations with no horizontal overflow. Desktop CTA was below the fold at 1024x768, 1280x720 and 1366x768. The bounded correction reduces heading size and vertical spacing only on desktops below 900px high, preserving input/button sizes and natural error expansion. Taller desktops and mobile/tablet layout rules remain as implemented in PR270/271.
 
-## Implementation status (2026-10-03)
-Built on branch `feat/phase-3-one-step-entry`. Founder changed the consent rule while reviewing: **no consent line on the homepage form**; the visitor confirms and consents once, on the wizard's review step ("Kiểm tra & riêng tư"). So the homepage form is the only data-entry step: it saves the draft at step 3 (`toHomepageV3Draft(..., { forWhom, consentOther, step: 3 })`) and opens the wizard straight on the review step; the subject and birth steps are skipped. The planned `createChartFromHomepage` server action was therefore dropped (the wizard already does save and calculate after consent).
-Form details: day, month and year are dropdown lists on phone and desktop; concern chips carry no "optional" label (still optional in the backend, founder wants to read it as marketing input); "Tôi xem cho người khác" holds the name field and the third-party consent; on phones the submit button is sticky so it is in view with the first field. Unknown birth time still ends in the wizard's saved-without-chart screen.
-Verified: unit tests, 11 Playwright cases without backend (`tests/e2e/homepage-one-step-entry.spec.ts`), production build boundary test. **Not yet run:** the full-stack case "form, one confirmation, then the chart page" (needs API, Postgres, Redis; CI or An's environment).
+The pre-deploy real-backend acceptance passed both locales: homepage → direct review, unchecked consent, draft parity, zero synthetic actor profiles before consent, then one saved profile with exact date/time/gender/name/locale and concern parity plus an authorized 12-palace chart. Official anonymous DELETE removed both synthetic actors and charts, with DB absence verified. Generation remained OFF.
+
+Pending: independent correction review, CI, corrected release deployment, and post-deploy viewport/backend smoke. Track release-specific evidence in `plan/2026-10-03-lsv74-homepage-acceptance.md` and Kaneo LSV74. Chromium evidence does not claim Safari, physical-device, member, payment or enabled-provider acceptance.
+
+Independent review also found an English time-selector overlap at 1024px. Concise equivalent mode labels and bounded wrapping correct it; browser checks now assert non-overlap and successful range-mode selection. Consent wording and birth-time payload semantics are unchanged.
+
+## Related files
+
+- `apps/web/src/features/homepage-v3/homepage-v3-birth-form.tsx`
+- `apps/web/src/features/troi-nam/troi-nam-hero.tsx`
+- `apps/web/src/features/birth-profile/birth-profile-draft.ts`
+- `apps/web/src/styles/troi-nam.css`
+- `tests/e2e/homepage-one-step-entry.spec.ts`
