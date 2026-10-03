@@ -28,7 +28,7 @@ export type WorkflowEnvelopeV1<TPayload = unknown> = {
   occurredAt: string;
   traceId: string;
   actorId: string | null;
-  aggregateType: "order" | "report" | "asset" | "account";
+  aggregateType: "order" | "report" | "asset" | "account" | "chart";
   aggregateId: string;
   idempotencyKey?: string;
   payload: TPayload;

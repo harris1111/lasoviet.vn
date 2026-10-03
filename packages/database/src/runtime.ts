@@ -30,6 +30,7 @@ import {
   authUsers,
 } from "./schema/auth.js";
 import { birthProfiles } from "./schema/birth-profile.js";
+import { lockFreeAiCoordination, mergeFreeAiQuotaHistory } from "./free-ai-quota-link.js";
 
 export type AnonymousLinkErrorCode = "ANONYMOUS_LINK_CONFLICT";
 
@@ -44,6 +45,9 @@ export async function linkAnonymousActorToAccount(
   userId: string,
 ): Promise<AnonymousLinkResult> {
   return database.transaction(async (transaction) => {
+    // Same global lock admission takes, held before ownership changes, so a concurrent
+    // free-AI admission cannot interleave with the quota-history merge below.
+    await lockFreeAiCoordination(transaction);
     const now = new Date();
     const [anonymousActor] = await transaction
       .update(authAnonymousActors)
@@ -83,6 +87,8 @@ export async function linkAnonymousActorToAccount(
         ),
       )
       .returning({ id: birthProfiles.id });
+    // History has no auth foreign key, so it survives the anonymous auth row deletion below.
+    await mergeFreeAiQuotaHistory(transaction, anonymousActorId, userId);
     await transaction.delete(authUsers).where(eq(authUsers.id, anonymousActorId));
 
     return {

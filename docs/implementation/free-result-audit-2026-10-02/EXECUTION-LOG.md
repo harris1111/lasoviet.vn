@@ -48,3 +48,43 @@ Scope addendum: update page/sentinel/config/allowlist regression tests affected 
 - B08–B21: not implemented in this checkpoint. Atomic reservations/reconciliation, link/delete integration, one-attempt fence, worker/writer, safe ready-reader/UI/runtime wiring and release tests remain. Do not enable generation based on this checkpoint.
 Final checkpoint verification (fresh, no source edits during run): full pnpm test exit1;375passed files,40failed,3skipped;3255passed assertions,5failed,421skipped. All remaining failures are infrastructure:40 Testcontainers suite startup failures,4 Docker Compose assertions (spawn docker ENOENT), and1 knowledge-ingestion DB assertion (container runtime unavailable). No remaining executed non-DB assertion failed. This is NOT a green full suite and test:scripts was not reached by pnpm test's && chain. Run scripts separately before release. Production web build exit0; full monorepo typecheck exit0; lint exit0 with5warnings; i18n parity exit0. No mobile/LCP claim, no live migration/provider spend, no release acceptance.
 Separate test:scripts exit0,17/17 passed. Saving a local implementation checkpoint on the feature branch; it is not a final reviewed/released milestone. Remaining dependent work is explicitly listed above.
+
+## B08 — Shared chart/day atomic reservation
+State: VERIFIED (real Postgres), library only — not wired.
+Behavior changed: no code previously enforced the 3,000 VND chart / 50,000 VND UTC-day ceilings; `createFreeAiBudgetRepository(db).reserve()` now admits through one locked transaction (global lock → fresh clock → source/TTL authorization → slot/cache check → flag/identity → chart+day row locks → one-time legacy reconciliation → ceilings on reserved+resolved+unknown → rolling quota → request, admission, reservation, frozen call, `chart` outbox event).
+Files changed: packages/backend/src/ziwei/free-ai-budget.repository.ts (+ .test.ts), tests/free-ai/budget.integration.test.ts, tests/free-ai/free-ai-test-harness.ts, packages/database/src/schema/outbox.ts, docs/implementation/free-result-audit-2026-10-02/ADDENDA.md.
+Allowlist drift: see ADDENDA.md (outbox union, harness, deferred index export).
+Verification: `pnpm vitest run packages/backend/src/ziwei/free-ai-budget.repository.test.ts tests/free-ai/budget.integration.test.ts` — 18 integration + 2 unit assertions passed (matrix rows 1–9 incl. held-lock multi-connection races and trigger fault injection on 8 writes); backend typecheck and eslint on touched files clean.
+Not verified: midnight rollover and fence (B10); deletion generation recheck at publication (B11).
+Remaining concern: none known.
+Next dependency-ready card: B09.
+
+## B09 — Merge quota history with ownership linking
+State: VERIFIED (real Postgres).
+Behavior changed: `linkAnonymousActorToAccount` now takes the global free-AI coordination lock first, then, before deleting the anonymous auth row, unions the guest quota subject into the account subject (re-pointing admissions and merged children). Previously linking left a guest's usage orphaned, so a guest could effectively reset allowance.
+Files changed: packages/database/src/free-ai-quota-link.ts (new), packages/database/src/runtime.ts, packages/database/src/index.ts, packages/backend/src/ziwei/free-ai-admission.service.ts, tests/free-ai/linking.integration.test.ts.
+Allowlist drift: index.ts and free-ai-admission.service.ts (decision A), see ADDENDA.md.
+Verification: `pnpm vitest run packages/database/src/schema/schema.integration.test.ts packages/backend/src/ziwei tests/free-ai` — 89/89 passed, 12 files, including existing link tests and 8 new linking tests (matrix rows 10–15 plus no-cross-account merge); database and backend typecheck and eslint clean.
+Not verified: nothing known.
+Remaining concern: B18 must pass the anonymous actor id / user id as `actor.id` (see ADDENDA).
+Next dependency-ready card: B10.
+
+## B10 — Dispatch fence, atomic UTC rollover and settlement
+State: VERIFIED (real Postgres), library only — not wired.
+Behavior changed: `createFreeAiDispatchService` fences a `reserved` request in one locked transaction (fresh clock after the lock, source/deletion/pricing recheck, day re-reserve or cancel, pinned `dispatch_day` + immutable `attempt_id`, CAS to `dispatching`) and `dispatch()` sends exactly once, settling any thrown error as unknown. `createFreeAiSettlementService` settles once per attempt on the pinned day, charges quality failures, keeps unknown exposure, records overshoot uncapped with a halt + redacted incident, and recovers abandoned dispatches as unknown.
+Files changed: packages/backend/src/ziwei/free-ai-dispatch.service.ts, free-ai-settlement.service.ts, free-ai-budget.repository.ts (gate/halt/clock), tests/free-ai/dispatch.integration.test.ts, settlement.integration.test.ts, free-ai-test-harness.ts.
+Allowlist drift: see ADDENDA.md.
+Verification: `pnpm vitest run tests/free-ai packages/backend/src/ziwei` — 13 files, 86 assertions passed on real Postgres (matrix rows 16–25, counted fake-provider attempts, held-lock races, fake-clock midnight); backend typecheck and eslint clean. A mutation check (removing the pre-CAS guard) showed the DB-level CAS still holds the one-attempt invariant.
+Not verified: provider token-bound proof (open gate); real provider behaviour; worker scheduling of `settleAbandoned`.
+Remaining concern: a worker killed between fence and settlement burns the slot by design.
+Next dependency-ready card: B11.
+
+## B11 — Deletion-safe publication and private retention
+State: VERIFIED (real Postgres), library only — not wired.
+Behavior changed: `createFreePalaceArtifactRepository.publish` writes the artifact and moves `dispatching → ready` in one transaction under the coordination lock, comparing the deletion generation, TTL, settled `resolved` outcome and attempt id; a deletion that commits in between makes it fail. Guest expiry purge, immediate guest deletion and final account purge now bump the chart `deletion_generation`, set `deleted_at`, null every private payload and cancel unfenced requests (hold released), keeping fenced exposure and non-content accounting.
+Files changed: packages/backend/src/ziwei/free-palace-artifact.repository.ts, packages/backend/src/privacy/anonymous-retention.repository.ts, packages/backend/src/privacy/deletion.repository.ts, tests/free-ai/deletion.integration.test.ts.
+Allowlist drift: none beyond ADDENDA notes.
+Verification: `pnpm vitest run packages/backend/src/privacy tests/privacy tests/free-ai tests/workspace packages/database packages/backend/src/ziwei` — all passed (free-ai suite incl. 9 deletion tests: matrix rows 26–30); `apps/api tests/privacy` 85/85 passed after building backend. Two apps/api suites cannot load here because `@lasoviet/engine-adapters` is not built in this worktree (environmental, unrelated).
+Not verified: row 31 (endpoint 404 indistinguishability, B15/B16); single-profile soft delete path.
+Remaining concern: see ADDENDA B11.
+Next dependency-ready card: B12 (batch 2).

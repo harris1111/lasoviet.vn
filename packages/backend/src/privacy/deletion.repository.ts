@@ -11,8 +11,14 @@ import {
   authSessions,
   deletionRequests,
   enqueueOutbox,
+  lockFreeAiCoordination,
   type Database,
 } from "@lasoviet/database";
+
+import {
+  collectFreePalaceChartVersionIds,
+  purgeFreePalaceForChartVersions,
+} from "../ziwei/free-palace-artifact.repository.js";
 
 export type DeletionRepositoryError =
   | "DELETION_ALREADY_REQUESTED"
@@ -152,6 +158,8 @@ export function createDatabaseDeletionRepository(
       const purged: string[] = [];
       for (const request of requests) {
         await database.transaction(async (transaction) => {
+          // Coordination lock first, the same order admission and publication use.
+          await lockFreeAiCoordination(transaction);
           const [updated] = await transaction
             .update(deletionRequests)
             .set({
@@ -170,6 +178,12 @@ export function createDatabaseDeletionRepository(
             return;
           }
 
+          // Free-palace gift payloads are purged with the account; only accounting tombstones stay.
+          await purgeFreePalaceForChartVersions(
+            transaction,
+            await collectFreePalaceChartVersionIds(transaction, { userId: updated.userId }),
+            now,
+          );
           // Permanently delete all analytics rows owned by updated.userId in robust order
           await transaction
             .delete(analyticsEvents)

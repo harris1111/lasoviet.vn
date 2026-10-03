@@ -116,3 +116,14 @@ export { notificationVerifiedSignins } from "./schema/notifications.js";
 export * from "./schema/membership.js";
 
 export * from "./schema/free-ai.js";
+
+export {
+  FREE_AI_COORDINATION_LOCK,
+  freeAiQuotaAlias,
+  lockFreeAiCoordination,
+  mergeFreeAiQuotaHistory,
+  readLockedFreeAiQuota,
+  resolveLockedFreeAiSubject,
+  sampleFreeAiClock,
+} from "./free-ai-quota-link.js";
+export type { FreeAiSubjectKind, FreeAiTransaction } from "./free-ai-quota-link.js";
