@@ -47,10 +47,7 @@
     },
     "concernHint": "Phần luận giải miễn phí sẽ mở trước cung liên quan đến điều này.",
     "forOther": "Tôi xem cho người khác",
-    "forSelf": "Tôi xem cho chính mình",
-    "otherNameLabel": "Tên gọi",
-    "otherNamePlaceholder": "Ví dụ: Mẹ, Lan",
-    "otherNameHint": "Chỉ để hiện trên lá số."
+    "forSelf": "Tôi xem cho chính mình"
   },
   "heroChart": {
     "chartAria": "Đồ hình lá số của bạn",

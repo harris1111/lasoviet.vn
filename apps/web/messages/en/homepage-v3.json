@@ -47,10 +47,7 @@
     },
     "concernHint": "Your free reading opens the palace tied to this first.",
     "forOther": "I'm viewing for someone else",
-    "forSelf": "I'm viewing for myself",
-    "otherNameLabel": "Name",
-    "otherNamePlaceholder": "e.g. Mom, Lan",
-    "otherNameHint": "Only shown on the chart."
+    "forSelf": "I'm viewing for myself"
   },
   "heroChart": {
     "chartAria": "Your chart diagram",

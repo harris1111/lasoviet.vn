@@ -157,7 +157,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
     if (!next) {
       setConsentOther(false);
       setErrors((current) => ({ ...current, consentOther: undefined }));
-      patch({ displayName: "" });
     }
   }
 
@@ -182,7 +181,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
     // keep each other in sync through chooseConcern, so either source holds the current value.
     const effectiveValues: HomepageV3BirthValues = {
       ...values,
-      displayName: forOther ? values.displayName : "",
       topConcern: concernCtx?.topConcern ?? values.topConcern,
     };
     // Open the wizard straight on its review step: the visitor confirms and consents there, once.
@@ -384,6 +382,11 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
             {errors.gender ? <p id="hv3-gender-error" role="alert" className="hv3-error">{errors.gender}</p> : null}
           </div>
 
+          <label className="hv3-field">
+            <span className="hv3-label">{t("nameLabel")} <span className="hv3-subtle">{t("nameOptional")}</span></span>
+            <input id="hv3-name" type="text" autoComplete="given-name" maxLength={80} placeholder={t("namePlaceholder")} value={values.displayName} onChange={(e) => patch({ displayName: e.target.value })} className="hv3-input" />
+          </label>
+
           <div role="group" aria-labelledby="hv3-concern-label" className="hv3-field">
             <span id="hv3-concern-label" className="hv3-label">{t("concernLabel")}</span>
             <div className="hv3-chips">
@@ -402,11 +405,6 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
             </button>
             {forOther ? (
               <div id="hv3-other" className="hv3-other">
-                <label className="hv3-field">
-                  <span className="hv3-label">{t("otherNameLabel")}</span>
-                  <input type="text" autoComplete="off" maxLength={80} placeholder={t("otherNamePlaceholder")} value={values.displayName} onChange={(e) => patch({ displayName: e.target.value })} className="hv3-input" />
-                  <span className="hv3-hint">{t("otherNameHint")}</span>
-                </label>
                 <label className="hv3-check hv3-consent">
                   <input id="hv3-consent-other" type="checkbox" checked={consentOther} aria-invalid={Boolean(errors.consentOther)} aria-describedby={errors.consentOther ? "hv3-consent-other-error" : undefined} onChange={(e) => changeConsentOther(e.target.checked)} />
                   <span>{tp("subject.consentCheck")}</span>

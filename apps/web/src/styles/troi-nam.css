@@ -1802,8 +1802,33 @@ main > .tn-section .hv3-container {
 }
 
 .tn .tn-testimonials .hv3-tt-grid .hv3-tt-quote {
-  min-height: 6.4em;
-  margin-bottom: 1.1rem;
+  /* Four lines reserved (excerpts are at most 135 characters); three once the cards are wide. */
+  min-height: 6em;
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 1400px) {
+  .tn .tn-testimonials .hv3-tt-grid .hv3-tt-quote {
+    min-height: 4.5em;
+  }
+}
+
+/* Cards sized to their text: modest padding and a tight label and footer instead of the page gutter. */
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-card {
+  padding: clamp(1.1rem, 1.8vw, 1.6rem);
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-label {
+  margin-bottom: 0.7rem;
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-foot {
+  padding-top: 0.75rem;
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-mark {
+  left: clamp(1.1rem, 1.8vw, 1.6rem);
 }
 
 .tn .tn-testimonials .hv3-tt-card:hover,
@@ -2402,4 +2427,49 @@ main > .tn-section .hv3-container {
   border: 1px solid var(--tn-gold);
   border-radius: 50%;
   object-fit: cover;
+}
+
+/*
+ * Type scale for the whole page, one rule block so no section drifts. Measured 2026-10-03 (the h2 and
+ * body lead were already uniform; card headings ran 19-26px and card body 14-17px):
+ *   h2  section title            --tn-h2   (unchanged)
+ *   h3  sub-heading              --tn-h3   20-28px: lens title, compare sub-heading, palace panel, flagship discipline
+ *   h4  card title               --tn-h4   19-23px: need cards, discipline cards, USP cards, value steps
+ *   body lead / card body        --tn-body / --tn-card-body (16px)
+ * Higher specificity than the per-section rules above, so it wins without touching them.
+ */
+.tn {
+  --tn-h3: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  --tn-h4: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+  --tn-card-body: 1rem;
+}
+
+.tn .tn-section :is(.hv3-lens-head .hv3-h3, .tnc-sub, .hv3-h3-lg, .hv3-disc-name-lg) {
+  font-size: var(--tn-h3);
+  line-height: 1.2;
+}
+
+.tn .tn-section :is(.hv3-need-title, .hv3-disc-name:not(.hv3-disc-name-lg), .hv3-usp-card h3, .tn-value .hv3-h3, .tn-faq .hv3-faq-q) {
+  font-size: var(--tn-h4);
+  line-height: 1.25;
+}
+
+.tn .tn-section :is(.hv3-need-question, .hv3-usp-card p, .tn-value .hv3-steps p, .hv3-faq-a, .hv3-disc-body .hv3-muted) {
+  font-size: var(--tn-card-body);
+  line-height: 1.55;
+}
+
+/* Section leads all use --tn-body: the base .hv3-lead used its own 1.3vw clamp, which disagreed with the others at 900-1100px. */
+.tn .tn-section :is(.hv3-lead, .hv3-usp-lead, .hv3-tt-lead, .hv3-story-body) {
+  font-size: var(--tn-body);
+  line-height: 1.65;
+}
+
+/* Text links that were 18-22px tall: a 44px touch target without changing how they look. */
+.tn .tn-hero-sample-cta,
+.tn .tn-testimonials .hv3-tt-start,
+.footer-support-email {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }

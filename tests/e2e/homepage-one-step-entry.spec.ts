@@ -51,7 +51,6 @@ for (const viewport of [
 
       await form.getByRole("button", { name: "Tôi xem cho người khác" }).click();
       await expect(form.locator("#hv3-consent-other")).toBeVisible();
-      await expect(form.getByLabel("Tên gọi")).toBeVisible();
 
       await fillValidBirth(page);
       await form.getByRole("button", { name: CTA }).click();
@@ -67,6 +66,15 @@ for (const viewport of [
       await form.getByRole("button", { name: "Tôi xem cho người khác" }).click();
       await form.getByRole("button", { name: "Tôi xem cho chính mình" }).click();
       await expect(form.locator("#hv3-consent-other")).toHaveCount(0);
+    });
+
+    test("the name field is always there and the typed name shows on the sample chart", async ({ page }) => {
+      await page.goto("/");
+      const form = page.locator(".hv3-form");
+      await expect(form.locator("#hv3-name")).toBeVisible();
+      await fillValidBirth(page);
+      await form.locator("#hv3-name").fill("An Nhiên");
+      await expect(page.locator(".hv3-chart-name").first()).toHaveText("An Nhiên");
     });
 
     test("one concern can be chosen and is exposed as pressed", async ({ page }) => {
