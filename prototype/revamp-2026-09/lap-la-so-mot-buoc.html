@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xem lá số Tử Vi của bạn - Lá Số Việt</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/colors.css">
+<link rel="stylesheet" href="../_shared/l-s-vi-t-s-n-m-i-031f071c-fd7e-43f6-99e1-3b61c90237f1/tokens/typography.css">
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+  /* Phase 3 prototype: one-step entry. Homepage form creates the chart directly. */
+  :root { --ease: cubic-bezier(.22,.8,.24,1); }
+  .proto-bar { background: #1A1612; border-bottom: 1px dashed rgba(206,91,69,.5); padding: 8px 0; }
+  .proto-bar .in { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+  .proto-bar button { flex: none; white-space: nowrap; }
+  /* The Messenger bubble covered form hints on phones; the sticky bar is the focus here */
+  .msgr-bubble { display: none; }
+  .proto-bar b { font: 500 12px/1 var(--font-mono); color: #EC8A74; margin-right: 4px; }
+  .proto-bar button { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--border-soft); background: transparent; color: var(--text-body); font: 500 13px var(--font-ui); cursor: pointer; }
+  .proto-bar button[aria-pressed="true"] { border-color: var(--gold-500); color: var(--gold-400); background: var(--gold-soft); }
+
+  /* Atmosphere: a warm lacquer glow behind the form, not a flat black page */
+  body { background-image: radial-gradient(900px 420px at 18% -4%, rgba(201,164,77,.10), transparent 62%), radial-gradient(700px 380px at 92% 30%, rgba(206,91,69,.07), transparent 60%); background-attachment: fixed; }
+
+  .entry { display: grid; gap: 20px; padding-block: 20px 150px; }
+  .entry-copy h1 { font: 600 clamp(30px, 7vw, 48px)/1.1 var(--font-display); color: var(--text-heading); margin: 0 0 10px; text-wrap: balance; letter-spacing: -.01em; }
+  .entry-copy h1 em { font-style: normal; color: var(--gold-400); }
+  .entry-copy .lede { margin: 0; color: var(--text-body); max-width: 44ch; font-size: 16px; }
+  .entry-copy .proof { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 14.5px; color: var(--text-muted); }
+  .entry-copy .proof li { display: inline-flex; gap: 8px; align-items: center; }
+  .entry-copy .proof svg { width: 16px; height: 16px; color: var(--gold-400); }
+
+  /* The form is one lacquer card with a gold hairline, grouped into three clear blocks */
+  form.paper { position: relative; display: grid; gap: 0; margin-top: 20px; background: var(--surface-raised); border: 1px solid var(--border-soft); border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; }
+  form.paper::before { content: ""; position: absolute; left: 24px; right: 24px; top: -1px; height: 1px; background: var(--gold-edge); }
+  .block { display: grid; gap: 22px; padding: 22px 18px; }
+  .block + .block { border-top: 1px solid var(--border-hairline); }
+  .block-head { margin: -2px 0 -6px; font: 600 17px/1.2 var(--font-display); color: var(--text-heading); }
+
+  .summary { margin: 16px 18px 0; padding: 14px 16px; border-radius: var(--radius-field); border: 1px solid #E0765F; background: rgba(224,118,95,.08); }
+  .summary h2 { margin: 0 0 6px; font: 600 15px/1.3 var(--font-ui); color: #F4B3A3; }
+  .summary ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; font-size: 14.5px; }
+  .summary a { color: var(--text-heading); }
+  .group { display: grid; gap: 10px; }
+  .group > label, .group > .lbl { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text-heading); font-size: 15px; }
+  .group .opt-note { font-weight: 400; color: var(--text-muted); }
+  /* A tick appears beside a label the moment its field is valid */
+  .tick { width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; background: var(--gold-soft); color: var(--gold-400); opacity: 0; transform: scale(.6); transition: opacity 200ms var(--ease), transform 240ms var(--ease); }
+  .tick svg { width: 11px; height: 11px; }
+  .group.ok .tick { opacity: 1; transform: none; }
+  .hint { font-size: 14px; color: var(--text-muted); margin: 0; }
+  .err { font-size: 14px; color: #F09C87; margin: 0; display: flex; gap: 6px; align-items: center; }
+  .field { background: rgba(15,13,10,.7); transition: border-color 160ms ease, box-shadow 160ms ease; }
+  .field:focus-within { box-shadow: 0 0 0 3px rgba(201,164,77,.18); }
+  .field.invalid, .tiles.invalid .tile, .seg.invalid { border-color: #E0765F; }
+  .field.sel { position: relative; padding-right: 36px; }
+  .field.sel .chev { position: absolute; right: 12px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); pointer-events: none; color: var(--gold-400); }
+  .form-row-3 .field { padding-inline: 14px 30px; }
+  .form-row-3 .field .chev { right: 10px; }
+
+  /* Gender: two large tiles, easier to hit than a pill and clearer when chosen */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tile { position: relative; min-height: 56px; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; border-radius: var(--radius-field); border: 1px solid var(--border-soft); background: rgba(15,13,10,.7); color: var(--text-body); font: 600 16px var(--font-ui); cursor: pointer; transition: border-color 160ms ease, background 160ms ease, transform 120ms ease; }
+  .tile:active { transform: scale(.985); }
+  .tile .dot { width: 20px; height: 20px; border-radius: 999px; border: 2px solid var(--border-soft); display: grid; place-items: center; transition: border-color 160ms ease; }
+  .tile[aria-pressed="true"] { border-color: var(--gold-500); background: var(--gold-soft); color: var(--gold-400); box-shadow: inset 0 0 0 1px rgba(201,164,77,.25); }
+  .tile[aria-pressed="true"] .dot { border-color: var(--gold-400); }
+  .tile[aria-pressed="true"] .dot::after { content: ""; width: 8px; height: 8px; border-radius: 999px; background: var(--gold-400); }
+
+  /* Chips and segmented controls */
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opt { min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--border-soft); background: rgba(15,13,10,.7); color: var(--text-body); font: 500 15px var(--font-ui); cursor: pointer; transition: border-color 160ms ease, background 160ms ease, color 160ms ease; }
+  .opt:hover { border-color: var(--gold-600); }
+  .opt[aria-pressed="true"] { border-color: var(--gold-500); background: var(--gold-soft); color: var(--gold-400); }
+  .opts.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .opts.three .opt { padding: 0 6px; text-align: center; white-space: nowrap; }
+  .time-row { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .link-btn { background: none; border: 0; padding: 0; min-height: 44px; color: var(--gold-400); font: 500 15px var(--font-ui); cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+  .place-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 4px 14px; border-radius: var(--radius-field); border: 1px dashed var(--border-soft); font-size: 15px; color: var(--text-body); }
+  .place-row b { color: var(--text-heading); font-weight: 600; }
+  .other { display: grid; gap: 14px; padding: 16px; border-radius: var(--radius-field); border: 1px solid var(--border-soft); background: rgba(15,13,10,.55); animation: rise 260ms var(--ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+  .consent { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; font-size: 14.5px; padding: 14px; border-radius: 12px; border: 1px solid var(--border-soft); background: rgba(15,13,10,.55); }
+  .consent.invalid { border-color: #E0765F; }
+  .consent input { width: 22px; height: 22px; accent-color: var(--gold-500); margin-top: 1px; }
+  .privacy { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--text-muted); margin: 0; }
+  .privacy svg { width: 16px; height: 16px; color: var(--gold-400); flex: none; }
+
+  /* Sticky action bar with a thin completion rail */
+  .actions { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; background: rgba(15,13,10,.96); backdrop-filter: blur(10px); border-top: 1px solid var(--border-soft); padding: 12px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .actions .rail { position: absolute; left: 0; top: -1px; height: 2px; width: 0; background: var(--gradient-gold); transition: width 360ms var(--ease); }
+  .actions .in { max-width: 560px; margin: 0 auto; display: grid; gap: 6px; }
+  .actions .btn { width: 100%; position: relative; overflow: hidden; }
+  .actions .btn svg { transition: transform 200ms var(--ease); }
+  .actions .btn:hover svg { transform: translateX(3px); }
+  .actions .btn.busy { pointer-events: none; }
+  .actions .btn.busy svg { display: none; }
+  .actions .btn.busy::before { content: ""; width: 16px; height: 16px; border-radius: 999px; border: 2px solid rgba(21,18,14,.35); border-top-color: var(--lacquer-900); animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .actions .left { font-size: 13.5px; color: var(--text-muted); text-align: center; min-height: 18px; font-variant-numeric: tabular-nums; }
+  .actions .left.ready { color: var(--gold-400); }
+
+  /* Desktop board: palaces appear one by one with the real palace names */
+  .board-wrap { display: none; }
+  /* Same chart look as the approved free-result page: lacquer texture, 2px gaps, la kinh ornament, LSV seal */
+  :root { --cell-bg: rgba(15,13,10,.80); --cell-lit: rgba(206,91,69,.16); --accent-seal: var(--cinnabar-700, #A63D2F); }
+  .board, .sk-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; position: relative; border: 1px solid var(--border-hairline); border-radius: 10px; overflow: hidden; background-color: var(--border-hairline); background-image: url("uploads/nen-la-so-son-mai-lien-mach-lasoviet.webp"); background-size: 300px 300px; background-repeat: repeat; }
+  .board { grid-template-rows: repeat(4, minmax(112px, auto)); }
+  .sk-board { grid-template-rows: repeat(4, 72px); }
+  .cell { position: relative; z-index: 1; display: grid; align-content: space-between; padding: 8px 9px; background: var(--cell-bg); color: var(--text-faint); transition: background 320ms var(--ease), color 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
+  .cell .br { font: 500 10px/1 var(--font-mono); letter-spacing: .06em; color: var(--text-muted); }
+  .cell .pn { font: 600 12.5px/1.15 var(--font-ui); text-transform: uppercase; letter-spacing: .01em; text-align: center; opacity: 0; transform: translateY(4px); transition: opacity 320ms var(--ease), transform 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
+  .cell.on { background: var(--surface-raised); }
+  .cell.on .pn { opacity: 1; transform: none; color: var(--text-heading); }
+  .cell.life.on { background: var(--cell-lit); box-shadow: 0 0 0 2px var(--accent-seal) inset; }
+  .cell.center, .sk.center { grid-column: 2 / span 2; grid-row: 2 / span 2; z-index: 3; position: relative; display: grid; align-content: center; justify-items: center; gap: 6px; padding: 16px; text-align: center; box-shadow: 0 0 0 1px var(--border-hairline) inset; background: radial-gradient(circle at 50% 42%, var(--surface-raised), var(--cell-bg) 74%); }
+  .cell.center::before { content: ""; position: absolute; inset: -14%; pointer-events: none; background: url("uploads/hoa-van-la-kinh-trung-tam-la-so-lasoviet.svg") no-repeat center / contain; opacity: .30; }
+  .c-seal { position: absolute; right: 12px; bottom: 12px; width: 62px; height: 62px; pointer-events: none; background: url("uploads/dau-trien-la-so-viet-son-do.webp") no-repeat center / contain; opacity: .9; }
+  .cell.center > *:not(.c-seal) { position: relative; z-index: 1; }
+  .cell.center b { display: block; font: 600 20px/1.2 var(--font-display); color: var(--text-heading); }
+  .cell.center small { font-size: 14px; color: var(--text-muted); line-height: 1.4; max-width: 22ch; }
+  .cell.center .dates { font: 500 13px var(--font-mono); color: var(--gold-400); min-height: 16px; }
+  .board-caption { margin: 14px 0 0; font-size: 14px; color: var(--text-muted); text-align: center; }
+
+  .making { display: grid; gap: 20px; padding-block: 24px 80px; max-width: 640px; margin: 0 auto; }
+  .making h1 { font: 600 clamp(26px, 5vw, 34px)/1.2 var(--font-display); color: var(--text-heading); margin: 0; }
+  .meter { height: 3px; border-radius: 999px; background: var(--border-soft); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--gradient-gold); transition: width 420ms var(--ease); }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .steps li { display: flex; gap: 12px; align-items: center; color: var(--text-muted); font-size: 16px; transition: color 200ms ease; }
+  .steps li i { width: 22px; height: 22px; border-radius: 999px; border: 1px solid var(--border-soft); display: grid; place-items: center; flex: none; }
+  .steps li.done { color: var(--text-body); }
+  .steps li.done i { background: var(--gold-soft); border-color: var(--gold-500); color: var(--gold-400); }
+  .steps li.done i::after { content: ""; width: 6px; height: 10px; border: solid currentColor; border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px,-1px); }
+  .steps li.now { color: var(--text-heading); }
+  .steps li.now i { border-color: var(--gold-500); animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 50% { background: var(--gold-soft); } }
+  .sk { background: linear-gradient(90deg, var(--cell-bg) 0%, var(--surface-raised-2) 50%, var(--cell-bg) 100%); background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+  button, .opt, .tile, .link-btn, select { touch-action: manipulation; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0ms !important; }
+  }
+
+  @media (max-width: 980px) {
+    .entry-copy .proof { display: none !important; }
+    .entry-copy .lede { font-size: 15px; }
+    form.paper { margin-top: 14px; }
+    body { background-attachment: scroll; }
+  }
+  @media (min-width: 981px) {
+    .entry { grid-template-columns: minmax(0, 540px) minmax(0, 1fr); gap: 64px; align-items: start; padding-block: 52px 150px; }
+    .block { padding: 26px 26px; }
+    .board-wrap { display: block; position: sticky; top: 100px; padding-top: 12px; }
+    .actions .in { max-width: 540px; margin-left: max(32px, calc((100vw - var(--container)) / 2 + 32px)); }
+  }
+</style>
+</head>
+<body class="has-bottom-bar has-bottom-bar-all">
+<script src="icons.js"></script>
+
+<div class="proto-bar" aria-label="Chỉ có trong bản mẫu">
+  <div class="container in">
+    <b>BẢN MẪU</b>
+    <button type="button" data-state="form" aria-pressed="true">Form</button>
+    <button type="button" data-state="errors" aria-pressed="false">Lỗi nhập</button>
+    <button type="button" data-state="other" aria-pressed="false">Xem cho người khác</button>
+    <button type="button" data-state="making" aria-pressed="false">Đang lập</button>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href="trang-chu.html"><svg aria-hidden="true"><use href="#logo"/></svg>Lá Số Việt</a>
+    <div class="header-actions"><span class="need"><svg aria-hidden="true" style="width:16px;height:16px;vertical-align:-3px;color:var(--gold-400)"><use href="#ui-lock"/></svg> Riêng tư theo mặc định</span></div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="entry" id="entry">
+    <div>
+      <div class="entry-copy">
+        <h1>Xem lá số Tử Vi <em>của bạn</em></h1>
+        <p class="lede">Nhập một lần. Lá số 12 cung và phần luận giải đầu tiên hiện ngay, không cần đăng ký.</p>
+      </div>
+
+      <form class="paper" id="f" novalidate>
+        <div class="summary" id="summary" role="alert" tabindex="-1" aria-labelledby="sum-t" hidden>
+          <h2 id="sum-t">Cần sửa trước khi xem lá số</h2>
+          <ul id="sumList"></ul>
+        </div>
+        <section class="block" aria-labelledby="b1">
+          <h2 class="block-head" id="b1">Ngày giờ sinh</h2>
+
+          <div class="group" id="gr-dob">
+            <span class="lbl" id="dob-l">Ngày sinh<span class="tick" aria-hidden="true"><svg><use href="#ui-check"/></svg></span></span>
+            <div class="form-row-3" role="group" aria-labelledby="dob-l">
+              <label class="field sel"><span class="sr-only">Ngày</span><select id="d" aria-describedby="dob-err"></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+              <label class="field sel"><span class="sr-only">Tháng</span><select id="m" aria-describedby="dob-err"></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+              <label class="field sel"><span class="sr-only">Năm</span><select id="y" aria-describedby="dob-err"></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+            </div>
+            <div class="opts" role="group" aria-label="Loại lịch"><button type="button" class="opt" aria-pressed="true">Dương lịch</button><button type="button" class="opt" aria-pressed="false">Âm lịch</button></div>
+            <p class="err" id="dob-err" hidden>Ngày sinh này không có thật. Kiểm tra lại ngày và tháng.</p>
+          </div>
+
+          <div class="group" id="gr-time">
+            <span class="lbl" id="tob-l">Giờ sinh<span class="tick" aria-hidden="true"><svg><use href="#ui-check"/></svg></span></span>
+            <div class="opts three" role="group" aria-labelledby="tob-l" id="tmode">
+              <button type="button" class="opt" aria-pressed="true" data-t="exact">Chính xác</button>
+              <button type="button" class="opt" aria-pressed="false" data-t="branch">Khoảng giờ</button>
+              <button type="button" class="opt" aria-pressed="false" data-t="unknown">Không rõ</button>
+            </div>
+            <div class="time-row" id="t-exact">
+              <label class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-clock"/></svg></span><span class="sr-only">Giờ và phút sinh</span><input id="hhmm" type="time" aria-describedby="t-err"></label>
+              <p class="hint" id="t-hint">Giờ ghi trên giấy khai sinh, hoặc hỏi người nhà.</p>
+            </div>
+            <label class="field sel" id="t-branch" hidden><span class="sr-only">Khoảng giờ sinh</span><select id="br"></select><svg class="chev" aria-hidden="true"><use href="#ui-chevron"/></svg></label>
+            <p class="hint" id="t-unknown" hidden>Vẫn lập được lá số. Độ chính xác của cung Mệnh sẽ thấp hơn, và bạn bổ sung giờ sau lúc nào cũng được.</p>
+            <p class="err" id="t-err" hidden>Nhập giờ sinh, hoặc chọn &quot;Không rõ giờ&quot;.</p>
+          </div>
+
+          <div class="place-row"><span>Nơi sinh: <b>Việt Nam</b> (giờ Việt Nam)</span><button type="button" class="link-btn">Đổi</button></div>
+        </section>
+
+        <section class="block" aria-labelledby="b2">
+          <h2 class="block-head" id="b2">Về bạn</h2>
+
+          <div class="group" id="gr-gender">
+            <span class="lbl" id="g-l">Giới tính<span class="tick" aria-hidden="true"><svg><use href="#ui-check"/></svg></span></span>
+            <div class="tiles" id="gender" role="group" aria-labelledby="g-l" aria-describedby="g-err">
+              <button type="button" class="tile" aria-pressed="false" data-v="male">Nam<span class="dot"></span></button>
+              <button type="button" class="tile" aria-pressed="false" data-v="female">Nữ<span class="dot"></span></button>
+            </div>
+            <p class="hint">Giới tính quyết định chiều của đại vận trong Tử Vi.</p>
+            <p class="err" id="g-err" hidden>Chọn giới tính để lập lá số.</p>
+          </div>
+
+          <div class="group">
+            <span class="lbl" id="cc-l">Điều bạn bận tâm nhất <span class="opt-note">(không bắt buộc)</span></span>
+            <div class="opts" role="group" aria-labelledby="cc-l" id="concern">
+              <button type="button" class="opt" aria-pressed="false">Hiểu bản thân</button>
+              <button type="button" class="opt" aria-pressed="false">Công việc, tiền bạc</button>
+              <button type="button" class="opt" aria-pressed="false">Tình duyên</button>
+            </div>
+            <p class="hint">Phần luận giải miễn phí sẽ mở trước cung liên quan đến điều này.</p>
+          </div>
+        </section>
+
+        <section class="block" aria-labelledby="b3">
+          <h2 class="block-head" id="b3">Hoàn tất</h2>
+
+          <div class="group">
+            <button type="button" class="link-btn" id="otherBtn" aria-expanded="false" aria-controls="other">Tôi xem cho người khác</button>
+            <div class="other" id="other" hidden>
+              <div class="group">
+                <label for="nm">Tên gọi</label>
+                <div class="field"><span class="lead"><svg aria-hidden="true" style="color:var(--gold-400)"><use href="#ui-user"/></svg></span><input id="nm" autocomplete="off" placeholder="Ví dụ: Mẹ, Lan"></div>
+                <p class="hint">Chỉ để hiện trên lá số.</p>
+              </div>
+              <label class="consent" id="ok2lbl"><input type="checkbox" id="ok2"><span>Người này đã đồng ý cho tôi dùng ngày giờ sinh của họ để lập lá số.</span></label>
+              <p class="err" id="ok2-err" hidden>Cần xác nhận người đó đồng ý.</p>
+            </div>
+          </div>
+
+          <div class="group">
+            <label class="consent" id="oklbl"><input type="checkbox" id="ok"><span>Tôi đồng ý để Lá Số Việt dùng thông tin sinh để lập lá số, theo <a href="#">Chính sách bảo mật</a>.</span></label>
+            <p class="err" id="ok-err" hidden>Cần đồng ý để lập lá số.</p>
+            <p class="privacy"><svg aria-hidden="true"><use href="#ui-lock"/></svg>Lá số của bạn không hiện trên Google. Khách chưa đăng ký được lưu 24 giờ.</p>
+          </div>
+        </section>
+      </form>
+    </div>
+
+    <aside class="board-wrap" aria-hidden="true">
+      <div class="board" id="board"></div>
+      <p class="board-caption" id="boardCap">Minh hoạ: 12 cung hiện dần khi bạn nhập.</p>
+    </aside>
+  </div>
+
+  <section class="making" id="making" hidden aria-live="polite">
+    <h1 id="mkTitle">Đang an sao lá số của bạn</h1>
+    <div class="meter" aria-hidden="true"><i id="mkMeter"></i></div>
+    <ul class="steps" id="mkSteps">
+      <li class="now"><i></i>An 14 chính tinh vào 12 cung</li>
+      <li><i></i>Tính Tứ Hóa và các cách cục</li>
+      <li><i></i>Chấm điểm cấu trúc 12 cung</li>
+      <li><i></i>Viết phần luận giải đầu tiên</li>
+    </ul>
+    <div class="sk-board" aria-hidden="true"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk center"><span class="c-seal"></span></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+    <p class="hint">Thường mất vài giây. Đừng đóng trang.</p>
+  </section>
+</main>
+
+<div class="actions" id="actions">
+  <span class="rail" id="rail"></span>
+  <div class="in">
+    <button type="button" class="btn btn-primary btn-lg" id="go"><span id="goLabel">Xem lá số của tôi</span><svg aria-hidden="true"><use href="#ui-arrow"/></svg></button>
+    <div class="left" id="left" aria-live="polite">Còn 3 mục cần nhập</div>
+  </div>
+</div>
+
+<a class="msgr-bubble" href="#" data-pending aria-label="Nhắn Lá Số Việt qua Messenger"><span class="label">Nhắn Lá Số Việt</span><img src="uploads/messenger-logo-meta-ho-tro-khach-hang-lasoviet.webp" width="56" height="56" alt=""></a>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  function fill(id, opts, sel) { $(id).innerHTML = opts.map(function (o) { return '<option' + (String(o) === String(sel) ? ' selected' : '') + '>' + o + '</option>'; }).join(""); }
+  var days = ["Ngày"], months = ["Tháng"], years = ["Năm"], i;
+  for (i = 1; i <= 31; i++) days.push(i); for (i = 1; i <= 12; i++) months.push(i); for (i = 2026; i >= 1920; i--) years.push(i);
+  fill("d", days); fill("m", months); fill("y", years);
+  fill("br", ["Chọn khoảng giờ", "Tý (23:00-00:59)", "Sửu (01:00-02:59)", "Dần (03:00-04:59)", "Mão (05:00-06:59)", "Thìn (07:00-08:59)", "Tỵ (09:00-10:59)", "Ngọ (11:00-12:59)", "Mùi (13:00-14:59)", "Thân (15:00-16:59)", "Dậu (17:00-18:59)", "Tuất (19:00-20:59)", "Hợi (21:00-22:59)"]);
+
+  // Illustrative 12-palace board: Mệnh sits at Dần here; real placement comes from the engine.
+  var BR = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+  var PN = ["Mệnh", "Phụ Mẫu", "Phúc Đức", "Điền Trạch", "Quan Lộc", "Nô Bộc", "Thiên Di", "Tật Ách", "Tài Bạch", "Tử Tức", "Phu Thê", "Huynh Đệ"];
+  var order = [5, 6, 7, 8, 4, null, null, 9, 3, null, null, 10, 2, 1, 0, 11]; // branch index per grid slot, clockwise from Tỵ
+  var board = $("board"), html = "";
+  order.forEach(function (p, k) {
+    if (k === 5) { html += '<div class="cell center"><span class="c-seal"></span><b id="bcTitle">Lá số của bạn</b><span class="dates" id="bcDate"></span><small id="bcSub">Chờ ngày giờ sinh</small></div>'; return; }
+    if (p === null) return;
+    var pal = (2 - p + 12) % 12; // palace index at this branch
+    html += '<div class="cell' + (pal === 0 ? ' life' : '') + '" data-pal="' + pal + '" style="--i:' + pal + '"><span class="br">' + BR[p].toUpperCase() + '</span><span class="pn">' + PN[pal] + '</span></div>';
+  });
+  board.innerHTML = html;
+
+  function pressed(group) { return group.querySelector('[aria-pressed="true"]'); }
+  function daysIn(m, y) { return new Date(y, m, 0).getDate(); }
+  function state() {
+    var d = +$("d").value, m = +$("m").value, y = +$("y").value;
+    var hasDob = !!(d && m && y);
+    var dobOk = hasDob && d <= daysIn(m, y);
+    var tmode = pressed($("tmode")).dataset.t;
+    var timeOk = tmode === "unknown" || (tmode === "exact" && !!$("hhmm").value) || (tmode === "branch" && $("br").selectedIndex > 0);
+    return { gender: !!pressed($("gender")), hasDob: hasDob, dobOk: dobOk, timeOk: timeOk, tmode: tmode, consent: $("ok").checked, other: !$("other").hidden, otherOk: $("ok2").checked };
+  }
+  function refresh() {
+    var s = state(), missing = 0;
+    if (!s.gender) missing++; if (!s.dobOk) missing++; if (!s.timeOk) missing++;
+    var otherPending = s.other && !s.otherOk, ready = !missing && s.consent && !otherPending;
+    $("left").textContent = missing ? "Còn " + missing + " mục cần nhập" : otherPending ? "Xác nhận người đó đồng ý để tiếp tục" : s.consent ? "Sẵn sàng. Mất khoảng 5 giây." : "Tick đồng ý bên trên để tiếp tục";
+    $("left").classList.toggle("ready", ready);
+    $("gr-dob").classList.toggle("ok", s.dobOk); $("gr-time").classList.toggle("ok", s.timeOk); $("gr-gender").classList.toggle("ok", s.gender);
+    var done = (s.dobOk ? 1 : 0) + (s.timeOk ? 1 : 0) + (s.gender ? 1 : 0) + (s.consent && !otherPending ? 1 : 0);
+    $("rail").style.width = (done * 25) + "%";
+    var lit = (s.dobOk ? 4 : 0) + (s.timeOk ? 4 : 0) + (s.gender ? 4 : 0);
+    document.querySelectorAll(".cell[data-pal]").forEach(function (c) { c.classList.toggle("on", +c.dataset.pal < lit); });
+    $("bcDate").textContent = s.dobOk ? pad($("d").value) + "/" + pad($("m").value) + "/" + $("y").value : "";
+    $("bcSub").textContent = !s.dobOk ? "Chờ ngày giờ sinh" : !s.timeOk ? "Chờ giờ sinh để định cung Mệnh" : !s.gender ? "Chờ giới tính để định chiều đại vận" : "Đủ dữ liệu. Bấm nút để xem lá số thật.";
+    $("boardCap").textContent = "Minh hoạ: 12 cung hiện dần khi bạn nhập.";
+  }
+  function pad(n) { return String(n).length < 2 ? "0" + n : String(n); }
+  function clearErrors() {
+    ["g-err", "dob-err", "t-err", "ok-err", "ok2-err"].forEach(function (k) { $(k).hidden = true; });
+    document.querySelectorAll(".invalid").forEach(function (e) { e.classList.remove("invalid"); });
+    document.querySelectorAll("[aria-invalid]").forEach(function (e) { e.removeAttribute("aria-invalid"); });
+    $("summary").hidden = true; $("sumList").innerHTML = "";
+  }
+  function validate() {
+    clearErrors();
+    var s = state(), first = null;
+    var items = [];
+    function bad(errId, box, focusId) {
+      $(errId).hidden = false; if (box) box.classList.add("invalid");
+      var ctl = $(focusId); if (ctl) ctl.setAttribute("aria-invalid", "true");
+      items.push({ text: $(errId).textContent, target: focusId });
+      if (!first) first = box || $(errId);
+    }
+    if (!s.gender) bad("g-err", $("gender"), "gender");
+    if (!s.hasDob) { $("dob-err").textContent = "Chọn đủ ngày, tháng, năm sinh."; bad("dob-err", $("d").closest(".field"), "d"); }
+    else if (!s.dobOk) { $("dob-err").textContent = "Ngày sinh này không có thật. Kiểm tra lại ngày và tháng."; bad("dob-err", $("d").closest(".field"), "d"); }
+    if (!s.timeOk) bad("t-err", s.tmode === "exact" ? $("hhmm").closest(".field") : $("br").closest(".field"), s.tmode === "exact" ? "hhmm" : "br");
+    if (s.other && !s.otherOk) bad("ok2-err", $("ok2lbl"), "ok2");
+    if (!s.consent) bad("ok-err", $("oklbl"), "ok");
+    if (first) {
+      $("sumList").innerHTML = items.map(function (it) { return '<li><a href="#' + it.target + '">' + it.text + '</a></li>'; }).join("");
+      $("summary").hidden = false;
+      $("summary").scrollIntoView({ behavior: "smooth", block: "center" });
+      $("summary").focus({ preventScroll: true });
+      return false;
+    }
+    return true;
+  }
+
+  document.querySelectorAll(".opts, .seg, .tiles").forEach(function (g) {
+    g.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (g.id === "concern" && b.getAttribute("aria-pressed") === "true") { b.setAttribute("aria-pressed", "false"); return; }
+      g.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); });
+      refresh();
+    });
+  });
+  $("tmode").addEventListener("click", function (e) {
+    var b = e.target.closest(".opt"); if (!b) return;
+    ["exact", "branch", "unknown"].forEach(function (k) { $("t-" + k).hidden = k !== b.dataset.t; });
+    $("t-err").hidden = true; refresh();
+  });
+  $("otherBtn").addEventListener("click", function () {
+    var open = $("other").hidden; $("other").hidden = !open; this.setAttribute("aria-expanded", open);
+    this.textContent = open ? "Tôi xem cho chính mình" : "Tôi xem cho người khác"; refresh();
+  });
+  ["d", "m", "y", "hhmm", "br", "ok", "ok2"].forEach(function (k) { $(k).addEventListener("change", refresh); $(k).addEventListener("input", refresh); });
+
+  $("sumList").addEventListener("click", function (e) {
+    var a = e.target.closest("a"); if (!a) return; e.preventDefault();
+    var t = $(a.getAttribute("href").slice(1)); if (!t) return;
+    (t.matches("button,input,select") ? t : (t.querySelector("button,input,select") || t)).focus();
+  });
+  // Validate a field when the visitor leaves it, not only on submit
+  ["d", "m", "y"].forEach(function (k) { $(k).addEventListener("blur", function () {
+    var s = state(); var box = $("d").closest(".field");
+    if (s.hasDob && !s.dobOk) { $("dob-err").textContent = "Ngày sinh này không có thật. Kiểm tra lại ngày và tháng."; $("dob-err").hidden = false; box.classList.add("invalid"); $("d").setAttribute("aria-invalid", "true"); }
+    else if (s.dobOk) { $("dob-err").hidden = true; box.classList.remove("invalid"); $("d").removeAttribute("aria-invalid"); }
+  }); });
+  var timers = [];
+  function making() {
+    $("entry").hidden = true; $("making").hidden = false; $("actions").hidden = true; window.scrollTo(0, 0);
+    var name = $("nm").value.trim();
+    $("mkTitle").textContent = "Đang an sao lá số" + (name && !$("other").hidden ? " của " + name : " của bạn");
+    var lis = $("mkSteps").querySelectorAll("li"); var k = 0;
+    lis.forEach(function (li, j) { li.className = j === 0 ? "now" : ""; });
+    timers.forEach(clearTimeout); timers = [];
+    $("mkMeter").style.width = "8%";
+    [0, 1, 2, 3].forEach(function (j) {
+      timers.push(setTimeout(function () { lis[j].className = "done"; if (lis[j + 1]) lis[j + 1].className = "now"; $("mkMeter").style.width = (25 * (j + 1)) + "%"; }, 450 * (j + 1)));
+    });
+  }
+  $("go").addEventListener("click", function () {
+    if (!validate()) return;
+    var btn = this; btn.classList.add("busy"); $("goLabel").textContent = "Đang kiểm tra…";
+    timers.push(setTimeout(function () {
+      btn.classList.remove("busy"); $("goLabel").textContent = "Xem lá số của tôi";
+      making();
+      timers.push(setTimeout(function () { if (!/state=making/.test(location.hash)) location.href = "la-so-ket-qua-v2.html"; }, 2300));
+    }, 350));
+  });
+
+  // Prototype state switcher
+  function setState(name) {
+    document.querySelectorAll(".proto-bar button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.state === name); });
+    timers.forEach(clearTimeout); timers = [];
+    $("entry").hidden = name === "making"; $("making").hidden = name !== "making"; $("actions").hidden = name === "making";
+    clearErrors();
+    if (name === "making") { location.hash = "state=making"; making(); return; }
+    history.replaceState(null, "", "#state=" + name);
+    if (name === "errors") {
+      $("d").value = "31"; $("m").value = "2"; $("y").value = "1993"; $("ok").checked = false;
+      $("gender").querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+      validate(); window.scrollTo(0, 0);
+    } else {
+      if (name === "other") { $("other").hidden = false; $("otherBtn").textContent = "Tôi xem cho chính mình"; $("otherBtn").setAttribute("aria-expanded", "true"); $("nm").value = "Mẹ"; }
+      else { $("other").hidden = true; $("otherBtn").textContent = "Tôi xem cho người khác"; }
+      $("d").value = "25"; $("m").value = "7"; $("y").value = "1993"; $("hhmm").value = "06:40"; $("ok").checked = true;
+      $("gender").querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x.dataset.v === "female"); });
+    }
+    refresh();
+  }
+  document.querySelectorAll(".proto-bar button").forEach(function (b) { b.addEventListener("click", function () { setState(b.dataset.state); }); });
+  var initial = (location.hash.match(/state=(\w+)/) || [])[1];
+  if (initial && ["errors", "other", "making"].indexOf(initial) > -1) setState(initial); else refresh();
+</script>
+</body>
+</html>

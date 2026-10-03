@@ -295,14 +295,23 @@ export function ZiweiFreeResult({
             <Link className="button" href={offerHref} onClick={trackDoor}>{t("freeResult.choose")}</Link>
           </section>
           <section {...panel("evidence")} className="fd109-block" data-free-result-block="evidence">
-            <details open={initialState.tab === "evidence"}>
-              <summary id="heading-evidence">{t("tabs.evidence")}</summary>
-              {Object.entries(EVIDENCE_SUFFIX_TO_CANONICAL_ID).map(([suffix, evidenceId]) => <div key={evidenceId}>
-                <EvidenceDrawer chart={chart} chartId={chartId} locale={locale} evidenceId={evidenceId} loadEvidence={loadEvidence}
-                  isOpen={initialState.tab === "evidence" && initialState.open === suffix}
-                  onOpenChange={(open) => navigate("evidence", open ? CANONICAL_ID_TO_EVIDENCE_SUFFIX[evidenceId] : undefined)} />
-              </div>)}
-            </details>
+            <h2 id="heading-evidence">{t("tabs.evidence")}</h2>
+            <p>{t("evidenceTab.subtitle")}</p>
+            <div className="evidence-cards-matrix">
+              {Object.entries(EVIDENCE_SUFFIX_TO_CANONICAL_ID).map(([suffix, evidenceId], index) => (
+                <article className="evidence-matrix-card" key={evidenceId}>
+                  <div className="matrix-card-head">
+                    <span className="matrix-badge">{t("evidenceTab.sourceLabel")} 0{index + 1}</span>
+                    <h3>{presentation.evidence(suffix)}</h3>
+                  </div>
+                  <div className="matrix-card-action">
+                    <EvidenceDrawer chart={chart} chartId={chartId} locale={locale} evidenceId={evidenceId} loadEvidence={loadEvidence}
+                      isOpen={initialState.tab === "evidence" && initialState.open === suffix}
+                      onOpenChange={(open) => navigate("evidence", open ? CANONICAL_ID_TO_EVIDENCE_SUFFIX[evidenceId] : undefined)} />
+                  </div>
+                </article>
+              ))}
+            </div>
           </section>
         </div>
       </div>

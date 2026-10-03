@@ -165,7 +165,7 @@ describe("create top-up order", () => {
   it("forwards explicitly confirmed intent terms and retains them through sign-in", async () => {
     const continuation = { purchaseIntentId: "11111111-1111-4111-8111-111111111111", expectedIntentVersion: 3, confirmedPriceLa: 240, returnTab: "palaces" as const, returnOpen: "life" };
     const returnPath = `/nap-la?pack=LA-ENTRY-300&intent=${continuation.purchaseIntentId}&intentVersion=3&price=240&tab=palaces&open=life`;
-    const { createTopUpOrderFormAction } = await import("./create-topup-order.js");
+    const { createTopUpOrderFormAction } = await import("./create-topup-order-action.js");
     const form = new FormData();
     form.set("packId", "LA-ENTRY-300");
     form.set("locale", "vi");

@@ -13,6 +13,9 @@ import { createWorldTextures } from "./troi-nam-world-textures";
 import { createWater } from "./troi-nam-world-water";
 import type { WorldChartTarget, WorldDebug, WorldHandle, WorldOptions } from "./troi-nam-world-types";
 
+/** Largest sky dimming while text is on screen. Kept light on purpose: at 0.55 the whole scene sank; contrast now comes from the glass reading panels, this only evens the brightest dusk mist. */
+const SKY_TEXT_DIM = 0.18;
+
 // Matches --lacquer-950 (tokens.css): the canvas's own backdrop is only ever
 // visible for a frame before the first real paint, or briefly through gaps
 // between painted layers — it must read as the same warm lacquer-black as
@@ -84,6 +87,7 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
     const projection = createChartProjection();
     const bufferSize = new THREE.Vector2();
     let progress = 0;
+    let textDim = 0;
     let aspect = 1;
     let canvasWidth = 1;
     let canvasHeight = 1;
@@ -124,6 +128,8 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
         }
         painted.setPhase(phases); painted.setProgress(progress);
         light.setPhase(phases);
+        // Text on screen eases the sky down a little (less as the chart takes over).
+        light.setExposure(1 - SKY_TEXT_DIM * textDim * (1 - phases.chart));
         water.setNightWeight(phases.night); water.update(progress * 60);
         stars.setNightWeight(phases.night); stars.setChartWeight(chartRect ? phases.chart : 0); stars.update(progress * 60);
         ring.setWeight(chartRect && projected ? phases.chart : 0);
@@ -162,6 +168,13 @@ export async function createTroiNamWorld(canvas: HTMLCanvasElement, { quality, s
 
     const handle: WorldHandle = {
       setProgress(value) { if (!disposed) { const next = clampProgress(value); if (next !== progress) { progress = next; dirty = true; } } },
+      setTextDim(value) {
+        if (disposed) return;
+        const next = clampProgress(value);
+        if (Math.abs(next - textDim) < 0.004) return;
+        textDim = next;
+        dirty = true;
+      },
       setChartTarget(rect) {
         if (disposed) return;
         if (rect?.x === chartRect?.x && rect?.y === chartRect?.y && rect?.width === chartRect?.width && rect?.height === chartRect?.height) return;

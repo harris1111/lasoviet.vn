@@ -11,6 +11,7 @@ import { TroiNamFaq } from "../../features/troi-nam/troi-nam-faq";
 import { TroiNamValue } from "../../features/troi-nam/troi-nam-value";
 import { TroiNamCompare } from "../../features/troi-nam/troi-nam-compare";
 import { TroiNamExplore } from "../../features/troi-nam/troi-nam-explore";
+import { TroiNamMotion } from "../../features/troi-nam/troi-nam-motion";
 import { TroiNamHero } from "../../features/troi-nam/troi-nam-hero";
 import { TroiNamNeeds } from "../../features/troi-nam/troi-nam-needs";
 import { TroiNamStory } from "../../features/troi-nam/troi-nam-story";
@@ -78,6 +79,7 @@ export default async function Page({ params }: PageProps) {
           <section className="tn-section" data-troi-nam-block="about">
             <TroiNamAbout locale={locale} />
           </section>
+          <TroiNamMotion />
         </main>
       </HomepageV3ConcernProvider>
       <SiteFooter locale={locale} />

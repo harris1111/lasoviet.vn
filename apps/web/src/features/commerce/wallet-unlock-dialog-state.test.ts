@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveWalletUnlockLoadedState } from "./wallet-unlock-dialog-state";
+import { classifyWalletUnlockError, resolveWalletUnlockLoadedState } from "./wallet-unlock-dialog-state";
 
 describe("resolveWalletUnlockLoadedState", () => {
   it("confirms when the balance covers the price exactly", () => {
@@ -44,5 +44,19 @@ describe("resolveWalletUnlockLoadedState", () => {
       1,
     );
     expect(result.step).toBe("short_balance");
+  });
+});
+
+describe("classifyWalletUnlockError", () => {
+  it.each([
+    ["WALLET_CHART_NOT_FOUND", "chart_not_found"],
+    ["WALLET_EVIDENCE_MISSING", "preparing"],
+    ["WALLET_INTENT_VERSION_CONFLICT", "stale"],
+    ["PRIVATE_API_UNREACHABLE", "unavailable"],
+    ["UPSTREAM_UNAVAILABLE", "unavailable"],
+    ["SOMETHING_NEW", "generic"],
+    [undefined, "generic"],
+  ] as const)("maps %s to %s", (code, kind) => {
+    expect(classifyWalletUnlockError(code)).toBe(kind);
   });
 });

@@ -2,13 +2,13 @@ import { customerContactConfig } from "@lasoviet/config";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import type { CurrentActor, OrderHistoryItemV1 } from "@lasoviet/contracts";
+import { WalletTopUpPackIdSchema, type CurrentActor, type OrderHistoryItemV1 } from "@lasoviet/contracts";
 import {
   resolveVerifiedAccountActor,
   VerifiedAccountResolutionError,
 } from "../../../../../auth/resolve-current-actor";
 import { accountDataLoader } from "../../../../../features/account/account-data-loader";
-import type { PublicOfferKey } from "../../../../../features/commerce/checkout-offer";
+import { isPublicOfferKey, type PublicOfferKey } from "../../../../../features/commerce/checkout-offer";
 import { freeIdentityPreviewLoader } from "../../../../../features/reports/load-free-identity-preview";
 import { PaidTopicSelector } from "../../../../../features/reports/paid-topic-selector";
 import {
@@ -24,10 +24,17 @@ export const dynamic = "force-dynamic";
 
 export default async function PaidTopicSelectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ chartId: string; locale: string }>;
+  searchParams?: Promise<{ tab?: string; pack?: string; offer?: string }>;
 }) {
   const { chartId, locale: requestedLocale } = await params;
+  const query = await searchParams;
+  const initialTab =
+    query?.tab === "hoi-vien" || query?.tab === "nap-la" ? query.tab : "luan-giai";
+  const parsedPack = WalletTopUpPackIdSchema.safeParse(query?.pack);
+  const initialOfferKey = isPublicOfferKey(query?.offer) ? query.offer : undefined;
   const locale = requestedLocale === "en" ? "en" : "vi";
   const [topics, chartResult] = await Promise.all([
     freeIdentityPreviewLoader.loadTopics(chartId),
@@ -91,6 +98,9 @@ export default async function PaidTopicSelectionPage({
           ownershipByOfferKey={ownershipByOfferKey}
           orderHistory={orderHistory}
           topics={topics.value}
+          initialTab={initialTab}
+          initialPackId={parsedPack.success ? parsedPack.data : undefined}
+          initialOfferKey={initialOfferKey}
           supportEmail={customerContactConfig.email.value}
           userBalance={userBalance}
         />

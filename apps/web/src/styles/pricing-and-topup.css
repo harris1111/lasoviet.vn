@@ -131,7 +131,8 @@
   border-color: var(--pearl-600);
 }
 
-.offer-card[aria-pressed="true"] {
+.offer-card[aria-pressed="true"],
+.offer-card[data-selected="true"] {
   border-color: var(--gold-400);
   box-shadow: 0 0 0 2px var(--gold-500), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
@@ -172,11 +173,13 @@
   flex: none;
 }
 
-.offer-card[aria-pressed="true"] .radio-circle {
+.offer-card[aria-pressed="true"] .radio-circle,
+.offer-card[data-selected="true"] .radio-circle {
   border-color: var(--gold-400);
 }
 
-.offer-card[aria-pressed="true"] .radio-circle::after {
+.offer-card[aria-pressed="true"] .radio-circle::after,
+.offer-card[data-selected="true"] .radio-circle::after {
   content: "";
   width: 10px;
   height: 10px;
@@ -282,7 +285,8 @@
   border-color: var(--pearl-600);
 }
 
-.pack-card[aria-pressed="true"] {
+.pack-card[aria-pressed="true"],
+.pack-card[data-selected="true"] {
   border-color: var(--gold-400);
   box-shadow: 0 0 0 2px var(--gold-500), 0 8px 24px rgba(0, 0, 0, 0.4);
 }
@@ -707,4 +711,30 @@ html[data-theme="light"] .wallet-unlock-dialog-short-balance h3 {
 html[data-theme="light"] .wallet-unlock-dialog-summary strong,
 html[data-theme="light"] .wallet-unlock-dialog-short-balance strong {
   color: var(--gold-800);
+}
+
+/* Interactive selection controls (buttons styled to match the static cards) */
+button.pack-card {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+}
+
+button.pack-card:focus-visible,
+.radio-circle:focus-visible,
+.offer-card:focus-visible {
+  outline: 2px solid var(--gold-400);
+  outline-offset: 3px;
+}
+
+button.radio-circle {
+  appearance: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.pack-card[aria-pressed="true"] .pack-name,
+.pack-card[data-selected="true"] .pack-name {
+  color: var(--gold-400);
 }

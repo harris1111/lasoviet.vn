@@ -19,6 +19,8 @@ export type WorldDiagnostics = {
 export type WorldHandle = {
   setProgress(value: number): void;
   setChartTarget(rect: WorldChartTarget | null): void;
+  /** 0..1: how much text is on screen; the scene dims its sky by this much so copy stays readable. */
+  setTextDim(value: number): void;
   resize(width: number, height: number, pixelRatio: number): void;
   setActive(active: boolean): void;
   dispose(): void;

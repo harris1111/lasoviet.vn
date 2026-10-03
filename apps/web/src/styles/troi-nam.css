@@ -38,6 +38,28 @@
   padding-inline: 0;
 }
 
+/*
+ * Spacing owner: the section wrapper. The shared v3 `.hv3-container` carries its own vertical
+ * padding (64-120px, 40-80px for art containers) and 48px inline padding, which stacked on the
+ * wrapper's padding and doubled the gap between sections and pushed copy off the shared edge.
+ * Outside the world stage a container is just the 1280px column; inside it the container keeps
+ * its inline inset (see above) and loses only the vertical padding. Between two plain sections
+ * the gap is one --tn-section-y (half from each).
+ */
+main > .tn-section {
+  padding-block: calc(var(--tn-section-y) / 2);
+}
+
+main > .tn-section .hv3-container {
+  max-width: var(--tn-max);
+  margin-inline: auto;
+  padding: 0;
+}
+
+.tn-world-content .tn-section .hv3-container {
+  padding-block: 0;
+}
+
 .tn-shell {
   max-width: var(--tn-max);
   margin-inline: auto;
@@ -329,30 +351,6 @@
   color: var(--tn-text);
 }
 
-/* Visible proof, not another claim — a real sample reading, reachable before
-   the visitor fills in anything (2026-10-01 audit F1). */
-.tn-hero-sample-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  margin-top: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
-  color: var(--tn-gold-light);
-  font-size: var(--tn-body);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.tn-hero-sample-cta:hover {
-  color: var(--tn-gold);
-}
-
-.tn-hero-handoff-note {
-  margin: 0.75rem 0 0;
-  color: var(--tn-text-muted);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
 /*
  * The form itself is the unmodified wizard card from the live homepage
  * (`.hv3-form` in homepage-v3.css): raised surface, hairline border, shadow,
@@ -472,14 +470,15 @@
   background: transparent;
 }
 
-.tn .tn-story .hv3-container {
+.tn .tn-story .hv3-container,
+.tn .tn-explore .hv3-container {
   position: relative;
-  max-width: var(--tn-max);
+  /* Section-level inline padding is 0 here so the painted world bleeds to the viewport edge, so
+     the inset lives on the container. Its max-width includes both gutters, which puts the text
+     edge on the same x as the 1280px column of every other section (before, the container
+     capped at 1280 and then added the gutter, pushing the copy ~64px further in). */
+  max-width: calc(var(--tn-max) + 2 * var(--tn-gutter));
   padding-block: 0;
-  /* Section-level inline padding was removed so the background above can
-     bleed to the viewport edge (see `.tn-world-content .tn-section`) — this
-     is the one place that inset now lives, so the text column's actual
-     position on screen is unchanged. */
   padding-inline: var(--tn-gutter);
 }
 
@@ -508,23 +507,37 @@
 }
 
 /*
- * Soft readability gradient on the panel (not a box behind the section) —
- * the painted world stays fully visible past where the text column ends.
- * Same curve shape the shared `.hv3-story-art::after` component already
- * uses for art-behind-text sections (strong near the text, gone by ~82%),
- * just re-centered on tn-ink instead of the lighter v3 surface color.
- * Mobile gets near-full coverage top-to-bottom (the text column is full
- * width there, so there's no "right side" to leave clear); desktop switches
- * to the left-dark/right-clear split once the copy column narrows to 58%
- * (2026-10-01 CX review, "thế giới là sân khấu").
+ * Reading panels are frosted glass, not dark boxes. The world is fixed to the viewport and the
+ * copy scrolls across it, so text sits on bright mist one moment and dark water the next: no
+ * single scrim or sky level fits both (a flat dark layer showed as a rectangle with edges, and
+ * dimming the whole scene made it sink). Glass blurs whatever is behind the text, which removes
+ * the busy detail that fought the letters, with a modest dim and a hairline edge so the scene is
+ * still seen through it. Solid fallback where backdrop-filter is missing or transparency is reduced.
  */
-.tn .tn-story .hv3-story-panel::before {
-  content: "";
-  position: absolute;
-  inset: -4% -2%;
-  z-index: -1;
-  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
-  pointer-events: none;
+.tn .tn-story .hv3-story-copy,
+.tn .tn-explore .hv3-head {
+  background: rgb(15 13 10 / 0.38);
+  -webkit-backdrop-filter: blur(18px) brightness(0.7) saturate(1.1);
+  backdrop-filter: blur(18px) brightness(0.7) saturate(1.1);
+  border: 1px solid rgb(242 220 160 / 0.16);
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 30px 80px -40px rgb(0 0 0 / 0.7);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tn .tn-story .hv3-story-copy,
+  .tn .tn-explore .hv3-head {
+    background: rgb(15 13 10 / 0.9);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tn .tn-story .hv3-story-copy,
+  .tn .tn-explore .hv3-head {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(15 13 10 / 0.92);
+  }
 }
 
 .tn .tn-story .hv3-story-copy {
@@ -535,11 +548,7 @@
 
 @media (min-width: 880px) {
   .tn .tn-story .hv3-story-copy {
-    width: min(58%, 620px);
-  }
-
-  .tn .tn-story .hv3-story-panel::before {
-    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
+    width: min(58%, 640px);
   }
 }
 
@@ -719,7 +728,36 @@
  */
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-head,
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-shortcuts {
-  text-shadow: 0 1px 3px rgb(5 4 3 / 0.9), 0 4px 18px rgb(5 4 3 / 0.7);
+  text-shadow: 0 1px 2px rgb(5 4 3 / 0.8);
+}
+
+/*
+ * Contrast over the Milky Way, without any dark layer in the page: while this heading and the
+ * shortcut row are on screen the 3D scene dims its sky (textDim, see the world stage), copy is
+ * pearl-200 (13:1 on the dimmed sky), and the shortcut chips keep their own dark fill so a control
+ * never depends on the sky behind it.
+ */
+.tn .tn-explore .hv3-lead {
+  color: var(--pearl-200);
+}
+
+.tn .tn-explore .hv3-hint {
+  color: var(--pearl-200);
+  text-shadow: 0 0 2px rgb(5 4 3 / 0.95), 0 1px 12px rgb(5 4 3 / 0.85);
+}
+
+.tn .tn-explore .hv3-head {
+  padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.tn .tn-explore .hv3-shortcuts button {
+  background: rgb(15 13 10 / 0.78);
+  border-color: color-mix(in srgb, var(--tn-gold) 45%, transparent);
+}
+
+.tn .tn-explore .hv3-shortcuts button[aria-pressed="true"] {
+  background: var(--lacquer-700);
+  border-color: var(--tn-gold-light);
 }
 
 .tn[data-troi-nam-world-ready] .tn-explore .hv3-legend {
@@ -788,6 +826,77 @@
 .tn .tn-explore .hv3-chart-core > div {
   border-color: var(--son);
   outline-color: var(--son);
+}
+
+/*
+ * Sample chart, same look as the approved free-result chart: lacquer texture under the cells,
+ * la kinh ornament and the LSV seal in the centre. Vietnamese labels are one size up (palace
+ * names 14-18px, branch 13-15px, reading label and name, hint and legend 15-17px), because the
+ * 11-13px originals were hard to read on a phone. Layout, states and lines are unchanged.
+ */
+.tn .tn-explore .hv3-chart {
+  background-color: var(--lacquer-line);
+  background-image: url("/images/lasoviet/nen-la-so-son-mai-lien-mach-lasoviet.webp");
+  background-size: 300px 300px;
+  background-repeat: repeat;
+  border-radius: 10px;
+}
+
+.tn .tn-explore .hv3-cell {
+  background: rgb(15 13 10 / 0.8);
+}
+
+.tn .tn-explore .hv3-chart-core {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, var(--lacquer-700), rgb(15 13 10 / 0.8) 74%);
+}
+
+.tn .tn-explore .hv3-chart-core::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  background: url("/images/lasoviet/hoa-van-la-kinh-trung-tam-la-so-lasoviet.svg") center / contain no-repeat;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-chart-core::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: clamp(34px, 7vw, 62px);
+  aspect-ratio: 1;
+  background: url("/images/lasoviet/dau-trien-la-so-viet-son-do.webp") center / contain no-repeat;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.tn .tn-explore .hv3-chart-core > div {
+  position: relative;
+  z-index: 1;
+}
+
+.tn .tn-explore .hv3-cell-name {
+  font-size: clamp(14px, 3.4vw, 18px);
+}
+
+.tn .tn-explore .hv3-cell-branch {
+  font-size: clamp(13px, 3vw, 15px);
+}
+
+.tn .tn-explore .hv3-core-name {
+  font-size: clamp(20px, 5vw, 30px);
+}
+
+.tn .tn-explore .hv3-chart-core .hv3-mono {
+  font-size: clamp(12px, 2.8vw, 14px);
+}
+
+.tn .tn-explore .hv3-hint,
+.tn .tn-explore .hv3-legend {
+  font-size: clamp(15px, 3.8vw, 17px);
 }
 
 /*
@@ -978,8 +1087,34 @@
 }
 
 .tn .tn-needs .hv3-need-list {
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--tn-gutter);
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.tn .tn-needs .hv3-need-list::-webkit-scrollbar {
+  display: none;
+}
+
+.tn .tn-needs .hv3-need-list > .hv3-need {
+  flex: 0 0 min(76%, 20rem);
+}
+
+@media (min-width: 600px) {
+  .tn .tn-needs .hv3-need-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tn-gutter);
+    overflow: visible;
+  }
+
+  .tn .tn-needs .hv3-need-list > .hv3-need {
+    flex: none;
+  }
 }
 
 /*
@@ -1009,43 +1144,59 @@
   transition-delay: 180ms;
 }
 
+/*
+ * Image-first cards. Each plate is a 1:1 crop centred on its subject (see troi-nam-needs.tsx),
+ * shown full width on top of the card; the title and question sit below. Phones scroll the four
+ * cards sideways with snap (the next card peeks in as the affordance); from 600 px they form a
+ * 2x2 grid and from 880 px a single row of four, with the detail panel as a wide band below.
+ */
 .tn .tn-needs .hv3-need {
   position: relative;
   overflow: hidden;
   flex-direction: column;
+  align-items: stretch;
   min-width: 0;
-  gap: calc(var(--tn-gutter) / 2);
-  /* Was clamp(10rem,22vw,14rem) (160-224px) — four of these stacked 2x2
-     nearly doubled the whole needs section's height versus the live
-     homepage's plain text-row buttons (2026-10-01 CX review: "section cao
-     quá mức cần thiết"). Still a real decorative plate, just not a page-
-     length one. */
-  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  gap: 0;
+  padding: 0;
   color: var(--tn-text);
   background: var(--lacquer-800);
   border: 1px solid var(--lacquer-line);
+  touch-action: manipulation;
+  scroll-snap-align: start;
+}
+
+.tn .tn-needs .hv3-need:active {
+  transform: scale(0.99);
 }
 
 .tn .tn-needs .hv3-need::before {
   content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: clamp(6.5rem, 13vw, 8.5rem);
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   background-size: cover;
-  background-position: center 44%;
+  background-position: center;
   background-repeat: no-repeat;
-  pointer-events: none;
+  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-need-text {
+  padding: calc(var(--tn-gutter) * 0.75) var(--tn-gutter) var(--tn-gutter);
 }
 
 .tn .tn-needs .hv3-need[aria-pressed="true"] {
-  padding: calc(clamp(6.5rem, 13vw, 8.5rem) + var(--tn-gutter)) var(--tn-gutter) var(--tn-gutter);
+  padding: 0;
   border: 1px solid var(--tn-gold-light);
   background: var(--lacquer-700);
   box-shadow: inset 0 0 0 1px var(--tn-gold-light);
 }
 
 .tn .tn-needs .hv3-need-icon {
-  background-color: var(--lacquer-900);
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1;
+  background-color: rgba(15, 13, 10, 0.78);
   border-color: var(--lacquer-line);
   background-size: 34px 34px;
   background-position: center;
@@ -1065,13 +1216,9 @@
   border-color: var(--lacquer-line);
 }
 
+/* The card already carries the picture; repeating it in the detail panel only pushed the text down. */
 .tn .tn-needs .hv3-need-art {
-  height: clamp(14rem, 45vw, 22rem);
-  margin: calc(-1 * var(--tn-gutter)) calc(-1 * var(--tn-gutter)) 0;
-  background-color: var(--lacquer-800);
-  background-position: center 44%;
-  background-size: cover;
-  background-repeat: no-repeat;
+  display: none;
 }
 
 /* Decorative detail image follows aria-pressed via the wrapper's asset rules. */
@@ -1125,202 +1272,457 @@
   grid-column: auto;
 }
 
+/*
+ * Discipline cards. Colour is the locked accent of each discipline page: --d1 jade (Bát Tự),
+ * --d2 mineral (Chiêm Tinh), --d3 bronze (Kinh Dịch), --d4 indigo (Thần Số Học), set through
+ * data-tone in homepage-v3.css; Tử Vi, the flagship, keeps the Trời Nam gold. The tone is used
+ * for the top rule, icon, art outline and hover border, never for small text: jade and bronze
+ * fall under 4.5:1 on lacquer, so the link text uses the tone lifted toward white.
+ * The artworks are 4:5 with their own gold frame, so they are shown whole, in a matte inset
+ * from the card edge: cropping or clipping them under the card's rounded corners cuts the frame.
+ * Phones: horizontal rows. 600px: 2 columns. 880px: flagship band plus four columns.
+ */
 .tn .tn-needs .hv3-disc,
 .tn .tn-needs .hv3-disc-flagship {
+  --tone-text: color-mix(in srgb, var(--tone, var(--tn-gold)) 55%, white);
+  flex-direction: row;
+  align-items: flex-start;
   color: var(--tn-text) !important;
   background: var(--lacquer-800);
   border-color: var(--lacquer-line);
+  border-top: 3px solid var(--tone, var(--tn-gold));
+  touch-action: manipulation;
 }
 
 .tn .tn-needs .hv3-disc-flagship {
-  flex-direction: column;
+  --tone: var(--tn-gold);
 }
 
 .tn .tn-needs .hv3-disc-art,
 .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art,
 .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
-  flex: none;
-  aspect-ratio: 4 / 3;
+  flex: 0 0 min(38%, 9.5rem);
+  aspect-ratio: 4 / 5;
+  margin: 0.75rem 0 0.75rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--tone, var(--tn-gold)) 60%, transparent);
+  border-radius: 6px;
   background: var(--lacquer-900);
-  border: 0;
-  border-bottom: 1px solid var(--lacquer-line);
+}
+
+.tn .tn-needs .hv3-disc-art img {
+  object-position: center;
+}
+
+.tn .tn-needs .hv3-disc-body,
+.tn .tn-needs .hv3-disc-flagship .hv3-disc-body {
+  justify-content: flex-start;
+  min-width: 0;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem 1rem 0.9rem;
+}
+
+.tn .tn-needs .hv3-disc-name {
+  font-size: 1.15rem;
+}
+
+.tn .tn-needs .hv3-disc-name-lg {
+  font-size: clamp(1.5rem, 5vw, 2rem);
 }
 
 .tn .tn-needs .hv3-disc:hover,
 .tn .tn-needs .hv3-disc:focus-visible {
-  border-color: var(--tn-gold);
+  border-color: var(--tone, var(--tn-gold));
 }
 
 .tn .tn-needs .hv3-mask {
-  background: var(--tn-gold);
+  width: 30px;
+  height: 30px;
+  background: var(--tone, var(--tn-gold));
 }
 
 .tn .tn-needs .hv3-disc-cta {
-  color: var(--tn-gold-light);
+  color: var(--tone-text);
 }
 
-/* Compare: subtle paper texture behind the existing disclosure and data. */
-.tn .tn-compare {
-  isolation: isolate;
-}
-
-.tn .tn-compare-texture {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.06;
-  pointer-events: none;
-}
-
-.tn .tn-compare .hv3-compare-head {
-  padding: var(--tn-gutter);
-  background: var(--lacquer-900);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-compare-points {
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--tn-gutter);
-}
-
-.tn .tn-compare .hv3-compare-points span {
-  padding: var(--tn-gutter);
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-compare-points svg {
-  color: var(--tn-gold);
-}
-
-.tn .tn-compare .hv3-compare-details {
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-compare-details > summary {
-  color: var(--tn-gold-light);
-}
-
-.tn .tn-compare .hv3-tabs {
-  flex-wrap: wrap;
-  overflow-x: visible;
-}
-
-.tn .tn-compare .hv3-tabs button {
-  flex: 1 1 auto;
-  white-space: normal;
-  padding-block: calc(var(--tn-gutter) / 4);
-  color: var(--tn-text);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-tabs button[aria-pressed="true"] {
-  background: var(--tn-gold-light);
-  color: var(--tn-ink);
-  border-color: var(--tn-gold-light);
-}
-
-.tn .tn-compare .hv3-cmp-card {
-  color: var(--tn-text);
-  background: var(--lacquer-800);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-cmp-top {
-  background: var(--lacquer-700);
-  border-color: var(--tn-gold);
-}
-
-.tn .tn-compare .hv3-cmp-card-title,
-.tn .tn-compare .hv3-cmp-value {
-  color: var(--tn-text);
-}
-
-.tn .tn-compare .hv3-cmp-axis,
-.tn .tn-compare .hv3-cmp-fix strong {
-  color: var(--tn-gold-light);
-}
-
-.tn .tn-compare .hv3-cmp-fix {
-  color: var(--tn-text-muted);
-  border-color: var(--lacquer-line);
-}
-
-.tn .tn-compare .hv3-compare-table th,
-.tn .tn-compare .hv3-compare-table td {
-  color: var(--tn-text-muted);
-  border-color: var(--lacquer-line);
-  overflow-wrap: anywhere;
-}
-
-.tn .tn-compare .hv3-compare-table thead th,
-.tn .tn-compare .hv3-compare-table tbody th {
-  color: var(--tn-text);
-}
-
-.tn .tn-compare .hv3-compare-table [data-col="lsv"] {
-  color: var(--tn-text);
-  background: var(--lacquer-700);
-  border-color: var(--lacquer-line);
-  box-shadow: inset 3px 0 0 var(--tn-gold);
-}
-
-.tn .tn-compare .hv3-cmp-mark {
-  color: var(--son);
-}
-
-.tn .tn-compare .hv3-cmp-mark[data-strength="true"],
-.tn .tn-compare .hv3-cmp-mark[data-lsv="true"] {
-  color: var(--tn-gold-light);
-}
-
-@media (min-width: 880px) {
-  .tn .tn-needs .hv3-needs-body {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-    align-items: stretch;
-  }
-
-  .tn .tn-needs .hv3-need-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+@media (min-width: 600px) {
   .tn .tn-needs .hv3-disciplines {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .tn .tn-needs .hv3-disc-slot-flagship {
     grid-column: 1 / -1;
   }
 
-  .tn .tn-needs .hv3-disc-flagship {
-    flex-direction: row;
+  .tn .tn-needs .hv3-disc:not(.hv3-disc-flagship) {
+    flex-direction: column;
+  }
+
+  .tn .tn-needs .hv3-disc:not(.hv3-disc-flagship) .hv3-disc-art {
+    flex: none;
+    margin: 0.75rem 0.75rem 0;
+  }
+
+  .tn .tn-needs .hv3-disc:not(.hv3-disc-flagship) .hv3-disc-body {
+    padding: 1rem;
   }
 
   .tn .tn-needs .hv3-disc-flagship .hv3-disc-art {
-    flex: 0 0 34%;
-    aspect-ratio: 4 / 5;
-    border-bottom: 0;
-    border-right: 1px solid var(--lacquer-line);
+    flex: 0 0 clamp(11rem, 26%, 16rem);
+    margin: 1rem 0 1rem 1rem;
   }
 
-  .tn .tn-needs .hv3-disc-slot:not(.hv3-disc-slot-flagship) .hv3-disc-art {
-    aspect-ratio: 4 / 5;
-  }
-
-  .tn .tn-compare .hv3-compare-points {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  /* Preserve v3's 1180px table threshold; cards remain at narrow desktops. */
-  .tn .tn-compare .hv3-compare-head {
-    max-width: 60rem;
+  .tn .tn-needs .hv3-disc-flagship .hv3-disc-body {
+    justify-content: center;
+    align-self: stretch;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    gap: 0.75rem;
   }
 }
 
+/*
+ * Compare board (troi-nam-compare-board.tsx). One surface only: the section sits on the page
+ * ink, the board is a single raised panel, and nothing inside it paints its own card on top
+ * (the previous version stacked a texture image, a head card, three point cards and a details
+ * panel). Lá Số Việt is the one tinted, framed column; the other ways stay muted.
+ */
+.tn .tnc-head {
+  max-width: none;
+}
 
+.tn .tnc-head .hv3-lead {
+  max-width: 46rem;
+}
+
+.tn .tnc-proof {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tn-gutter);
+  margin: var(--tn-gutter) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tn .tnc-proof li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: var(--tn-gutter);
+  background: var(--lacquer-800);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 16px;
+  color: var(--tn-text);
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
+  line-height: 1.3;
+}
+
+.tn .tnc-proof svg {
+  color: var(--tn-gold);
+  flex: none;
+}
+
+@media (min-width: 880px) {
+  .tn .tnc-proof {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tn .tnc-sub {
+  margin: calc(var(--tn-gutter) * 1.5) 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--tn-text);
+}
+
+.tn .tnc-board {
+  margin-top: 1rem;
+  padding: clamp(0.75rem, 2vw, 1.5rem);
+  background: var(--lacquer-900);
+  border: 1px solid var(--lacquer-line);
+  border-radius: 20px;
+}
+
+.tn .tnc-table {
+  display: none;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.tn .tnc-table th,
+.tn .tnc-table td {
+  padding: 0.9rem 0.9rem;
+  text-align: left;
+  vertical-align: top;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--lacquer-line);
+  color: var(--tn-text-muted);
+  font-weight: 400;
+}
+
+.tn .tnc-table thead th,
+.tn .tnc-table thead td,
+.tn .tnc-table tfoot td {
+  border-top: 0;
+}
+
+.tn .tnc-table thead th[data-col="lsv"] {
+  width: 31%;
+}
+
+.tn .tnc-table thead th {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--tn-text);
+  vertical-align: bottom;
+}
+
+.tn .tnc-table tbody th {
+  width: 17%;
+  padding-left: 0;
+}
+
+.tn .tnc-axis {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--tn-text);
+  font-weight: 600;
+}
+
+.tn .tnc-axis svg {
+  flex: none;
+  color: var(--tn-gold);
+}
+
+.tn .tnc-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.tn .tnc-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-top: 0.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--lacquer-line);
+  color: var(--tn-text-muted);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.tn .tnc-mark[data-kind="star"] {
+  border-color: var(--tn-gold);
+  color: var(--tn-gold-light);
+}
+
+.tn .tnc-mark[data-kind="yes"] {
+  border-color: var(--tn-gold);
+  background: var(--tn-gold);
+  color: var(--lacquer-900);
+  font-weight: 700;
+}
+
+/* The other ways: two lines each until the reader asks for the rest. */
+.tn .tnc-table td:not([data-col="lsv"]) .tnc-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.tn .tnc-board[data-open="true"] .tnc-table td:not([data-col="lsv"]) .tnc-text {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+/*
+ * Lá Số Việt: the one framed, tinted column, set apart three ways at once: a solid gold header,
+ * a heavier gold frame and fill, and larger bolder text, while the other columns drop to a
+ * smaller, dimmer size.
+ */
+.tn .tnc-table [data-col="lsv"] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tn-gold) 26%, transparent), color-mix(in srgb, var(--tn-gold) 12%, transparent));
+  border-left: 2px solid var(--tn-gold);
+  border-right: 2px solid var(--tn-gold);
+  border-top-color: color-mix(in srgb, var(--tn-gold) 35%, transparent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tn .tnc-table thead th[data-col="lsv"] {
+  background: linear-gradient(180deg, var(--tn-gold-light), var(--tn-gold));
+  border-top: 0;
+  border-radius: 14px 14px 0 0;
+  padding: 1.1rem 0.9rem;
+  font-size: 1.35rem;
+  color: var(--lacquer-900);
+}
+
+.tn .tnc-table tfoot td[data-col="lsv"] {
+  border-bottom: 2px solid var(--tn-gold);
+  border-radius: 0 0 14px 14px;
+  padding-bottom: 1.1rem;
+}
+
+.tn .tnc-table td:not([data-col="lsv"]) {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.tn .tnc-table thead th:not([data-col="lsv"]) {
+  font-size: 1rem;
+  color: var(--tn-text-muted);
+}
+
+.tn .tnc-foot-note {
+  vertical-align: middle;
+}
+
+.tn .tnc-cta {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  white-space: normal;
+  text-align: center;
+}
+
+.tn .tnc-toggle {
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--lacquer-line);
+  border-radius: 999px;
+  background: none;
+  color: var(--tn-gold-light);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.tn .tnc-toggle:hover {
+  border-color: var(--tn-gold);
+}
+
+/*
+ * Phones and tablets: one block per criterion, so the whole comparison reads top to bottom with
+ * no tabs. In each block Lá Số Việt is the gold line and the three other ways are small,
+ * dimmed rows under it with a fixed label column.
+ */
+.tn .tnc-mobile {
+  display: grid;
+  gap: 0;
+}
+
+.tn .tnc-m-row {
+  padding: 1.1rem 0;
+  border-top: 1px solid var(--lacquer-line);
+}
+
+.tn .tnc-m-row:first-child {
+  border-top: 0;
+  padding-top: 0.25rem;
+}
+
+.tn .tnc-m-axis {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 0.7rem;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--tn-text-muted);
+}
+
+.tn .tnc-m-axis svg {
+  flex: none;
+  color: var(--tn-gold);
+}
+
+.tn .tnc-m-lsv {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.85rem 0.9rem;
+  border: 2px solid var(--tn-gold);
+  border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tn-gold) 26%, transparent), color-mix(in srgb, var(--tn-gold) 12%, transparent));
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.tn .tnc-m-lsv .tnc-mark {
+  margin-top: 0.15rem;
+}
+
+.tn .tnc-m-name {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--tn-gold-light);
+}
+
+.tn .tnc-m-others {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0 0.25rem;
+  list-style: none;
+}
+
+.tn .tnc-m-others li {
+  display: grid;
+  grid-template-columns: 6.2rem minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--tn-text-muted);
+  opacity: 0.85;
+}
+
+.tn .tnc-m-others .tnc-m-name {
+  margin: 0;
+  color: var(--tn-text-muted);
+  font-weight: 500;
+}
+
+.tn .tnc-mobile .tnc-cta {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* The four-column table needs about 1100px; below that the per-criterion blocks read better than 130px columns. */
+@media (min-width: 1100px) {
+  .tn .tnc-table {
+    display: table;
+  }
+
+  .tn .tnc-mobile {
+    display: none;
+  }
+}
 
 /* ---- PLAN2-C: Testimonials, Usp ---- */
 /* Append only. Original v3 components, reader data and avatar rendering stay intact. */
@@ -1372,6 +1774,45 @@
   border-radius: 16px;
   background: var(--lacquer-800);
   color: var(--tn-text);
+}
+
+/*
+ * The base card is min-height 300px, which left a big empty band under short quotes. Card excerpts
+ * are capped at 135 characters (EXCERPT_MAX), so the quote reserves four lines instead: cards stay
+ * the same height as quotes rotate, and the card is only as tall as its content needs.
+ */
+.tn .tn-testimonials .hv3-tt-card {
+  min-height: 0;
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-quote {
+  /* Four lines reserved (excerpts are at most 135 characters); three once the cards are wide. */
+  min-height: 6em;
+  margin-bottom: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 1400px) {
+  .tn .tn-testimonials .hv3-tt-grid .hv3-tt-quote {
+    min-height: 4.5em;
+  }
+}
+
+/* Cards sized to their text: modest padding and a tight label and footer instead of the page gutter. */
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-card {
+  padding: clamp(1.1rem, 1.8vw, 1.6rem);
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-label {
+  margin-bottom: 0.7rem;
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-foot {
+  padding-top: 0.75rem;
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-mark {
+  left: clamp(1.1rem, 1.8vw, 1.6rem);
 }
 
 .tn .tn-testimonials .hv3-tt-card:hover,
@@ -1480,13 +1921,23 @@
 }
 
 .tn .tn-usp .hv3-usp-card {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  min-height: 0;
-  padding: var(--tn-gutter);
+  min-height: 15rem;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
   border-color: var(--lacquer-line);
   border-radius: 16px;
   background: var(--lacquer-800);
   color: var(--tn-text);
+}
+
+/* The two wide cards carry a warm gold wash so the four cells do not read as one flat tile. */
+.tn .tn-usp .hv3-usp-card:nth-child(2),
+.tn .tn-usp .hv3-usp-card:nth-child(3) {
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--tn-gold) 16%, transparent), transparent 55%),
+    var(--lacquer-800);
 }
 
 .tn .tn-usp .hv3-usp-photo,
@@ -1498,6 +1949,9 @@
 .tn .tn-usp .hv3-usp-body {
   position: relative;
   inset: auto;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 0;
 }
 
@@ -1509,7 +1963,7 @@
   display: block;
   width: 6rem;
   height: 6rem;
-  margin-bottom: calc(var(--tn-gutter) / 2);
+  margin-bottom: auto;
   background-image: var(--tn-usp-motifs);
   background-repeat: no-repeat;
   pointer-events: none;
@@ -1546,14 +2000,29 @@
 }
 
 .tn .tn-usp .hv3-usp-card h3 {
-  margin-top: 0;
+  margin: 1.5rem 0 0.5rem;
   color: var(--tn-text);
-  font-size: var(--tn-h2);
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+  line-height: 1.2;
 }
 
 .tn .tn-usp .hv3-usp-card p {
+  max-width: 44ch;
   color: var(--tn-text-muted);
-  font-size: var(--tn-body);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* One link for the whole section, under the cards. */
+@media (min-width: 600px) and (max-width: 879px) {
+  .tn .tn-usp .hv3-usp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.tn .tn-usp .hv3-usp-cta {
+  margin-top: clamp(1.25rem, 3vw, 2.5rem);
+  display: flex;
 }
 
 .tn .tn-usp .hv3-link {
@@ -1578,11 +2047,21 @@
     left: calc(var(--tn-gutter) / 2);
   }
 
-  .tn .tn-testimonials .hv3-tt-list,
-  .tn .tn-usp .hv3-usp-grid {
+  .tn .tn-testimonials .hv3-tt-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(var(--tn-gutter) / 2);
   }
+
+  /* Bento, two rows: narrow + wide, then wide + narrow. Reading order stays 1, 2, 3, 4. */
+  .tn .tn-usp .hv3-usp-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-usp .hv3-usp-card:nth-child(1) { grid-column: 1 / span 5; }
+  .tn .tn-usp .hv3-usp-card:nth-child(2) { grid-column: 6 / span 7; }
+  .tn .tn-usp .hv3-usp-card:nth-child(3) { grid-column: 1 / span 7; }
+  .tn .tn-usp .hv3-usp-card:nth-child(4) { grid-column: 8 / span 5; }
 }
 
 
@@ -1932,4 +2411,157 @@
   border: 1px solid var(--tn-gold);
   border-radius: 50%;
   object-fit: cover;
+}
+
+/*
+ * Type scale for the whole page, one rule block so no section drifts. Measured 2026-10-03 (the h2 and
+ * body lead were already uniform; card headings ran 19-26px and card body 14-17px):
+ *   h2  section title            --tn-h2   (unchanged)
+ *   h3  sub-heading              --tn-h3   20-28px: lens title, compare sub-heading, palace panel, flagship discipline
+ *   h4  card title               --tn-h4   19-23px: need cards, discipline cards, USP cards, value steps
+ *   body lead / card body        --tn-body / --tn-card-body (16px)
+ * Higher specificity than the per-section rules above, so it wins without touching them.
+ */
+.tn {
+  --tn-h3: clamp(1.25rem, 1.05rem + 0.9vw, 1.75rem);
+  --tn-h4: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem);
+  --tn-card-body: 1rem;
+}
+
+.tn .tn-section :is(.hv3-lens-head .hv3-h3, .tnc-sub, .hv3-h3-lg, .hv3-disc-name-lg) {
+  font-size: var(--tn-h3);
+  line-height: 1.2;
+}
+
+.tn .tn-section :is(.hv3-need-title, .hv3-disc-name:not(.hv3-disc-name-lg), .hv3-usp-card h3, .tn-value .hv3-h3, .tn-faq .hv3-faq-q) {
+  font-size: var(--tn-h4);
+  line-height: 1.25;
+}
+
+.tn .tn-section :is(.hv3-need-question, .hv3-usp-card p, .tn-value .hv3-steps p, .hv3-faq-a, .hv3-disc-body .hv3-muted) {
+  font-size: var(--tn-card-body);
+  line-height: 1.55;
+}
+
+/* Section leads all use --tn-body: the base .hv3-lead used its own 1.3vw clamp, which disagreed with the others at 900-1100px. */
+.tn .tn-section :is(.hv3-lead, .hv3-usp-lead, .hv3-tt-lead, .hv3-story-body) {
+  font-size: var(--tn-body);
+  line-height: 1.65;
+}
+
+/* Text links that were 18-22px tall: a 44px touch target without changing how they look. */
+.tn .tn-testimonials .hv3-tt-start,
+.footer-support-email {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/*
+ * Hero fits one screen on desktop (it ran about 1.5 screens: a 120px headline, a stacked form of
+ * seven full-width rows). The copy column keeps the headline, one sentence and the sample link;
+ * the form becomes a two-column grid: the date row, the time row (label, calendar choice and the
+ * "don't remember" box share a line with the seg and the inputs), gender beside name, the concern
+ * chips, and the "someone else" link beside the submit button. Phones keep the single column.
+ */
+@media (min-width: 880px) {
+  .tn-hero-content {
+    padding-block: 5.25rem 1.75rem;
+  }
+
+  .tn-hero-left {
+    gap: 0.9rem;
+    max-width: 660px;
+  }
+
+  .tn-hero-title {
+    font-size: clamp(2.5rem, 1.3rem + 3.3vw, 4.5rem);
+    max-width: 11em;
+  }
+
+  .tn-hero-sub {
+    margin-top: 0.5rem;
+    max-width: 46ch;
+    font-size: clamp(1.05rem, 0.95rem + 0.45vw, 1.3rem);
+  }
+
+  .tn-hero-form .hv3-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem 1rem;
+    padding: 1.1rem 1.25rem 1.25rem;
+    border-radius: 18px;
+  }
+
+  .tn-hero-form .hv3-form > * {
+    grid-column: 1 / -1;
+  }
+
+  .tn-hero-form .hv3-form > .hv3-field:has(#hv3-gender-male),
+  .tn-hero-form .hv3-form > .hv3-field:has(#hv3-name) {
+    grid-column: auto;
+  }
+
+  .tn-hero-form .hv3-label {
+    font-size: 0.875rem;
+  }
+
+  .tn-hero-form .hv3-field {
+    gap: 0.4rem;
+  }
+
+  .tn-hero-form .hv3-input {
+    height: 44px;
+  }
+
+  .tn-hero-form .hv3-seg button,
+  .tn-hero-form .hv3-chip {
+    min-height: 40px;
+  }
+
+  /* Time row: label and the "I don't remember" box on one line, seg and inputs on the next. */
+  .tn-hero-form .hv3-field:has(#hv3-time-label) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "lbl chk" "seg inp" "err err";
+    align-items: center;
+    gap: 0.4rem 0.75rem;
+  }
+
+  .tn-hero-form #hv3-time-label { grid-area: lbl; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-seg { grid-area: seg; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-time-row,
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > #hv3-branch { grid-area: inp; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-check { grid-area: chk; justify-self: end; min-height: 0; }
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-error { grid-area: err; }
+
+  .tn-hero-form .hv3-hint {
+    font-size: 0.8125rem;
+    margin: 0;
+  }
+
+  .tn-hero-form .hv3-form > .hv3-cta {
+    height: 52px;
+  }
+}
+
+/*
+ * No orphan words. Order matters (equal specificity, last wins): "pretty" for any running text first
+ * (the browser avoids a last line with one short word), then "balance" for headings, lead-ins and
+ * the short phrases in cards and the comparison board, which evens the lines out. Both are safe to
+ * ignore where unsupported.
+ */
+/* :where() keeps this at the lowest specificity so the balance rules below always win. */
+.tn :where(p, li, .hv3-faq-a, .hv3-tt-quote, .hv3-step p, .hv3-panel-desc, .hv3-panel-note) {
+  text-wrap: pretty;
+}
+
+.tn :is(h1, h2, h3, h4),
+.tn .tn-hero-sub,
+.tn :is(.hv3-lead, .hv3-usp-lead, .hv3-tt-lead, .hv3-story-body, .hv3-need-question, .hv3-need-path, .hv3-usp-card p, .hv3-hint, .hv3-panel-desc, .hv3-panel-note, .hv3-tt-quote),
+.tn :is(.tnc-text, .tnc-m-lsv, .tnc-m-others li, .tnc-m-others li span),
+.tn .hv3-questions p,
+.tn .tnc-proof li,
+.tn .tn-section :is(.hv3-need-question, .hv3-usp-card p, .hv3-lead, .hv3-usp-lead, .hv3-tt-lead, .hv3-story-body) {
+  text-wrap: balance;
 }

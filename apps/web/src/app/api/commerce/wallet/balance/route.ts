@@ -33,19 +33,21 @@ export async function GET(): Promise<Response> {
       "/commerce/wallet/balance",
     );
   } catch (error) {
-    if (error instanceof PrivateApiClientError && error.status !== undefined) {
-      return NextResponse.json({ code: error.code }, { status: error.status, headers: NO_STORE_HEADERS });
+    if (error instanceof PrivateApiClientError) {
+      // Unreachable or malformed upstream replies carry no status; surface them as a coded 502
+      // so the browser can tell the customer what failed instead of a bare 500.
+      return NextResponse.json({ code: error.code }, { status: error.status ?? 502, headers: NO_STORE_HEADERS });
     }
     throw error;
   }
 
   if (typeof response !== "object" || response === null || !("ok" in response) || !response.ok) {
-    return new NextResponse(null, { status: 502, headers: NO_STORE_HEADERS });
+    return NextResponse.json({ code: "UPSTREAM_UNAVAILABLE" }, { status: 502, headers: NO_STORE_HEADERS });
   }
 
   const parsed = WalletBalanceV1Schema.safeParse((response as { value?: unknown }).value);
   if (!parsed.success) {
-    return new NextResponse(null, { status: 502, headers: NO_STORE_HEADERS });
+    return NextResponse.json({ code: "UPSTREAM_UNAVAILABLE" }, { status: 502, headers: NO_STORE_HEADERS });
   }
 
   const headers = new Headers(NO_STORE_HEADERS);

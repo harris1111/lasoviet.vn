@@ -22,6 +22,25 @@ export function scenePhases(value: number): ScenePhases {
   };
 }
 
+/**
+ * How much of the viewport the page's text blocks occupy right now, 0..1. The painted sky is
+ * dimmed by this much (see the world scene) so copy keeps its contrast without any dark layer
+ * in the page: each block counts by the share of itself (capped at 60% of the viewport) that is
+ * on screen, eased so the sky dims and recovers gradually while scrolling.
+ */
+export function textDim(blocks: ReadonlyArray<{ top: number; bottom: number }>, viewportHeight: number): number {
+  if (!(viewportHeight > 0)) return 0;
+  let strongest = 0;
+  for (const block of blocks) {
+    const height = block.bottom - block.top;
+    if (!(height > 0)) continue;
+    const visible = Math.max(0, Math.min(block.bottom, viewportHeight) - Math.max(block.top, 0));
+    const coverage = clampProgress(visible / Math.min(height, viewportHeight * 0.6));
+    strongest = Math.max(strongest, smoothstep(coverage, 0.15, 0.6));
+  }
+  return strongest;
+}
+
 export function scrollProgress(scrollY: number, range: ScrollRange): number {
   if (!Number.isFinite(scrollY) || !Number.isFinite(range.start) ||
       !Number.isFinite(range.end) || range.end <= range.start) return 0;

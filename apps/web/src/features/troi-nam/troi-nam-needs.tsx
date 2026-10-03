@@ -5,15 +5,22 @@ import { useLayoutEffect, useRef } from "react";
 import { HomepageV3Needs } from "../homepage-v3/homepage-v3-needs";
 import { troiNamAsset } from "./troi-nam-assets";
 
+// 640 px covers a ~340 px card at 2x density; the 800 px file is only the fallback.
+function plateUrl(plate: { src: string; srcSet?: string }) {
+  return plate.srcSet?.split(", ").find((entry) => entry.endsWith(" 640w"))?.split(" ")[0] ?? plate.src;
+}
+
 export function TroiNamNeeds({ locale }: { locale: "en" | "vi" }) {
   // Match the inspected NEEDS order: self, work, love, decision.
   // Asset-only rules leave the original component's state and DOM untouched.
+  // Plates are pre-cropped to a 1:1 frame centred on each subject ("S0x.vuong"), so the card
+  // shows the picture instead of a banner strip of empty sky.
   const assets = [
-    { id: "self", plate: troiNamAsset("S01"), icon: troiNamAsset("I02.thau-hieu-chinh-minh") },
-    { id: "work", plate: troiNamAsset("S03"), icon: troiNamAsset("I02.cong-viec-tien-bac") },
-    { id: "love", plate: troiNamAsset("S02"), icon: troiNamAsset("I02.tinh-duyen") },
+    { id: "self", plate: troiNamAsset("S01.vuong"), icon: troiNamAsset("I02.thau-hieu-chinh-minh") },
+    { id: "work", plate: troiNamAsset("S03.vuong"), icon: troiNamAsset("I02.cong-viec-tien-bac") },
+    { id: "love", plate: troiNamAsset("S02.vuong"), icon: troiNamAsset("I02.tinh-duyen") },
     // Keep the original decision icon; the year icon would mislabel this CTA.
-    { id: "decision", plate: troiNamAsset("S04"), icon: null },
+    { id: "decision", plate: troiNamAsset("S04.vuong"), icon: null },
   ];
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -90,10 +97,7 @@ export function TroiNamNeeds({ locale }: { locale: "en" | "vi" }) {
         <style key={asset.id}>
           {`
             .tn .tn-needs .hv3-need:nth-child(${index + 1})::before {
-              background-image: url("${asset.plate.src}");
-            }
-            .tn .tn-needs:has(.hv3-need:nth-child(${index + 1})[aria-pressed="true"]) .hv3-need-art {
-              background-image: url("${asset.plate.src}");
+              background-image: url("${plateUrl(asset.plate)}");
             }
             ${asset.icon ? `
               .tn .tn-needs .hv3-need:nth-child(${index + 1}) .hv3-need-icon {

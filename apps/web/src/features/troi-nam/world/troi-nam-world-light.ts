@@ -29,6 +29,8 @@ export type DawnLightPhase = { dusk: number; night: number };
 export type DawnLight = {
   group: THREE.Group;
   setPhase(phase: DawnLightPhase): void;
+  /** Sky brightness multiplier, 1 = as painted. Scales the plates' colour, so it costs nothing per frame. */
+  setExposure(value: number): void;
   resize(aspect: number): void;
   dispose(): void;
 };
@@ -89,6 +91,9 @@ export function createDawnLight(scene: THREE.Scene, textures: WorldTextures): Da
       (skyMeshes.dawn.material as THREE.MeshBasicMaterial).opacity = 1 - dusk;
       (skyMeshes.dusk.material as THREE.MeshBasicMaterial).opacity = dusk * (1 - night);
       (skyMeshes.night.material as THREE.MeshBasicMaterial).opacity = night;
+    },
+    setExposure(value) {
+      for (const mesh of Object.values(skyMeshes)) (mesh.material as THREE.MeshBasicMaterial).color.setScalar(value);
     },
     resize,
     dispose() {

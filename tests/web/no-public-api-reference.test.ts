@@ -74,7 +74,14 @@ function clientDependencyFiles(): string[] {
     }
     visited.add(sourcePath);
 
-    for (const specifier of importSpecifiers(readFileSync(sourcePath, "utf8"))) {
+    const source = readFileSync(sourcePath, "utf8");
+    // A "use server" module is a boundary: the browser receives an opaque action
+    // reference, never the module or anything it imports.
+    if (/^\s*["']use server["'];?/m.test(source)) {
+      continue;
+    }
+
+    for (const specifier of importSpecifiers(source)) {
       const importedPath = resolveLocalImport(sourcePath, specifier);
       if (importedPath !== undefined && !visited.has(importedPath)) {
         pending.push(importedPath);

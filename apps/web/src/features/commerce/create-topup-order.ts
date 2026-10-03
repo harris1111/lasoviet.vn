@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { WalletTopUpContinuationRequestV1Schema, WalletTopUpPackIdSchema, type WalletTopUpPackId, type WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
+import { WalletTopUpPackIdSchema, type WalletTopUpPackId, type WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
 
 import { sendServerAnalyticsEvent } from "../../analytics/server-analytics";
 import {
@@ -95,21 +95,4 @@ export async function createTopUpOrder(
   });
 
   redirect(`${prefix}/thanh-toan/${encodeURIComponent(parsed.value.order.id)}`);
-}
-
-export async function createTopUpOrderFormAction(
-  formData: FormData,
-): Promise<void> {
-  "use server";
-  const packId = String(formData.get("packId") ?? "");
-  const locale = String(formData.get("locale") ?? "vi");
-  const returnPath = formData.get("returnPath");
-  const serialized = formData.get("continuation");
-  const continuation = typeof serialized === "string" && serialized ? WalletTopUpContinuationRequestV1Schema.parse(JSON.parse(serialized)) : undefined;
-  await createTopUpOrder(
-    packId,
-    locale,
-    typeof returnPath === "string" && returnPath.length > 0 ? returnPath : undefined,
-    continuation,
-  );
 }

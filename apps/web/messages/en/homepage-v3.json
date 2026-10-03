@@ -26,7 +26,7 @@
     "nameLabel": "Reader's name",
     "nameOptional": "(to mark this chart)",
     "namePlaceholder": "e.g. An Nhien",
-    "submit": "Continue creating your chart",
+    "submit": "See my chart",
     "errors": {
       "dateEmpty": "Please enter the full day, month and year (4-digit year).",
       "dateImpossible": "This date does not exist on the calendar. Please check it again.",
@@ -36,7 +36,15 @@
       "branch": "Please choose a matching birth time range.",
       "gender": "Please choose Male or Female.",
       "storage": "Your browser is not allowing storage. Please enable site storage and try again."
-    }
+    },
+    "submitting": "Getting ready…",
+    "concernLabel": "What matters most to you",
+    "concern": {
+      "self": "Understanding myself",
+      "career": "Work and money",
+      "love": "Love"
+    },
+    "concernHint": "Your free reading opens the palace tied to this first."
   },
   "heroChart": {
     "chartAria": "Your chart diagram",
@@ -69,7 +77,7 @@
   "explore": {
     "eyebrow": "Explore the 12 palaces",
     "title": "One chart. Twelve folds of a life.",
-    "lead": "Don't let unfamiliar terms hold you back. Start with the Life palace to understand your nature, then move on to Career, Wealth or Spouse. You'll see that no event in your life ever stood alone—each one is woven into and held up by the others.",
+    "lead": "Start with the Life palace (your nature), then open Career, Wealth or Spouse. The palaces weave into and support each other.",
     "shortcutsLabel": "Palaces most people open first",
     "mobileHint": "Tap the grid to open the other 8 palaces.",
     "chartLabel": "12 palaces",
@@ -233,48 +241,50 @@
     "cta": "Start with my chart →",
     "rows": {
       "strength": {
-        "k": "Key advantage",
-        "lsv": "Accurate destiny map, deeply personalized and permanently stored for life.",
-        "web": "Free lookup, returning a raw chart and automated reading instantly.",
-        "ai": "Flexible 24/7 Q&A in natural prose, responding instantly to any prompt.",
-        "thay": "Live 1-on-1 dialogue, offering immediate listening and emotional relief."
+        "k": "Why choose it",
+        "lsv": "Accurate map, kept for life",
+        "web": "Fast and free",
+        "ai": "Chat 24/7",
+        "thay": "Heard one-on-one"
       },
       "own": {
-        "k": "Personalization",
-        "lsv": "Exact calculation down to the minute; unravels your exact current focus.",
-        "web": "Template text; different people with the same stars get identical readings.",
-        "ai": "Relies entirely on user prompts; easily biased by user framing.",
-        "thay": "Heavily depends on the individual reader's subjective mood and bias."
+        "k": "Personal",
+        "lsv": "Stars placed to your birth minute",
+        "web": "Canned templates",
+        "ai": "Depends on the prompt, drifts",
+        "thay": "Depends on the reader"
       },
       "basis": {
-        "k": "Academic basis",
-        "lsv": "100% transparent logic. Every insight links back to its exact palace and star.",
-        "web": "Unverified generic data; drops vague predictions causing unnecessary anxiety.",
-        "ai": "Prone to AI hallucinations—misplacing stars while sounding confident.",
-        "thay": "Spoken advice lacks standardized logic, making verification difficult."
+        "k": "Basis",
+        "lsv": "Every reading tied to a star and palace",
+        "web": "Hard to verify",
+        "ai": "Invents star positions",
+        "thay": "Oral, hard to check"
       },
       "links": {
-        "k": "Holistic picture",
-        "lsv": "Interactive chart: tap a palace to see trine and opposite links instantly.",
-        "web": "Fragmented claims; contradictory statements force you to guess.",
-        "ai": "Isolated prompts drift away from overall 12-palace consistency.",
-        "thay": "Spoken words fade quickly, making complex palace links hard to visualize."
+        "k": "Whole picture",
+        "lsv": "Touch a palace, see its trine and opposite",
+        "web": "Scattered, contradictory",
+        "ai": "One question at a time",
+        "thay": "Hard to picture all 12 palaces"
       },
       "return": {
-        "k": "Consistency & Objectivity",
-        "lsv": "100% objective and consistent; standardized data eliminates all personal bias.",
-        "web": "Unstable info; lookups yield conflicting readings across different visits.",
-        "ai": "Lacks consistency; asking again yields conflicting and shifting responses.",
-        "thay": "Lacks uniformity; different masters give contradictory readings for the same chart."
+        "k": "Consistency",
+        "lsv": "Standardized data, no guesswork",
+        "web": "Readings contradict each other",
+        "ai": "A new answer each time",
+        "thay": "Every reader differs"
       },
       "depth": {
-        "k": "Cost & Ethics",
-        "lsv": "Free base access; open deeper sections as needed with clear upfront pricing.",
-        "web": "Cluttered with popup ads; rigid one-size-fits-all paid articles.",
-        "ai": "Monthly subscriptions required; you absorb the risk of accuracy.",
-        "thay": "Costly session fees ($20-$100+); appointment queues limit follow-ups."
+        "k": "Cost",
+        "lsv": "Free to view, open deeper as needed",
+        "web": "Heavy with ads",
+        "ai": "Subscription cost",
+        "thay": "Hundreds of thousands to millions VND"
       }
-    }
+    },
+    "expand": "Show every reason",
+    "collapse": "Collapse"
   },
   "testimonials": {
     "eyebrow": "Honest words from readers",
@@ -307,43 +317,43 @@
     "rotationLabel": "Notes from readers, changing automatically every few seconds"
   },
   "usp": {
-    "title": "The deeper you look, the more clearly you see yourself in it.",
-    "lead": "A true chart never ends with a few shallow verdicts. It is a journey of peeling back every layer of causation, understanding every thread that binds you, so that whenever you feel unsteady, you always have a place to return to and see clearly.",
+    "title": "The deeper you look, the clearer you see yourself.",
+    "lead": "Hundreds of Eastern and Western classics ground every reading, and give you somewhere to return when you feel unsteady.",
     "n1": {
-      "title": "Built on the wisdom of the old texts.",
-      "body": "Every reading is distilled from authentic Eastern methods, structured layer by layer so every line has a clear origin—never a vague or arbitrary guess."
+      "title": "Every line has a source.",
+      "body": "Cross-checked against Tử Vi Đẩu Số Toàn Thư, Tử Vi Đại Toàn, Uyên Hải Tử Bình, Tam Mệnh Thông Hội, Ptolemy's Tetrabiblos and hundreds more."
     },
     "n2": {
       "title": "It begins with you.",
-      "body": "The moment you drew your first breath shaped your destiny map. But what's on your mind right now is the key that opens the story."
+      "body": "Your birth hour shapes the chart. What is on your mind opens the story."
     },
     "n3": {
-      "title": "A living web of connections.",
-      "body": "Tap a palace and watch its trine, half-trine and opposite links light up at once. The twelve palaces are never isolated—they tell one single story about your life.",
-      "link": "Try touching a chart →"
+      "title": "Palaces that connect.",
+      "body": "Touch one palace and see its trine and opposite light up together."
     },
     "n4": {
-      "title": "Move through it at your own pace.",
-      "body": "Career, love, or the fortune of the year ahead: you're fully in control of the journey, seeing exactly what each part offers and costs before you decide to open it."
-    }
+      "title": "Open at your pace.",
+      "body": "Pick the part you want to read and see the Lá cost before you open it."
+    },
+    "cta": "Try touching a chart →"
   },
   "value": {
-    "title": "Understand a part of it first. Go deeper once your heart is sure.",
-    "lead": "You can start completely free by building your chart and reading the most essential insights about yourself. When you find it useful and want to keep it, sign in to save. The deeper layers of interpretation only open when you truly need them, using Lá, with pricing that is transparent down to the last figure.",
+    "title": "Preview free. Go deeper when you need to.",
+    "lead": "Create your chart and read the core insights about yourself at no cost. Deeper readings open with Lá, and the Lá cost shows before you confirm.",
     "s1": {
-      "title": "Step 1: Experience the full chart",
-      "body": "See your complete 12-palace chart, accurately calculated, along with 2 core insights about your destiny. Completely free, no account required."
+      "title": "Step 1: See your chart",
+      "body": "Your 12-palace chart and 2 insights on your life palace. Free, no sign-up."
     },
     "s2": {
-      "title": "Step 2: Mark it & keep it",
-      "body": "Sign in with one tap to save your chart for life, unlocking a general fortune summary and the key things to note this year."
+      "title": "Step 2: Save it",
+      "body": "Sign in with one tap to keep your chart for life and unlock the year overview and key notes."
     },
     "s3": {
-      "title": "Step 3: Unlock exactly what you need",
-      "body": "Use Lá to open exactly the part you want to understand: the ten-year cycle, a specific year's fortune, or a deep dive into one palace. The Lá cost and the money amount are both shown clearly before you confirm."
+      "title": "Step 3: Open what you need",
+      "body": "Spend Lá on the 10-year cycle, a single year or a single palace."
     },
     "packsTitle": "Lá top-up packs",
-    "packsNote": "Each pack shows both the Lá amount and the VND price side by side. Scan the VietQR code to pay automatically in seconds.",
+    "packsNote": "Each pack shows its Lá and VND amount. Scan VietQR and receive Lá in seconds.",
     "packBonus": "{base} Lá + {bonus} bonus Lá"
   },
   "faq": {

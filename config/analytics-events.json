@@ -2,6 +2,7 @@
   "privacy_rule": "Never send name, email, exact birth date/time/place, free-text questions, chart_id, profile_id, report content or evidence text to analytics.",
   "canonical_funnel": [
     "landing",
+    "chart_form_submit",
     "wizard_start",
     "wizard_step_complete",
     "chart_success",
@@ -12,6 +13,7 @@
     "checkout_created",
     "payment_confirmed",
     "unlock_confirm_view",
+    "unlock_error",
     "unlock_confirmed",
     "la_spent",
     "welcome_grant",
@@ -37,6 +39,15 @@
         "utm_content",
         "utm_term",
         "device_category"
+      ]
+    },
+    {
+      "name": "chart_form_submit",
+      "properties": [
+        "locale",
+        "entry_point",
+        "concern",
+        "time_precision"
       ]
     },
     {
@@ -122,6 +133,14 @@
         "amount",
         "balance",
         "balance_after",
+        "placement"
+      ]
+    },
+    {
+      "name": "unlock_error",
+      "properties": [
+        "sku",
+        "error_code",
         "placement"
       ]
     },

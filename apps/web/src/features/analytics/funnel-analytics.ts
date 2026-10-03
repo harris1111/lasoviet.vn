@@ -192,6 +192,48 @@ export async function trackUnlockConfirmed(
   await sendBrowserAnalyticsEvent("unlock_confirmed", properties, options);
 }
 
+export type UnlockErrorParams = {
+  sku: string;
+  /** Server error code (e.g. WALLET_EVIDENCE_MISSING) or a client-side marker such as NETWORK_ERROR. */
+  error_code: string;
+  placement?: string;
+};
+
+/** Fired when the unlock dialog ends in an error state, so dead ends show up in the funnel. */
+export async function trackUnlockError(
+  params: UnlockErrorParams,
+  options?: BrowserAnalyticsOptions,
+): Promise<void> {
+  const properties = sanitizeAnalyticsProperties({
+    sku: params.sku,
+    error_code: params.error_code,
+    placement: params.placement ?? "wallet_unlock_dialog",
+  });
+  await sendBrowserAnalyticsEvent("unlock_error", properties, options);
+}
+
+export type ChartFormSubmitParams = {
+  locale: string;
+  entry_point: string;
+  /** Selected main concern (a fixed option id, never free text). */
+  concern?: string;
+  time_precision?: string;
+};
+
+/** Fired when a chart-entry form passes validation and is submitted. */
+export async function trackChartFormSubmit(
+  params: ChartFormSubmitParams,
+  options?: BrowserAnalyticsOptions,
+): Promise<void> {
+  const properties = sanitizeAnalyticsProperties({
+    locale: params.locale,
+    entry_point: params.entry_point,
+    concern: params.concern,
+    time_precision: params.time_precision,
+  });
+  await sendBrowserAnalyticsEvent("chart_form_submit", properties, options);
+}
+
 // ==========================================
 // 3. RETURN VISIT
 // ==========================================

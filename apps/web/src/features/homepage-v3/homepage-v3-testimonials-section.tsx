@@ -81,21 +81,17 @@ export function HomepageV3Testimonials({ avatars }: {
   const mobile = useMedia("(max-width: 767px)", false);
   const wide = useMedia("(min-width: 1024px)", true);
   const pageVisible = useSyncExternalStore(subscribeVisibility, () => document.visibilityState === "visible", () => true);
-  const slotCount = wide ? 6 : 4;
+  // The grid always holds six cards and CSS decides how many columns show them (and hides 5 and 6 on
+  // tablet), so the card count can never disagree with the layout while the window is resized.
+  const slotCount = 6;
+  const visibleSlots = wide ? 6 : 4;
 
-  const [rotation, setRotation] = useState<RotationState>(() => createRotation(ROTATION_QUEUE, 6));
+  const [rotation, setRotation] = useState<RotationState>(() => createRotation(ROTATION_QUEUE, slotCount));
   const [setGridNode, gridInView] = useInView<HTMLDivElement>(0.35);
   const [setRowNode, rowInView] = useInView<HTMLDivElement>(0.5);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
-
-  // Tablet shows four slots; rebuild the rotation when the breakpoint changes.
-  const [builtFor, setBuiltFor] = useState(6);
-  if (builtFor !== slotCount) {
-    setBuiltFor(slotCount);
-    setRotation(createRotation(ROTATION_QUEUE, slotCount));
-  }
 
   const blocked = reduced || paused || hovered || Boolean(openId) || expanded || !pageVisible;
   const gridRunning = !mobile && gridInView && !blocked;
@@ -108,7 +104,7 @@ export function HomepageV3Testimonials({ avatars }: {
     const timers: number[] = [];
     const interval = window.setInterval(() => {
       const base = rotationRef.current.slots.length === slotCount ? rotationRef.current : createRotation(ROTATION_QUEUE, slotCount);
-      const next = advanceRotation(base);
+      const next = advanceRotation(base, visibleSlots);
       rotationRef.current = next;
       if (next.changedSlot === null) return;
       const slot = next.changedSlot;
@@ -127,7 +123,7 @@ export function HomepageV3Testimonials({ avatars }: {
       timers.forEach((id) => window.clearTimeout(id));
       setPhase(null);
     };
-  }, [gridRunning, slotCount]);
+  }, [gridRunning, visibleSlots]);
 
   useEffect(() => {
     if (!rowRunning) return;

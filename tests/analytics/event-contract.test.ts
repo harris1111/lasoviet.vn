@@ -17,9 +17,10 @@ describe("analytics event contract", () => {
     expect(canonicalFunnel).toEqual(analyticsConfig.canonical_funnel);
   });
 
-  it("validates all 22 canonical events and their allowlisted properties", () => {
+  it("validates all canonical events and their allowlisted properties", () => {
     const expectedEvents = [
       "landing",
+      "chart_form_submit",
       "wizard_start",
       "wizard_step_complete",
       "chart_success",
@@ -30,6 +31,7 @@ describe("analytics event contract", () => {
       "checkout_created",
       "payment_confirmed",
       "unlock_confirm_view",
+      "unlock_error",
       "unlock_confirmed",
       "la_spent",
       "welcome_grant",
