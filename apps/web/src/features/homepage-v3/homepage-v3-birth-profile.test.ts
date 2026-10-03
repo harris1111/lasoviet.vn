@@ -164,4 +164,21 @@ describe("homepage v3 birth profile adapter", () => {
       expect(draft?.readingContext).toBeUndefined();
     });
   });
+
+  describe("options from the hero form", () => {
+    it("opens the wizard on the review step for the person chosen on the homepage", () => {
+      const self = toHomepageV3Draft(base, new Date(), null, { forWhom: "self", consentOther: false, step: 3 });
+      expect(self).toMatchObject({ step: 3, forWhom: "self", consentOther: false });
+      const other = toHomepageV3Draft(base, new Date(), { forWhom: "self", consentOther: false }, {
+        forWhom: "other",
+        consentOther: true,
+        step: 3,
+      });
+      expect(other).toMatchObject({ step: 3, forWhom: "other", consentOther: true });
+    });
+
+    it("keeps the old step 1 landing when no options are given", () => {
+      expect(toHomepageV3Draft(base)).toMatchObject({ step: 1, forWhom: "self", consentOther: false });
+    });
+  });
 });

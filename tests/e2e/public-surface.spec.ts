@@ -384,9 +384,9 @@ test("hero story book reflects the form and carries the chosen topic into the wi
   const paper = page.locator(".hv3-folio-paper");
   await expect(paper).toContainText("Một câu chuyện riêng");
 
-  await page.fill("#hv3-day", "12");
-  await page.getByLabel("Tháng", { exact: true }).fill("4");
-  await page.getByLabel("Năm", { exact: true }).fill("1994");
+  await page.selectOption("#hv3-day", "12");
+  await page.getByLabel("Tháng", { exact: true }).selectOption("04");
+  await page.getByLabel("Năm", { exact: true }).selectOption("1994");
   await page.fill("#hv3-hour", "7");
   await page.fill("#hv3-minute", "05");
   await page.getByLabel("Tên lá số", { exact: false }).fill("Minh An");

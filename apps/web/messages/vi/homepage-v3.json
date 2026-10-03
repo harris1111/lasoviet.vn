@@ -36,13 +36,10 @@
       "branch": "Vui lòng chọn một khoảng giờ sinh phù hợp.",
       "gender": "Vui lòng chọn giới tính Nam hoặc Nữ.",
       "storage": "Trình duyệt chưa cho phép lưu trữ. Bạn hãy bật lưu trữ trang web rồi thử lại nhé.",
-      "consent": "Cần đồng ý để lập lá số.",
-      "consentOther": "Vui lòng xác nhận sự đồng ý của người được lập trước khi tiếp tục.",
-      "submit": "Chưa lập được lá số lúc này. Bạn thử lại sau ít giây nhé."
+      "consentOther": "Vui lòng xác nhận sự đồng ý của người được lập trước khi tiếp tục."
     },
-    "submitting": "Đang an sao…",
+    "submitting": "Đang chuẩn bị…",
     "concernLabel": "Điều bạn bận tâm nhất",
-    "concernOptional": "(không bắt buộc)",
     "concern": {
       "self": "Hiểu bản thân",
       "career": "Công việc, tiền bạc",

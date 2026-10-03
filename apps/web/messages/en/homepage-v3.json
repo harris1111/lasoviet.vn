@@ -36,13 +36,10 @@
       "branch": "Please choose a matching birth time range.",
       "gender": "Please choose Male or Female.",
       "storage": "Your browser is not allowing storage. Please enable site storage and try again.",
-      "consent": "Please agree to continue.",
-      "consentOther": "Please confirm you have permission before continuing.",
-      "submit": "We could not create the chart right now. Please try again in a moment."
+      "consentOther": "Please confirm you have permission before continuing."
     },
-    "submitting": "Placing the stars…",
+    "submitting": "Getting ready…",
     "concernLabel": "What matters most to you",
-    "concernOptional": "(optional)",
     "concern": {
       "self": "Understanding myself",
       "career": "Work and money",

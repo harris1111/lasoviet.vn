@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { saveBirthProfileDraft, readBirthProfileDraft } from "../birth-profile/birth-profile-draft";
@@ -12,9 +11,7 @@ import {
   saveHomepageBirthPrefill,
   type CanonicalBranchId,
 } from "../birth-profile/homepage-birth-prefill";
-import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { trackChartFormSubmit } from "../analytics/funnel-analytics";
-import { createChartFromHomepageAction } from "../birth-profile/create-chart-from-homepage-action";
 import { localizedPath } from "../homepage/homepage-utilities";
 import { useHomepageV3Concern } from "./homepage-v3-concern-context";
 import { HERO_LENSES } from "./homepage-v3-data";
@@ -51,12 +48,18 @@ const INITIAL: HomepageV3BirthValues = {
   topConcern: null,
 };
 
+const two = (n: number | string) => String(n).padStart(2, "0");
+const DAY_OPTIONS = Array.from({ length: 31 }, (_, i) => two(i + 1));
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => two(i + 1));
+const FIRST_BIRTH_YEAR = 1920;
+/** Newest year first: most visitors were born in the last 60 years. */
+const yearOptions = () => {
+  const latest = new Date().getFullYear();
+  return Array.from({ length: latest - FIRST_BIRTH_YEAR + 1 }, (_, i) => latest - i);
+};
+
 const digits = (value: string, max: number) => value.replace(/\D/g, "").slice(0, max);
 
-// A chart that is "computed" for under a second reads as canned. The floor is a UX choice, not a wait on the server.
-const MIN_COMPUTE_MS = 1200;
-const pad = (value: string, length: number) => value.trim().padStart(length, "0");
-const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export type HomepageV3BirthFormState = ReturnType<typeof useHomepageV3BirthForm>;
 
@@ -72,7 +75,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
   const [values, setValues] = useState<HomepageV3BirthValues>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
   const [forOther, setForOther] = useState(false);
-  const [consent, setConsent] = useState(false);
   const [consentOther, setConsentOther] = useState(false);
   const [pending, setPending] = useState(false);
   // Armed right before a failing setErrors so the effect below knows to move focus; left
@@ -138,16 +140,8 @@ export function useHomepageV3BirthForm(locale: Locale) {
       document.getElementById("hv3-consent-other")?.focus();
       return;
     }
-    if (errors.consent) {
-      document.getElementById("hv3-consent")?.focus();
-      return;
-    }
     if (errors.storage) {
       document.getElementById("hv3-storage-error")?.focus();
-      return;
-    }
-    if (errors.submit) {
-      document.getElementById("hv3-submit-error")?.focus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [errors]);
@@ -167,22 +161,16 @@ export function useHomepageV3BirthForm(locale: Locale) {
     }
   }
 
-  function changeConsent(next: boolean) {
-    setConsent(next);
-    if (next) setErrors((current) => ({ ...current, consent: undefined }));
-  }
-
   function changeConsentOther(next: boolean) {
     setConsentOther(next);
     if (next) setErrors((current) => ({ ...current, consentOther: undefined }));
   }
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending) return;
     const now = new Date();
     const found = validateHomepageV3BirthValues(values, now, message);
-    if (!consent) found.consent = t("errors.consent");
     if (forOther && !consentOther) found.consentOther = t("errors.consentOther");
     if (Object.keys(found).length > 0) {
       shouldFocusRef.current = true;
@@ -197,80 +185,34 @@ export function useHomepageV3BirthForm(locale: Locale) {
       displayName: forOther ? values.displayName : "",
       topConcern: concernCtx?.topConcern ?? values.topConcern,
     };
-    const draft = toHomepageV3Draft(effectiveValues, now, existing);
+    // Open the wizard straight on its review step: the visitor confirms and consents there, once.
+    const draft = toHomepageV3Draft(effectiveValues, now, existing, {
+      forWhom: forOther ? "other" : "self",
+      consentOther: forOther && consentOther,
+      step: 3,
+    });
     if (!draft) {
       shouldFocusRef.current = true;
       setErrors({ date: t("errors.dateImpossible") });
       return;
     }
-    const timePrecision = effectiveValues.timeUnknown ? "unknown" : effectiveValues.timeMode;
+    // The draft is what the wizard restores first, so it must be saved before we navigate.
+    if (!saveBirthProfileDraft(draft)) {
+      shouldFocusRef.current = true;
+      setErrors({ storage: t("errors.storage") });
+      return;
+    }
+    const prefill = toHomepageV3Prefill(effectiveValues);
+    if (prefill && !forOther) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
+    setErrors({});
+    setPending(true);
     void trackChartFormSubmit({
       locale,
       entry_point: "homepage_hero",
       concern: effectiveValues.topConcern ?? undefined,
-      time_precision: timePrecision,
+      time_precision: effectiveValues.timeUnknown ? "unknown" : effectiveValues.timeMode,
     });
-
-    // Without a known birth time or branch no chart can be drawn: keep the old route into the
-    // wizard, which explains how to add the time later.
-    const goToWizard = () => {
-      if (!saveBirthProfileDraft(draft)) {
-        shouldFocusRef.current = true;
-        setErrors({ storage: t("errors.storage") });
-        setPending(false);
-        return;
-      }
-      router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
-    };
-    if (effectiveValues.timeUnknown) {
-      setPending(true);
-      goToWizard();
-      return;
-    }
-
-    setPending(true);
-    setErrors({});
-    try {
-      const [result] = await Promise.all([
-        createChartFromHomepageAction({
-          locale,
-          date: `${pad(effectiveValues.year, 4)}-${pad(effectiveValues.month, 2)}-${pad(effectiveValues.day, 2)}`,
-          calendarType: effectiveValues.calendarType,
-          isLeapMonth: effectiveValues.calendarType === "lunar" && effectiveValues.isLeapMonth,
-          time:
-            effectiveValues.timeMode === "branch_only" && effectiveValues.branch
-              ? { precision: "branch_only", branch: effectiveValues.branch }
-              : { precision: "exact_minute", hour: pad(effectiveValues.hour, 2), minute: pad(effectiveValues.minute, 2) },
-          gender: effectiveValues.gender ?? "female",
-          displayName: effectiveValues.displayName.trim() || undefined,
-          consent,
-          forOther,
-          consentOther,
-          topConcern: effectiveValues.topConcern ?? null,
-        }),
-        wait(MIN_COMPUTE_MS),
-      ]);
-      if (result.ok) {
-        const prefill = toHomepageV3Prefill(effectiveValues);
-        if (prefill && !forOther) saveHomepageBirthPrefill({ ...prefill, calendarType: "solar", isLeapMonth: false });
-        void sendBrowserAnalyticsEvent("chart_success", { time_precision: timePrecision });
-        router.push(localizedPath(locale, `/la-so/${result.chartId}`));
-        return;
-      }
-      if (result.code === "TIME_UNKNOWN_SAVED") {
-        goToWizard();
-        return;
-      }
-      shouldFocusRef.current = true;
-      if (result.code === "CONSENT_REQUIRED") setErrors({ consent: t("errors.consent") });
-      else if (result.code === "CONSENT_OTHER_REQUIRED") setErrors({ consentOther: t("errors.consentOther") });
-      else if (result.code === "INVALID_INPUT") setErrors({ date: t("errors.dateImpossible") });
-      else setErrors({ submit: t("errors.submit") });
-    } catch {
-      shouldFocusRef.current = true;
-      setErrors({ submit: t("errors.submit") });
-    }
-    setPending(false);
+    router.push(localizedPath(locale, "/tao-la-so/tu-vi"));
   }
 
   const hero = deriveHeroStage(values, new Date());
@@ -288,8 +230,6 @@ export function useHomepageV3BirthForm(locale: Locale) {
     timeDisabled,
     forOther,
     toggleForOther,
-    consent,
-    changeConsent,
     consentOther,
     changeConsentOther,
     pending,
@@ -301,11 +241,10 @@ export function useHomepageV3BirthForm(locale: Locale) {
 export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState }) {
   const {
     t, locale, values, errors, patch, onSubmit, timeDisabled,
-    forOther, toggleForOther, consent, changeConsent, consentOther, changeConsentOther,
+    forOther, toggleForOther, consentOther, changeConsentOther,
     pending, concern, chooseConcern,
   } = state;
   const tp = useTranslations("profile");
-  const privacyHref = locale === "en" ? "/en/chinh-sach-bao-mat" : "/chinh-sach-bao-mat";
 
   return (
         <form noValidate onSubmit={onSubmit} aria-label={t("formLabel")} aria-busy={pending} className="hv3-form">
@@ -318,72 +257,45 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
               </div>
             </div>
             <div className="hv3-date-grid">
-              <input
+              <select
                 id="hv3-day"
                 aria-label={t("day")}
                 aria-invalid={Boolean(errors.date)}
                 aria-describedby={errors.date ? "hv3-date-error" : undefined}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="off"
-                maxLength={2}
-                placeholder={t("day")}
-                value={values.day}
-                onChange={(e) => {
-                  const val = digits(e.target.value, 2);
-                  patch({ day: val });
-                  if (val.length === 2) {
-                    const monthInput = document.getElementById("hv3-month");
-                    monthInput?.focus();
-                  }
-                }}
-                className="hv3-input hv3-center"
-              />
-              <input
+                autoComplete="bday-day"
+                value={values.day ? two(values.day) : ""}
+                onChange={(e) => patch({ day: e.target.value })}
+                className="hv3-input hv3-select"
+              >
+                <option value="">{t("day")}</option>
+                {DAY_OPTIONS.map((n) => (<option key={n} value={n}>{n}</option>))}
+              </select>
+              <select
                 id="hv3-month"
                 aria-label={t("month")}
                 aria-invalid={Boolean(errors.date)}
                 aria-describedby={errors.date ? "hv3-date-error" : undefined}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="off"
-                maxLength={2}
-                placeholder={t("month")}
-                value={values.month}
-                onChange={(e) => {
-                  const val = digits(e.target.value, 2);
-                  patch({ month: val });
-                  if (val.length === 2) {
-                    const yearInput = document.getElementById("hv3-year");
-                    yearInput?.focus();
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Backspace" && !values.month) {
-                    document.getElementById("hv3-day")?.focus();
-                  }
-                }}
-                className="hv3-input hv3-center"
-              />
-              <input
+                autoComplete="bday-month"
+                value={values.month ? two(values.month) : ""}
+                onChange={(e) => patch({ month: e.target.value })}
+                className="hv3-input hv3-select"
+              >
+                <option value="">{t("month")}</option>
+                {MONTH_OPTIONS.map((n) => (<option key={n} value={n}>{n}</option>))}
+              </select>
+              <select
                 id="hv3-year"
                 aria-label={t("year")}
                 aria-invalid={Boolean(errors.date)}
                 aria-describedby={errors.date ? "hv3-date-error" : undefined}
-                inputMode="numeric"
-                pattern="[0-9]*"
-                autoComplete="off"
-                maxLength={4}
-                placeholder={t("year")}
+                autoComplete="bday-year"
                 value={values.year}
-                onChange={(e) => patch({ year: digits(e.target.value, 4) })}
-                onKeyDown={(e) => {
-                  if (e.key === "Backspace" && !values.year) {
-                    document.getElementById("hv3-month")?.focus();
-                  }
-                }}
-                className="hv3-input hv3-center"
-              />
+                onChange={(e) => patch({ year: e.target.value })}
+                className="hv3-input hv3-select"
+              >
+                <option value="">{t("year")}</option>
+                {yearOptions().map((n) => (<option key={n} value={String(n)}>{n}</option>))}
+              </select>
             </div>
             {values.calendarType === "lunar" ? (
               <label className="hv3-check">
@@ -473,7 +385,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
           </div>
 
           <div role="group" aria-labelledby="hv3-concern-label" className="hv3-field">
-            <span id="hv3-concern-label" className="hv3-label">{t("concernLabel")} <span className="hv3-subtle">{t("concernOptional")}</span></span>
+            <span id="hv3-concern-label" className="hv3-label">{t("concernLabel")}</span>
             <div className="hv3-chips">
               {HERO_LENSES.map((lens) => (
                 <button key={lens.id} type="button" className="hv3-chip" aria-pressed={concern === lens.concern} onClick={() => chooseConcern(lens.concern)}>
@@ -504,24 +416,7 @@ export function HomepageV3BirthForm({ state }: { state: HomepageV3BirthFormState
             ) : null}
           </div>
 
-          <div className="hv3-field">
-            <label className="hv3-check hv3-consent">
-              <input id="hv3-consent" type="checkbox" checked={consent} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "hv3-consent-error" : undefined} onChange={(e) => changeConsent(e.target.checked)} />
-              <span>
-                {tp.rich("review.consent", {
-                  link: (chunks) => (
-                    <Link href={privacyHref} target="_blank" rel="noopener noreferrer">{chunks}</Link>
-                  ),
-                })}
-              </span>
-            </label>
-            {errors.consent ? <p id="hv3-consent-error" role="alert" className="hv3-error">{errors.consent}</p> : null}
-            <p className="hv3-hint">{tp("review.privacy")}</p>
-          </div>
-
           {errors.storage ? <p id="hv3-storage-error" role="alert" tabIndex={-1} className="hv3-error">{errors.storage}</p> : null}
-          {errors.submit ? <p id="hv3-submit-error" role="alert" tabIndex={-1} className="hv3-error">{errors.submit}</p> : null}
-
           <button type="submit" className="hv3-cta" disabled={pending} aria-disabled={pending}>
             {pending ? t("submitting") : t("submit")}
           </button>
