@@ -1801,13 +1801,23 @@ main > .tn-section .hv3-container {
 }
 
 .tn .tn-usp .hv3-usp-card {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  min-height: 0;
-  padding: var(--tn-gutter);
+  min-height: 15rem;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
   border-color: var(--lacquer-line);
   border-radius: 16px;
   background: var(--lacquer-800);
   color: var(--tn-text);
+}
+
+/* The two wide cards carry a warm gold wash so the four cells do not read as one flat tile. */
+.tn .tn-usp .hv3-usp-card:nth-child(2),
+.tn .tn-usp .hv3-usp-card:nth-child(3) {
+  background:
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--tn-gold) 16%, transparent), transparent 55%),
+    var(--lacquer-800);
 }
 
 .tn .tn-usp .hv3-usp-photo,
@@ -1819,6 +1829,9 @@ main > .tn-section .hv3-container {
 .tn .tn-usp .hv3-usp-body {
   position: relative;
   inset: auto;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 0;
 }
 
@@ -1830,7 +1843,7 @@ main > .tn-section .hv3-container {
   display: block;
   width: 6rem;
   height: 6rem;
-  margin-bottom: calc(var(--tn-gutter) / 2);
+  margin-bottom: auto;
   background-image: var(--tn-usp-motifs);
   background-repeat: no-repeat;
   pointer-events: none;
@@ -1867,14 +1880,29 @@ main > .tn-section .hv3-container {
 }
 
 .tn .tn-usp .hv3-usp-card h3 {
-  margin-top: 0;
+  margin: 1.5rem 0 0.5rem;
   color: var(--tn-text);
-  font-size: var(--tn-h2);
+  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+  line-height: 1.2;
 }
 
 .tn .tn-usp .hv3-usp-card p {
+  max-width: 38ch;
   color: var(--tn-text-muted);
-  font-size: var(--tn-body);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* One link for the whole section, under the cards. */
+@media (min-width: 600px) and (max-width: 879px) {
+  .tn .tn-usp .hv3-usp-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.tn .tn-usp .hv3-usp-cta {
+  margin-top: clamp(1.25rem, 3vw, 2.5rem);
+  display: flex;
 }
 
 .tn .tn-usp .hv3-link {
@@ -1899,11 +1927,21 @@ main > .tn-section .hv3-container {
     left: calc(var(--tn-gutter) / 2);
   }
 
-  .tn .tn-testimonials .hv3-tt-list,
-  .tn .tn-usp .hv3-usp-grid {
+  .tn .tn-testimonials .hv3-tt-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(var(--tn-gutter) / 2);
   }
+
+  /* Bento, two rows: narrow + wide, then wide + narrow. Reading order stays 1, 2, 3, 4. */
+  .tn .tn-usp .hv3-usp-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: calc(var(--tn-gutter) / 2);
+  }
+
+  .tn .tn-usp .hv3-usp-card:nth-child(1) { grid-column: 1 / span 5; }
+  .tn .tn-usp .hv3-usp-card:nth-child(2) { grid-column: 6 / span 7; }
+  .tn .tn-usp .hv3-usp-card:nth-child(3) { grid-column: 1 / span 7; }
+  .tn .tn-usp .hv3-usp-card:nth-child(4) { grid-column: 8 / span 5; }
 }
 
 

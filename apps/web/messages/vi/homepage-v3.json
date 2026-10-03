@@ -323,25 +323,25 @@
     "rotationLabel": "Chia sẻ từ người đọc, tự động chuyển sau vài giây"
   },
   "usp": {
-    "title": "Càng nhìn sâu, càng thấy rõ bóng hình mình trong đó.",
-    "lead": "Một lá số chân chính không bao giờ kết thúc ở vài lời phán xét nông cạn. Nó là hành trình bóc tách từng lớp căn duyên, hiểu từng mối dây ràng buộc, để rồi mỗi khi chông chênh, bạn luôn có một chốn trở về soi chiếu.",
+    "title": "Càng nhìn sâu, càng thấy mình rõ hơn.",
+    "lead": "Một lá số tốt không dừng ở vài lời phán. Nó là chốn bạn quay về mỗi khi chông chênh.",
     "n1": {
-      "title": "Kế thừa tinh hoa cổ thư.",
-      "body": "Mỗi lời luận giải đều được đúc kết từ thuật số chính tông phương Đông, hệ thống hóa lớp lang để từng câu chữ đều có gốc có ngọn, tuyệt đối không suy diễn hàm hồ."
+      "title": "Từ cổ thư chính tông.",
+      "body": "Mỗi lời luận giải đều có gốc từ thuật số phương Đông, không suy diễn hàm hồ."
     },
     "n2": {
-      "title": "Khởi phát từ chính bạn.",
-      "body": "Thời khắc bạn cất tiếng khóc chào đời dựng nên đồ hình số phận. Nhưng chính nỗi bận tâm của bạn ở hiện tại mới là chiếc chìa khóa mở lối cho câu chuyện."
+      "title": "Bắt đầu từ chính bạn.",
+      "body": "Giờ sinh dựng nên đồ hình. Nỗi bận tâm hiện tại mở lối cho câu chuyện."
     },
     "n3": {
-      "title": "Mạch ngầm liên kết.",
-      "body": "Chạm vào một cung số để thấy thế tam hợp, nhị hợp và xung chiếu cùng lúc bừng sáng. Mười hai cung không bao giờ cô lập—chúng cùng kể một câu chuyện về đời bạn.",
-      "link": "Chạm thử vào lá số →"
+      "title": "Các cung nối với nhau.",
+      "body": "Chạm một cung, thấy cả Tam hợp và Xung chiếu cùng sáng lên."
     },
     "n4": {
-      "title": "Thong dong theo nhịp riêng.",
-      "body": "Sự nghiệp, tình cảm hay vận hạn một năm trước mắt: bạn làm chủ hoàn toàn hành trình khám phá, thấy rõ từng giá trị và chi phí trước khi quyết định mở đọc."
-    }
+      "title": "Mở theo nhịp của bạn.",
+      "body": "Chọn phần muốn đọc, thấy rõ số Lá cần dùng trước khi mở."
+    },
+    "cta": "Chạm thử vào lá số →"
   },
   "value": {
     "title": "Xem trước miễn phí. Mở sâu khi bạn cần.",

@@ -72,7 +72,7 @@ export function HomepageV3Ticker() {
   );
 }
 
-export function HomepageV3Usp() {
+export function HomepageV3Usp({ locale = "vi" }: { locale?: Locale } = {}) {
   const t = useTranslations("homepage-v3.usp");
   const icon = (name: string, size: number) => (
     // eslint-disable-next-line @next/next/no-img-element
@@ -133,7 +133,6 @@ export function HomepageV3Usp() {
             {icon("lsv-usp-links-icon.svg", 62)}
             <h3 id="hv3-usp-n3-title">{t("n3.title")}</h3>
             <p>{t("n3.body")}</p>
-            <a href="#la-so-mau" className="hv3-link">{t("n3.link")}</a>
           </div>
         </article>
         <article className="hv3-usp-card hv3-usp-art hv3-usp-son" aria-labelledby="hv3-usp-n4-title" data-reveal style={{ "--i": 3 } as CSSProperties}>
@@ -146,6 +145,10 @@ export function HomepageV3Usp() {
             <p>{t("n4.body")}</p>
           </div>
         </article>
+      </div>
+      {/* One link for the whole section, below the cards: the interactive sample chart. */}
+      <div className="hv3-usp-cta">
+        <a href={localizedPath(locale, "/bao-cao-mau/tu-vi")} className="hv3-btn">{t("cta")}</a>
       </div>
     </div>
   );

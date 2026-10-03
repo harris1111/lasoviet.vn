@@ -323,25 +323,25 @@
     "rotationLabel": "Notes from readers, changing automatically every few seconds"
   },
   "usp": {
-    "title": "The deeper you look, the more clearly you see yourself in it.",
-    "lead": "A true chart never ends with a few shallow verdicts. It is a journey of peeling back every layer of causation, understanding every thread that binds you, so that whenever you feel unsteady, you always have a place to return to and see clearly.",
+    "title": "The deeper you look, the clearer you see yourself.",
+    "lead": "A good chart does not stop at a few verdicts. It is where you return whenever you feel unsteady.",
     "n1": {
-      "title": "Built on the wisdom of the old texts.",
-      "body": "Every reading is distilled from authentic Eastern methods, structured layer by layer so every line has a clear origin—never a vague or arbitrary guess."
+      "title": "Rooted in the old texts.",
+      "body": "Every reading traces back to authentic Eastern methods, never guesswork."
     },
     "n2": {
       "title": "It begins with you.",
-      "body": "The moment you drew your first breath shaped your destiny map. But what's on your mind right now is the key that opens the story."
+      "body": "Your birth hour shapes the chart. What is on your mind opens the story."
     },
     "n3": {
-      "title": "A living web of connections.",
-      "body": "Tap a palace and watch its trine, half-trine and opposite links light up at once. The twelve palaces are never isolated—they tell one single story about your life.",
-      "link": "Try touching a chart →"
+      "title": "Palaces that connect.",
+      "body": "Touch one palace and see its trine and opposite light up together."
     },
     "n4": {
-      "title": "Move through it at your own pace.",
-      "body": "Career, love, or the fortune of the year ahead: you're fully in control of the journey, seeing exactly what each part offers and costs before you decide to open it."
-    }
+      "title": "Open at your pace.",
+      "body": "Pick the part you want to read and see the Lá cost before you open it."
+    },
+    "cta": "Try touching a chart →"
   },
   "value": {
     "title": "Preview free. Go deeper when you need to.",
