@@ -38,6 +38,28 @@
   padding-inline: 0;
 }
 
+/*
+ * Spacing owner: the section wrapper. The shared v3 `.hv3-container` carries its own vertical
+ * padding (64-120px, 40-80px for art containers) and 48px inline padding, which stacked on the
+ * wrapper's padding and doubled the gap between sections and pushed copy off the shared edge.
+ * Outside the world stage a container is just the 1280px column; inside it the container keeps
+ * its inline inset (see above) and loses only the vertical padding. Between two plain sections
+ * the gap is one --tn-section-y (half from each).
+ */
+main > .tn-section {
+  padding-block: calc(var(--tn-section-y) / 2);
+}
+
+main > .tn-section .hv3-container {
+  max-width: var(--tn-max);
+  margin-inline: auto;
+  padding: 0;
+}
+
+.tn-world-content .tn-section .hv3-container {
+  padding-block: 0;
+}
+
 .tn-shell {
   max-width: var(--tn-max);
   margin-inline: auto;
@@ -1657,6 +1679,20 @@
   border-radius: 16px;
   background: var(--lacquer-800);
   color: var(--tn-text);
+}
+
+/*
+ * The base card is min-height 300px, which left a big empty band under short quotes. Card excerpts
+ * are capped at 135 characters (EXCERPT_MAX), so the quote reserves four lines instead: cards stay
+ * the same height as quotes rotate, and the card is only as tall as its content needs.
+ */
+.tn .tn-testimonials .hv3-tt-card {
+  min-height: 0;
+}
+
+.tn .tn-testimonials .hv3-tt-grid .hv3-tt-quote {
+  min-height: 6.4em;
+  margin-bottom: 1.1rem;
 }
 
 .tn .tn-testimonials .hv3-tt-card:hover,
