@@ -103,15 +103,22 @@
 
   /* Desktop board: palaces appear one by one with the real palace names */
   .board-wrap { display: none; }
-  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .cell { position: relative; aspect-ratio: 1 / 1.05; border-radius: 12px; border: 1px solid var(--border-hairline); background: rgba(34,29,22,.6); display: grid; align-content: space-between; padding: 10px; color: var(--text-faint); transition: background 320ms var(--ease), border-color 320ms var(--ease), color 320ms var(--ease), transform 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
-  .cell .br { font: 500 11px/1 var(--font-mono); letter-spacing: .06em; }
-  .cell .pn { font: 600 15px/1.15 var(--font-display); opacity: 0; transform: translateY(4px); transition: opacity 320ms var(--ease), transform 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
-  .cell.on { background: var(--surface-raised-2); border-color: rgba(201,164,77,.5); color: var(--gold-400); }
+  /* Same chart look as the approved free-result page: lacquer texture, 2px gaps, la kinh ornament, LSV seal */
+  :root { --cell-bg: rgba(15,13,10,.80); --cell-lit: rgba(206,91,69,.16); --accent-seal: var(--cinnabar-700, #A63D2F); }
+  .board, .sk-board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; position: relative; border: 1px solid var(--border-hairline); border-radius: 10px; overflow: hidden; background-color: var(--border-hairline); background-image: url("uploads/nen-la-so-son-mai-lien-mach-lasoviet.webp"); background-size: 300px 300px; background-repeat: repeat; }
+  .board { grid-template-rows: repeat(4, minmax(112px, auto)); }
+  .sk-board { grid-template-rows: repeat(4, 72px); }
+  .cell { position: relative; z-index: 1; display: grid; align-content: space-between; padding: 8px 9px; background: var(--cell-bg); color: var(--text-faint); transition: background 320ms var(--ease), color 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
+  .cell .br { font: 500 10px/1 var(--font-mono); letter-spacing: .06em; color: var(--text-muted); }
+  .cell .pn { font: 600 12.5px/1.15 var(--font-ui); text-transform: uppercase; letter-spacing: .01em; text-align: center; opacity: 0; transform: translateY(4px); transition: opacity 320ms var(--ease), transform 320ms var(--ease); transition-delay: calc(var(--i, 0) * 28ms); }
+  .cell.on { background: var(--surface-raised); }
   .cell.on .pn { opacity: 1; transform: none; color: var(--text-heading); }
-  .cell.life.on { border-color: var(--gold-400); box-shadow: inset 0 0 0 1px rgba(201,164,77,.35); }
-  .cell.center { grid-column: 2 / span 2; grid-row: 2 / span 2; aspect-ratio: auto; text-align: center; place-content: center; justify-items: center; gap: 6px; background: radial-gradient(circle at 50% 40%, rgba(201,164,77,.10), rgba(34,29,22,.6) 70%); }
-  .cell.center b { display: block; font: 600 22px/1.2 var(--font-display); color: var(--text-heading); }
+  .cell.life.on { background: var(--cell-lit); box-shadow: 0 0 0 2px var(--accent-seal) inset; }
+  .cell.center, .sk.center { grid-column: 2 / span 2; grid-row: 2 / span 2; z-index: 3; position: relative; display: grid; align-content: center; justify-items: center; gap: 6px; padding: 16px; text-align: center; box-shadow: 0 0 0 1px var(--border-hairline) inset; background: radial-gradient(circle at 50% 42%, var(--surface-raised), var(--cell-bg) 74%); }
+  .cell.center::before { content: ""; position: absolute; inset: -14%; pointer-events: none; background: url("uploads/hoa-van-la-kinh-trung-tam-la-so-lasoviet.svg") no-repeat center / contain; opacity: .30; }
+  .c-seal { position: absolute; right: 12px; bottom: 12px; width: 62px; height: 62px; pointer-events: none; background: url("uploads/dau-trien-la-so-viet-son-do.webp") no-repeat center / contain; opacity: .9; }
+  .cell.center > *:not(.c-seal) { position: relative; z-index: 1; }
+  .cell.center b { display: block; font: 600 20px/1.2 var(--font-display); color: var(--text-heading); }
   .cell.center small { font-size: 14px; color: var(--text-muted); line-height: 1.4; max-width: 22ch; }
   .cell.center .dates { font: 500 13px var(--font-mono); color: var(--gold-400); min-height: 16px; }
   .board-caption { margin: 14px 0 0; font-size: 14px; color: var(--text-muted); text-align: center; }
@@ -129,8 +136,7 @@
   .steps li.now { color: var(--text-heading); }
   .steps li.now i { border-color: var(--gold-500); animation: pulse 1.1s ease-in-out infinite; }
   @keyframes pulse { 50% { background: var(--gold-soft); } }
-  .sk-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .sk { border-radius: 12px; background: linear-gradient(90deg, var(--surface-raised) 0%, var(--surface-raised-2) 50%, var(--surface-raised) 100%); background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite; height: 64px; }
+  .sk { background: linear-gradient(90deg, var(--cell-bg) 0%, var(--surface-raised-2) 50%, var(--cell-bg) 100%); background-size: 200% 100%; animation: shimmer 1.4s ease-in-out infinite; }
   @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 
   button, .opt, .tile, .link-btn, select { touch-action: manipulation; }
@@ -282,7 +288,7 @@
       <li><i></i>Chấm điểm cấu trúc 12 cung</li>
       <li><i></i>Viết phần luận giải đầu tiên</li>
     </ul>
-    <div class="sk-board" aria-hidden="true"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk" style="grid-column:span 2;grid-row:span 2;height:auto"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+    <div class="sk-board" aria-hidden="true"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk center"><span class="c-seal"></span></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
     <p class="hint">Thường mất vài giây. Đừng đóng trang.</p>
   </section>
 </main>
@@ -311,7 +317,7 @@
   var order = [5, 6, 7, 8, 4, null, null, 9, 3, null, null, 10, 2, 1, 0, 11]; // branch index per grid slot, clockwise from Tỵ
   var board = $("board"), html = "";
   order.forEach(function (p, k) {
-    if (k === 5) { html += '<div class="cell center"><b id="bcTitle">Lá số của bạn</b><span class="dates" id="bcDate"></span><small id="bcSub">Chờ ngày giờ sinh</small></div>'; return; }
+    if (k === 5) { html += '<div class="cell center"><span class="c-seal"></span><b id="bcTitle">Lá số của bạn</b><span class="dates" id="bcDate"></span><small id="bcSub">Chờ ngày giờ sinh</small></div>'; return; }
     if (p === null) return;
     var pal = (2 - p + 12) % 12; // palace index at this branch
     html += '<div class="cell' + (pal === 0 ? ' life' : '') + '" data-pal="' + pal + '" style="--i:' + pal + '"><span class="br">' + BR[p].toUpperCase() + '</span><span class="pn">' + PN[pal] + '</span></div>';
