@@ -124,3 +124,12 @@ Allowlist drift: artifact repository hash fix (see ADDENDA.md).
 Verification: `pnpm vitest run packages/backend/src/ziwei tests/free-ai/reader.integration.test.ts` — 88 passed (matrix rows 43–46, one test per mapped state, wrong-owner = missing, wrong locale / unsupported lineage / tampered hash / stale generation / deleted chart / expired TTL / unresolved cost never exposed).
 Not verified: HTTP exposure (B16).
 Next dependency-ready card: B16.
+
+## B16 — Register private gift read endpoint and web loader
+State: VERIFIED (HTTP-level unit tests), flag-independent read path.
+Behavior changed: new private `GET /ziwei/charts/:chartId/free-palace` returning the B15 view; a defensive server-only web loader that degrades to null.
+Files changed: apps/api/src/ziwei/ziwei.controller.ts, apps/api/src/ziwei/free-palace-route.test.ts, apps/web/src/features/ziwei/load-free-palace-gift.ts (+ .test.ts), config/route-registry.yml.
+Allowlist drift: none.
+Verification: `pnpm vitest run apps/web/src/features/ziwei/load-free-palace-gift.test.ts apps/api tests/content packages/config tests/workspace` — 30 files / 342 tests passed (matrix rows 47–48); api + web typecheck, eslint clean.
+Not verified: end-to-end through a real API process + web server (B20 owner/Claude gate); the endpoint is not yet fed by a composed reader (B19 supplies it).
+Next dependency-ready card: B17.

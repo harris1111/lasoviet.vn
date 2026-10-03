@@ -988,6 +988,14 @@ routes:
     redirect: { disposition: "301", target: /boi-bai }
 
   - <<: *private_defaults
+    id: api.ziwei.free-palace-gift
+    path: /ziwei/charts/{chartId}/free-palace
+    locale_behavior: unlocalized
+    intent: api.ziwei.free-palace-gift
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
     id: api.ziwei.personal-daily-reading
     path: /ziwei/charts/{chartId}/daily-reading
     locale_behavior: unlocalized
