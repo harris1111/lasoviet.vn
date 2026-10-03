@@ -76,6 +76,55 @@ test.describe("homepage one-step entry (phone fold)", () => {
   });
 });
 
+// Desktop fold regressions and the previously unchecked tablet breakpoint are locale-sensitive.
+for (const locale of ["vi", "en"] as const) {
+  for (const viewport of [
+    { width: 1024, height: 768 },
+    { width: 1280, height: 720 },
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 },
+    { width: 600, height: 960 },
+    { width: 768, height: 1024 },
+    { width: 879, height: 1024 },
+  ]) {
+    test.describe(`homepage ${locale} at ${viewport.width}x${viewport.height}`, () => {
+      test.use({ viewport });
+      test("controls fit horizontally and submit remains reachable", async ({ page }) => {
+        await page.goto(locale === "vi" ? "/" : "/en");
+        const submit = page.locator('.hv3-form button[type="submit"]');
+        await expect(submit).toHaveAttribute("aria-disabled", "false");
+        await page.evaluate(() => document.fonts.ready);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        if (viewport.width >= 880) {
+          const bounds = await submit.boundingBox();
+          expect(bounds).not.toBeNull();
+          expect(bounds!.y).toBeGreaterThanOrEqual(0);
+          expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height);
+        }
+        const timeField = page.locator(".hv3-field:has(#hv3-time-label)");
+        const modes = timeField.locator(".hv3-seg button");
+        const exact = await modes.nth(0).boundingBox();
+        const range = await modes.nth(1).boundingBox();
+        const hour = await page.locator("#hv3-hour").boundingBox();
+        expect(exact!.x + exact!.width).toBeLessThanOrEqual(range!.x);
+        const overlaps = range!.x < hour!.x + hour!.width && range!.x + range!.width > hour!.x
+          && range!.y < hour!.y + hour!.height && range!.y + range!.height > hour!.y;
+        expect(overlaps).toBe(false);
+        await modes.nth(1).click();
+        await expect(modes.nth(1)).toHaveAttribute("aria-pressed", "true");
+        await expect(page.locator("#hv3-branch")).toBeVisible();
+        await modes.nth(0).click();
+        await submit.scrollIntoViewIfNeeded();
+        await expect(submit).toBeInViewport({ ratio: 1 });
+        await submit.click();
+        await expect(page.locator(".hv3-form").getByRole("alert")).toHaveCount(3);
+        await expect(page.locator("#hv3-day")).toBeFocused();
+      });
+    });
+  }
+}
+
 // Needs the full stack (API, database, Redis) like the other chart-creating specs.
 test("homepage form, one confirmation, then the chart page", async ({ page }) => {
   await page.goto("/");

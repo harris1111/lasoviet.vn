@@ -2458,11 +2458,9 @@ main > .tn-section .hv3-container {
 }
 
 /*
- * Hero fits one screen on desktop (it ran about 1.5 screens: a 120px headline, a stacked form of
- * seven full-width rows). The copy column keeps the headline, one sentence and the sample link;
- * the form becomes a two-column grid: the date row, the time row (label, calendar choice and the
- * "don't remember" box share a line with the seg and the inputs), gender beside name, the concern
- * chips, and the "someone else" link beside the submit button. Phones keep the single column.
+ * The desktop hero uses a compact headline and a two-column form: date, time, gender beside
+ * name, concern chips, and submit. Consent belongs to the separate review step. Phones keep
+ * the single-column form.
  */
 @media (min-width: 880px) {
   .tn-hero-content {
@@ -2519,6 +2517,13 @@ main > .tn-section .hv3-container {
     min-height: 40px;
   }
 
+  /* Long localized labels may wrap within their own half of the time selector. */
+  .tn-hero-form .hv3-field:has(#hv3-time-label) > .hv3-seg button {
+    min-width: 0;
+    white-space: normal;
+    padding-inline: 6px;
+  }
+
   /* Time row: label and the "I don't remember" box on one line, seg and inputs on the next. */
   .tn-hero-form .hv3-field:has(#hv3-time-label) {
     display: grid;
@@ -2543,6 +2548,19 @@ main > .tn-section .hv3-container {
   .tn-hero-form .hv3-form > .hv3-cta {
     height: 52px;
   }
+}
+
+/* Short desktop viewports keep the submit button above the fold without shrinking controls. */
+@media (min-width: 880px) and (max-height: 899px) {
+  .tn-hero-content {
+    min-height: calc(100svh - 75px);
+    padding-block: 0.5rem;
+  }
+
+  .tn-hero-left { gap: 0.5rem; }
+  .tn-hero-title { font-size: 2.5rem; }
+  .tn-hero-sub { font-size: 1.05rem; margin-top: 0; }
+  .tn-hero-form .hv3-form { gap: 0.5rem 1rem; padding: 0.75rem 1.25rem; }
 }
 
 /*
