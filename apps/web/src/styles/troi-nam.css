@@ -487,14 +487,15 @@ main > .tn-section .hv3-container {
   background: transparent;
 }
 
-.tn .tn-story .hv3-container {
+.tn .tn-story .hv3-container,
+.tn .tn-explore .hv3-container {
   position: relative;
-  max-width: var(--tn-max);
+  /* Section-level inline padding is 0 here so the painted world bleeds to the viewport edge, so
+     the inset lives on the container. Its max-width includes both gutters, which puts the text
+     edge on the same x as the 1280px column of every other section (before, the container
+     capped at 1280 and then added the gutter, pushing the copy ~64px further in). */
+  max-width: calc(var(--tn-max) + 2 * var(--tn-gutter));
   padding-block: 0;
-  /* Section-level inline padding was removed so the background above can
-     bleed to the viewport edge (see `.tn-world-content .tn-section`) — this
-     is the one place that inset now lives, so the text column's actual
-     position on screen is unchanged. */
   padding-inline: var(--tn-gutter);
 }
 
@@ -523,23 +524,37 @@ main > .tn-section .hv3-container {
 }
 
 /*
- * Soft readability gradient on the panel (not a box behind the section) —
- * the painted world stays fully visible past where the text column ends.
- * Same curve shape the shared `.hv3-story-art::after` component already
- * uses for art-behind-text sections (strong near the text, gone by ~82%),
- * just re-centered on tn-ink instead of the lighter v3 surface color.
- * Mobile gets near-full coverage top-to-bottom (the text column is full
- * width there, so there's no "right side" to leave clear); desktop switches
- * to the left-dark/right-clear split once the copy column narrows to 58%
- * (2026-10-01 CX review, "thế giới là sân khấu").
+ * Reading panels are frosted glass, not dark boxes. The world is fixed to the viewport and the
+ * copy scrolls across it, so text sits on bright mist one moment and dark water the next: no
+ * single scrim or sky level fits both (a flat dark layer showed as a rectangle with edges, and
+ * dimming the whole scene made it sink). Glass blurs whatever is behind the text, which removes
+ * the busy detail that fought the letters, with a modest dim and a hairline edge so the scene is
+ * still seen through it. Solid fallback where backdrop-filter is missing or transparency is reduced.
  */
-.tn .tn-story .hv3-story-panel::before {
-  content: "";
-  position: absolute;
-  inset: -4% -2%;
-  z-index: -1;
-  background: linear-gradient(180deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.86) 70%, rgb(8 7 6 / 0.72) 100%);
-  pointer-events: none;
+.tn .tn-story .hv3-story-copy,
+.tn .tn-explore .hv3-head {
+  background: rgb(15 13 10 / 0.38);
+  -webkit-backdrop-filter: blur(18px) brightness(0.7) saturate(1.1);
+  backdrop-filter: blur(18px) brightness(0.7) saturate(1.1);
+  border: 1px solid rgb(242 220 160 / 0.16);
+  border-radius: 24px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 30px 80px -40px rgb(0 0 0 / 0.7);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tn .tn-story .hv3-story-copy,
+  .tn .tn-explore .hv3-head {
+    background: rgb(15 13 10 / 0.9);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tn .tn-story .hv3-story-copy,
+  .tn .tn-explore .hv3-head {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(15 13 10 / 0.92);
+  }
 }
 
 .tn .tn-story .hv3-story-copy {
@@ -550,11 +565,7 @@ main > .tn-section .hv3-container {
 
 @media (min-width: 880px) {
   .tn .tn-story .hv3-story-copy {
-    width: min(58%, 620px);
-  }
-
-  .tn .tn-story .hv3-story-panel::before {
-    background: linear-gradient(90deg, rgb(8 7 6 / 0.9) 0%, rgb(8 7 6 / 0.84) 42%, rgb(8 7 6 / 0.55) 62%, rgb(8 7 6 / 0) 82%);
+    width: min(58%, 640px);
   }
 }
 
@@ -738,35 +749,22 @@ main > .tn-section .hv3-container {
 }
 
 /*
- * Contrast over the Milky Way: the painted sky is brightest exactly behind this text, so the
- * shadow alone left body copy near 2:1. A soft radial dim (no edge, so it is not the rejected
- * "black box") sits behind the head and the shortcut row, body copy moves up to pearl-200
- * (13:1 on the dimmed sky), and the shortcut chips get their own dark fill so a control never
- * depends on the sky behind it.
+ * Contrast over the Milky Way, without any dark layer in the page: while this heading and the
+ * shortcut row are on screen the 3D scene dims its sky (textDim, see the world stage), copy is
+ * pearl-200 (13:1 on the dimmed sky), and the shortcut chips keep their own dark fill so a control
+ * never depends on the sky behind it.
  */
-.tn .tn-explore .hv3-head,
-.tn .tn-explore .hv3-shortcuts,
-.tn .tn-explore .hv3-hint {
-  position: relative;
-  isolation: isolate;
-}
-
-.tn .tn-explore .hv3-head::before,
-.tn .tn-explore .hv3-shortcuts::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -2.5rem -3rem -2rem -3rem;
-  background: radial-gradient(ellipse 85% 90% at 22% 50%, rgb(5 4 3 / 0.82) 0%, rgb(5 4 3 / 0.62) 55%, transparent 100%);
-  pointer-events: none;
-}
-
 .tn .tn-explore .hv3-lead {
   color: var(--pearl-200);
 }
 
 .tn .tn-explore .hv3-hint {
-  color: var(--pearl-300, var(--pearl-200));
+  color: var(--pearl-200);
+  text-shadow: 0 0 2px rgb(5 4 3 / 0.95), 0 1px 12px rgb(5 4 3 / 0.85);
+}
+
+.tn .tn-explore .hv3-head {
+  padding: clamp(1.25rem, 3vw, 2.25rem);
 }
 
 .tn .tn-explore .hv3-shortcuts button {

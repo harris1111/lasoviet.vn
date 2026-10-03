@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clampProgress, scenePhases, scrollProgress, smoothstep } from "./troi-nam-motion-math";
+import { clampProgress, scenePhases, scrollProgress, smoothstep, textDim } from "./troi-nam-motion-math";
 
 describe("Trời Nam scroll contract", () => {
   it("clamps finite progress and rejects non-finite input", () => {
@@ -45,5 +45,28 @@ describe("Trời Nam scroll contract", () => {
     expect(scrollProgress(10, { start: 20, end: 20 })).toBe(0);
     expect(scrollProgress(10, { start: 20, end: 10 })).toBe(0);
     expect(scrollProgress(NaN, { start: 0, end: 10 })).toBe(0);
+  });
+});
+
+describe("textDim", () => {
+  const vh = 900;
+  it("is 0 with no text, with text off screen and with an invalid viewport", () => {
+    expect(textDim([], vh)).toBe(0);
+    expect(textDim([{ top: 1200, bottom: 1800 }], vh)).toBe(0);
+    expect(textDim([{ top: -700, bottom: -100 }], vh)).toBe(0);
+    expect(textDim([{ top: 0, bottom: 400 }], 0)).toBe(0);
+  });
+
+  it("reaches 1 once a block is clearly on screen and rises gradually before that", () => {
+    expect(textDim([{ top: 100, bottom: 700 }], vh)).toBe(1);
+    const peeking = textDim([{ top: 800, bottom: 1400 }], vh); // 100px of a 600px block
+    const half = textDim([{ top: 600, bottom: 1200 }], vh); // 300px of it
+    expect(peeking).toBeGreaterThan(0);
+    expect(half).toBeGreaterThan(peeking);
+    expect(half).toBeLessThanOrEqual(1);
+  });
+
+  it("uses the strongest block and ignores empty ones", () => {
+    expect(textDim([{ top: 1500, bottom: 1900 }, { top: 100, bottom: 600 }, { top: 50, bottom: 50 }], vh)).toBe(1);
   });
 });

@@ -40,6 +40,7 @@ it("renders the stored progress and canvas-local chart rect before revealing a r
   const handle: WorldHandle = {
     setProgress: (value) => { progress = value; },
     setChartTarget: (value) => { chart = value; },
+    setTextDim: vi.fn(),
     resize: () => { rendered = { progress, chart }; },
     setActive: vi.fn(), dispose: vi.fn(),
   };
@@ -57,7 +58,7 @@ it("renders the stored progress and canvas-local chart rect before revealing a r
 it("does not reveal or dereference a cleared handle after synchronous resize fallback", async () => {
   const root = environment();
   let options: WorldOptions;
-  const handle: WorldHandle = { resize: () => options.onFailure(), setProgress: vi.fn(), setChartTarget: vi.fn(), setActive: vi.fn(), dispose: vi.fn() };
+  const handle: WorldHandle = { resize: () => options.onFailure(), setProgress: vi.fn(), setChartTarget: vi.fn(), setTextDim: vi.fn(), setActive: vi.fn(), dispose: vi.fn() };
   hooks.factory.mockImplementation(async (_canvas: HTMLCanvasElement, nextOptions: WorldOptions) => { options = nextOptions; return handle; });
   TroiNamWorldStage({ children: null });
   const cleanup = hooks.effect!();
