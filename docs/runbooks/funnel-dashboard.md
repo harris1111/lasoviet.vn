@@ -87,9 +87,33 @@ Fill in after each release so every later phase is judged against numbers. Windo
 
 | Phase shipped | Date live | Window | Visits | Chart created | Door | Dialog | Top-up paid | Unlock confirmed | Notes |
 |---------------|-----------|--------|--------|---------------|------|--------|-------------|------------------|-------|
-| Baseline (before phase 1 live) | | | | | | | | | |
-| Phase 1 money-path hotfix | | | | | | | | | |
+| Baseline (before phase 1 live) | Unavailable | No consistently instrumented, QA-separated pre-release window | — | — | — | — | — | — | Historical telemetry is recorded below; do not invent missing baseline values. |
+| Phase 1 money-path hotfix | Included in deployed release 3d4cb47 on 2026-10-03 | Sept 27–Oct 3 Vietnam time, mixed historical window | 144 | 91 | 3 | 3 | 1 recorded test-mode identity | 3 | Overlapping releases and QA; descriptive counts only. |
 
 ## Privacy
 
 Never add chart ids, names, birth fields, free text or report/evidence text to an event. The registry rejects unknown properties and `sanitizeAnalyticsProperties` strips forbidden keys; keep `concern` to fixed option ids (`self_understanding`, `career`, `love`).
+
+## Recorded telemetry snapshot (2026-10-03)
+
+Read-only host query: 2026-09-27 00:00 through 2026-10-04 00:00 Vietnam time (end exclusive); excludes `device_class=bot`. This is a completed seven-day **mixed operational/QA telemetry window with unclassified customer traffic**, not a clean pre-release customer baseline. Homepage-submit instrumentation arrived during the window, and synthetic browser checks contribute to counts. Missing events mean zero stored events, not proof that no such user action happened. With `SEPAY_ENV=disabled` and auto-approval enabled, recorded payments do not establish real bank revenue.
+
+| Step | Stored events | Distinct observed identities |
+|---|---:|---:|
+| Visit | 1124 | 144 |
+| Homepage form | 2 | 2 |
+| Chart created | 130 | 91 |
+| Engaged free reading | 3 | 2 |
+| Offer door | 7 | 3 |
+| Locked preview | 0 | 0 |
+| Unlock dialog | 5 | 3 |
+| Pack selected | 132 | 9 |
+| Checkout created | 28 | 6 |
+| Payment recorded | 1 | 1 |
+| Unlock confirmed | 5 | 3 |
+| Report opened | 37 | 6 |
+| Upgrade purchased | 0 | 0 |
+
+Do not calculate a customer conversion rate from this snapshot. In particular, the two homepage submissions and 91 chart identities cover different instrumentation periods. Historical QA/customer traffic cannot be reliably separated from the stored rows. `unlock_error` has no stored rows for the October 3 Vietnam-time window; that does not rule out the reported error. An uncontaminated post-release baseline requires consistent instrumentation and traffic classification. Monetary counts require actual authenticated provider acceptance first.
+
+Private raw aggregate evidence: `/home/debian/projects/lasoviet-overnight-evidence-20261003/funnel-baseline.json`; no account, visitor, birth or report identifiers exported.
