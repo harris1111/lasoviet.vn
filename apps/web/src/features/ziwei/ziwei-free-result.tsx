@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import type { NormalizedZiweiChartV1, ZiweiBirthSummaryV1, ZiweiEvidenceViewV1 } from "@lasoviet/contracts";
 import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { createFreeResultAnalytics } from "./free-result-analytics";
+import { FreePalaceGiftBlock } from "./free-palace-gift-block";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart-visuals";
 import { PartFeedback } from "../reports/part-feedback";
@@ -55,7 +56,7 @@ export function ZiweiFreeResult({
   const [askEligible, setAskEligible] = useState(false);
   const [chartExpanded, setChartExpanded] = useState(false);
   const [selectedChartPalace, setSelectedChartPalace] = useState<string>(chart.soulPalaceId);
-  const analyticsRef = useRef(createFreeResultAnalytics(locale));
+  const analyticsRef = useRef(createFreeResultAnalytics(locale, model.gift ? "validated_artifact" : "structural"));
   const completionRef = useRef<HTMLElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -232,11 +233,19 @@ export function ZiweiFreeResult({
                 </div>}
               </article>)}
             </section>
-            <section className="fd109-gift" data-free-result-block="free-palace" data-palace-id={selected.id}>
-              <p className="eyebrow">06 · {t("freeResult.structuralPreview")}</p><h2>{selected.name}</h2>
-              {score(selected)}<p>{selected.facts}</p><p>{t("freeResult.fallback")}</p>
-              <ReportScoreExplainer t={reportT} />
-            </section>
+            {model.gift ? (
+              <>
+                <FreePalaceGiftBlock gift={model.gift} chartId={chartId} locale={locale} remainingPalaces={others.length} score={score(selected)} />
+                <ReportScoreExplainer t={reportT} />
+              </>
+            ) : (
+              <section className="fd109-gift" data-free-result-block="free-palace" data-palace-id={selected.id}>
+                <p className="eyebrow">06 · {t("freeResult.structuralPreview")}</p><h2>{selected.name}</h2>
+                {score(selected)}<p>{selected.facts}</p><p>{t("freeResult.fallback")}</p>
+                {model.giftPreparing && <p role="status" data-testid="fd109-gift-preparing">{t("freeResult.giftPreparing", { name: selected.name })}</p>}
+                <ReportScoreExplainer t={reportT} />
+              </section>
+            )}
           </section>
           <section {...panel("chart")} className="fd109-block" data-free-result-block="scores">
             <p className="eyebrow">03</p><h2 id="heading-chart">{t("freeResult.scores")}</h2>
@@ -274,8 +283,9 @@ export function ZiweiFreeResult({
           </section>
           <section className="fd109-completion" data-free-result-block="completion" data-completion-tabs="overview topics"
             data-testid="fd109-completion" ref={completionRef}>
-            <p className="eyebrow">09 · {t("freeResult.complete")}</p><h2>{t("freeResult.bridge")}</h2>
-            <p>{t("freeResult.bridgeDescription")}</p>
+            <p className="eyebrow">09 · {t("freeResult.complete")}</p>
+            <h2>{model.gift ? t("freeResult.giftBridge") : t("freeResult.bridge")}</h2>
+            <p>{model.gift ? t("freeResult.giftBridgeDescription") : t("freeResult.bridgeDescription")}</p>
             <Link className="button" href={offerHref} onClick={trackDoor}>{t("freeResult.choose")}</Link>
           </section>
           <section {...panel("evidence")} className="fd109-block" data-free-result-block="evidence">

@@ -1,4 +1,5 @@
-export function createFreeResultAnalytics(locale: "vi" | "en") {
+// `sourceKind` is "validated_artifact" only when a ready gift is actually rendered.
+export function createFreeResultAnalytics(locale: "vi" | "en", sourceKind: "structural" | "validated_artifact" = "structural") {
   const emitted = new Set<string>();
   const started = new Map<string, number>();
   function claim(section: string, stage: "view" | "engaged" | "door") {
@@ -6,7 +7,7 @@ export function createFreeResultAnalytics(locale: "vi" | "en") {
     if (emitted.has(key)) return null;
     emitted.add(key);
     return { name: "free_result_interaction" as const,
-      properties: { section_id: section, stage, locale, source_kind: "structural" } };
+      properties: { section_id: section, stage, locale, source_kind: sourceKind } };
   }
   return {
     visible(section: string, time: number, foreground: boolean) {

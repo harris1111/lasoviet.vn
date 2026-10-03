@@ -165,7 +165,18 @@
     "deepReadingLocked": "Mở luận giải để đọc kết luận, các điểm chính và gợi ý nên làm, nên tránh.",
     "enlargeChart": "Xem lá số lớn hơn",
     "strongest": "Cấu trúc mạnh nhất: {name}",
-    "weakest": "Cấu trúc cần chú ý: {name}"
+    "weakest": "Cấu trúc cần chú ý: {name}",
+    "giftEyebrow": "Bài đọc đầy đủ",
+    "giftKeyPoints": "Những điểm chính",
+    "giftNarrative": "Diễn giải",
+    "giftDo": "Nên làm",
+    "giftAvoid": "Nên tránh",
+    "giftEvidence": "Căn cứ từ lá số của bạn",
+    "giftEvidenceRef": "Căn cứ số {n}",
+    "giftOnePalace": "Đây là bài đọc đầy đủ cho riêng {name}. {count} cung còn lại hiện chỉ có bản đồ cấu trúc, chưa có bài đọc.",
+    "giftPreparing": "Bài đọc {name} đang được chuẩn bị. Phần cấu trúc bên dưới đọc được ngay, và bạn có thể tải lại trang sau ít phút.",
+    "giftBridge": "Bạn đã đọc trọn một cung",
+    "giftBridgeDescription": "Bạn vừa đọc đầy đủ một cung của lá số. Các cung còn lại và những chủ đề sâu hơn nằm trong phần luận giải đầy đủ."
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

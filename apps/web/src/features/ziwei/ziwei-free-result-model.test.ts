@@ -220,3 +220,51 @@ describe("FD109 server-side free-result projection", () => {
     });
   });
 });
+
+describe("B17 free palace gift projection", () => {
+  const point = (text: string, keys: string[]) => ({ text, evidenceKeys: keys });
+  const ready = (over: Record<string, unknown> = {}) => ({
+    version: 1, status: "ready", requestId: "123e4567-e89b-42d3-a456-426614174000", chartVersionId: "chart-version-1",
+    palaceId: "ziwei.palace.wealth", locale: "vi", sourceKind: "validated_artifact", contentHash: "a".repeat(64),
+    reading: {
+      palaceId: "ziwei.palace.wealth", title: "GIFT_TITLE", conclusion: "GIFT_CONCLUSION",
+      keyPoints: [point("p1", ["fact:two"]), point("p2", ["fact:one", "fact:two"]), point("p3", ["fact:one"])],
+      narrative: "PARA_ONE\n\nPARA_TWO", do: [point("do1", ["fact:one"])], avoid: [point("avoid1", ["fact:two"])], evidenceKeys: ["fact:one", "fact:two"],
+    },
+    facts: [{ key: "fact:one", label: "L1", value: "V1" }, { key: "fact:two", label: "L2", value: "V2" }], ...over,
+  }) as never;
+
+  it("without a gift the model is exactly the Phase A fallback", () => {
+    const model = buildFreeResultModel(input);
+    expect(model.gift).toBeNull();
+    expect(model.giftPreparing).toBe(false);
+  });
+  it("projects a ready gift for one palace and follows its frozen palace", () => {
+    const model = buildFreeResultModel({ ...input, gift: ready() });
+    expect(model.selectedPalaceId).toBe("ziwei.palace.wealth");
+    expect(model.gift).toMatchObject({ palaceId: "ziwei.palace.wealth", title: "GIFT_TITLE", conclusion: "GIFT_CONCLUSION", paragraphs: ["PARA_ONE", "PARA_TWO"] });
+    expect(model.gift?.keyPoints.map((p) => p.refs)).toEqual([[2], [1, 2], [1]]);
+    expect(model.gift?.facts).toEqual([{ n: 1, label: "L1", value: "V1" }, { n: 2, label: "L2", value: "V2" }]);
+    expect(model.palaces).toHaveLength(12);
+    expect(model.palaces.every((palace) => palace.sourceKind === "structural" && palace.state === "locked")).toBe(true);
+  });
+  it("serializes no operational field", () => {
+    const text = JSON.stringify(buildFreeResultModel({ ...input, gift: ready() }));
+    for (const forbidden of ["123e4567", "contentHash", "requestId", "validated_artifact", "chart-version-1", "fact:one"]) expect(text).not.toContain(forbidden);
+  });
+  it.each(["unavailable", "terminal_failure", "cost_unknown", "budget_exhausted"])("%s keeps Phase A copy with no preparing note", (status) => {
+    const model = buildFreeResultModel({ ...input, gift: { version: 1, status } as never });
+    expect(model.gift).toBeNull();
+    expect(model.giftPreparing).toBe(false);
+  });
+  it.each(["requested", "generating"])("%s shows a preparing note but no gift", (status) => {
+    const model = buildFreeResultModel({ ...input, gift: { version: 1, status } as never });
+    expect(model.gift).toBeNull();
+    expect(model.giftPreparing).toBe(true);
+  });
+  it("ignores a ready gift whose palace is not on this chart", () => {
+    const model = buildFreeResultModel({ ...input, gift: ready({ palaceId: "ziwei.palace.nonexistent" }) });
+    expect(model.gift).toBeNull();
+  });
+});
+

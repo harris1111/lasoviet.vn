@@ -76,3 +76,28 @@
   .fd109-sheet-handle { display: none; }
   .fd109-chart-fullscreen { margin: auto; height: 94dvh; max-height: 94dvh; }
 }
+
+/* Free palace gift — mobile-first (360–430px single column), enhanced from 768px. */
+.fd109-palace-gift { padding: 24px 0; border-bottom: 1px solid var(--border-soft); }
+.fd109-palace-gift h2 { margin: 4px 0 12px; }
+.fd109-palace-gift h3 { margin: 28px 0 12px; font-size: 20px; }
+.fd109-palace-gift .fd109-gift-conclusion { font-size: 19px; line-height: 1.7; color: var(--text-heading); margin: 12px 0 8px; }
+.fd109-gift-points { margin: 0; padding: 0 0 0 24px; display: grid; gap: 12px; }
+.fd109-gift-points li { padding-left: 4px; font-family: var(--font-source-serif-4), Georgia, serif; font-size: 17px; line-height: 1.7; overflow-wrap: anywhere; }
+.fd109-gift-prose p { margin: 0 0 16px; }
+.fd109-gift-actions { display: grid; gap: 8px; }
+.fd109-gift-do, .fd109-gift-avoid { padding: 4px 16px 12px; border: 1px solid var(--border-soft); border-radius: 4px; }
+.fd109-gift-do { border-left: 3px solid var(--gold-500); }
+.fd109-gift-list { margin: 0; padding: 0 0 0 20px; display: grid; gap: 10px; font-size: 17px; line-height: 1.65; overflow-wrap: anywhere; }
+.fd109-gift-refs { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: baseline; margin-left: 2px; }
+/* 44px touch target without a 44px visual chip: the anchor is padded, the glyph stays small. */
+.fd109 .fd109-gift-ref { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; margin: -14px -8px; color: var(--gold-500); font-size: 14px; font-weight: 600; text-decoration: none; }
+.fd109-gift-evidence { margin: 24px 0 0; border: 1px solid var(--border-soft); border-radius: 4px; padding: 0 16px; }
+.fd109-gift-evidence summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; }
+.fd109-gift-evidence ol { margin: 0 0 16px; padding-left: 24px; display: grid; gap: 10px; font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+.fd109-gift-evidence li:target { outline: 2px solid var(--gold-500); outline-offset: 4px; }
+.fd109 .fd109-gift-scope { margin-top: 24px; padding: 14px 16px; border: 1px dashed var(--border-soft); border-radius: 4px; font-family: inherit; font-size: 16px; }
+@media (min-width: 768px) {
+  .fd109-gift-actions { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .fd109-palace-gift .fd109-gift-conclusion { font-size: 21px; }
+}

@@ -10,6 +10,7 @@ import { SiteHeader } from "../../../../components/site-header";
 import { AnonymousDataDeletionControl } from "../../../../features/privacy/anonymous-data-deletion-control";
 import { deleteAnonymousDataAction } from "../../../../features/privacy/delete-anonymous-data-action";
 import { freeIdentityPreviewLoader } from "../../../../features/reports/load-free-identity-preview";
+import { freePalaceGiftLoader } from "../../../../features/ziwei/load-free-palace-gift";
 import { loadZiweiEvidence } from "../../../../features/ziwei/calculate-ziwei-chart-action";
 import { loadZiweiChart } from "../../../../features/ziwei/load-ziwei-chart";
 import { ZiweiFreeResult } from "../../../../features/ziwei/ziwei-free-result";
@@ -81,6 +82,10 @@ export default async function ZiweiChartResultPage({
     preview: previewResult.ok ? previewResult.value : null,
   });
 
+  // 3b. Server-side, read-only gift lookup. Never throws; anything but a validated ready artifact
+  // for this exact chart version and locale is null and leaves the structural fallback in place.
+  const gift = await freePalaceGiftLoader.load({ chartId, chartVersionId: chartResult.value.chartVersionId, locale });
+
   const signInHref = localizedSignInPath(locale, canonicalChartUrl);
   const isGuest = actor.kind !== "account" || actor.emailVerified !== true;
 
@@ -89,7 +94,7 @@ export default async function ZiweiChartResultPage({
     chart: chartResult.value.chart,
     preview: safePreview,
     horoscope: horoscopeResult.ok ? horoscopeResult.value : undefined,
-    isGuest, locale, displayName,
+    isGuest, locale, displayName, gift,
   });
   const heroTitle = displayName
     ? t("personalizedTitle", { name: displayName })
