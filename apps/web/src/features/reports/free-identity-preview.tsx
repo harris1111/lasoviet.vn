@@ -156,7 +156,7 @@ export function FreeIdentityPreview({
             actionHref={isGuestActor ? signInHref : (locale === "en" ? `/en/la-so/${chartId}/chon-luan-giai` : `/la-so/${chartId}/chon-luan-giai`)}
             actionLabel={isGuestActor ? (locale === "vi" ? "Đăng nhập để đọc Bản mệnh" : "Sign in to read Destiny") : (locale === "vi" ? "Mở – 240 Lá" : "Unlock – 240 Lá")}
             badge={locale === "vi" ? "Xem trước Bản mệnh" : "Destiny Preview"}
-            clippedSentences={preview.banMenhPreview.opening ? [preview.banMenhPreview.opening] : [locale === "vi" ? "Bản mệnh tại Cung Mệnh phản ánh trục cốt lõi của tính cách và thiên hướng phát triển tự nhiên…" : "Your core destiny anchors the life axis, reflecting fundamental nature and natural growth…"]}
+            clippedSentences={!isGuestActor && preview.banMenhPreview.opening ? [preview.banMenhPreview.opening] : [locale === "vi" ? "Bản mệnh tại Cung Mệnh phản ánh trục cốt lõi của tính cách và thiên hướng phát triển tự nhiên…" : "Your core destiny anchors the life axis, reflecting fundamental nature and natural growth…"]}
             counts={preview.banMenhPreview.counts}
             isGuest={isGuestActor}
             lengthHint={preview.banMenhPreview.lengthHint}
@@ -166,6 +166,7 @@ export function FreeIdentityPreview({
             tagline={locale === "vi" ? "Trục Cung Mệnh" : "Life Palace Axis"}
             title={preview.banMenhPreview.title}
           />
+          {!isGuestActor && preview.banMenhPreview.opening && <PartFeedback locale={locale} chartId={chartId} partId="banMenhPreview.opening" />}
         </div>
       ) : null}
 
@@ -177,6 +178,7 @@ export function FreeIdentityPreview({
               <h3>{richInsights.overallStrength.title}</h3>
             </div>
             <p className="signal-prose">{richInsights.overallStrength.description}</p>
+            <PartFeedback locale={locale} chartId={chartId} partId="overallStrength" />
             <EvidenceDrawer
               chart={chart}
               chartId={chartId}
@@ -192,6 +194,7 @@ export function FreeIdentityPreview({
               <h3>{richInsights.areaWorthObserving.title}</h3>
             </div>
             <p className="signal-prose">{richInsights.areaWorthObserving.description}</p>
+            <PartFeedback locale={locale} chartId={chartId} partId="areaWorthObserving" />
             <EvidenceDrawer
               chart={chart}
               chartId={chartId}

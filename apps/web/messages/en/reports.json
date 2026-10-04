@@ -385,6 +385,7 @@
     "conditions": "One claim per account, for a part purchased for less than 500 Lá within 24 hours. The refunded part will be locked again.",
     "claim": "Request a Lá refund and lock this part",
     "restored": "{amount} Lá restored. This reading is now locked.",
+    "dismiss": "Dismiss notification",
     "related": "Explore {palace}"
   },
   "membership": {

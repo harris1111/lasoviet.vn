@@ -1231,7 +1231,12 @@ html[data-theme="light"]:has([data-light-ready]) .result-tab-button.is-active {
 .part-feedback button[aria-pressed="true"] { background: var(--text-heading); color: var(--surface-panel); }
 .part-feedback button:disabled { opacity: .65; cursor: wait; }
 .part-feedback-guarantee { max-width: 40rem; }
-@media print { .part-feedback { display: none !important; } }
+/* Approved refund receipts survive the reader's immediate access revocation. */
+.guarantee-result-notice { position: fixed; z-index: 200; inset-inline: 1rem; bottom: max(1rem, env(safe-area-inset-bottom)); margin-inline: auto; max-width: 34rem; padding: 1rem; background: var(--surface-panel); color: var(--text-heading); border: 1px solid var(--border-hairline); border-radius: 12px; box-shadow: 0 8px 32px #0004; }
+.guarantee-result-notice p { margin: 0 0 .5rem; }
+.guarantee-result-notice a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; margin-inline-end: 1rem; }
+.guarantee-result-notice button { min-height: 44px; padding: .5rem .75rem; border: 1px solid currentColor; border-radius: 8px; color: inherit; background: transparent; }
+@media print { .part-feedback, .guarantee-result-notice { display: none !important; } }
 .topic-report-reader h1 { font-size: clamp(30px, 6vw, 44px); line-height: 1.2; margin-block: 16px 24px; }
 .result-hero-actions {
   display: flex;

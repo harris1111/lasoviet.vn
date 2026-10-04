@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
 vi.mock("server-only", () => ({}));
+vi.mock("next/navigation", () => ({useRouter: () => ({refresh: () => {}})}));
 
 vi.mock("next-intl", async () => {
   const viMessages = (await import("../../../messages/vi/reports.json")).default;
@@ -209,5 +210,39 @@ describe("single-palace reader", () => {
     expect(html).not.toContain("Cung Phu Thê");
     expect(html).not.toContain("Tải PDF");
     expect(html).not.toContain("ziwei.palace.spouse");
+  });
+});
+
+
+describe("feedback on authorized reading parts", () => {
+  it("offers feedback on both owned palaces and all four attached excerpt sections", () => {
+    const content = v3Report.content;
+    const html = renderToStaticMarkup(<ReportReader locale="vi" report={{
+      version: 1, state: "ready", contentVersion: "ziwei-palaces.v1", reportId: "palace-report",
+      reportVersionId: "palace-version", chartId: "owned-chart", locale: "vi", sku: "ZIWEI-PALACE-LIFE-P0",
+      fulfillmentStatus: "complete", lineage: {supersedesReportVersionId: null},
+      content: {palaceReadings: [
+        {palaceId: "ziwei.palace.life", title: "Life", narrative: "Owned life"},
+        {palaceId: "ziwei.palace.wealth", title: "Wealth", narrative: "Owned wealth"},
+      ], lockedPalaces: ["ziwei.palace.spouse"], identity: {
+        overview: content.overview, coreAxis: content.coreAxis, strengthsAndTensions: content.strengthsAndTensions,
+        practicalDirection: content.practicalDirection, lockedSections: [],
+      }},
+    }} />);
+    expect(html.match(/class="part-feedback"/g)).toHaveLength(6);
+    expect(html).toContain("Owned life"); expect(html).toContain("Owned wealth");
+    expect(html).not.toContain("ziwei.palace.spouse");
+    expect(html).not.toContain("Tải PDF");
+  });
+  it("does not invent feedback authority without actual chart context", () => {
+    const html = renderToStaticMarkup(<ReportReader locale="vi" report={legacyReport} />);
+    expect(html).not.toContain('class="part-feedback"');
+  });
+  it("offers legacy feedback only on displayed narratives, excluding hidden source sections", () => {
+    const html = renderToStaticMarkup(<ReportReader locale="vi" report={{...legacyReport, chartId: "owned-chart",
+      content: {...legacyReport.content, reflectionQuestions: ["Visible reflection"], summaryActions: ["Visible action"], sections: [...legacyReport.content.sections,
+        {id: "primary_evidence", title: "PRIVATE HIDDEN", narrative: "PRIVATE HIDDEN SOURCE", claims: []}]}}} />);
+    expect(html.match(/class="part-feedback"/g)).toHaveLength(4);
+    expect(html).not.toContain("PRIVATE HIDDEN");
   });
 });
