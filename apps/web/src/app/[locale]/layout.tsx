@@ -14,6 +14,7 @@ import { MessengerBubble } from "../../components/ui/messenger-bubble";
 import { WelcomeGrantNotice } from "../../features/commerce/welcome-grant-notice";
 import "../../styles/global.css";
 import "../../styles/free-result-read-first.css";
+import "../../styles/contextual-unlock.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["vietnamese"],

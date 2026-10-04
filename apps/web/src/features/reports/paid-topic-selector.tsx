@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
 import type {
   OrderHistoryItemV1,
@@ -25,6 +26,7 @@ import {
 export { formatUpgradeDeadline } from "./format-upgrade-deadline";
 
 export type PaidTopicSelectorProps = {
+  readingContent?: ReactNode;
   locale: ZiweiPresentationLocale;
   topics?: PaidTopicSelectionViewV1;
   birthSummary?: ZiweiBirthSummaryV1;
@@ -64,6 +66,7 @@ const DEFAULT_OFFERS: PaidTopicSelectionViewV1["offers"] = [
  * interactive after soft navigation.
  */
 export function PaidTopicSelector({
+  readingContent,
   locale,
   topics,
   birthSummary,
@@ -115,6 +118,7 @@ export function PaidTopicSelector({
 
   return (
     <PaidTopicSelectorClient
+      readingContent={readingContent}
       locale={locale}
       offers={offers}
       offerDescriptors={offerDescriptors}

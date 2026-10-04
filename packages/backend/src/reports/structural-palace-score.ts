@@ -15,7 +15,8 @@ function getPalaceRelations(id: string, palaces: { id: string; earthlyBranchId: 
 // về sao thật trên lá số, và cùng một lá số thì lúc nào tính cũng ra đúng một
 // kết quả. Không có yếu tố ngẫu nhiên.
 //
-// Các trọng số dưới đây cần An và founder duyệt trước khi bật cho khách trả phí.
+// The owner approved these exact weights on 2026-10-04 (FD-111).
+// Paid writer quality and provider activation remain separate release gates.
 
 export const SCORE_BASE = 50;
 export const CHIEU_WEIGHT = 1 / 3;

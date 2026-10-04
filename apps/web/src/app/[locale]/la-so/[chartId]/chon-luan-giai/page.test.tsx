@@ -83,230 +83,64 @@ import { accountDataLoader } from "../../../../../features/account/account-data-
 import { freeIdentityPreviewLoader } from "../../../../../features/reports/load-free-identity-preview";
 import { loadZiweiChart } from "../../../../../features/ziwei/load-ziwei-chart";
 import PaidTopicSelectionPage from "./page";
+import { loadWalletQuotes } from "../../../../../features/commerce/load-wallet-quotes";
+import { LA_PRODUCT_CATALOG, ZIWEI_PALACE_IDS } from "@lasoviet/contracts";
+import { CANONICAL_BRANCH_SEQUENCE } from "../../../../../features/ziwei/ziwei-chart-relations";
+vi.mock("../../../../../features/commerce/load-wallet-quotes", () => ({ loadWalletQuotes: vi.fn() }));
 
-const mockTopics = {
-  version: 1,
-  chartId: "chart-1",
-  chartVersionId: "ver-1",
-  offers: [
-    {
-      sku: "ZIWEI-IDENTITY-P0",
-      method: "ziwei",
-      price: 79000,
-      currency: "VND",
-      sections: ["core-identity", "transformations"],
-    },
-  ],
-};
 
-const mockChart = {
-  chartId: "chart-1",
-  chartVersionId: "ver-1",
-  birthSummary: {
-    displayName: "Minh An",
-    normalizedCalendar: { kind: "solar", date: "1994-04-12" },
-    normalizedTime: { precision: "exact_minute", localTime: "09:05" },
-    timezoneProvenance: { source: "offset", offsetMinutes: 420 },
-  },
-};
-
-const verifiedActor = {
-  kind: "account" as const,
-  userId: "user-1",
-  sessionId: "session-1",
-  requestId: "req-1",
-};
-
-describe("PaidTopicSelectionPage", () => {
+const chartId = "chart-1";
+const chartVersionId = "ver-1";
+const actor = { kind: "account" as const, userId: "user-1", sessionId: "session-1", requestId: "req-1" };
+const chart = { transformations: [], soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", palaces: ZIWEI_PALACE_IDS.map((id, index) => ({ id, earthlyBranchId: CANONICAL_BRANCH_SEQUENCE[index], stars: [] })) };
+const available = () => ({ version: 1 as const, chartId, chartVersionId, locale: "vi" as const, quotedAt: "2026-10-04T00:00:00Z", quotes: LA_PRODUCT_CATALOG.map(product => ({ sku: product.sku, state: product.availability === "active" ? "available" : "coming_soon", basePriceLa: product.priceLa, priceLa: product.availability === "active" ? product.priceLa : null, creditLa: 0, discountLa: 0, creditExpiresAt: null, creditSourceSkus: [], reportId: null, reportState: null })) });
+async function render(query?: { offer?: string; palace?: string }) {
+  return renderToStaticMarkup(await PaidTopicSelectionPage({ params: Promise.resolve({ chartId, locale: mockLocale }), searchParams: query ? Promise.resolve(query) : undefined }));
+}
+describe("authorized offer ladder page", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    mockLocale = "vi";
-    vi.mocked(freeIdentityPreviewLoader.loadTopics).mockResolvedValue({
-      ok: true,
-      value: mockTopics as any,
-    });
-    vi.mocked(loadZiweiChart.loadChart).mockResolvedValue({
-      ok: true,
-      value: mockChart as any,
-    });
+    vi.clearAllMocks(); mockLocale = "vi";
+    vi.mocked(freeIdentityPreviewLoader.loadTopics).mockResolvedValue({ ok: true, value: { version: 1, chartId, chartVersionId, offers: [] } as never });
+    vi.mocked(loadZiweiChart.loadChart).mockResolvedValue({ ok: true, value: { chartId, chartVersionId, chart, birthSummary: { displayName: "Minh An" } } as never });
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+    vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({ ok: true, value: { version: 1, items: [], groups: [], totalCount: 0 } as never });
+    vi.mocked(loadWalletQuotes).mockResolvedValue(available() as never);
   });
-
-  it("renders purchase CTA for unverified visitor without errors", async () => {
-    vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(
-      new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"),
-    );
-
-    const jsx = await PaidTopicSelectionPage({
-      params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-    });
-    const html = renderToStaticMarkup(jsx);
-
+  it("renders all ladder tiers, twelve scored palaces, reserved labels and lifetime default", async () => {
+    const html = await render();
     expect(html).toContain("Luận giải cho lá số của Minh An");
-    expect(html).toContain("Mở khóa: 960 Lá");
-    expect(html).toContain("Xem bản mẫu");
-    expect(accountDataLoader.loadLibrary).not.toHaveBeenCalled();
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) expect(html).toContain(`data-sku="${sku}"`);
+    expect(html).toContain("Đáng nhất"); expect(html).toContain("Độ mạnh cấu trúc:"); expect(html).toContain("Sắp mở");
+    const ladder = html.slice(html.indexOf('data-testid="offer-ladder"'), html.indexOf('id="hoi-vien"'));
+    expect(ladder).not.toMatch(/VND|VNĐ|₫/);
   });
-
-  it("renders Read again button and zero purchase buttons for verified owner with ready report", async () => {
-    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(verifiedActor);
-    vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({
-      ok: true,
-      value: {
-        version: 1,
-        groups: [],
-        items: [
-          {
-            id: "ent-1",
-            entitlementId: "ent-1",
-            orderId: "ord-1",
-            chartId: "chart-1",
-            profileId: "prof-1",
-            profileDisplayName: "Minh An",
-            sku: "ZIWEI-IDENTITY-P0",
-            productTitle: "Luận giải Tử Vi toàn diện",
-            productName: "Luận giải Tử Vi toàn diện",
-            orderStatus: "paid",
-            entitlementStatus: "active",
-            reportId: "rep-ready-1",
-            readUrl: "/bao-cao/rep-ready-1",
-            reportStatus: "ready",
-            locale: "vi",
-            createdAt: "2026-09-09T00:00:00.000Z",
-            purchasedAt: "2026-09-09T00:00:00.000Z",
-          },
-        ],
-        latestReadableReport: null,
-        totalCount: 1,
-      },
-    });
-
-    const jsx = await PaidTopicSelectionPage({
-      params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-    });
-    const html = renderToStaticMarkup(jsx);
-
-    expect(html).toContain("Đọc lại");
-    expect(html).toContain('href="/bao-cao/rep-ready-1"');
-    expect(html).not.toContain("Tiếp tục thanh toán");
-    expect((html.match(/type="submit"/g) || []).length).toBe(0);
+  it("shows API rollover rather than a fixed upgrade price", async () => {
+    const value = available();
+    const lifetime = value.quotes.find(item => item.sku === "ZIWEI-IDENTITY-P0")!;
+    Object.assign(lifetime, { priceLa: 840, creditLa: 120, creditExpiresAt: "2026-10-10T00:00:00Z", creditSourceSkus: ["ZIWEI-PALACE-LIFE-P0"] });
+    vi.mocked(loadWalletQuotes).mockResolvedValue(value as never);
+    const html = await render(); expect(html).toContain("chỉ thêm 840 Lá"); expect(html).toContain("Mở luận giải — 840 Lá");
   });
-
-  it("renders View progress and zero purchase buttons for verified owner with processing report", async () => {
-    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(verifiedActor);
-    vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({
-      ok: true,
-      value: {
-        version: 1,
-        groups: [],
-        items: [
-          {
-            id: "ent-1",
-            entitlementId: "ent-1",
-            orderId: "ord-1",
-            chartId: "chart-1",
-            profileId: "prof-1",
-            profileDisplayName: "Minh An",
-            sku: "ZIWEI-IDENTITY-P0",
-            productTitle: "Luận giải Tử Vi toàn diện",
-            productName: "Luận giải Tử Vi toàn diện",
-            orderStatus: "paid",
-            entitlementStatus: "active",
-            reportId: "rep-generating-1",
-            readUrl: null,
-            reportStatus: "generating",
-            locale: "vi",
-            createdAt: "2026-09-09T00:00:00.000Z",
-            purchasedAt: "2026-09-09T00:00:00.000Z",
-          },
-        ],
-        latestReadableReport: null,
-        totalCount: 1,
-      },
-    });
-
-    const jsx = await PaidTopicSelectionPage({
-      params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-    });
-    const html = renderToStaticMarkup(jsx);
-
-    expect(html).toContain("Xem tiến trình");
-    expect(html).toContain('href="/bao-cao/rep-generating-1"');
-    expect(html).not.toContain("Tiếp tục thanh toán");
-    expect((html.match(/type="submit"/g) || []).length).toBe(0);
-  });
-
-  it("renders bounded unavailable state when verified account library projection fails", async () => {
-    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(verifiedActor);
-    vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({
-      ok: false,
-      error: {
-        code: "COMMERCE_UNAVAILABLE",
-        messageKey: "account.service_unavailable",
-        retryable: true,
-      },
-    });
-
-    const jsx = await PaidTopicSelectionPage({
-      params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-    });
-    const html = renderToStaticMarkup(jsx);
-
-    expect(html).toContain("Tạm thời không thể kiểm tra trạng thái");
-    expect(html).toContain("Hệ thống chưa thể tải thông tin sở hữu");
-    expect(html).toContain("Xem bản mẫu");
-    expect(html).not.toContain("Tiếp tục thanh toán");
-    expect((html.match(/type="submit"/g) || []).length).toBe(0);
-  });
-
-  it("performs only read queries and never creates an order across page refreshes (B-9)", async () => {
-    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(verifiedActor);
-    vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({
-      ok: true,
-      value: {
-        version: 1,
-        groups: [],
-        items: [],
-        latestReadableReport: null,
-        totalCount: 0,
-      },
-    });
-
-    // Simulate 5 consecutive page refreshes
-    for (let i = 0; i < 5; i++) {
-      const jsx = await PaidTopicSelectionPage({
-        params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-      });
-      expect(jsx).toBeDefined();
+  it("preserves authoritative pending, failed and readable ownership without purchase", async () => {
+    for (const reportState of ["ready", "processing", "unavailable"] as const) {
+      const value = available();
+      for (const quote of value.quotes.filter(item => item.state === "available")) Object.assign(quote, { state: "owned", priceLa: null, reportId: "report-owned", reportState });
+      vi.mocked(loadWalletQuotes).mockResolvedValue(value as never);
+      const html = await render();
+      expect(html).toContain(reportState === "ready" ? "Đọc lại" : "Xem tiến trình");
+      expect(html).not.toContain("Mở luận giải — 960 Lá"); expect(html).toContain("/bao-cao/report-owned");
     }
-
-    expect(freeIdentityPreviewLoader.loadTopics).toHaveBeenCalledTimes(5);
-    expect(loadZiweiChart.loadChart).toHaveBeenCalledTimes(5);
-    expect(accountDataLoader.loadLibrary).toHaveBeenCalledTimes(5);
   });
-
-  it("throws notFound when chart loader fails", async () => {
-    vi.mocked(loadZiweiChart.loadChart).mockResolvedValue({
-      ok: false,
-      error: { code: "CHART_NOT_FOUND" } as any,
-    });
-
-    await expect(
-      PaidTopicSelectionPage({
-        params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-      }),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
+  it("allows guest sign-in entry but fails closed when authenticated quote loading fails", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
+    expect(await render()).toContain("Mở luận giải — 960 Lá"); expect(loadWalletQuotes).not.toHaveBeenCalled();
+    vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor); vi.mocked(loadWalletQuotes).mockResolvedValue(null);
+    const html = await render(); expect(html).toContain("Chưa thể kiểm tra giá hiện tại"); expect(html).not.toContain("Mở luận giải — 960 Lá");
   });
-
-  it("throws notFound when topics loader fails", async () => {
-    vi.mocked(freeIdentityPreviewLoader.loadTopics).mockResolvedValue({
-      ok: false,
-      error: { code: "TOPICS_NOT_FOUND" } as any,
-    });
-
-    await expect(
-      PaidTopicSelectionPage({
-        params: Promise.resolve({ chartId: "chart-1", locale: "vi" }),
-      }),
-    ).rejects.toThrow("NEXT_NOT_FOUND");
+  it("accepts closed palace deep links and keeps English unsupported palace sales disabled", async () => {
+    expect(await render({ offer: "ziwei-palace", palace: "ziwei.palace.spouse" })).toContain('data-sku="ZIWEI-PALACE-SPOUSE-P0"');
+    mockLocale = "en"; vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
+    const html = await render({ offer: "ziwei-palace", palace: "ziwei.palace.spouse" });
+    expect(html).toContain("This choice is not supported yet"); expect(html).not.toContain("Mở luận giải");
   });
 });

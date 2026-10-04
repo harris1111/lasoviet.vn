@@ -4,7 +4,7 @@ import { lunarPeriodPurchaseKey } from "@lasoviet/engine-adapters";
 import { createPaymentInstructions, type PaymentInstructions } from "@lasoviet/backend";
 import { timingSafeEqual } from "node:crypto";
 
-import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, Headers, HttpCode, HttpException, HttpStatus, Inject, NotFoundException, Param, Post, Query, Req, ServiceUnavailableException, UnauthorizedException } from "@nestjs/common";
 import {
   acknowledgeTopUpPresence,
   createDatabaseCommerceRepository,
@@ -23,6 +23,8 @@ import {
   PaymentSelfClaimRequestV1Schema,
   resolveProductTitle,
   WalletBalanceV1Schema,
+  WalletQuoteRequestV1Schema,
+  WalletQuotesV1Schema,
   WalletHistoryV1Schema,
   WalletTopUpOrderCreateV1Schema,
   type WalletTopUpContinuationViewV1,
@@ -436,6 +438,15 @@ export class CommerceController {
     const result = await this.repository().readWalletBalance(actor);
     if (!result.ok) walletError(result.error.code);
     return { ok: true, value: WalletBalanceV1Schema.parse(result.value), ...(welcomeGrant ? { welcomeGrant } : {}) };
+  }
+
+  @Get("wallet/quotes")
+  async walletQuotes(@Headers("authorization") authorization: string | undefined, @Query() query: unknown) {
+    const parsed = WalletQuoteRequestV1Schema.safeParse(query);
+    if (!parsed.success) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const result = await this.repository().readWalletQuotes(await this.actor(authorization), parsed.data);
+    if (!result.ok) walletError(result.code);
+    return { ok: true, value: WalletQuotesV1Schema.parse(result.value) };
   }
 
   @Get("wallet/history")

@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { WalletUnlockDialog, type WalletUnlockDialogLabels, type WalletUnlockDialogSku } from "./wallet-unlock-dialog";
+import { type WalletUnlockDialogLabels, type WalletUnlockDialogSku } from "./wallet-unlock-dialog";
+
+import { UnlockSheet } from "./unlock-sheet";
 
 export type WalletUnlockButtonProps = {
   chartId: string;
@@ -50,7 +52,7 @@ export function WalletUnlockButton({
         {buttonLabel}
       </button>
       {open && (
-        <WalletUnlockDialog
+        <UnlockSheet
           chartId={chartId}
           chartVersionId={chartVersionId}
           itemName={itemName}

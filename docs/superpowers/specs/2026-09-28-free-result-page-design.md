@@ -52,8 +52,11 @@ all four offers. The first draft rebuilt that page inside the free result page.
    rows, not on topic cards, not in the rail.
 2. **The free reading ends.** A completion marker states it plainly.
 3. **One bridge**, immediately after: what you read, against what exists.
-4. **One door**, to the existing offer page. The preview sheet's only action is
-   that same door.
+4. **One bridge door**, to the existing offer page after completion. Under FD-110
+   (2026-10-04), an explicitly opened locked preview may offer an in-place
+   purchase of that active item and a lifetime alternative, with API-derived
+   prices/rollover credit and verified-account confirmation. The free body
+   and content-map rows stay price-free; reserved products remain unbuyable.
 5. **The money ask unlocks on engagement**, not on arrival: the sticky bar stays
    hidden until the reader reaches the completion block or opens a locked
    preview. The free sign-in gate is not a money ask and may appear earlier.
@@ -164,7 +167,7 @@ product in their hands and know precisely what the other eleven are.
 5. One button: `Xem các gói luận giải` → `/la-so/{id}/chon-luan-giai`.
 6. One line of terms: paid once in Lá, read forever in the library.
 
-Nothing else on the page carries a price.
+The free page body carries no price; only explicitly opened locked previews may show API-derived La prices under FD-110.
 
 ## 4. The ask: one door, and it unlocks on engagement
 
@@ -176,7 +179,8 @@ Nothing else on the page carries a price.
 - Lá only, never VND beside content (FD-065). The bar carries one context line
   above the button so it is never a naked CTA.
 - Every unlock still runs through the existing confirm dialog and short-balance
-  top-up sheet — but those live behind the door, on the offer page, not here.
+  top-up sheet. Under FD-110 they may also be embedded in an explicitly opened
+  locked preview; no purchase surface appears in the uninterrupted free body.
 
 ## 5. Palace bottom sheet (mobile) / side panel (≥ 1024 px)
 
@@ -187,7 +191,7 @@ Opened from the chart, the radar line, or the palace list.
 3. **Free:** the first 1–2 real sentences, server-clipped, ending mid-thought (FD-105 §4.2).
 4. Counts, true: "{n} ý chính · {m} căn cứ · khoảng {w} chữ".
 5. Blur bars from a length hint (no locked text in the payload, #208).
-6. One action, and it is the same single door: `Xem các gói luận giải`. The sheet never becomes a second checkout (FD-109c). A line states the reading is written to the same depth as the palace the reader just read in full.
+6. Under FD-110 (2026-10-04), the explicitly opened preview may show the active item’s API-derived La price, an in-place unlock/confirmation and a lifetime alternative with true rollover credit. Reuse the existing authorized purchase intent, verified-account checkout and server settlement; never expose locked plaintext or sell a reserved item. The offer-page link remains a fallback. A line states the reading is written to the same depth as the palace the reader just read in full.
 7. Close returns focus to the element that opened it.
 
 Mệnh palace: the first two paragraphs are free for signed-in customers (it is the Bản mệnh opening), so every signed-in customer reads one palace deeply before being asked.

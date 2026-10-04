@@ -21,7 +21,7 @@ const chart = {
 } as unknown as NormalizedZiweiChartV1;
 const model = buildFreeResultModel({ chart, preview: {} as FreeIdentityPreviewV1, isGuest: true, locale: "vi" });
 function render(tab: "overview" | "topics" = "overview") {
-  return renderToStaticMarkup(<ZiweiFreeResult chart={chart} chartId="fixture" basePath="/la-so/fixture" locale="vi"
+  return renderToStaticMarkup(<ZiweiFreeResult chart={chart} chartId="fixture" chartVersionId="v1" basePath="/la-so/fixture" locale="vi"
     initialState={{ tab }} model={model} signInHref="/dang-nhap" loadEvidence={async () => ({ ok: false, error: { code: "EVIDENCE_NOT_FOUND" } })} />);
 }
 
@@ -57,7 +57,7 @@ describe("free-result reader structure", () => {
         narrative: "PROSE_ONE\n\nPROSE_TWO", do: [point("DO_ITEM")], avoid: [point("AVOID_ITEM")], evidenceKeys: ["fact:one"] },
       facts: [{ key: "fact:one", label: "FACT_LABEL", value: "FACT_VALUE" }],
     } as never;
-    const renderWith = (value: unknown) => renderToStaticMarkup(<ZiweiFreeResult chart={chart} chartId="fixture" basePath="/la-so/fixture" locale="vi"
+    const renderWith = (value: unknown) => renderToStaticMarkup(<ZiweiFreeResult chart={chart} chartId="fixture" chartVersionId="v1" basePath="/la-so/fixture" locale="vi"
       initialState={{ tab: "overview" }} model={buildFreeResultModel({ chart, preview: {} as FreeIdentityPreviewV1, isGuest: true, locale: "vi", gift: value as never })}
       signInHref="/dang-nhap" loadEvidence={async () => ({ ok: false, error: { code: "EVIDENCE_NOT_FOUND" } })} />);
 

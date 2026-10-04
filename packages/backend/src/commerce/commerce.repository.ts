@@ -1073,6 +1073,9 @@ export function createDatabaseCommerceRepository(
     readWalletHistory(actor: CurrentActor) {
       return walletService.readHistory(actor);
     },
+    readWalletQuotes(actor: CurrentActor, input: Parameters<typeof walletUnlock.readQuotes>[1]) {
+      return walletUnlock.readQuotes(actor, input);
+    },
     createWalletPurchaseIntent(actor: CurrentActor, input: Parameters<typeof walletUnlock.createPurchaseIntent>[1]) {
       return walletUnlock.createPurchaseIntent(actor, input);
     },
