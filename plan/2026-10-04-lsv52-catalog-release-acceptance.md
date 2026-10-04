@@ -1,0 +1,11 @@
+# LSV52 catalog release acceptance
+
+The owner authorized clearing actionable review tasks and release verification. Verify the already deployed catalog/rename/rollover milestone against the exact published release, rather than treating a synthetic financial fixture as bank revenue or activating held products.
+
+Use the existing internal QA web/API/PostgreSQL/SMTP-capture environment with supported real signup, verification and signin. Fund only synthetic QA accounts through the existing trusted wallet grant kernel and a synthetic paid order; never edit balance columns or production finances. Purchase two palace scopes through actual supported API endpoints, then verify the eligible lifetime quote and UI charge/credit/name. Keep the worker stopped: no paid generation or provider calls. Verify canonical catalog and frozen-clock contract coverage, private ownership and visible human labels in VI/EN. Reserved products and free generation remain held.
+
+Allowed files: verification helpers and concise English acceptance documentation; `wallet-unlock.service.ts` and the unlock/top-up PostgreSQL integration tests for the bounded locale correction below. No unrelated product implementation, payment integration, real orders or outbound notifications. Required pre-push checks, independent review and exact deployed smoke evidence precede Done. Close only LSV52's own catalog criteria, with a clear synthetic-money boundary; shared reading/writer/payment tickets stay open.
+
+## Bounded correction discovered during acceptance
+
+Opening and closing the VI lifetime confirmation leaves an unpaid pending intent. Opening the same item on EN then fails forever with `WALLET_INTENT_VERSION_CONFLICT`. Review found no owner decision requiring this lockout. Extend existing stale-term cancellation to locale changes: retain old immutable terms, cancel/increment version, and create a fresh supported-locale intent. Never retarget an existing top-up continuation. Settlement credits once and blocks the cancelled selection; direct unlock and replacement serialize through the existing owner authority lock. Unsupported locales must not mutate the pending row. Verify both locale directions, replay, stale commands, original top-up locale and settlement/unlock races under frozen clocks before release.

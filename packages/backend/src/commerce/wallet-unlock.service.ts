@@ -668,11 +668,8 @@ export function createWalletUnlockService(
           ) {
             return { ok: true as const, value: projectIntent(pending), reused: true };
           }
-          if (pending.locale !== locale) {
-            return failed("WALLET_INTENT_VERSION_CONFLICT");
-          }
-          // The terms changed (price changed due to rollover or expiry, or the chart was
-          // recalculated into a newer version). An unpaid pending intent is safe to replace.
+          // Locale, price, period or chart version changed. Replace unpaid terms with a
+          // new immutable intent; a bound top-up keeps the cancelled original authority.
           // Concurrency-safe cancel the stale pending intent to avoid permanent pending-row lockout.
           await transaction.update(walletPurchaseIntents).set({
             status: "cancelled",
