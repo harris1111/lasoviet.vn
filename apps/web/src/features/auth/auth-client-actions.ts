@@ -1,3 +1,5 @@
+import { captureClientFailure } from "../observability/capture-client-failure";
+
 export type AuthClientAdapter = {
   sendVerificationEmail(input: {
     email: string;
@@ -93,9 +95,14 @@ export function createAuthActions(client: AuthClientAdapter) {
       return { ok: false as const, reason: "generic" as const };
     },
     async signInWithGoogle(callbackURL: string) {
-      return result(
-        await client.signIn.social({ provider: "google", callbackURL }),
-      );
+      try {
+        const response = await client.signIn.social({ provider: "google", callbackURL });
+        if (response.error != null) captureClientFailure();
+        return result(response);
+      } catch (error) {
+        captureClientFailure();
+        throw error;
+      }
     },
     async resendVerification(input: {
       email: string;
