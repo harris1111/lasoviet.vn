@@ -393,6 +393,13 @@
       "when": 1790935366557,
       "tag": "0055_free_ai",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1791124741702,
+      "tag": "0056_report_wallet_compensation",
+      "breakpoints": true
     }
   ]
 }

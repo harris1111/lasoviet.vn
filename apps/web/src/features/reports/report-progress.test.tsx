@@ -15,13 +15,13 @@ vi.mock("next-intl", async () => {
 
   return {
     useTranslations: (namespace: string) => {
-      return (key: string) => {
+      return (key: string, values?: Record<string, unknown>) => {
         const messages = namespace === "reports" ? viMessages : viMessages;
         let val: unknown = messages;
         for (const segment of key.split(".")) {
           val = (val as Record<string, unknown>)?.[segment];
         }
-        return typeof val === "string" ? val : key;
+        return typeof val === "string" ? val.replace(/\{(\w+)\}/g, (whole, name) => values?.[name] === undefined ? whole : String(values[name])) : key;
       };
     },
   };
@@ -148,6 +148,24 @@ describe("ReportProgress component", () => {
     expect(html).not.toContain("private-version");
     expect(html).not.toContain("Đã ghi nhận thanh toán thành công");
     expect(html).not.toContain("Đã hoàn");
+  });
+
+  it("shows only the committed wallet compensation amount and keeps private identities out of refund copy", () => {
+    const html = renderToStaticMarkup(<ReportProgress locale="vi" view={{version: 2, state: "failed", purchaseSource: "wallet_spend",
+      locale: "vi", reportId: "private-report", reportVersionId: "private-version", errorCode: "REPORT_GENERATION_FAILED", supportReference: "RPT-SAFE",
+      compensation: {status: "restored", amountLa: 960, completedAt: "2026-10-04T23:00:00Z"}}} />);
+    expect(html).toContain("Đã hoàn 960 Lá về ví");
+    expect(html).toContain("đã khóa lại");
+    expect(html).not.toContain("private-report"); expect(html).not.toContain("private-version");
+    expect(html).not.toContain("Đã ghi nhận thanh toán thành công");
+  });
+
+  it("does not claim a refund for a committed zero-charge access revocation", () => {
+    const html = renderToStaticMarkup(<ReportProgress locale="vi" view={{version: 2, state: "failed", purchaseSource: "wallet_spend",
+      locale: "vi", reportId: "private-report", reportVersionId: "private-version", errorCode: "REPORT_GENERATION_FAILED", supportReference: "RPT-SAFE",
+      compensation: {status: "access_revoked", amountLa: 0, completedAt: "2026-10-04T23:00:00Z"}}} />);
+    expect(html).toContain("không trừ Lá"); expect(html).toContain("quyền mở đã khóa lại");
+    expect(html).not.toContain("Đã hoàn"); expect(html).not.toContain("private-report");
   });
 
   describe("Terminal failure state", () => {

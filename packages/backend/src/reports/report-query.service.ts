@@ -230,6 +230,8 @@ export function createReportQueryService(options: {
       );
 
       if (!record) {
+        const compensated = await options.repository.readCompensatedFailure?.(actor.userId, cleanReportId);
+        if (compensated) return {ok: true, value: compensated};
         return notFound();
       }
 

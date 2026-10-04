@@ -230,7 +230,9 @@
     "facts_title": "Explore your chart while you wait",
     "facts_description": "These are calculated facts from the chart you purchased, separate from the reading being written. Structural strength does not rate your life as good or bad.",
     "structural_score": "Structural strength: {score}/100",
-    "wallet_failure_description": "The reading could not be completed. Contact support with the reference below to check your La transaction. This page has no confirmed La refund."
+    "wallet_failure_description": "The reading could not be completed. Contact support with the reference below to check your La transaction. This page has no confirmed La refund.",
+    "wallet_restored_description": "The report could not be completed. {amount} Lá has been restored to your wallet; these purchases are locked again. Check your wallet history or choose to unlock again.",
+    "wallet_zero_charge_revoked_description": "The report could not be completed. This unlock charged no Lá, so there is no debit to restore; access is locked again."
   },
   "reader": {
     "eyebrow": "Interpretation Report",

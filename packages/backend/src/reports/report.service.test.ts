@@ -25,6 +25,7 @@ describe("createReportService terminal recovery", () => {
     const updatedValues: Array<Record<string, unknown>> = [];
 
     const tx = {
+      execute: vi.fn().mockResolvedValue([]),
       select: vi.fn(() => ({
         from: vi.fn(() => ({
           where: vi.fn(() => {

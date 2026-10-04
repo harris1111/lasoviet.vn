@@ -4,6 +4,8 @@ import { SINGLE_PALACE_SKUS } from "@lasoviet/contracts";
 import { commerceEntitlements, enqueueOutbox, outbox, reportEntitlementLinks, reportReservations, reportVersions, type Database } from "@lasoviet/database";
 import { createDatabaseReportQueryRepository } from "./report-query.repository.js";
 import { deriveReportTimingLineage, type ReportVersionSelection } from "./identity-report-config.js";
+import {hasRecordedReportCompensation} from "./report-wallet-proof.js";
+import {hasActiveReportPurchase} from "./report-wallet-compensation.js";
 
 export const NATAL_REPORT_SKUS = ["ZIWEI-IDENTITY-P0", "ZIWEI-NATAL-EXCERPT-P0", ...SINGLE_PALACE_SKUS];
 
@@ -34,9 +36,17 @@ export async function reserveNatalReport(database: Database, input: {
       eq(reportReservations.sku, commerceEntitlements.sku),
       inArray(reportReservations.sku, NATAL_REPORT_SKUS),
     ))
-    .orderBy(sql`case when ${reportReservations.status} in ('html_ready', 'pdf_pending', 'complete') then 0 else 1 end`, asc(reportReservations.createdAt), asc(reportReservations.id)).limit(1);
+    .orderBy(sql`case when ${reportReservations.status} in ('html_ready', 'pdf_pending', 'complete') then 0 when ${reportReservations.status} = 'terminal_failure' then 2 else 1 end`, asc(reportReservations.createdAt), asc(reportReservations.id)).limit(1);
   if (existing) {
-    if (existing.reservation.status === "terminal_failure") throw new Error("NATAL_REPORT_RECOVERY_REQUIRED");
+    if (existing.reservation.status === "terminal_failure") {
+      if (await hasRecordedReportCompensation(database, existing.reservation.id) &&
+          !await hasActiveReportPurchase(database, existing.reservation)) {
+        // A fresh paid purchase starts one new generation; old refunded funding
+        // cannot authorize recovery. The existing chart lock serializes reuse.
+        return reserveDedicatedReport(database, input);
+      }
+      throw new Error("NATAL_REPORT_RECOVERY_REQUIRED");
+    }
     const frozen = existing.reservation;
     const [readyVersion] = await database.select({ id: reportVersions.id }).from(reportVersions).where(and(
       eq(reportVersions.reportVersionId, frozen.reportVersionId), eq(reportVersions.reportId, frozen.reportId),

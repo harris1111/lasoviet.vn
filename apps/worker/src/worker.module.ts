@@ -49,6 +49,7 @@ import {
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
   createWalletUpgradeOutboxRunner,
+  createReportWalletCompensationRunner,
   createPhaseOneMaintenanceRunner,
   createReportGenerationService,
   createPdfRenderer,
@@ -152,10 +153,11 @@ export function createOutboxDispatchRunner() {
     ...createDatabaseReportQueuePublisher(database),
   }));
   const upgrades = createWalletUpgradeOutboxRunner(database, {workerId: "worker-wallet-upgrades"});
+  const compensation = createReportWalletCompensationRunner(database, {workerId: "worker-report-compensation"});
   return {
     async runOnce() {
-      const [report, upgrade] = await Promise.all([reports.runOnce(), upgrades.runOnce()]);
-      return {dispatched: report.dispatched + upgrade.dispatched};
+      const [report, upgrade, recovered] = await Promise.all([reports.runOnce(), upgrades.runOnce(), compensation.runOnce()]);
+      return {dispatched: report.dispatched + upgrade.dispatched + recovered.compensated};
     },
   };
 }

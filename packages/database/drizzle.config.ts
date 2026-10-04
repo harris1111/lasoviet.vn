@@ -19,6 +19,7 @@ export default defineConfig({
     "./src/schema/wallet-commerce.ts",
     "./src/schema/generated-preview.ts",
     "./src/schema/free-ai.ts",
+    "./src/schema/report-compensation.ts",
   ],
   out: "./drizzle",
   dialect: "postgresql",

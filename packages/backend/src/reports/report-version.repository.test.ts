@@ -96,6 +96,10 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
   it("persists and requests the exact V2 render version", async () => {
     const selectResults = [
       [],
+      [{ownerId: "owner-1", ledgerSpendId: null, revokedAt: null}],
+      [],
+      [{id: "owner-1"}],
+      [],
       [{ id: "job-1" }],
     ];
     const updateResults = [
@@ -119,7 +123,10 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
         from: vi.fn(),
         innerJoin: vi.fn(),
         where: vi.fn(),
-        limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+        limit: vi.fn().mockImplementation(() => {
+          const rows = selectResults.shift();
+          return Object.assign(Promise.resolve(rows), {for: vi.fn().mockResolvedValue(rows)});
+        }),
       };
       query.from.mockReturnValue(query);
       query.innerJoin.mockReturnValue(query);
@@ -128,6 +135,7 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
     });
     const transaction = vi.fn(async (callback) =>
       callback({
+        execute: vi.fn().mockResolvedValue([]),
         select,
         update: vi.fn(() => ({
           set: vi.fn(() => ({
@@ -236,7 +244,10 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
         const query = {
           from: vi.fn(),
           where: vi.fn(),
-          limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+          limit: vi.fn().mockImplementation(() => {
+          const rows = selectResults.shift();
+          return Object.assign(Promise.resolve(rows), {for: vi.fn().mockResolvedValue(rows)});
+        }),
         };
         query.from.mockReturnValue(query);
         query.where.mockReturnValue(query);
@@ -264,6 +275,10 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
   it("persists null supersession lineage for normal immutable versions", async () => {
     const selectResults = [
       [],
+      [{ownerId: "owner-1", ledgerSpendId: null, revokedAt: null}],
+      [],
+      [{id: "owner-1"}],
+      [],
       [{ id: "job-1" }],
     ];
     const updateResults = [
@@ -286,7 +301,10 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
         from: vi.fn(),
         innerJoin: vi.fn(),
         where: vi.fn(),
-        limit: vi.fn().mockImplementation(() => Promise.resolve(selectResults.shift())),
+        limit: vi.fn().mockImplementation(() => {
+          const rows = selectResults.shift();
+          return Object.assign(Promise.resolve(rows), {for: vi.fn().mockResolvedValue(rows)});
+        }),
       };
       query.from.mockReturnValue(query);
       query.innerJoin.mockReturnValue(query);
@@ -295,6 +313,7 @@ describe("createDatabaseReportVersionRepository - immutable PDF requests", () =>
     });
     const repo = createDatabaseReportVersionRepository({
       transaction: vi.fn(async (callback) => callback({
+        execute: vi.fn().mockResolvedValue([]),
         select,
         update: vi.fn(() => ({
           set: vi.fn(() => ({
