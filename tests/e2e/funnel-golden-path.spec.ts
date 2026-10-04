@@ -1,7 +1,7 @@
 import {expect, test, type BrowserContext, type Page} from "@playwright/test";
 import {execFileSync} from "node:child_process";
 import {randomUUID} from "node:crypto";
-import {readFileSync} from "node:fs";
+import {existsSync, readFileSync, writeFileSync} from "node:fs";
 import path from "node:path";
 import {createAnonymousChart} from "./helpers/create-anonymous-chart";
 
@@ -15,19 +15,18 @@ function fixture(action: string, ownerId: string, chart?: {chartId: string; char
     input: JSON.stringify({action, ownerId, ...chart}), encoding: "utf8",
   }));
 }
-let signupCount = 0;
-let lastSignupAt = 0;
+const pacingFile = path.join(evidence, "auth-pacing.json");
 async function account(context: BrowserContext, signIn = true) {
   // Better Auth 1.7.2 limits this shared test IP to three sign-ups in
   // a rolling 10-second window. Preserve the production limiter.
-  if (signupCount > 0 && signupCount % 3 === 0) {
-    const remaining = lastSignupAt + 11_000 - Date.now();
+  const pacing = existsSync(pacingFile) ? JSON.parse(readFileSync(pacingFile, "utf8")) : {count: 0, completedAt: 0};
+  if (pacing.count > 0 && pacing.count % 3 === 0) {
+    const remaining = pacing.completedAt + 11_000 - Date.now();
     if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
   }
   const email = `qa-golden-${randomUUID()}@example.test`, password = randomUUID() + randomUUID();
   const signup = await context.request.post(`${canonical}/api/auth/sign-up/email`, {headers: {origin: canonical}, data: {name: "Isolated golden path", email, password}});
-  signupCount += 1;
-  lastSignupAt = Date.now();
+  writeFileSync(pacingFile, JSON.stringify({count: pacing.count + 1, completedAt: Date.now()}), {mode: 0o600});
   expect(signup.ok(), `SUPPORTED_SIGNUP_STATUS_${signup.status()}`).toBe(true);
   let verification = "";
   await expect.poll(() => {
@@ -36,15 +35,36 @@ async function account(context: BrowserContext, signIn = true) {
   }).toBe(true);
   expect(new URL(verification).origin).toBe(canonical);
   expect((await context.request.get(verification)).ok()).toBe(true);
-  if (signIn) expect((await context.request.post(`${canonical}/api/auth/sign-in/email`, {headers: {origin: canonical}, data: {email, password}})).ok()).toBe(true);
+  if (signIn) {
+    const response = await context.request.post(`${canonical}/api/auth/sign-in/email`, {headers: {origin: canonical}, data: {email, password}});
+    expect(response.ok(), `SUPPORTED_SIGNIN_STATUS_${response.status()}`).toBe(true);
+  }
   const ownerId = database(`select id from auth_users where email='${email}' and email_verified and not is_anonymous`);
   expect(ownerId).toMatch(/^[A-Za-z0-9_-]{1,200}$/);
+  if (signIn) {
+    const response = await context.request.get(`${canonical}/api/auth/get-session`);
+    expect(response.ok(), `SUPPORTED_SESSION_STATUS_${response.status()}`).toBe(true);
+    expect((await response.json()).user?.id).toBe(ownerId);
+  }
   return {email, password, ownerId};
 }
 async function createChart(page: Page) {
+  const startedAt = Date.now();
+  const walletResponses: Array<{endpoint: string; status: number; receipt: boolean; elapsedMs: number}> = [];
+  page.on("response", response => {
+    const endpoint = new URL(response.url()).pathname;
+    if (endpoint === "/api/commerce/wallet/balance" || endpoint === "/api/auth/get-session") {
+      walletResponses.push({endpoint, status: response.status(), receipt: Boolean(response.headers()["x-wallet-welcome-granted-at"]), elapsedMs: Date.now() - startedAt});
+    }
+  });
   await page.goto("/");
   const notice = page.locator(".welcome-grant-notice");
-  await expect(notice).toBeVisible(); await notice.locator("button").click();
+  // This notice includes session hydration and a committed wallet transaction.
+  try { await expect(notice).toBeVisible({timeout: 30_000}); } catch {
+    throw Error(`WELCOME_NOTICE_REQUIRED: wallet responses ${JSON.stringify(walletResponses)}`);
+  }
+  console.log(JSON.stringify({welcomeNoticeElapsedMs: Date.now() - startedAt, safeResponses: walletResponses}));
+  await notice.locator("button").click();
   const chartUrl = await createAnonymousChart(page, "vi");
   const chartId = new URL(chartUrl).pathname.split("/").pop()!;
   expect(chartId).toMatch(/^[a-f0-9-]{36}$/);
