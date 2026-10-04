@@ -98,11 +98,13 @@ Các đợt sự nghiệp, tình cảm, hằng ngày, tháng và năm vẫn hoã
 
 ### 10. Cấu hình Sentry trước khi test điện thoại — LSV81
 
-**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Phần SDK đã merge/deploy qua PR #279 và bản sửa build #280: chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Chưa có project nên Sentry vẫn tắt, chưa nhận lỗi thật.
+**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Phần SDK đã merge/deploy qua PR #279 và bản sửa build #280: chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Ngày 04/10 bạn đã chọn org `cashcow-73`, project `javascript-nextjs`; GitHub đã được cấu hình hai tên này. Sentry vẫn tắt vì chưa hoàn tất kết nối và nghiệm thu lỗi thật.
 
 **Đề xuất:** dùng project do bạn quản lý. Đội kỹ thuật cấu hình rồi kiểm tra một lỗi giả lập có file/dòng nguồn đọc được trước khi bạn test Google/4G.
 
-**Cần bạn trả lời:** link/tên org và project Sentry, cùng nơi tham chiếu cấu hình bảo mật: ___. Upload token chỉ lưu qua kênh bảo mật/GitHub secret, không ghi vào file hoặc chat.
+**Trả lời:** org `cashcow-73`, project `javascript-nextjs`; đã chốt, không cần trả lời lại. Wizard đã chạy tới bước đăng nhập Sentry; cần hoàn tất đăng nhập bằng link kết nối có thời hạn do wizard cung cấp.
+
+**“Cấu hình bảo mật” là gì:** DSN là địa chỉ công khai để trình duyệt gửi lỗi, lưu ở GitHub variable `SENTRY_CLIENT_DSN`. Token upload source map là khóa bí mật, lưu tại [GitHub Actions Secrets](https://github.com/harris1111/lasoviet.vn/settings/secrets/actions), tên `SENTRY_AUTH_TOKEN`; không gửi token vào chat hay file này. Đội kỹ thuật sẽ dùng token trong bước build, không đưa vào trình duyệt. Cần tắt lưu IP ở Sentry và kiểm tra lỗi thật có file/dòng nguồn đọc được trước khi báo Done hoặc chạy nghiệm thu điện thoại.
 
 ## Đã chốt, không cần trả lời lại
 

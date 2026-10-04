@@ -6,7 +6,9 @@ The synchronous pre-hydration initializer captures uncaught JavaScript errors an
 
 No server, middleware, API or route instrumentation is enabled. Handled Google initiation failures use a no-argument capture hook that records only the client call site, with no response or callback data. Next error boundaries that handle exceptions internally require a later explicitly scoped capture hook; this initializer does not claim all handled failures are observable.
 
-## Activate after the project is supplied
+## Selected project and activation
+
+On 2026-10-04 the owner selected organization `cashcow-73` and project `javascript-nextjs`. These GitHub variables are configured and read back; `SENTRY_CLIENT_ENABLED=false` remains explicit. The official Next.js wizard 8.0.0 reaches browser authentication, which is required to obtain the project's public DSN and private upload credential. Project access and ingestion have not yet been verified.
 
 Configure these GitHub repository variables, then rebuild/deploy (runtime environment changes do not update browser bundles):
 
@@ -14,10 +16,12 @@ Configure these GitHub repository variables, then rebuild/deploy (runtime enviro
 | --- | --- |
 | `SENTRY_CLIENT_ENABLED` | `true` only after the project privacy settings and event review |
 | `SENTRY_CLIENT_DSN` | Project public DSN; supported Sentry SaaS ingest host |
-| `SENTRY_ORG` | Owner's organization slug |
-| `SENTRY_PROJECT` | Client project slug |
+| `SENTRY_ORG` | `cashcow-73` |
+| `SENTRY_PROJECT` | `javascript-nextjs` |
 
 Store the upload credential only as GitHub Actions secret `SENTRY_AUTH_TOKEN`, scoped to the specified project with source-map/release upload permission. Never put it in chat, Git, a Docker argument or runtime environment. The workflow passes it through a BuildKit secret mount. The build sets the full Git SHA and production environment. An enabled incomplete configuration or failed private source-map upload fails the build. Uploaded maps are deleted; the image build additionally removes `.map` files from public static/standalone artifacts without following symlinks. No public tunnel route is created.
+
+The DSN is public browser routing configuration, not an account credential. Set it as repository variable `SENTRY_CLIENT_DSN`. The upload token is a credential and belongs under repository Settings → Secrets and variables → Actions → Secrets, named `SENTRY_AUTH_TOKEN`. Only its storage location or configured status belongs in documentation. Wizard-generated `.env.sentry-build-plugin` is covered by `.env.*` ignore rules; it must never be added to Git or copied into a runtime image. Do not rerun the wizard unreviewed over the existing initializer: its default templates include server/edge instrumentation and optional tracing/Replay, outside this ticket's approved scope.
 
 For a local staging build use the matching `NEXT_PUBLIC_SENTRY_*` variables and `staging` environment with the same private build-secret boundary. Staging assets must still use the canonical static asset origin to pass the projection.
 
@@ -29,4 +33,4 @@ For a local staging build use the matching `NEXT_PUBLIC_SENTRY_*` variables and 
 4. Confirm no public `.map` response, Replay, session, trace, log or metric payload; verify Google sign-in and content still work when ingestion is blocked.
 5. Attach redacted evidence to LSV81. Only then mark Done and ask the owner to run the physical-device acceptance.
 
-Pending owner input: Sentry organization/project and secure configuration reference. SePay setup remains deferred independently.
+Pending setup: authenticated Sentry connection, public DSN, private GitHub upload secret and vendor privacy/event acceptance. The org/project choice is resolved. The instrument skill requires authenticated Sentry MCP access for event verification; this session currently has no Sentry MCP connection. Do not infer ingestion success from wizard completion or local intercepted-envelope tests. SePay setup remains deferred independently.
