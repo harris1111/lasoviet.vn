@@ -1,8 +1,21 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../observability/capture-client-failure", () => ({captureClientFailure: vi.fn()}));
+import { captureClientFailure } from "../observability/capture-client-failure";
 
 import { createAuthActions } from "./auth-client-actions";
 
 describe("browser auth actions", () => {
+  beforeEach(() => vi.clearAllMocks());
+  for (const rejected of [false, true]) it(`records a handled Google ${rejected ? "rejection" : "error response"} without passing sensitive data`, async () => {
+    const failure = new Error("private token callback");
+    const social = rejected ? vi.fn().mockRejectedValue(failure) : vi.fn().mockResolvedValue({error: {message: failure.message}});
+    const actions = createAuthActions({signUp: {email: vi.fn()}, signIn: {email: vi.fn(), social},
+      sendVerificationEmail: vi.fn(), requestPasswordReset: vi.fn(), resetPassword: vi.fn()});
+    if (rejected) await expect(actions.signInWithGoogle("/la-so/private?token=secret")).rejects.toBe(failure);
+    else await expect(actions.signInWithGoogle("/la-so/private?token=secret")).resolves.toEqual({ok: false});
+    expect(captureClientFailure).toHaveBeenCalledExactlyOnceWith();
+  });
   it("uses Better Auth email sign-up without treating generic success as delivery confirmation", async () => {
     const signUp = vi.fn().mockResolvedValue({ data: { user: { id: "user-1" } } });
     const actions = createAuthActions({

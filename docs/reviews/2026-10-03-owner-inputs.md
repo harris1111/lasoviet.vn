@@ -1,6 +1,6 @@
 # Các mục cần bạn trả lời — 2026-10-03
 
-Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả lời**. An hoặc Lãm đều có quyền quyết định, không cần xác nhận riêng từ người còn lại. Các khuyến nghị dưới đây là đề xuất, chưa phải quyết định đã duyệt. Không ghi mật khẩu, API key, thông tin ngân hàng hay dữ liệu sinh của khách hàng vào file này.
+Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả lời**. An hoặc Lãm đều có quyền quyết định, không cần xác nhận riêng từ người còn lại. Ngày 04/10 bạn đã duyệt làm theo các khuyến nghị. Phần bối cảnh bên dưới ghi lại lý do ban đầu; không cần duyệt lại các mục đã chốt. SePay để sau; bạn sẽ chạy nghiệm thu điện thoại sau khi có Sentry. Không ghi mật khẩu, API key, thông tin ngân hàng hay dữ liệu sinh của khách hàng vào file này.
 
 ## Những việc đã làm xong mà không cần thêm ý kiến
 
@@ -19,7 +19,7 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 
 **Khuyến nghị:** xác nhận quyết định duyệt trước đó trong ticket bao gồm thay đổi hẹp này, rồi đồng bộ sổ quyết định và đặc tả. Giữ luồng hiện tại cho đến khi giải quyết mâu thuẫn.
 
-**Trả lời:** xác nhận đã duyệt và ghi nhận sửa đổi này / thay thế quyết định duyệt trước, giữ FD-109 hiện tại / làm rõ phạm vi hoặc dẫn nguồn quyết định đã duyệt: ___
+**Trả lời:** đã duyệt thay đổi hẹp này; ghi nhận tại FD-110 và FD-113 trong PR #278.
 
 ### 2. Review luồng mobile đề xuất — LSV75–78
 
@@ -27,7 +27,7 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 
 **Khuyến nghị:** duyệt hướng luồng này, sau đó triển khai bằng giá thật từ API, tiếp tục đúng hành động người dùng đang làm, dùng lại đơn hàng, yêu cầu tài khoản đã xác minh khi thanh toán và tự động cập nhật khi luận giải sẵn sàng. Duyệt bản mẫu không đồng nghĩa với duyệt nội dung bịa, bật nhà cung cấp thật hay mở bán sản phẩm đang giữ chỗ.
 
-**Trả lời:** đồng ý hướng này / cần sửa màn hình hoặc câu chữ nào: ___
+**Trả lời:** đã duyệt hướng bản mẫu; triển khai theo từng ticket, dùng giá thật và giữ sản phẩm chưa mở bán ở trạng thái tắt.
 
 ### 3. Môi trường kiểm thử thanh toán thật và tài khoản đã xác minh — LSV50–54/59/80
 
@@ -35,9 +35,9 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 
 **Khuyến nghị:** dùng sandbox SePay tách biệt, tắt tự duyệt và có một tài khoản kiểm thử đã xác minh do chủ sở hữu kiểm soát. Cung cấp cấu hình môi trường/merchant qua kênh triển khai bảo mật; chỉ ghi nơi tham chiếu trong file này. Cần thêm mẫu trích đoạn đã mua và hai cung thuộc quyền sở hữu của tài khoản để kiểm tra khấu trừ nâng cấp, giới hạn nội dung PDF và chính sách bảo đảm. Không sửa ngày mua lịch sử để tạo kết quả nghiệm thu giả.
 
-**Trả lời:** URL sandbox + nơi tham chiếu cấu hình bảo mật + tài khoản kiểm thử: ___
+**Trả lời:** bạn yêu cầu để phần SePay sandbox/tài khoản kiểm thử này làm sau. Chưa tuyên bố nghiệm thu thanh toán đạt.
 
-Nếu không có sandbox, chọn: chờ / cho phép một giao dịch thật có kiểm soát, do chủ sở hữu chi trả, với số tiền cụ thể: ___
+Không thực hiện giao dịch ngân hàng thật thay cho phần sandbox đã hoãn.
 
 ### 4. Ngân sách, model và review 5 luận giải trả phí — LSV58/62/63/68
 
@@ -47,9 +47,9 @@ Nếu không có sandbox, chọn: chờ / cho phép một giao dịch thật có
 
 Review 5 bản đầy đủ: có bám đúng lá số không, tiếng Việt có dễ đọc không, lời khuyên có cụ thể/hữu ích không, có lặp ý/viết cho đủ chữ hoặc nội dung bị cấm không. Ghi đạt/không đạt cho từng bản và câu/đoạn cần sửa. Nếu chất lượng không đạt thì dừng, sửa xong rồi đếm lại chuỗi bản đạt liên tiếp; bản không đạt không được đưa ra bán.
 
-**Trả lời:** model/tên cấu hình: ___; trần chi phí trọn đời: ___; người review: ___; duyệt đợt đầu / hoãn: ___
+**Trả lời:** đã duyệt đợt trọn đời theo đề xuất: `ag/gemini-3.8-flash`, trần tổng 200.000 VND gồm chạy lại; phải xác minh giá trước. Review 5 bản vẫn cần bạn thực hiện khi có bản đầy đủ.
 
-Trần chi phí các đợt khác (mặc định: hoãn): sự nghiệp (20 bản) ___; tình cảm (20) ___; hằng ngày ___; tháng (20) ___; năm (20) ___. Đây là các trần riêng, không nằm trong 200.000 VND đề xuất cho trọn đời.
+Các đợt sự nghiệp, tình cảm, hằng ngày, tháng và năm vẫn hoãn; chưa có ngân sách riêng ngoài đợt trọn đời.
 
 ### 5. Đăng nhập Google và quay lại đúng trang trên điện thoại thật — LSV73
 
@@ -57,7 +57,7 @@ Trần chi phí các đợt khác (mặc định: hoãn): sự nghiệp (20 bả
 
 **Khuyến nghị:** trên từng trình duyệt có sẵn: mở lá số → mở trang chọn luận giải → đăng nhập Google → xác nhận quay lại đúng lá số/trang chọn luận giải → bấm Quay lại hoặc mở lại link. Kiểm tra ngôn ngữ và tham số/phần `#` của URL được giữ nguyên, không bị lặp vòng đăng nhập. Dùng tài khoản do chủ sở hữu kiểm soát.
 
-**Trả lời:** thiết bị/trình duyệt + đạt/không đạt + bước lỗi/URL quay lại quan sát được (bỏ token): ___
+**Trả lời:** bạn sẽ chạy; bổ sung Sentry trước để dễ xem lỗi. Thiết bị/trình duyệt và kết quả nghiệm thu sẽ ghi sau.
 
 ### 6. Tài khoản thành viên và thiết bị thật để nghiệm thu — LSV72
 
@@ -65,7 +65,7 @@ Trần chi phí các đợt khác (mặc định: hoãn): sự nghiệp (20 bả
 
 **Khuyến nghị:** chỉ định tài khoản đã xác minh và lá số thuộc tài khoản đó, do chủ sở hữu kiểm soát; thêm thiết bị Android/Chrome có chiều rộng hiển thị 360px dùng 4G. Đội kỹ thuật sẽ cung cấp cách đo LCP (thời gian hiển thị nội dung chính) theo ngưỡng đã chốt là dưới 2,5 giây; không cần quyết định lại ngưỡng. Không đưa mật khẩu hoặc cookie phiên đăng nhập lên Git.
 
-**Trả lời:** môi trường + tài khoản/lá số thuộc sở hữu (có thể dùng lại mục 3) + thiết bị/người thực hiện: ___
+**Trả lời:** bạn sẽ chạy nghiệm thu thiết bị; thêm Sentry trước. Tài khoản đã xác minh/lá số và kết quả 4G vẫn cần bằng chứng thực tế.
 
 ### 7. Duyệt trọng số điểm cấu trúc trước khi dùng cho khách trả phí — FD-107
 
@@ -75,7 +75,7 @@ Trần chi phí các đợt khác (mặc định: hoãn): sự nghiệp (20 bả
 
 **Khuyến nghị:** duyệt rõ các trọng số này cho chỉ số độ mạnh cấu trúc đang công bố, hoặc tiếp tục chưa dùng cho khách trả phí trong khi sửa trọng số.
 
-**Trả lời:** duyệt trọng số hiện tại / sửa: ___
+**Trả lời:** đã duyệt trọng số hiện tại cho chỉ số cấu trúc; ghi nhận tại FD-111, không coi là dự đoán đã kiểm chứng.
 
 ### 8. Người nhận và phạm vi gửi thông báo kiểm thử — LSV60/79
 
@@ -83,7 +83,7 @@ Trần chi phí các đợt khác (mặc định: hoãn): sự nghiệp (20 bả
 
 **Khuyến nghị:** trước tiên chỉ thu thông báo trong sandbox, hoặc gửi tới một người nhận là chủ sở hữu đã được chỉ định rõ và đồng ý nhận. Giữ việc gửi nhắc mua diện rộng ở trạng thái tắt cho đến khi kiểm thử gửi/nhận, sự đồng ý, chống gửi trùng và hủy đăng ký đều đạt.
 
-**Trả lời:** chỉ ghi nhận trong môi trường thử, không gửi thật / cho phép gửi thử có kiểm soát; người nhận + nơi tham chiếu cấu hình bên gửi/tên miền: ___
+**Trả lời:** theo khuyến nghị đã duyệt: chỉ ghi nhận thông báo trong môi trường thử, không gửi thật; chưa có người nhận được chỉ định.
 
 ### 9. Đặc tả công cụ trả phí đầu tiên của gói thành viên — LSV64
 
@@ -91,7 +91,15 @@ Trần chi phí các đợt khác (mặc định: hoãn): sự nghiệp (20 bả
 
 **Khuyến nghị:** giữ gói thành viên ở trạng thái chưa mở bán; đặc tả một công cụ trước: dữ liệu người dùng nhập → phương pháp/dữ kiện từ bộ tính → kết quả trả về → giới hạn sử dụng/thời hạn → đồng ý xử lý dữ liệu/xóa dữ liệu. Chỉ bắt đầu với công cụ lịch/chọn ngày sau khi phương pháp được duyệt; chỉ dẫn sang luận giải hằng ngày có sẵn không được tính là một công cụ trả phí mới.
 
-**Trả lời:** công cụ đầu tiên + phương pháp/nguồn + kết quả và giới hạn cam kết: ___; hoặc hoãn công cụ: ___
+**Trả lời:** giữ gói thành viên chưa mở bán. Công cụ đầu tiên và phương pháp/nguồn cụ thể chưa được chọn; không tự bật quyền lợi mới.
+
+### 10. Cấu hình Sentry trước khi test điện thoại — LSV81
+
+**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Đang chuẩn bị SDK chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Chưa có project nên mặc định không gửi dữ liệu.
+
+**Đề xuất:** dùng project do bạn quản lý. Đội kỹ thuật cấu hình rồi kiểm tra một lỗi giả lập có file/dòng nguồn đọc được trước khi bạn test Google/4G.
+
+**Cần bạn trả lời:** link/tên org và project Sentry, cùng nơi tham chiếu cấu hình bảo mật: ___. Upload token chỉ lưu qua kênh bảo mật/GitHub secret, không ghi vào file hoặc chat.
 
 ## Đã chốt, không cần trả lời lại
 

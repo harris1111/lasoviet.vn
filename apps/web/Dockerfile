@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM node:24.16.0-bookworm-slim AS build
 
 WORKDIR /app
@@ -5,7 +6,16 @@ RUN corepack enable
 
 COPY . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm -r --filter @lasoviet/web... run build
+ARG NEXT_PUBLIC_SENTRY_CLIENT_ENABLED=false
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_SENTRY_RELEASE
+ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
+  pnpm -r --filter @lasoviet/web... run build
+# Source maps are private build artifacts, including when the uploader leaves auxiliary maps.
+RUN node scripts/remove-web-source-maps.mjs apps/web/.next/static apps/web/.next/standalone
 
 FROM node:24.16.0-bookworm-slim AS runtime
 
