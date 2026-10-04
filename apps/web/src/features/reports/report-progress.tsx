@@ -78,11 +78,17 @@ export function ReportProgress({ locale, view }: ReportProgressProps) {
     function schedule() {
       clearTimeout(timer);
       if (document.visibilityState === "hidden") return;
-      timer = setTimeout(() => router.refresh(), refreshAfterMs);
+      timer = setTimeout(() => {
+        router.refresh();
+        schedule();
+      }, refreshAfterMs);
     }
     function onVisibilityChange() {
       clearTimeout(timer);
-      if (document.visibilityState !== "hidden") router.refresh();
+      if (document.visibilityState !== "hidden") {
+        router.refresh();
+        schedule();
+      }
     }
     schedule();
     document.addEventListener("visibilitychange", onVisibilityChange);

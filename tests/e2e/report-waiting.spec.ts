@@ -36,7 +36,7 @@ test.beforeAll(async () => {
     alias: {"@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts")},
     plugins: [{name: "stable-router", setup(builder: any) {
       builder.onResolve({filter: /^next\/navigation$/}, () => ({path: "router", namespace: "fixture"}));
-      builder.onLoad({filter: /.*/, namespace: "fixture"}, () => ({contents: "const router = {refresh() {window.fixtureRefreshes++; window.fixtureRender(window.fixtureNext || 'pending')}}; export const useRouter = () => router;", loader: "js"}));
+      builder.onLoad({filter: /.*/, namespace: "fixture"}, () => ({contents: "const router = {refresh() {window.fixtureRefreshes++; if (!window.fixtureNoRerender) window.fixtureRender(window.fixtureNext || 'pending')}}; export const useRouter = () => router;", loader: "js"}));
     }}],
   });
   bundle = result.outputFiles[0].text;
@@ -61,28 +61,31 @@ for (const locale of ["vi", "en"]) for (const theme of ["light", "dark"]) {
     await expect(page.getByRole("status")).toContainText(locale === "vi" ? "Đã mở khóa bằng Lá" : "Unlocked with La");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await page.locator("body").innerText()).not.toMatch(/private-report|private-version|VND|VNĐ|₫|remaining minutes|phút còn lại/);
+    await page.evaluate(() => { (window as any).fixtureNoRerender = true; });
+    await page.clock.runFor(15_000);
+    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(3);
     await page.evaluate(() => {
       Object.defineProperty(document, "visibilityState", {configurable: true, value: "hidden"});
       document.dispatchEvent(new Event("visibilitychange"));
     });
     await page.clock.runFor(15_000);
-    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(0);
+    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(3);
     await page.evaluate(() => {
       Object.defineProperty(document, "visibilityState", {configurable: true, value: "visible"});
       document.dispatchEvent(new Event("visibilitychange"));
     });
-    await expect.poll(() => page.evaluate(() => (window as any).fixtureRefreshes)).toBe(1);
-    await page.evaluate(() => { (window as any).fixtureNext = "ready"; });
+    await expect.poll(() => page.evaluate(() => (window as any).fixtureRefreshes)).toBe(4);
+    await page.evaluate(() => { (window as any).fixtureNext = "ready"; (window as any).fixtureNoRerender = false; });
     await page.clock.runFor(5000);
     await expect(page.getByRole("heading", {name: "Ready reading"})).toBeVisible();
     await page.clock.runFor(15_000);
-    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(2);
+    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(5);
     await page.evaluate(() => { (window as any).fixtureRender("failed"); });
     await expect(page.getByRole("alert")).toContainText("RPT-SAFE");
     await expect(page.getByRole("alert")).not.toContainText(locale === "vi" ? "Đã hoàn" : "refunded");
     await expect(page.getByRole("link", {name: locale === "vi" ? "Liên hệ hỗ trợ" : "Contact support"})).toHaveAttribute("href", `${locale === "en" ? "/en" : ""}/lien-he`);
     await page.clock.runFor(15_000);
-    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(2);
+    expect(await page.evaluate(() => (window as any).fixtureRefreshes)).toBe(5);
     expect(errors).toEqual([]);
   });
 }
