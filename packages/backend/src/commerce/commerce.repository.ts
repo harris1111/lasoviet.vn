@@ -1,3 +1,4 @@
+import { hasDurableTopUpUnlock } from "./wallet-topup-unlock-event.js";
 import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
 import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
 import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
@@ -28,6 +29,7 @@ import {
   authUsers,
   commerceEntitlements,
   commerceOrders,
+  lockFreeAiCoordination,
   commercePaymentEvents,
   commerceReconciliationState,
   commerceUnmatchedPayments,
@@ -35,6 +37,7 @@ import {
   reportReservations,
   reportVersions,
   type Database,
+  type FreeAiTransaction,
   walletTopUpContinuations,
   walletAccounts,
   walletPurchaseIntents,
@@ -82,6 +85,8 @@ export type CommerceRepositoryOptions = {
   dailyReadingWriter?: DailyReadingWriter;
   now?: () => Date;
   orderTtlSeconds?: number;
+  beforeContinuationCommit?: () => Promise<void>;
+  beforeTopUpClaimTableLocked?: () => Promise<void>;
   beforePaymentCommit?: () => Promise<void>;
   paymentCodeFactory?: () => string;
   beforeClaimLockedRequery?: () => Promise<void>;
@@ -295,7 +300,7 @@ export function createDatabaseCommerceRepository(
    * still accepted (R-PAY-4): the customer transferred against a code we issued.
    */
   async function settleTopUpPayment(
-    transaction: Database,
+    transaction: FreeAiTransaction,
     orderId: string,
     input: {
       providerEventId: string;
@@ -306,6 +311,8 @@ export function createDatabaseCommerceRepository(
       now: Date;
     },
   ): Promise<{ ok: true; replayed: boolean } | { ok: false; code: string }> {
+    // Producer and consumer/purge share freeAI -> account/wallet lock order.
+    await lockFreeAiCoordination(transaction);
     const lockKey = `commerce:topup-order:${orderId}`;
     await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`);
     const [order] = await transaction.select().from(commerceOrders)
@@ -348,13 +355,13 @@ export function createDatabaseCommerceRepository(
       requestId: input.providerEventId,
       traceId: input.traceId,
     });
-    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver, dailyReadingWriter: options.dailyReadingWriter, resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey });
+    await completeTopUpContinuation(transaction, paidOrder.id, paidOrder.ownerId, { now: getNow, reportVersionResolver, dailyReadingWriter: options.dailyReadingWriter, resolveMonthlyPeriodKey: options.resolveMonthlyPeriodKey, beforeCommit: options.beforeContinuationCommit });
     await options.beforePaymentCommit?.();
     return { ok: true, replayed: false };
   }
 
   async function claimTopUpPayment(
-    transaction: Database,
+    transaction: FreeAiTransaction,
     actor: Extract<CurrentActor, { kind: "account" }>,
     input: { amount: number },
     claimTime: ParsedClaimTime,
@@ -381,9 +388,12 @@ export function createDatabaseCommerceRepository(
     if (payment === undefined) return notFound();
     const providerLockKey = `provider_event:${payment.providerEventId}`;
     await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${providerLockKey}))`);
+    // Match webhook provider-event -> coordination -> order/table lock ordering.
+    await lockFreeAiCoordination(transaction);
     await options.beforeClaimLockedRequery?.();
     await transaction.execute(sql`LOCK TABLE commerce_unmatched_payments IN SHARE ROW EXCLUSIVE MODE`);
     await transaction.execute(sql`LOCK TABLE commerce_orders IN SHARE ROW EXCLUSIVE MODE`);
+    await options.beforeTopUpClaimTableLocked?.();
 
     const lockedPayments = await transaction.select().from(commerceUnmatchedPayments)
       .where(and(
@@ -1079,8 +1089,11 @@ export function createDatabaseCommerceRepository(
     createWalletPurchaseIntent(actor: CurrentActor, input: Parameters<typeof walletUnlock.createPurchaseIntent>[1]) {
       return walletUnlock.createPurchaseIntent(actor, input);
     },
-    unlockWalletPurchase(actor: CurrentActor, input: Parameters<typeof walletUnlock.unlock>[1]) {
-      return walletUnlock.unlock(actor, input);
+    async unlockWalletPurchase(actor: CurrentActor, input: Parameters<typeof walletUnlock.unlock>[1]) {
+      const result = await walletUnlock.unlock(actor, input);
+      if (!result.ok || actor.kind !== "account") return result;
+      const durableTopUpAnalytics = await hasDurableTopUpUnlock(database, actor.userId, input.purchaseIntentId, input.idempotencyKey);
+      return {...result, durableTopUpAnalytics};
     },
     submitPartFeedback(actor: CurrentActor, input: PartFeedbackCreateV1) {
       return guaranteeFeedback.submitPartFeedback(actor, input);

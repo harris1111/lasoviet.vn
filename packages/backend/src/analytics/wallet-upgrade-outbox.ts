@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, asc, eq, lte, or, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, or, sql } from "drizzle-orm";
 import { WalletTransactionReceiptV1Schema } from "@lasoviet/contracts";
 import {
   analyticsEvents, authUsers, deletionRequests, outbox, walletAccounts,
@@ -9,11 +9,12 @@ import {
 import {
   projectCommittedWalletUpgrade, WALLET_UPGRADE_EVENT_TYPE, WalletUpgradeEventPayloadSchema,
 } from "../commerce/wallet-upgrade-event.js";
+import { projectCommittedTopUpUnlock, WALLET_TOPUP_UNLOCK_EVENT_TYPE, WalletTopUpUnlockEventPayloadSchema } from "../commerce/wallet-topup-unlock-event.js";
 import { createDatabaseAnalyticsRepository } from "./analytics.repository.js";
 
 type Lease = {id: string; attempt: number};
 class InvalidUpgradeEvent extends Error {}
-const eligible = (current: Date) => and(eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE), or(
+const eligible = (current: Date) => and(inArray(outbox.eventType, [WALLET_UPGRADE_EVENT_TYPE, WALLET_TOPUP_UNLOCK_EVENT_TYPE]), or(
   and(eq(outbox.status, "pending"), lte(outbox.availableAt, current)),
   and(eq(outbox.status, "leased"), lte(outbox.leasedUntil, current)),
 ));
@@ -22,7 +23,7 @@ const stableProperties = (value: unknown): string => JSON.stringify(value, (key,
     ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
 
 /** First-party account business events: never borrow a browser visitor or invent consent. */
-export function createWalletUpgradeOutboxRunner(database: Database, options: {
+export function createWalletBusinessOutboxRunner(database: Database, options: {
   workerId: string; now?: () => Date; limit?: number;
   beforeRecord?: () => Promise<void>;
   afterRecord?: () => Promise<void>;
@@ -58,7 +59,7 @@ export function createWalletUpgradeOutboxRunner(database: Database, options: {
       await lockFreeAiCoordination(tx);
       const [deletion] = await tx.select().from(deletionRequests)
         .where(eq(deletionRequests.userId, ownerId)).limit(1).for("update");
-      const [account] = await tx.select({id: authUsers.id, verified: authUsers.emailVerified})
+      const [account] = await tx.select({id: authUsers.id, verified: authUsers.emailVerified, anonymous: authUsers.isAnonymous})
         .from(authUsers).where(eq(authUsers.id, ownerId)).limit(1).for("share");
       const [event] = await tx.select().from(outbox).where(owned(lease)).limit(1).for("update");
       if (!event) return;
@@ -66,6 +67,22 @@ export function createWalletUpgradeOutboxRunner(database: Database, options: {
         await tx.delete(outbox).where(owned(lease));
         return;
       }
+      if (!account.verified || account.anonymous || event.schemaVersion !== 1 || event.actorId !== ownerId ||
+          event.aggregateType !== "account" || event.aggregateId !== ownerId) throw new InvalidUpgradeEvent();
+      const projections: Array<{name: "upgrade_purchased" | "la_spent" | "unlock_confirmed"; idempotencyKey: string; properties: Record<string, string | number | string[]>; occurredAt: Date}> = [];
+      if (event.eventType === WALLET_TOPUP_UNLOCK_EVENT_TYPE) {
+        const parsed = WalletTopUpUnlockEventPayloadSchema.safeParse(event.payload);
+        if (!parsed.success) throw new InvalidUpgradeEvent();
+        const proof = await projectCommittedTopUpUnlock(tx, ownerId, parsed.data.orderId);
+        if (!proof || proof.transactionId !== parsed.data.transactionId ||
+            event.eventId !== `wallet-topup-unlock:${proof.transactionId}` || event.idempotencyKey !== event.eventId ||
+            event.occurredAt.getTime() !== proof.occurredAt.getTime()) throw new InvalidUpgradeEvent();
+        const opaque = createHash("sha256").update(proof.transactionId).digest("hex");
+        projections.push({name: "la_spent", idempotencyKey: `topup-la-spent:${opaque}`, occurredAt: proof.occurredAt,
+          properties: {sku: proof.sku, amount: proof.amount, balance_after: proof.balanceAfter, feature_id: "topup_continuation"}},
+          {name: "unlock_confirmed", idempotencyKey: `topup-unlock-confirmed:${opaque}`, occurredAt: proof.occurredAt,
+          properties: {sku: proof.sku, price_la: proof.amount, amount: proof.amount, balance_after: proof.balanceAfter}});
+      } else {
       const parsed = WalletUpgradeEventPayloadSchema.safeParse(event.payload);
       if (!account.verified || !parsed.success || event.schemaVersion !== 1 || event.actorId !== ownerId ||
           event.aggregateType !== "account" || event.aggregateId !== ownerId) throw new InvalidUpgradeEvent();
@@ -93,24 +110,28 @@ export function createWalletUpgradeOutboxRunner(database: Database, options: {
           event.occurredAt.toISOString() !== new Date(upgrade.occurredAt).toISOString()) throw new InvalidUpgradeEvent();
       const properties = {source_sku: upgrade.sourceSku, source_skus: upgrade.sourceSkus,
         target_sku: upgrade.targetSku, amount: upgrade.chargedLa, credit_amount: upgrade.creditLa, currency: upgrade.currency};
-      const [existing] = await tx.select().from(analyticsEvents).where(eq(analyticsEvents.idempotencyKey, event.idempotencyKey)).limit(1);
+      projections.push({name: "upgrade_purchased", idempotencyKey: event.idempotencyKey, properties, occurredAt: event.occurredAt});
+      }
+      for (const projection of projections) {
+      const [existing] = await tx.select().from(analyticsEvents).where(eq(analyticsEvents.idempotencyKey, projection.idempotencyKey)).limit(1);
       if (existing) {
         // A previous web instance may have emitted this exact committed receipt.
         // Preserve its original visitor/profile/time rather than rewriting attribution.
-        if (existing.userId !== ownerId || existing.name !== "upgrade_purchased" ||
-            existing.occurredAt.getTime() !== event.occurredAt.getTime() ||
-            stableProperties(existing.properties) !== stableProperties(properties)) throw new InvalidUpgradeEvent();
+        if (existing.userId !== ownerId || existing.name !== projection.name ||
+            existing.occurredAt.getTime() !== projection.occurredAt.getTime() ||
+            stableProperties(existing.properties) !== stableProperties(projection.properties)) throw new InvalidUpgradeEvent();
       } else {
         await options.beforeRecord?.();
-        const visitorId = `business_${createHash("sha256").update(`wallet-upgrade:${ownerId}`).digest("hex").slice(0, 32)}`;
+        const visitorId = `business_${createHash("sha256").update(`${event.eventType === WALLET_UPGRADE_EVENT_TYPE ? "wallet-upgrade" : "wallet-topup-unlock"}:${ownerId}`).digest("hex").slice(0, 32)}`;
         const result = await createDatabaseAnalyticsRepository(tx).recordEvent({
-          idempotencyKey: event.idempotencyKey, visitorId, userId: ownerId,
-          name: "upgrade_purchased", properties, occurredAt: event.occurredAt, now: now(),
+          idempotencyKey: projection.idempotencyKey, visitorId, userId: ownerId,
+          name: projection.name, properties: projection.properties, occurredAt: projection.occurredAt, now: now(),
         });
         if (!result.ok) {
           // A rolling web instance can race the first insert; retry and compare its exact receipt.
           throw new Error("UPGRADE_ANALYTICS_RETRY");
         }
+      }
       }
       await options.afterRecord?.();
       await tx.update(outbox).set({status: "processed", processedAt: now(), leasedBy: null,
@@ -144,3 +165,6 @@ export function createWalletUpgradeOutboxRunner(database: Database, options: {
     },
   };
 }
+
+// Preserve the existing focused-upgrade caller interface during rollout.
+export const createWalletUpgradeOutboxRunner = createWalletBusinessOutboxRunner;

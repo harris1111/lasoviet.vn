@@ -71,6 +71,13 @@ async function createChart(page: Page) {
   const chartVersionId = database(`select id from ziwei_chart_versions where chart_id='${chartId}' order by created_at desc limit 1`);
   expect(chartVersionId).toMatch(/^[a-f0-9-]{36}$/);
   await expect(page.getByTestId("fd109-free-result")).toBeVisible({timeout: 30_000});
+  // Simulate the persisted state of a prior visit; let the mounted collector produce the event.
+  await page.evaluate(() => {
+    sessionStorage.removeItem("lasoviet:session_active");
+    localStorage.setItem("lasoviet:last_visit_timestamp", String(Date.now() - 2 * 86_400_000));
+  });
+  await page.reload();
+  await expect(page.getByTestId("fd109-free-result")).toBeVisible();
   return {chartId, chartVersionId};
 }
 async function preview(page: Page, chartId: string) {
@@ -147,7 +154,8 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
           }
         };
       });
-      await page.clock.setFixedTime(new Date("2026-10-04T12:00:00.000Z"));
+      // Freeze near the server clock so the production one-hour ingress window remains valid.
+      await page.clock.setFixedTime(new Date());
       await expect.poll(async () => {try {return (await page.request.get("/health/ready")).status();} catch {return 0;}}).toBe(200);
     });
     test("guest homepage → chart → preview → real email sign-in → same preview", async ({page, browser}) => {
@@ -203,6 +211,10 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
       expect(new URL(page.url()).searchParams.get("open")).toBe("wealth");
       expect(database(`select count(*) from wallet_topup_continuations where owner_id='${owner.ownerId}' and status='completed' and purchase_intent_id='${terms.get("intent")}'`)).toBe("1");
+      fixture("dispatch_business", owner.ownerId); fixture("dispatch_business", owner.ownerId);
+      for (const name of ["la_spent", "unlock_confirmed"]) {
+        expect(database(`select count(*) from analytics_events where user_id='${owner.ownerId}' and name='${name}' and properties->>'amount'='120'`)).toBe("1");
+      }
       await readyReader(page, owner.ownerId, chart);
     });
     test("paid excerpt → reader → real quoted lifetime difference → upgrade", async ({page}) => {
@@ -270,3 +282,15 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
     test.afterAll(() => {expect(database("select count(*) from ai_call_attempts")).toBe("0");});
   });
 }
+
+// Required package 1.8 callers must survive actual HTTP ingress and durable dispatch.
+test.afterAll(async () => {
+  const ownerId = database("select id from auth_users where email like 'qa-golden-%@example.test' and email_verified and not is_anonymous order by id limit 1");
+  expect(ownerId).toMatch(/^[A-Za-z0-9_-]{1,200}$/);
+  fixture("dispatch_business", ownerId);
+  const required = ["topup_view", "pack_selected", "la_spent", "upgrade_view", "upgrade_purchased", "return_visit", "unlock_confirm_view", "unlock_confirmed", "part_feedback", "guarantee_claimed", "welcome_grant"];
+  const counts = JSON.parse(database("select coalesce(json_object_agg(name,n),'{}'::json) from (select e.name,count(*)::integer n from analytics_events e join auth_users u on u.id=e.user_id where u.email like 'qa-golden-%@example.test' group by e.name) q")) as Record<string, number>;
+  for (const name of required) expect(counts[name], `ACTUAL_PACKAGE_1_8_EVENT_${name}`).toBeGreaterThan(0);
+  expect(database(`select count(*) from analytics_events e join auth_users u on u.id=e.user_id where u.email like 'qa-golden-%@example.test' and e.properties::text ~ '"(chartId|chartVersionId|birthProfileId|email|displayName|cookie|ip|userAgent)"[ ]*:'`)).toBe("0");
+  writeFileSync(path.join(evidence, "package-1-8-event-acceptance.json"), JSON.stringify({required, counts, actualHttpIngressAndDurableDispatch: true, syntheticFundingNotRevenue: true, noProviderCalls: true}), {mode: 0o600});
+});

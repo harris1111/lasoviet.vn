@@ -1,3 +1,4 @@
+import { enqueueCommittedTopUpUnlock } from "./wallet-topup-unlock-event.js";
 import { and, eq, isNull } from "drizzle-orm";
 import {
   WalletTopUpContinuationRequestV1Schema,
@@ -5,8 +6,8 @@ import {
   type WalletTopUpContinuationViewV1,
 } from "@lasoviet/contracts";
 import {
-  birthProfiles, walletAccounts, walletPurchaseIntents, walletTopUpContinuations, ziweiCharts,
-  type Database,
+  birthProfiles, deletionRequests, walletAccounts, walletPurchaseIntents, walletTopUpContinuations, ziweiCharts,
+  lockFreeAiCoordination, type Database,
 } from "@lasoviet/database";
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createWalletService } from "../wallet/wallet.service.js";
@@ -36,13 +37,17 @@ export function matchesTopUpContinuation(row: typeof walletTopUpContinuations.$i
 class ContinuationBlocked extends Error {}
 
 /** Credit is committed even when the separately confirmed unlock is no longer valid. */
-export async function completeTopUpContinuation(database: Database, orderId: string, ownerId: string, options: NonNullable<Parameters<typeof createWalletUnlockService>[2]>) {
-  const [continuation] = await database.select().from(walletTopUpContinuations)
-    .where(and(eq(walletTopUpContinuations.orderId, orderId), eq(walletTopUpContinuations.ownerId, ownerId))).limit(1).for("update");
-  if (!continuation || continuation.status !== "pending") return;
+export async function completeTopUpContinuation(database: Database, orderId: string, ownerId: string, options: NonNullable<Parameters<typeof createWalletUnlockService>[2]> & {beforeCommit?: () => Promise<void>}) {
   const now = options.now ?? (() => new Date());
   try {
-    const outcome = await database.transaction(async (transaction) => {
+    await database.transaction(async (transaction) => {
+      // Standalone calls fence before locks; settlement already holds this reentrant fence.
+      await lockFreeAiCoordination(transaction);
+      const [continuation] = await transaction.select().from(walletTopUpContinuations)
+        .where(and(eq(walletTopUpContinuations.orderId, orderId), eq(walletTopUpContinuations.ownerId, ownerId))).limit(1).for("update");
+      if (!continuation || continuation.status !== "pending") return;
+      const [deletion] = await transaction.select({status: deletionRequests.status}).from(deletionRequests).where(eq(deletionRequests.userId, ownerId)).limit(1);
+      if (deletion?.status === "purged") throw new ContinuationBlocked("WALLET_ACCOUNT_INELIGIBLE");
       const [intent] = await transaction.select().from(walletPurchaseIntents).where(and(eq(walletPurchaseIntents.id, continuation.purchaseIntentId), eq(walletPurchaseIntents.ownerId, ownerId))).limit(1);
       if (!intent || intent.status !== "pending" || intent.stateVersion !== continuation.intentStateVersion || intent.priceLa !== continuation.confirmedPriceLa) throw new ContinuationBlocked("INTENT_TERMS_CHANGED");
       const [account] = await transaction.select().from(walletAccounts).where(eq(walletAccounts.ownerId, ownerId)).limit(1);
@@ -53,13 +58,15 @@ export async function completeTopUpContinuation(database: Database, orderId: str
         expectedWalletVersion: account.stateVersion, idempotencyKey: `topup-unlock:${orderId}`,
       });
       if (!result.ok) throw new ContinuationBlocked(result.code);
-      return result.value;
+      const outcome = result.value;
+      await transaction.update(walletTopUpContinuations).set({ status: "completed", reportId: outcome.reportId, remainingLa: outcome.balance.totalLa, completedAt: now() })
+        .where(and(eq(walletTopUpContinuations.orderId, orderId), eq(walletTopUpContinuations.ownerId, ownerId), eq(walletTopUpContinuations.status, "pending")));
+      await enqueueCommittedTopUpUnlock(transaction, ownerId, orderId);
+      await options.beforeCommit?.();
     });
-    await database.update(walletTopUpContinuations).set({ status: "completed", reportId: outcome.reportId, remainingLa: outcome.balance.totalLa, completedAt: now() })
-      .where(eq(walletTopUpContinuations.orderId, orderId));
   } catch (error) {
     await database.update(walletTopUpContinuations).set({ status: "blocked", errorCode: error instanceof ContinuationBlocked ? error.message : "UNLOCK_UNAVAILABLE", completedAt: now() })
-      .where(eq(walletTopUpContinuations.orderId, orderId));
+      .where(and(eq(walletTopUpContinuations.orderId, orderId), eq(walletTopUpContinuations.ownerId, ownerId), eq(walletTopUpContinuations.status, "pending")));
   }
 }
 
