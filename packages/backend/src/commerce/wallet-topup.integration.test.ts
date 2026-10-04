@@ -1,3 +1,6 @@
+import { createWalletUpgradeOutboxRunner } from "../analytics/wallet-upgrade-outbox.js";
+import { WALLET_UPGRADE_EVENT_TYPE } from "./wallet-upgrade-event.js";
+import { v4_1SensitivityReportVersions } from "../reports/identity-report-config.js";
 import { acknowledgeTopUpPresence, createDelayedUnlockCompletionService } from "../notifications/delayed-unlock-completion.js";
 import { createAuthEmailDeliveryService, createDatabaseAuthEmailDeliveryStore } from "../notifications/auth-email.js";
 import { CANONICAL_PALACE_TITLES_VI, CANONICAL_THEMATIC_TITLES_VI, REPORT_KNOWLEDGE_VERSION_V3, REPORT_PROMPT_VERSION_V3, REPORT_CONFIG_VERSION_V3, REPORT_TEMPLATE_VERSION_V3 } from "../reports/identity-report-config.js";
@@ -10,6 +13,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   authUsers,
+  analyticsEvents, outbox,
   birthProfiles, birthProfileRevisions, calculationRuns, ziweiCharts, ziweiChartVersions, evidenceSets,
   walletPurchaseIntents, walletTopUpContinuations, commerceEntitlements, reportReservations, reportVersions,
   commerceOrders,
@@ -222,6 +226,45 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     expect(await notices.requestFor(order.value.id)).toBeNull();
     expect(await notices.isEligible(request)).toBe(false);
   });
+
+  it("produces one durable upgrade through top-up continuation and rolls it back with failed settlement", async () => {
+    const actor = await createAccount();
+    const chart = await chartFixture(actor);
+    const options = {now: () => frozenNow, reportVersionResolver: v4_1SensitivityReportVersions};
+    const repository = createDatabaseCommerceRepository(database, options);
+    const seed = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi");
+    if (!seed.ok) throw new Error(seed.code);
+    expect(await repository.recordPaid({invoiceNumber: seed.value.invoiceNumber, providerEventId: randomUUID(), amount: 29000, currency: "VND", traceId: "isolated-fixture"})).toMatchObject({ok: true});
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0"]) {
+      const intent = await repository.createWalletPurchaseIntent(actor, {chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku, locale: "vi"});
+      if (!intent.ok) throw new Error(intent.code);
+      const account = await walletOf(actor.userId);
+      expect(await repository.unlockWalletPurchase(actor, {purchaseIntentId: intent.value.id,
+        expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: account!.stateVersion, idempotencyKey: randomUUID()})).toMatchObject({ok: true});
+    }
+    const intent = await repository.createWalletPurchaseIntent(actor, {chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+    if (!intent.ok) throw new Error(intent.code);
+    expect(intent.value.amountLa).toBe(720);
+    const continuation = {purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion,
+      confirmedPriceLa: 720, returnTab: "palaces" as const, returnOpen: "life"};
+    const order = await repository.createTopUpOrder(actor, "LA-START-1100", "vi", continuation);
+    if (!order.ok) throw new Error(order.code);
+    const before = await walletOf(actor.userId);
+    const payment = {invoiceNumber: order.value.invoiceNumber, providerEventId: randomUUID(), amount: 99000, currency: "VND", traceId: "isolated-upgrade"};
+    const failing = createDatabaseCommerceRepository(database, {...options, beforePaymentCommit: async () => {throw new Error("injected settlement rollback");}});
+    await expect(failing.recordPaid(payment)).rejects.toThrow("injected settlement rollback");
+    expect(await walletOf(actor.userId)).toEqual(before);
+    expect(await database.select().from(outbox).where(and(eq(outbox.actorId, actor.userId), eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE)))).toHaveLength(0);
+    const results = await Promise.all([repository.recordPaid(payment), repository.recordPaid(payment)]);
+    expect(results.every(result => result.ok)).toBe(true);
+    expect((await repository.readTopUpOrderProjection(actor, order.value.id))?.continuation?.status).toBe("completed");
+    expect((await walletOf(actor.userId))?.purchasedBalance).toBe(440);
+    expect(await database.select().from(outbox).where(and(eq(outbox.actorId, actor.userId), eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE)))).toHaveLength(1);
+    const runner = createWalletUpgradeOutboxRunner(database, {workerId: "continuation-test", now: () => frozenNow});
+    await runner.runOnce(); await runner.runOnce();
+    expect(await database.select().from(analyticsEvents).where(and(eq(analyticsEvents.userId, actor.userId), eq(analyticsEvents.name, "upgrade_purchased"))))
+      .toEqual([expect.objectContaining({occurredAt: frozenNow, properties: expect.objectContaining({amount: 720, credit_amount: 240})})]);
+  }, 20_000);
 
   it("credits and completes the confirmed unlock atomically, then replays without a second debit", async () => {
     const fixture = await continuationFixture();

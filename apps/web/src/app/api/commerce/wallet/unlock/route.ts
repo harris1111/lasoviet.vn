@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { WalletUnlockRequestV1Schema, WalletUnlockResultV1Schema } from "@lasoviet/contracts";
 import { sendServerAnalyticsEvent } from "../../../../../analytics/server-analytics";
-import { sendServerUpgradePurchasedEvent } from "../../../../../features/analytics/server-funnel-analytics";
 
 import { privateApiClient, PrivateApiClientError } from "../../../../../api/private-api-client";
 import {
@@ -81,16 +80,6 @@ export async function POST(request: Request): Promise<Response> {
     },
   }).catch(() => undefined);
 
-  if (value.upgradePurchase) {
-    const upgrade = value.upgradePurchase;
-    await sendServerUpgradePurchasedEvent({
-      userId: actor.userId, requestId: actor.requestId,
-      sourceSku: upgrade.sourceSku, sourceSkus: upgrade.sourceSkus,
-      targetSku: upgrade.targetSku, amount: upgrade.chargedLa, creditLa: upgrade.creditLa,
-      currency: upgrade.currency, occurredAt: upgrade.occurredAt,
-      idempotencyKey: `upgrade-purchased:${upgrade.eventKey}`,
-    }).catch(() => undefined);
-  }
 
   return NextResponse.json(value, { status: 200, headers: NO_STORE_HEADERS });
 }

@@ -131,21 +131,18 @@ describe("POST /api/commerce/wallet/unlock", () => {
       sourceSku: "ZIWEI-PALACE-LIFE-P0", sourceSkus: ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0"], chargedLa: 720, creditLa: 240, currency: "LA"},
   };
 
-  it("emits one receipt-bound financial upgrade per attempt with identical key/time on replay", async () => {
+  it("preserves committed upgrade projection without duplicating its durable producer", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     vi.mocked(privateApiClient).mockReturnValue({request: vi.fn().mockResolvedValue({ok: true, value: committed})});
     const {POST} = await import("./route.js");
     for (let attempt = 0; attempt < 2; attempt++) {
       const response = await POST(jsonRequest(command));
       expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toEqual(committed);
     }
-    const upgrades = vi.mocked(sendServerAnalyticsEvent).mock.calls.map(([value]) => value).filter(value => value.name === "upgrade_purchased");
-    expect(upgrades).toHaveLength(2);
-    expect(upgrades[0]).toEqual(upgrades[1]);
-    expect(upgrades[0]).toMatchObject({idempotencyKey: "upgrade-purchased:upg_0123456789abcdef0123456789abcdef", occurredAt: committed.upgradePurchase.occurredAt,
-      properties: {source_sku: "ZIWEI-PALACE-LIFE-P0", source_skus: committed.upgradePurchase.sourceSkus, target_sku: "ZIWEI-IDENTITY-P0", amount: 720, credit_amount: 240, currency: "LA"}});
-    expect(JSON.stringify(upgrades)).not.toContain("report-1");
-    expect(JSON.stringify(upgrades)).not.toContain("wallet-command-1");
+    const events = vi.mocked(sendServerAnalyticsEvent).mock.calls.map(([value]) => value);
+    expect(events).toHaveLength(2);
+    expect(events.every(event => event.name === "la_spent")).toBe(true);
   });
 
   it.each([
@@ -207,6 +204,6 @@ describe("POST /api/commerce/wallet/unlock", () => {
     const response = await POST(jsonRequest(command));
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual(committed);
-    expect(sendServerAnalyticsEvent).toHaveBeenCalledTimes(2);
+    expect(sendServerAnalyticsEvent).toHaveBeenCalledTimes(1);
   });
 });

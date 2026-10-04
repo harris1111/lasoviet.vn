@@ -12,8 +12,10 @@ import {
   deletionRequests,
   enqueueOutbox,
   lockFreeAiCoordination,
+  outbox,
   type Database,
 } from "@lasoviet/database";
+import { WALLET_UPGRADE_EVENT_TYPE } from "../commerce/wallet-upgrade-event.js";
 
 import {
   collectFreePalaceChartVersionIds,
@@ -197,6 +199,11 @@ export function createDatabaseDeletionRepository(
           await transaction
             .delete(analyticsVisitors)
             .where(eq(analyticsVisitors.userId, updated.userId));
+          // This outbox has no account FK. Remove its financial analytics payloads
+          // while holding the purge marker, which also fences concurrent delivery.
+          await transaction.delete(outbox).where(and(
+            eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE), eq(outbox.actorId, updated.userId),
+          ));
           await enqueueOutbox(transaction, {
             schemaVersion: 1,
             type: "account.purge.requested.v1",

@@ -1,3 +1,4 @@
+import { creditProofSchema, enqueueCommittedWalletUpgrade, projectCommittedWalletUpgrade, type CreditProof } from "./wallet-upgrade-event.js";
 import { COMBO_SKU, COMBO_COMPONENT_SKUS, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
 import { reserveComboReports } from "./combo-report-reservation.js";
 import { membershipPrice, readActiveMembership } from "./membership.service.js";
@@ -5,7 +6,7 @@ import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } fr
 import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { periodKindForSku, periodReportVersions, purchasePeriodKey as resolvePurchasePeriodKey } from "../reports/period-report-config.js";
 import { topicIdForSku, topicReportVersions } from "../reports/topic-report-config.js";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 import { alias } from "drizzle-orm/pg-core";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
@@ -15,7 +16,6 @@ import { reservePaidReport } from "../reports/natal-report-reservation.js";
 import { and, desc, eq, gt, lte, inArray, notInArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import {
   calculateRolloverCredit,
-  ROLLOVER_WINDOW_MS,
   type LaSku,
   LaSkuSchema,
   LA_PRODUCT_CATALOG,
@@ -36,9 +36,7 @@ import {
   type WalletTransactionReceiptV1,
   WalletTransactionReceiptV1Schema,
   WalletPurchaseIntentV1Schema,
-  WalletUpgradePurchaseV1Schema,
   type WalletUpgradePurchaseV1,
-  z,
 } from "@lasoviet/contracts";
 import {
   auditLogs,
@@ -75,28 +73,9 @@ import {
 const supportedLocale = (value: string): value is "vi" | "en" => value === "vi" || value === "en";
 const nonEmptyId = (value: string) => value.trim().length > 0;
 
-type ComboAnnualContinuation = {entitlementId: string; reservationId: string; reportId: string; reportVersionId: string; outboxId: string};
-
-const creditProofSchema = z.object({
-  version: z.literal(1),
-  creditLa: z.number().int().positive().max(960),
-  sources: z.array(z.object({
-    spendId: z.string().uuid(),
-    sku: LaSkuSchema.refine(isQualifyingRolloverSku),
-    amountLa: z.number().int().positive(),
-    creditedLa: z.number().int().positive(),
-    spentAt: z.iso.datetime({ offset: true }),
-  }).strict()).min(1).max(13),
-}).strict().superRefine((proof, context) => {
-  if (new Set(proof.sources.map(source => source.spendId)).size !== proof.sources.length ||
-      proof.sources.some(source => source.creditedLa > source.amountLa) ||
-      proof.sources.reduce((sum, source) => sum + source.creditedLa, 0) !== proof.creditLa ||
-      Math.min(960, proof.sources.reduce((sum, source) => sum + source.amountLa, 0)) !== proof.creditLa) {
-    context.addIssue({ code: "custom", message: "Credit proof must match unique original spend allocations" });
-  }
-});
-type CreditProof = z.infer<typeof creditProofSchema>;
 const compareCreditCode = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
+
+type ComboAnnualContinuation = {entitlementId: string; reservationId: string; reportId: string; reportVersionId: string; outboxId: string};
 
 type UnlockContinuation = {
   creditProof?: CreditProof;
@@ -549,45 +528,8 @@ async function verifyLineageAndRespond(
 
   let upgradePurchase: WalletUpgradePurchaseV1 | null = null;
   if (continuation.creditProof !== undefined) {
-    const parsed = creditProofSchema.safeParse(continuation.creditProof);
-    const completedAt = lineage.intent.completedAt;
-    if (!parsed.success || lineage.intent.sku !== "ZIWEI-IDENTITY-P0" || completedAt === null ||
-        parsed.data.creditLa + lineage.intent.priceLa !== 960) return failed("WALLET_RECONCILIATION_FAILED");
-    const proof = parsed.data;
-    // This is historical proof: later source revocation/restoration cannot erase
-    // the credit that was applied to this still-authorized target at commit.
-    const original = await db.select({spendId: walletTransactions.id, sku: walletPurchaseIntents.sku,
-      amountLa: walletPurchaseIntents.priceLa, spentAt: walletTransactions.createdAt})
-      .from(walletTransactions).innerJoin(walletAccounts, eq(walletAccounts.id, walletTransactions.walletId))
-      .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
-      .where(and(inArray(walletTransactions.id, proof.sources.map(source => source.spendId)),
-        eq(walletTransactions.kind, "spend"), eq(walletAccounts.ownerId, ownerId),
-        eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.chartId, lineage.intent.chartId),
-        eq(walletPurchaseIntents.status, "completed"),
-        sql`COALESCE((SELECT sum(${walletLedgerEntries.amountLa}) FROM ${walletLedgerEntries} WHERE ${walletLedgerEntries.transactionId} = ${walletTransactions.id}), 0) = -${walletPurchaseIntents.priceLa}`));
-    if (original.length !== proof.sources.length || proof.sources.some(source => {
-      const row = original.find(item => item.spendId === source.spendId);
-      return !row || row.sku !== source.sku || row.amountLa !== source.amountLa || row.spentAt.toISOString() !== source.spentAt;
-    })) return failed("WALLET_RECONCILIATION_FAILED");
-    const ordered = [...proof.sources].sort((a, b) => Date.parse(a.spentAt) - Date.parse(b.spentAt) || compareCreditCode(a.sku, b.sku) || compareCreditCode(a.spendId, b.spendId));
-    const openedAt = Date.parse(ordered[0]!.spentAt);
-    if (completedAt.getTime() < openedAt || completedAt.getTime() >= openedAt + ROLLOVER_WINDOW_MS ||
-        ordered.some(source => Date.parse(source.spentAt) > completedAt.getTime())) return failed("WALLET_RECONCILIATION_FAILED");
-    let remaining = proof.creditLa;
-    for (const source of ordered) {
-      const expected = Math.min(remaining, source.amountLa);
-      if (source.creditedLa !== expected || expected <= 0) return failed("WALLET_RECONCILIATION_FAILED");
-      remaining -= expected;
-    }
-    if (remaining !== 0) return failed("WALLET_RECONCILIATION_FAILED");
-    const primary = [...proof.sources].sort((a, b) => b.creditedLa - a.creditedLa || compareCreditCode(a.sku, b.sku) || compareCreditCode(a.spendId, b.spendId))[0]!;
-    const projected = WalletUpgradePurchaseV1Schema.safeParse({version: 1,
-      eventKey: `upg_${createHash("sha256").update(transactionId).digest("hex").slice(0, 32)}`,
-      occurredAt: completedAt.toISOString(), targetSku: "ZIWEI-IDENTITY-P0", sourceSku: primary.sku,
-      sourceSkus: [...new Set(proof.sources.map(source => source.sku))].sort(),
-      chargedLa: lineage.intent.priceLa, creditLa: proof.creditLa, currency: "LA"});
-    if (!projected.success) return failed("WALLET_RECONCILIATION_FAILED");
-    upgradePurchase = projected.data;
+    upgradePurchase = await projectCommittedWalletUpgrade(db, {ownerId, transactionId, intent: lineage.intent, creditProof: continuation.creditProof});
+    if (!upgradePurchase) return failed("WALLET_RECONCILIATION_FAILED");
   }
 
   return {
@@ -975,6 +917,9 @@ export function createWalletUnlockService(
             createdAt: currentNow,
           });
 
+          await enqueueCommittedWalletUpgrade(transaction, {ownerId: actor.userId, transactionId: zeroTx.id,
+            intent: completed, creditProof: selectedPrice.creditProof, traceId: actor.requestId});
+
           await writeAudit(
             transaction,
             actor.userId,
@@ -1114,6 +1059,8 @@ export function createWalletUnlockService(
           )).returning();
           if (completed === undefined) throw new Error("WALLET_INTENT_COMPLETE_FAILED");
           if (sku === COMBO_SKU && !await hasCompleteComboAuthority(transaction, {intent: completed, entitlement})) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          await enqueueCommittedWalletUpgrade(transaction, {ownerId: actor.userId, transactionId: metadata.spendTransactionId,
+            intent: completed, creditProof: selectedPrice.creditProof, traceId: actor.requestId});
           return {
             ...(annual ? {annual} : {}),
             ...(selectedPrice.creditProof ? {creditProof: selectedPrice.creditProof} : {}),
