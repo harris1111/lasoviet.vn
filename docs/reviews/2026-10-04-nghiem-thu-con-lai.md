@@ -5,6 +5,7 @@ Bản ngắn để bạn trả lời; [file chi tiết](2026-10-03-owner-inputs.
 ## Bối cảnh cho phần bạn nghiệm thu
 
 - LSV52 (khấu trừ nâng cấp), LSV76 (bảng mở khóa), LSV81 (Sentry): đã deploy, nghiệm thu và Done.
+- LSV57 (đo phễu, gồm tự mở sau nạp) và LSV59 (góp ý/hoàn Lá cho từng cung): PR [293](https://github.com/harris1111/lasoviet.vn/pull/293) và [292](https://github.com/harris1111/lasoviet.vn/pull/292) đã deploy, nghiệm thu và Done.
 - LSV79: nhắc đơn nạp đang chờ chỉ ghi nhận trong môi trường thử; PR [289](https://github.com/harris1111/lasoviet.vn/pull/289) đã deploy/nghiệm thu. Còn nhắc lá số và tiếp tục mua trong ứng dụng; chưa gửi thật.
 - LSV80: 12 luồng chuẩn mobile/desktop chạy trong CI qua PR [288](https://github.com/harris1111/lasoviet.vn/pull/288), đã deploy/nghiệm thu. Chưa thay thế kiểm thử nhà cung cấp và thiết bị thật.
 - LSV61: PR [290](https://github.com/harris1111/lasoviet.vn/pull/290) đã deploy và nghiệm thu 4 màn hình mobile/desktop, bảo vệ nội dung khóa và nâng cấp đúng 720 Lá. Done trên Kaneo.
@@ -13,6 +14,8 @@ Bản ngắn để bạn trả lời; [file chi tiết](2026-10-03-owner-inputs.
 ## Bạn có thể nghiệm thu ngay: Google và 4G — LSV72/73
 
 **Bối cảnh:** Sentry đã hoạt động và đọc được file/dòng lỗi. Kiểm thử trình duyệt và mạng mô phỏng đã có; cần kiểm tra trên điện thoại thật của bạn.
+
+Lỗi hydration ở header đã sửa và deploy qua PR [295](https://github.com/harris1111/lasoviet.vn/pull/295). Bộ 96 lượt chạy đúng chức năng, không còn lỗi DOM/unhandled; LCP giả lập khi tải mới là 1,34–1,56 giây. Đội kỹ thuật vẫn đối chiếu cảnh báo RSC quanh reload; LSV72 chưa Done. [Bằng chứng kỹ thuật](../qa/2026-10-04-lsv72-header-deployed-acceptance.md) ghi rõ giới hạn của từng phép đo.
 
 **Cách chạy:** tại [lasoviet.net](https://lasoviet.net), mở một lá số → chọn luận giải → đăng nhập Google → kiểm tra quay lại đúng lá số/trang, ngôn ngữ và URL. Bấm Quay lại, mở lại link; ghi nếu đăng nhập bị lặp. Thử Android/Chrome, iPhone/Safari hoặc trình duyệt Facebook/Messenger bạn có. Dùng mạng 4G và ghi nếu trang chậm; đội kỹ thuật đối chiếu ngưỡng LCP dưới 2,5 giây bằng số đo thực tế.
 
