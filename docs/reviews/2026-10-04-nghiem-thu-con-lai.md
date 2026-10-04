@@ -4,7 +4,7 @@ Bản ngắn để bạn trả lời; [file chi tiết](2026-10-03-owner-inputs.
 
 ## Bối cảnh cho phần bạn nghiệm thu
 
-- LSV52 (khấu trừ nâng cấp), LSV61 (đọc/nâng cấp trong bài), LSV76 (bảng mở khóa), LSV81 (Sentry): đã deploy, nghiệm thu và Done.
+- LSV52 (khấu trừ nâng cấp), LSV76 (bảng mở khóa), LSV81 (Sentry): đã deploy, nghiệm thu và Done.
 - LSV79: nhắc đơn nạp đang chờ chỉ ghi nhận trong môi trường thử; PR [289](https://github.com/harris1111/lasoviet.vn/pull/289) đã deploy/nghiệm thu. Còn nhắc lá số và tiếp tục mua trong ứng dụng; chưa gửi thật.
 - LSV80: 12 luồng chuẩn mobile/desktop chạy trong CI qua PR [288](https://github.com/harris1111/lasoviet.vn/pull/288), đã deploy/nghiệm thu. Chưa thay thế kiểm thử nhà cung cấp và thiết bị thật.
 - LSV61: PR [290](https://github.com/harris1111/lasoviet.vn/pull/290) đã deploy và nghiệm thu 4 màn hình mobile/desktop, bảo vệ nội dung khóa và nâng cấp đúng 720 Lá. Done trên Kaneo.
