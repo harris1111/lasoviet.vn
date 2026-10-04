@@ -1,3 +1,6 @@
+import { createWalletUpgradeOutboxRunner } from "../analytics/wallet-upgrade-outbox.js";
+import { createDatabaseAnalyticsRepository } from "../analytics/analytics.repository.js";
+import { WALLET_UPGRADE_EVENT_TYPE } from "./wallet-upgrade-event.js";
 import { createDatabaseDeletionRepository } from "../privacy/deletion.repository.js";
 import { createDatabaseBirthProfileRepository } from "../birth-profile/birth-profile.repository.js";
 import * as comboReservations from "./combo-report-reservation.js";
@@ -33,6 +36,9 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   auditLogs,
+  analyticsEvents,
+  analyticsVisitors,
+  accountBehaviorProfiles,
   authUsers,
   birthProfileRevisions,
   birthProfiles,
@@ -204,6 +210,168 @@ describe("wallet unlock repository integration", () => {
     const tables = [walletAccounts, walletPurchaseIntents, walletTransactions, commerceEntitlements, reportReservations, walletCommandReceipts, auditLogs, outbox];
     return Promise.all(tables.map(table => database.select().from(table)));
   }
+
+  async function committedUpgradeFixture() {
+    const owner = await ownerFixture("Durable upgrade owner");
+    const ports = walletPorts(owner.userId, {reportVersionResolver: v4_1SensitivityReportVersions});
+    const granted = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()), topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!granted.ok) throw new Error("grant");
+    let balance = granted.value.balance;
+    let finalCommand: Parameters<typeof ports.service.unlock>[1] | undefined;
+    let upgrade: import("./wallet-unlock.service.js").WalletUnlockOutcome | undefined;
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0", "ZIWEI-IDENTITY-P0"] as const) {
+      const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku, locale: "vi"});
+      if (!intent.ok) throw new Error(intent.code);
+      finalCommand = {purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: balance.stateVersion, idempotencyKey: randomUUID()};
+      const outcome = await ports.service.unlock(owner.actor, finalCommand);
+      if (!outcome.ok) throw new Error(outcome.code);
+      balance = outcome.value.balance;
+      if (sku === "ZIWEI-IDENTITY-P0") upgrade = outcome.value;
+    }
+    const [event] = await database.select().from(outbox).where(and(eq(outbox.actorId, owner.userId), eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE)));
+    if (!event || !upgrade) throw new Error("missing durable upgrade");
+    return {owner, ports, event, command: finalCommand!, upgrade};
+  }
+
+  function upgradeRunner(options: Partial<Parameters<typeof createWalletUpgradeOutboxRunner>[1]> = {}) {
+    return createWalletUpgradeOutboxRunner(database, {workerId: randomUUID(), now: () => frozenNow, limit: 500, ...options});
+  }
+
+  async function financialEvents(ownerId: string) {
+    return database.select().from(analyticsEvents).where(and(eq(analyticsEvents.userId, ownerId), eq(analyticsEvents.name, "upgrade_purchased")));
+  }
+
+  it("durably delivers a posted upgrade once across concurrent command and worker retries without browser metadata", async () => {
+    const fixture = await committedUpgradeFixture();
+    const replies = await Promise.all([fixture.ports.service.unlock(fixture.owner.actor, fixture.command), fixture.ports.service.unlock(fixture.owner.actor, fixture.command)]);
+    expect(replies.every(reply => reply.ok)).toBe(true);
+    expect(await database.select().from(outbox).where(and(eq(outbox.actorId, fixture.owner.userId), eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE)))).toHaveLength(1);
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(0);
+    await Promise.all([upgradeRunner().runOnce(), upgradeRunner().runOnce()]);
+    await upgradeRunner().runOnce();
+    const events = await financialEvents(fixture.owner.userId);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({occurredAt: frozenNow, properties: {amount: 720, credit_amount: 240, currency: "LA"}, birthProfileId: null, ip: null, userAgent: null, pathname: null, utmSource: null});
+    const [visitor] = await database.select().from(analyticsVisitors).where(eq(analyticsVisitors.id, events[0]!.visitorId));
+    expect(visitor).toMatchObject({userId: fixture.owner.userId, consentedAt: null, birthProfileId: null});
+    expect(visitor!.id).toMatch(/^business_[a-f0-9]{32}$/);
+    expect(await database.select().from(accountBehaviorProfiles).where(eq(accountBehaviorProfiles.userId, fixture.owner.userId))).toHaveLength(1);
+    expect(await database.select().from(outbox).where(eq(outbox.id, fixture.event.id))).toEqual([expect.objectContaining({status: "processed", lastErrorCode: null})]);
+  }, 20_000);
+
+  it("rolls back analytics and acknowledgement on delivery failure then recovers the original commit time", async () => {
+    const fixture = await committedUpgradeFixture();
+    await upgradeRunner({afterRecord: async () => {throw new Error("injected after-record failure");}}).runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(0);
+    const [failed] = await database.select().from(outbox).where(eq(outbox.id, fixture.event.id));
+    expect(failed).toMatchObject({status: "pending", attemptCount: 1, lastErrorCode: "WALLET_UPGRADE_DELIVERY_RETRY"});
+    expect(await fixture.ports.service.unlock(fixture.owner.actor, fixture.command)).toMatchObject({ok: true, value: fixture.upgrade});
+    await upgradeRunner({now: () => new Date(frozenNow.getTime() + 60_001)}).runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toEqual([expect.objectContaining({occurredAt: frozenNow})]);
+  }, 20_000);
+
+  it("recovers an expired worker lease without changing financial attribution", async () => {
+    const fixture = await committedUpgradeFixture();
+    await database.update(outbox).set({status: "leased", leasedBy: "crashed-worker", leasedUntil: new Date(frozenNow.getTime() - 1), attemptCount: 4}).where(eq(outbox.id, fixture.event.id));
+    await upgradeRunner().runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(1);
+    expect(await database.select().from(outbox).where(eq(outbox.id, fixture.event.id))).toEqual([expect.objectContaining({status: "processed", attemptCount: 5})]);
+  }, 20_000);
+
+  it.each(["malformed", "foreign", "changed-proof"])("rejects %s durable financial authority without emitting an event", async failure => {
+    const fixture = await committedUpgradeFixture();
+    const payload = fixture.event.payload as {transactionId: string; upgrade: Record<string, unknown>};
+    if (failure === "foreign") {
+      const outsider = await ownerFixture("Foreign durable owner");
+      await database.update(outbox).set({actorId: outsider.userId, aggregateId: outsider.userId}).where(eq(outbox.id, fixture.event.id));
+    } else {
+      const upgrade = failure === "malformed" ? {...payload.upgrade, birthProfileId: "private"} : {...payload.upgrade, sourceSku: "ZIWEI-PALACE-WEALTH-P0"};
+      await database.update(outbox).set({payload: {...payload, upgrade}}).where(eq(outbox.id, fixture.event.id));
+    }
+    await upgradeRunner().runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(0);
+    expect(await database.select().from(outbox).where(eq(outbox.id, fixture.event.id))).toEqual([expect.objectContaining({status: "failed", lastErrorCode: "WALLET_UPGRADE_EVENT_INVALID"})]);
+  }, 20_000);
+
+  it.each([false, true])("preserves an exact prior browser event and refuses a conflict (conflict=%s)", async conflict => {
+    const fixture = await committedUpgradeFixture();
+    const upgrade = fixture.upgrade.upgradePurchase!;
+    const properties = {source_sku: upgrade.sourceSku, source_skus: upgrade.sourceSkus, target_sku: upgrade.targetSku,
+      amount: conflict ? 721 : upgrade.chargedLa, credit_amount: upgrade.creditLa, currency: "LA"};
+    const result = await createDatabaseAnalyticsRepository(database).recordEvent({idempotencyKey: fixture.event.idempotencyKey,
+      visitorId: randomUUID(), userId: fixture.owner.userId, name: "upgrade_purchased", properties, occurredAt: frozenNow, now: frozenNow});
+    if (!result.ok) throw new Error(result.error);
+    await upgradeRunner().runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toEqual([result.event]);
+    const [event] = await database.select().from(outbox).where(eq(outbox.id, fixture.event.id));
+    expect(event?.status).toBe(conflict ? "failed" : "processed");
+  }, 20_000);
+
+  async function requestUpgradeOwnerPurge(userId: string) {
+    return createDatabaseDeletionRepository(database).request({userId, requestId: randomUUID(),
+      requestedAt: new Date(frozenNow.getTime() - 1000), recoverUntil: new Date(frozenNow.getTime() - 1)});
+  }
+
+  it("official purge removes pending financial payloads and prevents account analytics resurrection", async () => {
+    const fixture = await committedUpgradeFixture();
+    expect(await requestUpgradeOwnerPurge(fixture.owner.userId)).toMatchObject({ok: true});
+    await createDatabaseDeletionRepository(database).purgeExpired(frozenNow, 500);
+    await upgradeRunner().runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(0);
+    expect(await database.select().from(outbox).where(eq(outbox.id, fixture.event.id))).toHaveLength(0);
+  }, 20_000);
+
+  it("serializes delivery against purge and removes an event committed immediately before purge", async () => {
+    const fixture = await committedUpgradeFixture();
+    await requestUpgradeOwnerPurge(fixture.owner.userId);
+    let entered!: () => void; let release!: () => void;
+    const reached = new Promise<void>(resolve => {entered = resolve;});
+    const gate = new Promise<void>(resolve => {release = resolve;});
+    const delivery = upgradeRunner({beforeRecord: async () => {entered(); await gate;}}).runOnce();
+    await reached;
+    const purge = createDatabaseDeletionRepository(database).purgeExpired(frozenNow, 500);
+    release();
+    await Promise.all([delivery, purge]);
+    await upgradeRunner().runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(0);
+    expect(await database.select().from(analyticsVisitors).where(eq(analyticsVisitors.userId, fixture.owner.userId))).toHaveLength(0);
+    expect(await database.select().from(outbox).where(eq(outbox.id, fixture.event.id))).toHaveLength(0);
+  }, 20_000);
+
+  it("fences a purge request created after delivery started without an account deletion marker", async () => {
+    const fixture = await committedUpgradeFixture();
+    let current = frozenNow;
+    let entered!: () => void; let release!: () => void;
+    const reached = new Promise<void>(resolve => {entered = resolve;});
+    const gate = new Promise<void>(resolve => {release = resolve;});
+    const delivery = upgradeRunner({now: () => current, beforeRecord: async () => {entered(); await gate;}}).runOnce();
+    await reached;
+    const recoveryEnds = new Date(frozenNow.getTime() + 30 * 86_400_000);
+    expect(await createDatabaseDeletionRepository(database).request({userId: fixture.owner.userId,
+      requestId: randomUUID(), requestedAt: frozenNow, recoverUntil: recoveryEnds})).toMatchObject({ok: true});
+    current = new Date(recoveryEnds.getTime() + 1);
+    const purge = createDatabaseDeletionRepository(database).purgeExpired(current, 500);
+    try {
+      // Wait for PostgreSQL to prove purge reached the contested lock. With the
+      // old consumer it waits on outbox deletion; with the fix it waits on the
+      // shared advisory fence. Releasing immediately would make the race flaky.
+      await vi.waitFor(async () => {
+        const rows = await database.execute<{count: string}>(sql`
+          SELECT count(*)::text AS count FROM pg_stat_activity
+          WHERE datname = current_database() AND pid <> pg_backend_pid()
+            AND wait_event_type = 'Lock'
+            AND (query LIKE '%pg_advisory_xact_lock%' OR query LIKE '%delete from "outbox"%')`);
+        expect(Number(rows[0]!.count)).toBeGreaterThan(0);
+      }, {timeout: 10_000, interval: 10});
+    } finally {
+      release();
+    }
+    await Promise.all([delivery, purge]);
+    await upgradeRunner({now: () => current}).runOnce();
+    expect(await financialEvents(fixture.owner.userId)).toHaveLength(0);
+    expect(await database.select().from(analyticsVisitors).where(eq(analyticsVisitors.userId, fixture.owner.userId))).toHaveLength(0);
+    expect(await database.select().from(outbox).where(eq(outbox.id, fixture.event.id))).toHaveLength(0);
+  }, 20_000);
 
   it("quotes closed catalog without writes and denies archived, purged, foreign or mismatched charts", async () => {
     const owner = await ownerFixture("Quote privacy owner");
@@ -1704,6 +1872,10 @@ describe("wallet unlock repository integration", () => {
     });
     expect(replayResult.ok).toBe(true);
     if (replayResult.ok) expect(replayResult.value.upgradePurchase).toEqual(unlockResult.value.upgradePurchase);
+
+    await upgradeRunner().runOnce();
+    expect(await financialEvents(zeroOwner.userId)).toEqual([expect.objectContaining({properties: expect.objectContaining({amount: 0, credit_amount: 960})})]);
+    expect(await database.select().from(outbox).where(and(eq(outbox.actorId, zeroOwner.userId), eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE)))).toHaveLength(1);
 
     // Verify wallet history does not crash and does not contain 0-delta entries
     const history = await zeroRepo.readHistory(zeroOwner.actor);

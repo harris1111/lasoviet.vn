@@ -594,6 +594,7 @@ export type {
   WalletUnlockService,
 } from "./commerce/wallet-unlock.service.js";
 export { createDatabaseOutboxStore, createDatabaseReportQueuePublisher, createOutboxDispatcher, createOutboxDispatchRunner, createOutboxDispatchSchedule } from "./outbox/outbox.dispatcher.js";
+export { createWalletUpgradeOutboxRunner } from "./analytics/wallet-upgrade-outbox.js";
 export type { ClaimedOutboxEvent, OutboxDispatcherDependencies, OutboxDispatchRunner, QueueJob, QueueJobV1, ReportGenerationRequestedV1, ReportGenerationRequestedV2 } from "./outbox/outbox.dispatcher.js";
 export type { PaymentProvider, CheckoutOrder, HostedCheckout } from "./commerce/payment-provider.js";
 export {

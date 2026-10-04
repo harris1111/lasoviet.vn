@@ -48,6 +48,7 @@ import {
   type ReconciliationMaintenance,
   createOutboxDispatchRunner as createBoundedOutboxDispatchRunner,
   createOutboxDispatcher,
+  createWalletUpgradeOutboxRunner,
   createPhaseOneMaintenanceRunner,
   createReportGenerationService,
   createPdfRenderer,
@@ -146,10 +147,17 @@ export function createOutboxDispatchRunner() {
     throw new Error("WORKER_CONFIG_INVALID");
   }
   const database = createDatabase(environment.value.databaseUrl);
-  return createBoundedOutboxDispatchRunner(createOutboxDispatcher({
+  const reports = createBoundedOutboxDispatchRunner(createOutboxDispatcher({
     ...createDatabaseOutboxStore(database, "worker-outbox"),
     ...createDatabaseReportQueuePublisher(database),
   }));
+  const upgrades = createWalletUpgradeOutboxRunner(database, {workerId: "worker-wallet-upgrades"});
+  return {
+    async runOnce() {
+      const [report, upgrade] = await Promise.all([reports.runOnce(), upgrades.runOnce()]);
+      return {dispatched: report.dispatched + upgrade.dispatched};
+    },
+  };
 }
 
 const AI_CONFIG_VARIABLES = [
