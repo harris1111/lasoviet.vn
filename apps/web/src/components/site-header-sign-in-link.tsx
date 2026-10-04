@@ -1,11 +1,14 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { authClient } from "../auth/auth-client";
 
 const DUMMY_BASE = "https://lasoviet.local";
+const subscribeToHydration = () => () => {};
+const clientHydrationSnapshot = () => true;
+const serverHydrationSnapshot = () => false;
 
 export type HeaderAccountUser = {
   name?: string | null;
@@ -121,11 +124,13 @@ export function SiteHeaderSignInLink({
 }: SiteHeaderSignInLinkProps) {
   const pathname = usePathname();
   const session = authClient.useSession();
+  // Other session consumers may populate the shared cache before this header hydrates.
+  const hydrated = useSyncExternalStore(subscribeToHydration, clientHydrationSnapshot, serverHydrationSnapshot);
 
   let activeAccount: HeaderAccountUser | null = null;
   if (account !== undefined) {
     activeAccount = account;
-  } else if (session?.data?.user && (session.data.user as { isAnonymous?: boolean }).isAnonymous !== true) {
+  } else if (hydrated && session?.data?.user && (session.data.user as { isAnonymous?: boolean }).isAnonymous !== true) {
     activeAccount = {
       name: session.data.user.name,
       email: session.data.user.email,
