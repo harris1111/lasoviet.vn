@@ -21,3 +21,8 @@
 .palace-picker button[aria-pressed="true"], .offer-ladder button[aria-pressed="true"] { border-color: var(--gold-500); }
 .pricing-page-container .paybar[hidden] { display: none !important; }
 @media (min-width: 768px) { .offer-ladder-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .unlock-sheet { margin: auto; border-radius: var(--radius-modal); } }
+
+.report-waiting-facts { margin-top: 1.5rem; text-align: left; }
+.report-waiting-palaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
+.report-waiting-palaces article { min-width: 0; padding: 1rem; border: 1px solid var(--border-soft); border-radius: var(--radius-card); }
+.report-waiting-palaces ul { padding-left: 1.25rem; }

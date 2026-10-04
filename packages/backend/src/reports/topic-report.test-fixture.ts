@@ -21,7 +21,7 @@ const branches = [
   "ziwei.branch.dog", "ziwei.branch.pig", "ziwei.branch.rat", "ziwei.branch.ox",
 ] as const;
 
-export function buildFactsFixture() {
+export function buildFrozenChartFixture() {
   const chart: NormalizedZiweiChartV1 = {
     version: 1,
     systemId: "ziwei",
@@ -164,6 +164,11 @@ export function buildFactsFixture() {
     },
   };
 
+  return {chart, snapshot};
+}
+
+export function buildFactsFixture() {
+  const {chart, snapshot} = buildFrozenChartFixture();
   return buildComprehensiveZiweiFactsV4(chart, snapshot);
 }
 

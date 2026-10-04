@@ -225,7 +225,12 @@
     "next_step_title": "Bước xử lý tiếp theo",
     "next_step_description": "Thông tin sự cố và thanh toán của bạn đã được ghi nhận. Vui lòng bấm liên hệ hỗ trợ bên dưới để được ưu tiên kiểm tra và xử lý báo cáo.",
     "support_action": "Liên hệ hỗ trợ",
-    "view_orders_action": "Xem lịch sử đơn hàng"
+    "view_orders_action": "Xem lịch sử đơn hàng",
+    "wallet_unlock_confirmation": "Đã mở khóa bằng Lá.",
+    "facts_title": "Xem lá số trong lúc chờ",
+    "facts_description": "Đây là dữ kiện tính toán trên lá số đã mua, không phải phần luận giải đang được viết. Độ mạnh cấu trúc không phải điểm tốt xấu của cuộc đời.",
+    "structural_score": "Độ mạnh cấu trúc: {score}/100",
+    "wallet_failure_description": "Báo cáo chưa thể hoàn tất. Vui lòng liên hệ hỗ trợ với mã bên dưới để kiểm tra giao dịch Lá. Trang này chưa có xác nhận hoàn Lá."
   },
   "reader": {
     "eyebrow": "Báo cáo luận giải",
@@ -340,16 +345,18 @@
     "title": "Đọc tiếp Tử Vi trọn đời",
     "description": "Khám phá mười hai cung, các cấu trúc chính, chủ đề cuộc sống và bối cảnh đại vận, năm hiện tại.",
     "price": "Giá nâng cấp của bạn: {amount} Lá",
-    "credit": "Bạn đang được giảm {amount} Lá so với giá niêm yết 960 Lá.",
+    "credit": "Bạn có {amount} Lá đủ điều kiện khấu trừ từ các phần đã mua.",
     "terms": "Lá đã dùng mở cung lẻ và Bản mệnh của lá số này được khấu trừ trong 7 ngày từ lần mua đầu. Giá cuối cùng và số dư được kiểm tra lại trước khi bạn xác nhận.",
     "loading": "Đang kiểm tra giá nâng cấp…",
-    "unavailable": "Mở bảng xác nhận để kiểm tra giá và số dư hiện tại.",
+    "unavailable": "Chưa có giá nâng cấp khả dụng. Vui lòng thử lại sau.",
     "unlock": "Xem giá và xác nhận nâng cấp",
     "topup": "Nạp Lá",
     "palaces": "Luận giải mười hai cung",
     "patterns": "Cấu trúc chính và chủ đề cuộc sống",
     "timing": "Đại vận và năm hiện tại",
-    "scope": "Chỉ hiển thị tiêu đề và hình minh họa cho đến khi bạn mở."
+    "scope": "Chỉ hiển thị tiêu đề và hình minh họa cho đến khi bạn mở.",
+    "openedPalaces": "Bạn đã mở {count}/12 cung",
+    "creditExpiry": "Khấu trừ có hiệu lực đến {date}."
   },
   "topicReader": {
     "eyebrow": "Luận giải chuyên sâu",

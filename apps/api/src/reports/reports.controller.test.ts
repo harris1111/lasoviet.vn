@@ -156,6 +156,8 @@ describe("ReportsController HTTP boundary", () => {
       value: {
         version: 2,
         purchaseSource: "wallet_spend",
+        state: "failed",
+        locale: "vi",
         reportId: "report-wallet-1",
         reportVersionId: "report-wallet-version-1",
         errorCode: "REPORT_GENERATION_FAILED",
@@ -176,6 +178,8 @@ describe("ReportsController HTTP boundary", () => {
       value: {
         version: 2,
         purchaseSource: "wallet_spend",
+        state: "failed",
+        locale: "vi",
         reportId: "report-wallet-1",
         reportVersionId: "report-wallet-version-1",
         errorCode: "REPORT_GENERATION_FAILED",

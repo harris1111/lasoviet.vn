@@ -281,6 +281,8 @@ export function createReportQueryService(options: {
             const walletFailed = ReportFailedWalletSpendViewV2Schema.safeParse({
               version: 2,
               purchaseSource: "wallet_spend",
+              state: "failed",
+              locale: reservation.locale,
               reportId: reservation.reportId,
               reportVersionId: reservation.reportVersionId,
               errorCode: "REPORT_GENERATION_FAILED",
@@ -333,6 +335,8 @@ export function createReportQueryService(options: {
             sku: reservation.sku,
             fulfillmentStatus: reservationFulfillmentStatus as PendingStatus,
             refreshAfterMs: 5000,
+            purchaseSource: record.source === "ledger_spend" ? "wallet_spend" : "order",
+            chartSnapshot: buildReportChartSnapshotFromStored(record.chartNormalizedOutput, record.sourceSnapshot, reservation.chartVersionId),
           });
           if (!pendingParse.success) {
             throw new ReportQueryDataError();

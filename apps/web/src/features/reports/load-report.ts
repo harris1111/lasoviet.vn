@@ -4,6 +4,7 @@ import {
   ReportFailedWalletSpendViewV2Schema,
   ReportViewV1Schema,
   type ReportViewV1,
+  type ReportFailedWalletSpendViewV2,
   type Result,
 } from "@lasoviet/contracts";
 
@@ -24,7 +25,7 @@ export type ReportLoaderError =
 export type ReportLoader = {
   loadReport(
     reportId: string,
-  ): Promise<Result<ReportViewV1, ReportLoaderError>>;
+  ): Promise<Result<ReportViewV1 | ReportFailedWalletSpendViewV2, ReportLoaderError>>;
 };
 
 export function createReportLoader(dependencies: {
@@ -34,7 +35,7 @@ export function createReportLoader(dependencies: {
   return {
     async loadReport(
       reportId: string,
-    ): Promise<Result<ReportViewV1, ReportLoaderError>> {
+    ): Promise<Result<ReportViewV1 | ReportFailedWalletSpendViewV2, ReportLoaderError>> {
       let actor;
       try {
         actor = await dependencies.resolveVerifiedAccountActor();
@@ -104,14 +105,7 @@ export function createReportLoader(dependencies: {
         throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");
       }
       if (walletFailure.success) {
-        return {
-          ok: false,
-          error: {
-            code: "REPORT_FAILED",
-            messageKey: "reports.report_failed",
-            retryable: false,
-          },
-        };
+        return {ok: true, value: walletFailure.data};
       }
       if (!parsed.success) {
         throw new PrivateApiClientError("PRIVATE_API_RESPONSE_INVALID");

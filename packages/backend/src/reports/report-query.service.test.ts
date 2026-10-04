@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
+import { buildFrozenChartFixture } from "./topic-report.test-fixture.js";
 
 import type { CurrentActor, EntitlementScope } from "@lasoviet/contracts";
 import {
+  NormalizedZiweiChartV1Schema, ZiweiReportSnapshotV1Schema,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER,
   CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN,
   IDENTITY_REPORT_SECTION_IDS,
@@ -435,7 +437,29 @@ describe("report query service", () => {
       sku: "ZIWEI-IDENTITY-P0",
       fulfillmentStatus: "generating",
       refreshAfterMs: 5000,
+      purchaseSource: "order",
+      chartSnapshot: null,
     });
+  });
+
+  it("projects only the frozen authorized chart while pending and hides mismatched snapshots", async () => {
+    const {chart, snapshot} = buildFrozenChartFixture();
+    const record = createWalletSampleRecord();
+    record.chartNormalizedOutput = chart;
+    record.sourceSnapshot = {...snapshot.snapshot, chartVersionId: record.reservation.chartVersionId, provenance: {...snapshot.snapshot.provenance, chartVersionId: record.reservation.chartVersionId}};
+    expect(NormalizedZiweiChartV1Schema.safeParse(chart)).toMatchObject({success: true});
+    const parsedSnapshot = ZiweiReportSnapshotV1Schema.safeParse(record.sourceSnapshot);
+    if (!parsedSnapshot.success) throw new Error(JSON.stringify(parsedSnapshot.error.issues));
+    const service = createReportQueryService({repository: {readAuthorizedReport: vi.fn().mockResolvedValue(record)}, now: () => new Date("2026-10-04T00:00:00Z")});
+    const result = await service.getReport(accountActor, record.reservation.reportId);
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.value.version !== 1 || result.value.state !== "pending") throw new Error("pending required");
+    expect(result.value.purchaseSource).toBe("wallet_spend");
+    expect(result.value.chartSnapshot?.palaces).toHaveLength(12);
+    expect(JSON.stringify(result.value)).not.toMatch(/inputHash|rawSnapshot|calculatedAt|writer|displayName|birthDate/);
+    record.sourceSnapshot = snapshot.snapshot;
+    const invalid = await service.getReport(accountActor, record.reservation.reportId);
+    expect(invalid.ok && invalid.value.version === 1 && invalid.value.state === "pending" && invalid.value.chartSnapshot).toBeNull();
   });
 
   it("owner reads ready immutable version with exact evidence and safe provenance", async () => {
@@ -555,6 +579,8 @@ describe("report query service", () => {
       value: {
         version: 2,
         purchaseSource: "wallet_spend",
+        state: "failed",
+        locale: "vi",
         reportId: "834e9e89-19cb-44a6-bc59-ba7741374553",
         reportVersionId: "c678f352-452a-402e-a688-566fabd31f67",
         errorCode: "REPORT_GENERATION_FAILED",
@@ -564,9 +590,11 @@ describe("report query service", () => {
     if (!result.ok) return;
     expect(Object.keys(result.value).sort()).toEqual([
       "errorCode",
+      "locale",
       "purchaseSource",
       "reportId",
       "reportVersionId",
+      "state",
       "supportReference",
       "version",
     ]);

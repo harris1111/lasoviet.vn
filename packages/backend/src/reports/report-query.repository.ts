@@ -10,6 +10,7 @@ import {
   birthProfiles,
   commerceEntitlements,
   commerceOrders,
+  deletionRequests,
   evidenceItems,
   evidenceSets,
   reportReservations,
@@ -390,6 +391,10 @@ export function createDatabaseReportQueryRepository(
         return null;
       }
 
+      const [purgedAccount] = await database.select({id: deletionRequests.id}).from(deletionRequests)
+        .where(and(eq(deletionRequests.userId, ownerId), eq(deletionRequests.status, "purged"))).limit(1);
+      if (purgedAccount) return null;
+
       const [record] = await database
         .select({
           reservation: reportReservations,
@@ -557,6 +562,7 @@ export function createDatabaseReportQueryRepository(
         order: record.order,
         version: null,
         evidenceItems: [],
+        ...(await loadChartSnapshotInputs(reservationRecord)),
         source: "order",
         chartId: record.entitlement.chartId,
         entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
@@ -564,7 +570,7 @@ export function createDatabaseReportQueryRepository(
     },
   };
 
-  async function loadChartSnapshotInputs(version: typeof reportVersions.$inferSelect | null) {
+  async function loadChartSnapshotInputs(version: Pick<typeof reportVersions.$inferSelect, "chartVersionId" | "reportVersionId" | "reportId"> | null) {
     if (!version) return { chartNormalizedOutput: null, sourceSnapshot: null };
     const [chartRow] = await database
       .select({ normalizedOutput: ziweiChartVersions.normalizedOutput })
@@ -574,7 +580,7 @@ export function createDatabaseReportQueryRepository(
     const [snapshotRow] = await database
       .select({ snapshot: reportSourceSnapshots.snapshot })
       .from(reportSourceSnapshots)
-      .where(eq(reportSourceSnapshots.reportVersionId, version.reportVersionId))
+      .where(and(eq(reportSourceSnapshots.reportVersionId, version.reportVersionId), eq(reportSourceSnapshots.chartVersionId, version.chartVersionId), eq(reportSourceSnapshots.reportId, version.reportId)))
       .limit(1);
     return {
       chartNormalizedOutput: chartRow?.normalizedOutput ?? null,
@@ -599,7 +605,7 @@ export function createDatabaseReportQueryRepository(
       entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
       wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id },
       chartId: record.entitlement.chartId,
-      ...(await loadChartSnapshotInputs(record.version)),
+      ...(await loadChartSnapshotInputs(record.version ?? record.reservation)),
     };
   }
 }

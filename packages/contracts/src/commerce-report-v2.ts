@@ -50,6 +50,8 @@ export type AccountLibraryV2 = z.infer<typeof AccountLibraryV2Schema>;
 export const ReportFailedWalletSpendViewV2Schema = z.object({
   version: z.literal(2),
   purchaseSource: z.literal("wallet_spend"),
+  state: z.literal("failed"),
+  locale: z.enum(["vi", "en"]),
   reportId: id,
   reportVersionId: id,
   errorCode: z.literal("REPORT_GENERATION_FAILED"),
