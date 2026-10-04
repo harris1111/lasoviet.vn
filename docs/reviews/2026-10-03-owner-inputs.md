@@ -10,7 +10,11 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 - Ưu tiên đọc miễn phí trước khi mời mua, PR [277](https://github.com/harris1111/lasoviet.vn/pull/277): đã bỏ link mua xuất hiện quá sớm ở đầu trang và merge/deploy; 48 ca dành cho khách chưa đăng nhập đều đạt trên Chromium/Firefox/WebKit, VI/EN, bốn kích thước màn hình và giao diện sáng/tối. LSV72 vẫn còn phần nghiệm thu thành viên, điện thoại thật và hiệu năng.
 
 - LSV76, PR [278](https://github.com/harris1111/lasoviet.vn/pull/278): đã merge/deploy và chuyển Done; bảng mở khóa dùng giá thật từ API, phần khấu trừ nâng cấp và giao dịch ví đã kiểm thử bằng PostgreSQL. Sản phẩm giữ chỗ vẫn chưa mở bán.
-- LSV78, PR [281](https://github.com/harris1111/lasoviet.vn/pull/281): phần màn hình chờ và gợi ý nâng cấp đã merge/deploy; 24 ca Chromium/Firefox trên bản chạy thật đạt, dữ liệu thử đã xóa. Toàn bộ ticket vẫn In Progress.
+- LSV78, PR [281](https://github.com/harris1111/lasoviet.vn/pull/281): phần màn hình chờ và gợi ý nâng cấp đã merge/deploy; 24 ca Chromium/Firefox trên bản chạy thật đạt, dữ liệu thử đã xóa. Toàn bộ ticket vẫn In Review; phần sự kiện nâng cấp đáng tin cậy (PR284) và hoàn Lá khi tạo báo cáo thất bại (PR285) cũng đã merge/deploy, chưa thay cho nghiệm thu chất lượng AI.
+
+- LSV52, PR [287](https://github.com/harris1111/lasoviet.vn/pull/287): đã merge/deploy, nghiệm thu bản phát hành và chuyển Done. Đổi VI/EN không còn kẹt phiên mua chưa trả tiền; hai cung 120 + 120 Lá được khấu trừ, giá trọn đời còn 720 Lá, hạn khấu trừ tính từ lần mua đầu tiên. VI/EN trên mobile/desktop đều đạt.
+- LSV72, PR [286](https://github.com/harris1111/lasoviet.vn/pull/286): ma trận khách/thành viên 96 ca đã chạy; 95 ca đạt kiểm tra nghiêm ngặt, còn một chẩn đoán fetch WebKit và các chẩn đoán RSC cần xác minh. 12 ca bổ sung đạt; LCP qua mạng mô phỏng dưới 1,5 giây. Ticket vẫn In Review, chưa thay cho 4G/điện thoại thật.
+- LSV81 (Sentry): đã nghiệm thu và Done; có trace đọc được mã nguồn trên release thật, đã bật ngăn lưu IP. Có thể dùng để ghi nhận lỗi khi bạn chạy Google/mobile.
 
 ## Những quyết định và thông tin còn cần
 
@@ -112,4 +116,4 @@ AI miễn phí giữ các trần đã duyệt: 3.000 VND/phiên bản lá số v
 
 ## Phần việc kỹ thuật còn lại
 
-Phát sự kiện `upgrade_purchased` từ nguồn xác nhận đáng tin cậy, nghiệm thu đầy đủ luồng tiếp tục mua/hoàn tiền thật, bảo mật và báo giá phần xem trước đang khóa, chất lượng bài tổng quan miễn phí dài, đủ bằng chứng A17/trình duyệt/hiệu năng và sáu luồng kiểm thử chuẩn (golden paths) trong CI vẫn là việc của đội kỹ thuật. Đây không phải câu hỏi để chủ sở hữu tự giải quyết. Không chuyển cả ticket sang Done chỉ nhờ bản mẫu hoặc một phần kiểm thử sau deploy.
+Nguồn sự kiện `upgrade_purchased` bền vững và hoàn Lá khi tạo báo cáo thất bại đã deploy/nghiệm thu. Nghiệm thu đầy đủ luồng tiếp tục mua/hoàn tiền qua nhà cung cấp thật, bảo mật và báo giá phần xem trước đang khóa, chất lượng bài tổng quan miễn phí dài, đủ bằng chứng A17/trình duyệt/hiệu năng và sáu luồng kiểm thử chuẩn (golden paths) trong CI vẫn là việc của đội kỹ thuật. Đây không phải câu hỏi để chủ sở hữu tự giải quyết. Không chuyển cả ticket sang Done chỉ nhờ bản mẫu hoặc một phần kiểm thử sau deploy.
