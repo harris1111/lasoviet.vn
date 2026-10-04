@@ -169,3 +169,21 @@ describe("FreeIdentityPreview paid upgrade presentation boundary", () => {
     }
   });
 });
+
+
+describe("feedback on authorized free opening", () => {
+  const opening = {title: "Actual preview", opening: "Authorized opening sentence.", isLocked: true as const, lengthHint: 4, priceLa: 240};
+  it.each([false, true])("adds opening feedback only to real member prose (guest=%s)", isGuest => {
+    const html = renderToStaticMarkup(createElement(FreeIdentityPreview, {chartId: "chart-123", locale: "vi",
+      loadEvidence: vi.fn(), preview: {...mockPreview, banMenhPreview: opening}, isGuest}));
+    expect(html.match(/class="part-feedback"/g)).toHaveLength(isGuest ? 3 : 4);
+    if (isGuest) expect(html).not.toContain("Authorized opening sentence.");
+    else expect(html).toContain("Authorized opening sentence.");
+  });
+  it("does not attach opening feedback to a placeholder without actual prose", () => {
+    const {opening: _absent, ...placeholder} = opening;
+    const html = renderToStaticMarkup(createElement(FreeIdentityPreview, {chartId: "chart-123", locale: "vi",
+      loadEvidence: vi.fn(), preview: {...mockPreview, banMenhPreview: placeholder}, isGuest: false}));
+    expect(html.match(/class="part-feedback"/g)).toHaveLength(3);
+  });
+});

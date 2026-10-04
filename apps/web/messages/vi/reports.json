@@ -385,6 +385,7 @@
     "conditions": "Hoàn Lá một lần cho mỗi tài khoản, với phần mua dưới 500 Lá trong vòng 24 giờ. Phần được hoàn sẽ khóa lại.",
     "claim": "Yêu cầu hoàn Lá và khóa lại phần này",
     "restored": "Đã hoàn {amount} Lá. Phần đọc đã được khóa lại.",
+    "dismiss": "Đóng thông báo",
     "related": "Thử đọc thêm {palace}"
   },
   "membership": {

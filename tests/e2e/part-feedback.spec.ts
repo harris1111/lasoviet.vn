@@ -23,7 +23,10 @@ test.beforeAll(async () => {
     bundle: true, write: false, format: "iife", platform: "browser", jsx: "automatic",
     define: { "process.env.NODE_ENV": '"production"' },
     alias: { "@lasoviet/contracts": resolve(root, "packages/contracts/src/guarantee-feedback-v1.ts") },
-    plugins: [{ name: "isolated-router", setup(builder: any) {
+    plugins: [{ name: "canonical-palaces", setup(builder: any) {
+      builder.onResolve({ filter: /ziwei-tabs-state$/ }, () => ({ path: "palaces", namespace: "palace-fixture" }));
+      builder.onLoad({ filter: /.*/, namespace: "palace-fixture" }, () => ({ contents: 'export const CANONICAL_TAB_PALACE_IDS = ["life","siblings","spouse","children","wealth","health","travel","friends","career","property","fortune","parents"];', loader: "js" }));
+    } }, { name: "isolated-router", setup(builder: any) {
       builder.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "router", namespace: "fixture" }));
       builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "export const useRouter = () => ({refresh: () => {window.fixtureRefresh = true}});", loader: "js" }));
     } }],
@@ -89,7 +92,7 @@ for (const [locale, width] of [["vi", 390], ["en", 1440]] as const) {
     expect(claims[0]).toMatchObject({ chartId: "chart-fixture", partId: "overview", rating: "inaccurate" });
     expect(typeof claims[0]?.idempotencyKey).toBe("string");
     await expect(inaccurate).toBeDisabled();
-    await expect(page.locator(".part-feedback a")).toHaveAttribute("href", new RegExp(locale === "en" ? "^/en/la-so/" : "^/la-so/"));
+    await expect(page.locator(".part-feedback a")).toHaveAttribute("href", `${locale === "en" ? "/en" : ""}/la-so/chart-fixture?tab=palaces&open=travel`);
     expect(await page.evaluate(() => (window as any).fixtureRefresh)).toBe(true);
     await page.emulateMedia({ media: "print" });
     await expect(page.locator(".part-feedback")).not.toBeVisible();

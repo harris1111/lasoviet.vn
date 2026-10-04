@@ -5,6 +5,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 let mockLocale = "vi";
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
 vi.mock("next-intl", async () => {
   const viReports = (await import("../../../messages/vi/reports.json")).default;
   const enReports = (await import("../../../messages/en/reports.json")).default;

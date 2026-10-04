@@ -4,17 +4,21 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { GuaranteeClaimResultV1Schema, PartFeedbackResultV1Schema, type PartFeedbackRating } from "@lasoviet/contracts";
+import { CANONICAL_TAB_PALACE_IDS } from "../ziwei/ziwei-tabs-state";
+import { useGuaranteeNotice } from "./guarantee-notice-context";
 import { ziweiPresentation } from "../ziwei/ziwei-presentation";
 import { deterministicAnalyticsKey, trackGuaranteeClaimed, trackPartFeedback } from "../analytics/funnel-analytics";
 
 export function PartFeedback({ chartId, partId, reportId, sku, paid = false, locale = "vi", onClaimed }: { chartId: string; partId: string; reportId?: string; sku?: string; paid?: boolean; locale?: "vi" | "en"; onClaimed?: () => void }) {
   const t = useTranslations("reports.feedback");
   const router = useRouter();
+  const guaranteeNotice = useGuaranteeNotice();
   const [rating, setRating] = useState<PartFeedbackRating>();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [claimed, setClaimed] = useState(false);
   const [relatedPalaceId, setRelatedPalaceId] = useState<string>();
+  const relatedPalace = CANONICAL_TAB_PALACE_IDS.find(id => `ziwei.palace.${id}` === relatedPalaceId);
   const claimKey = useRef<string | null>(null);
   const inFlight = useRef(false);
 
@@ -38,8 +42,14 @@ export function PartFeedback({ chartId, partId, reportId, sku, paid = false, loc
         const result = GuaranteeClaimResultV1Schema.safeParse(data);
         if (!result.success) { setMessage(t("error")); return; }
         setClaimed(true);
-        setRelatedPalaceId(result.data.relatedPalaceSuggestion.palaceId);
-        setMessage(t("restored", { amount: result.data.amountLaRestored }));
+        if (guaranteeNotice) {
+          guaranteeNotice.showApproved({ chartId, amountLaRestored: result.data.amountLaRestored, relatedPalaceId: result.data.relatedPalaceSuggestion.palaceId });
+          setRelatedPalaceId(undefined);
+          setMessage("");
+        } else {
+          setRelatedPalaceId(result.data.relatedPalaceSuggestion.palaceId);
+          setMessage(t("restored", { amount: result.data.amountLaRestored }));
+        }
         void trackGuaranteeClaimed({
           sku: sku ?? (paid ? "paid-report" : "free-result"),
           amount_restored: result.data.amountLaRestored,
@@ -81,9 +91,9 @@ export function PartFeedback({ chartId, partId, reportId, sku, paid = false, loc
     </div>
     {paid && rating === "inaccurate" && !claimed && <div className="part-feedback-guarantee">
       <p>{t("conditions")}</p>
-      <button type="button" disabled={busy} onClick={() => void send("inaccurate", true)}>{t("claim")}</button>
+      <button type="button" disabled={busy || (guaranteeNotice !== undefined && !guaranteeNotice.canReceiveResult)} onClick={() => void send("inaccurate", true)}>{t("claim")}</button>
     </div>}
     <p role="status" aria-live="polite">{busy ? t("saving") : message}</p>
-    {relatedPalaceId && <a href={`${locale === "en" ? "/en" : ""}/la-so/${encodeURIComponent(chartId)}?tab=palaces&open=${encodeURIComponent(relatedPalaceId)}`}>{t("related", { palace: ziweiPresentation(locale, { strict: false }).palace(relatedPalaceId) })}</a>}
+    {relatedPalace && <a href={`${locale === "en" ? "/en" : ""}/la-so/${encodeURIComponent(chartId)}?tab=palaces&open=${encodeURIComponent(relatedPalace)}`}>{t("related", { palace: ziweiPresentation(locale, { strict: false }).palace(`ziwei.palace.${relatedPalace}`) })}</a>}
   </div>;
 }

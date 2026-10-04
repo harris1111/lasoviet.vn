@@ -12,6 +12,7 @@ import { routing } from "../../i18n/routing";
 import { AnalyticsCollector } from "../../features/analytics/analytics-collector";
 import { MessengerBubble } from "../../components/ui/messenger-bubble";
 import { WelcomeGrantNotice } from "../../features/commerce/welcome-grant-notice";
+import { GuaranteeNoticeProvider } from "../../features/reports/guarantee-notice-provider";
 import "../../styles/global.css";
 import "../../styles/free-result-read-first.css";
 import "../../styles/contextual-unlock.css";
@@ -102,10 +103,12 @@ export default async function LocaleLayout({
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
+          <GuaranteeNoticeProvider locale={locale as "vi" | "en"}>
           <AnalyticsCollector />
           {children}
           <MessengerBubble locale={locale as "vi" | "en"} />
           <WelcomeGrantNotice locale={locale as "vi" | "en"} />
+          </GuaranteeNoticeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

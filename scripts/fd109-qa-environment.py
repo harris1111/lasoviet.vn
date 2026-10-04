@@ -68,10 +68,20 @@ try:
     (root/'qa-migrations.log').write_text(migration)
     run(['docker','run','-d','--name',names[1],'--network',network,'--user','0','--env-file',mailfile,
       '-v',str(root/'qa-cert.pem')+':/qa-cert.pem:ro','-v',str(root/'qa-key.pem')+':/qa-key.pem:ro','axllent/mailpit:v1.27.4']);created.append(names[1])
-    run(['docker','run','-d','--name',names[2],'--network',network,'--env-file',appfile,'-v',str(root/'qa-cert.pem')+':/qa-cert.pem:ro',images['api']]);created.append(names[2])
+    run(['docker','run','-d','--name',names[2],'--network',network,'--env-file',appfile,'-v',str(root/'qa-cert.pem')+':/qa-cert.pem:ro','-e','PORT=3001',images['api']]);created.append(names[2])
     run(['docker','run','-d','--name',names[3],'--network',network,'--env-file',appfile,'-v',str(root/'qa-cert.pem')+':/qa-cert.pem:ro',
-      '-p','127.0.0.1:65520:3000',images['web']]);created.append(names[3])
-    output={'releaseSha':revision,'images':images,'internalNetwork':True,'isolatedDatabase':True,'smtpCaptureOnly':True,
+      '-p','127.0.0.1:65520:3000','-e','PORT=3000','-e','HOSTNAME=0.0.0.0',images['web']]);created.append(names[3])
+    # The API image starts after the web's local readiness can pass. Wait for
+    # the real API listener before sign-up sends its verification command.
+    # Redis is intentionally unused here; this is liveness, not full readiness.
+    deadline=time.monotonic()+30
+    while True:
+        probe=subprocess.run(['docker','exec',names[2],'node','-e',
+            "fetch('http://127.0.0.1:3001/health/live',{signal:AbortSignal.timeout(1000)}).then(async r=>process.exit(r.ok&&(await r.json()).status==='ok'?0:1)).catch(()=>process.exit(1))"],capture_output=True,text=True)
+        if probe.returncode==0: break
+        if time.monotonic()>=deadline: raise RuntimeError('QA_API_LISTENER_NOT_READY')
+        time.sleep(0.25)
+    output={'releaseSha':revision,'images':images,'internalNetwork':True,'isolatedDatabase':True,'smtpCaptureOnly':True,'apiListenerVerified':True,
       'noWorkerRunning':True,'freeAiOff':True,'loopbackWebOrigin':'http://127.0.0.1:65520','containers':created}
     (root/'qa-app-identity.json').write_text(json.dumps(output,indent=2));print(json.dumps(output))
 except BaseException:
