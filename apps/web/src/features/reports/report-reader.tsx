@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import { PartFeedback } from "./part-feedback";
 import { ReaderUpgrade } from "./reader-upgrade";
 import { PeriodReportReader } from "./period-report-reader";
 import { TopicReportReader } from "./topic-report-reader";
@@ -14,7 +15,7 @@ import type {
   ReportReadyViewV1,
   ReportComprehensiveV3ReadyViewV1,
 } from "@lasoviet/contracts";
-import { ReportComprehensiveV3ReadyViewV1Schema } from "@lasoviet/contracts";
+import { getSkuForPalaceId, PalaceIdSchema, ReportComprehensiveV3ReadyViewV1Schema } from "@lasoviet/contracts";
 
 import { ArtifactImage } from "../../components/artifact-image";
 import { ComprehensiveReportReader } from "./comprehensive-report-reader";
@@ -406,6 +407,8 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
                     <p>{section.narrative}</p>
                   </div>
 
+                  {report.chartId && <PartFeedback locale={locale} chartId={report.chartId} reportId={report.reportId} partId={section.id} sku={report.sku} paid />}
+
                   {/* Section Claims with Evidence Triggers */}
                   {section.claims.length > 0 && (
                     <div className="report-claims-group">
@@ -472,6 +475,7 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
                   <li key={qi}>{q}</li>
                 ))}
               </ol>
+              {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} sku={report.sku} partId="reflectionQuestions" paid locale={locale} />}
             </section>
           )}
 
@@ -484,6 +488,7 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
                   <li key={ai}>{act}</li>
                 ))}
               </ul>
+              {report.chartId && <PartFeedback chartId={report.chartId} reportId={report.reportId} sku={report.sku} partId="summaryActions" paid locale={locale} />}
             </section>
           )}
 
@@ -622,17 +627,26 @@ function PalaceReportReader({locale, report}: {locale: "vi" | "en"; report: Repo
     return () => {observer?.disconnect(); window.removeEventListener("scroll", onScroll);};
   }, []);
     const identity = report.content.identity;
+    const feedback = (partId: string, sku: string) => report.chartId
+      ? <PartFeedback locale={locale} chartId={report.chartId} reportId={report.reportId} partId={partId} sku={sku} paid />
+      : null;
     return <main className="report-reader" ref={root}>
       {identity && <>
-        {[identity.overview, identity.coreAxis, identity.strengthsAndTensions].map((section) =>
-          <section key={section.title}><h2>{section.title}</h2><p>{section.narrative}</p></section>)}
-        <ul>{identity.practicalDirection.map((action, index) => <li key={index}>
-          {typeof action === "string" ? action : <>{action.recommendation}<p>{action.rationale}</p></>}
-        </li>)}</ul>
+        {(["overview", "coreAxis", "strengthsAndTensions"] as const).map(partId => {
+          const section = identity[partId];
+          return <section key={partId} id={`section-${partId}`}><h2>{section.title}</h2><p>{section.narrative}</p>{feedback(partId, "ZIWEI-NATAL-EXCERPT-P0")}</section>;
+        })}
+        <section id="section-practicalDirection">
+          <ul>{identity.practicalDirection.map((action, index) => <li key={index}>
+            {typeof action === "string" ? action : <>{action.recommendation}<p>{action.rationale}</p></>}
+          </li>)}</ul>
+          {feedback("practicalDirection", "ZIWEI-NATAL-EXCERPT-P0")}
+        </section>
       </>}
       {report.content.palaceReadings.map((palace, index) => <Fragment key={palace.palaceId}>
         <section id={palace.palaceId}>
           <h2>{palace.title}</h2><p style={{ whiteSpace: "pre-line" }}>{palace.narrative}</p>
+          {feedback(palace.palaceId, getSkuForPalaceId(PalaceIdSchema.parse(palace.palaceId)))}
         </section>
         {index === 0 && <>
           <span ref={firstSectionEnd} data-testid="reader-first-owned-section-end" aria-hidden="true" style={{display: "block", height: 1}} />

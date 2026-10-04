@@ -66,6 +66,13 @@ try:
     run(base + ["-d", "--name", names[2], "-e", "PORT=3001", node_image, "node", "apps/api/dist/main.js"])
     created.append(names[3])
     run(base + ["-d", "--name", names[3], "-e", "PORT=3000", "-e", "HOSTNAME=0.0.0.0", node_image, "node", "apps/web/.next/standalone/apps/web/server.js"])
+    # Liveness confirms the fixture listener, not production dependency readiness.
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        probe = subprocess.run(["docker", "exec", names[2], "node", "-e", "fetch('http://127.0.0.1:3001/health/live',{signal:AbortSignal.timeout(1000)}).then(async r=>{if(!r.ok||(await r.json()).status!=='ok')process.exit(1)}).catch(()=>process.exit(1))"], capture_output=True)
+        if probe.returncode == 0: break
+        time.sleep(0.25)
+    else: raise RuntimeError("QA_API_LISTENER_NOT_READY")
     artifacts = {name: hashlib.sha256((source / name).read_bytes()).hexdigest() for name in ["apps/web/.next/BUILD_ID", "apps/api/dist/main.js", "packages/backend/dist/commerce/wallet-unlock.service.js"]}
     identity = {"runId": run_id, "builtArtifacts": artifacts, "revision": run(["git", "rev-parse", "HEAD"]), "builtCandidateNotPublishedArtifact": True, "sourceRoot": str(source), "containers": names, "network": network, "noWorkerRunning": True, "freeAiOff": True, "paymentSimulationNotRevenue": True, "smtpCaptureOnly": True, "browserInitialNow": "2026-10-04T12:00:00.000Z"}
     (root / "identity.json").write_text(json.dumps(identity, indent=2))

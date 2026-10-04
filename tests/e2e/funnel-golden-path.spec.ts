@@ -3,6 +3,7 @@ import {execFileSync} from "node:child_process";
 import {randomUUID} from "node:crypto";
 import {existsSync, readFileSync, writeFileSync} from "node:fs";
 import path from "node:path";
+import {GuaranteeClaimResultV1Schema, WalletBalanceV1Schema} from "../../packages/contracts/dist/index.js";
 import {createAnonymousChart} from "./helpers/create-anonymous-chart";
 
 const canonical = "https://lasoviet.net";
@@ -278,6 +279,72 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       await dialog.getByRole("button", {name: "Thử lại", exact: true}).click();
       await expect(dialog.getByRole("button", {name: "Xác nhận mở", exact: true})).toBeEnabled();
       expect(database(`select count(*) from wallet_transactions t join wallet_accounts a on a.id=t.wallet_id where a.owner_id='${owner.ownerId}' and t.kind='spend'`)).toBe("0");
+    });
+    test("palace feedback → atomic refund → persistent result → related locked palace", async ({page}) => {
+      // Freeze near the real server clock so the one-hour analytics ingress gate remains real.
+      await page.clock.setFixedTime(new Date());
+      const owner = await account(page.context()); fixture("fund", owner.ownerId); const chart = await createChart(page);
+      const balance = async () => WalletBalanceV1Schema.parse(await (await page.request.get("/api/commerce/wallet/balance")).json());
+      const before = await balance();
+      const dialog = await preview(page, chart.chartId); await dialog.getByTestId("contextual-palace-unlock").click();
+      await dialog.getByRole("button", {name: "Xác nhận mở", exact: true}).click();
+      await expect(dialog.getByTestId("contextual-unlock-success")).toBeVisible();
+      const reportId = await readyReader(page, owner.ownerId, chart);
+      const afterSpend = await balance(); expect(before.totalLa - afterSpend.totalLa).toBe(120);
+      const feedback = page.locator('[id="ziwei.palace.wealth"] .part-feedback');
+      await expect(feedback).toHaveCount(1);
+      const feedbackResponse = page.waitForResponse(response => new URL(response.url()).pathname === "/api/commerce/feedback/parts" && response.request().method() === "POST");
+      await feedback.getByRole("button", {name: "Không đúng", exact: true}).click();
+      expect((await feedbackResponse).status()).toBe(200);
+      const claimResponse = page.waitForResponse(response => new URL(response.url()).pathname === "/api/commerce/wallet/guarantee-claim" && response.request().method() === "POST");
+      await feedback.getByRole("button", {name: "Yêu cầu hoàn Lá và khóa lại phần này", exact: true}).click();
+      const response = await claimResponse; expect(response.status()).toBe(200);
+      const request = response.request().postDataJSON();
+      expect(request).toMatchObject({chartId: chart.chartId, reportId, partId: "ziwei.palace.wealth", rating: "inaccurate"});
+      const restored = GuaranteeClaimResultV1Schema.parse(await response.json());
+      expect(restored).toMatchObject({amountLaRestored: 120, sku: "ZIWEI-PALACE-WEALTH-P0"});
+      const notice = page.getByTestId("guarantee-result-notice");
+      await expect(notice).toBeVisible(); await expect(notice).toContainText("Đã hoàn 120 Lá");
+      for (const name of ["part_feedback", "guarantee_claimed"]) {
+        await expect.poll(() => database(`select count(*) from analytics_events where user_id='${owner.ownerId}' and name='${name}' and properties->>'section_id'='ziwei.palace.wealth'`)).toBe("1");
+        const properties = JSON.parse(database(`select properties from analytics_events where user_id='${owner.ownerId}' and name='${name}' and properties->>'section_id'='ziwei.palace.wealth'`));
+        expect(properties.sku).toBe("ZIWEI-PALACE-WEALTH-P0");
+        expect(JSON.stringify(properties)).not.toContain(chart.chartId); expect(JSON.stringify(properties)).not.toContain(reportId);
+        if (name === "guarantee_claimed") expect(properties.amount_restored).toBe(120);
+      }
+      // Await actual RSC authorization removing the revoked reader before using its result.
+      await expect(page.locator('[id="ziwei.palace.wealth"]')).toHaveCount(0);
+      await expect(notice).toBeVisible();
+      const assertRestored = async () => expect(await balance()).toMatchObject({totalLa: before.totalLa, purchasedLa: before.purchasedLa, promotionalLa: before.promotionalLa});
+      await assertRestored();
+      const replay = await page.request.post("/api/commerce/wallet/guarantee-claim", {headers: {origin: canonical}, data: request});
+      expect(replay.status()).toBe(200);
+      const replayed = GuaranteeClaimResultV1Schema.parse(await replay.json());
+      expect(replayed.claimId).toBe(restored.claimId); expect(replayed.receipt.transactionId).toBe(restored.receipt.transactionId);
+      await assertRestored();
+      const second = await page.request.post("/api/commerce/wallet/guarantee-claim", {headers: {origin: canonical}, data: {...request, idempotencyKey: randomUUID()}});
+      expect(second.ok()).toBe(false); expect((await second.json()).code).toBe("GUARANTEE_ALREADY_CLAIMED"); await assertRestored();
+      const related = restored.relatedPalaceSuggestion.palaceId.replace(/^ziwei\.palace\./, "");
+      expect(related).toMatch(/^(life|siblings|spouse|children|wealth|health|travel|friends|career|property|fortune|parents)$/);
+      const href = `/la-so/${chart.chartId}?tab=palaces&open=${related}`;
+      await expect(notice.getByRole("link")).toHaveAttribute("href", href);
+      await page.emulateMedia({media: "print"}); await expect(notice).toBeHidden(); await page.emulateMedia({media: "screen"});
+      await notice.getByRole("link").click(); await page.waitForURL(canonical + href);
+      await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
+      await expect(page.getByTestId("contextual-palace-unlock")).toBeEnabled();
+      const relocked = await preview(page, chart.chartId);
+      await expect(relocked.getByTestId("contextual-palace-unlock")).toBeEnabled();
+      expect(await page.content()).not.toContain("LSV61_PRIVATE_TAIL_ziwei_palace_wealth");
+      const denied = await page.request.get(`/bao-cao/${reportId}`);
+      expect(denied.status()).toBe(404); expect(await denied.text()).not.toContain("LSV61_PRIVATE_TAIL_ziwei_palace_wealth");
+      // Ordinary free feedback still navigates to a real related dialog in English.
+      await page.goto(`/en/la-so/${chart.chartId}`);
+      if (viewport.width >= 1024) await page.getByRole("tablist").getByRole("tab", {name: "Overview", exact: true}).click();
+      const free = page.locator('[data-testid="fd109-free-result"] .part-feedback').first();
+      await free.getByRole("button", {name: "Not accurate", exact: true}).click();
+      const englishLink = free.getByRole("link"); await expect(englishLink).toHaveAttribute("href", new RegExp(`^/en/la-so/${chart.chartId}\\?tab=palaces&open=(life|siblings|spouse|children|wealth|health|travel|friends|career|property|fortune|parents)$`));
+      const englishHref = await englishLink.getAttribute("href"); await englishLink.click(); await page.waitForURL(canonical + englishHref);
+      await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
     });
     test.afterAll(() => {expect(database("select count(*) from ai_call_attempts")).toBe("0");});
   });
