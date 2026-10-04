@@ -31,19 +31,25 @@ test.beforeAll(async () => {
   bundle = result.outputFiles[0].text;
 });
 
-for (const [locale, width, price] of [["vi", 390, 480], ["en", 1440, 960], ["vi", 320, 0]] as const) {
+for (const [locale, width, price] of [["vi", 390, 480], ["en", 1440, 960], ["vi", 320, 0], ["vi", 390, 768]] as const) {
   test(`server-priced reader upgrade ${locale} ${width}px ${price} La`, async ({ page }) => {
     page.on("pageerror", error => console.error(error.message));
     await page.setViewportSize({ width, height: 844 });
     await page.clock.setFixedTime(new Date("2026-10-04T00:00:00Z"));
     const spends: unknown[] = [];
     const intents: unknown[] = [];
+    const analytics: Array<{event: {name: string; properties: Record<string, unknown>}}> = [];
+    const discount = price === 768 ? 192 : 0;
+    const credit = 960 - price - discount;
+    const sources = credit === 480 ? ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-SPOUSE-P0"] : credit === 960 ? ["LIFE", "SIBLINGS", "SPOUSE", "CHILDREN", "WEALTH", "HEALTH", "TRAVEL", "FRIENDS"].map(id => `ZIWEI-PALACE-${id}-P0`) : [];
     await page.route("**/*", async route => {
       const path = new URL(route.request().url()).pathname;
       if (path.endsWith("/quotes")) {
         expect(route.request().method()).toBe("GET");
-        const credit = 960 - price;
-        await route.fulfill({json: {version: 1, chartId: "chart-fixture", chartVersionId: "version-fixture", locale, quotedAt: "2026-10-04T00:00:00Z", quotes: [{sku: "ZIWEI-IDENTITY-P0", state: "available", basePriceLa: 960, priceLa: price, creditLa: credit, discountLa: 0, creditExpiresAt: credit ? "2026-10-10T00:00:00Z" : null, creditSourceSkus: credit ? ["ZIWEI-NATAL-EXCERPT-P0"] : [], reportId: null, reportState: null}]}});
+        await route.fulfill({json: {version: 1, chartId: "chart-fixture", chartVersionId: "version-fixture", locale, quotedAt: "2026-10-04T00:00:00Z", quotes: [{sku: "ZIWEI-IDENTITY-P0", state: "available", basePriceLa: 960, priceLa: price, creditLa: credit, discountLa: discount, creditExpiresAt: credit ? "2026-10-10T00:00:00Z" : null, creditSourceSkus: sources, reportId: null, reportState: null}]}});
+      } else if (path === "/api/analytics/events") {
+        analytics.push(route.request().postDataJSON());
+        await route.fulfill({json: {ok: true}});
       } else if (path.endsWith("/purchase-intents")) {
         intents.push(route.request().postDataJSON());
         expect(route.request().postDataJSON()).toEqual({ chartId: "chart-fixture", chartVersionId: "version-fixture", locale, sku: "ZIWEI-IDENTITY-P0" });
@@ -63,6 +69,10 @@ for (const [locale, width, price] of [["vi", 390, 480], ["en", 1440, 960], ["vi"
     await expect(page.getByRole("status")).toContainText(`${price} Lá`);
     expect(spends).toHaveLength(0);
     expect(intents).toHaveLength(0);
+    if (credit) {
+      await expect.poll(() => analytics.filter(item => item.event.name === "upgrade_view").length).toBe(sources.length);
+      for (const event of analytics.filter(item => item.event.name === "upgrade_view")) expect(event.event.properties).toEqual({source_sku: expect.any(String), target_sku: "ZIWEI-IDENTITY-P0", days_remaining: 6});
+    }
     await expect(page.locator("[data-locked=true]")).toHaveCount(3);
     expect(await page.locator(".blur-bar").allTextContents()).toEqual(Array(9).fill(""));
     expect(await page.locator(".reader-upgrade").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
@@ -76,6 +86,8 @@ for (const [locale, width, price] of [["vi", 390, 480], ["en", 1440, 960], ["vi"
     await expect.poll(() => spends.length).toBe(1);
     expect(spends[0]).toMatchObject({ purchaseIntentId: "intent", expectedIntentVersion: 2, expectedWalletVersion: 4 });
     await expect.poll(() => page.evaluate(() => (window as any).fixtureDestination)).toBe(`${locale === "en" ? "/en" : ""}/bao-cao/report-unlocked`);
+    expect(analytics.filter(item => item.event.name === "upgrade_view")).toHaveLength(sources.length);
+    expect(analytics.filter(item => item.event.name === "upgrade_purchased")).toHaveLength(0);
     await page.emulateMedia({ media: "print" });
     await expect(page.locator(".reader-upgrade")).not.toBeVisible();
   });
