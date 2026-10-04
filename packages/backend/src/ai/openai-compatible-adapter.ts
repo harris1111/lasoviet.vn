@@ -217,6 +217,17 @@ export function createOpenAiCompatibleAdapter(
   const fetchImpl = options.fetchImpl ?? fetch;
   const providerId = options.providerId ?? resolveOpenAiCompatibleProviderId(options.baseUrl);
   const allowedResolvedModelIds = new Set(options.allowedResolvedModelIds);
+  const providerUsage = (payload: unknown): ReturnType<typeof extractUsage> => {
+    const resolved = payload !== null && typeof payload === "object"
+      ? (payload as Record<string, unknown>).model : undefined;
+    // Installed 9router Gemini translation removes cache evidence and buffers
+    // client counters; even complete-looking usage cannot prove the billed cost.
+    if (providerId === "9router-an" && [options.modelId, resolved].some(model =>
+      typeof model === "string" && /^(?:ag\/)?gemini-/i.test(model.trim()))) {
+      return { tokensUnknown: true };
+    }
+    return extractUsage(payload);
+  };
 
   return {
     async generateStructured<TSchema extends z.ZodType>(
@@ -326,7 +337,7 @@ export function createOpenAiCompatibleAdapter(
         if (!result.response.ok) {
           let errorUsage = { tokensUnknown: true };
           if (result.body.ok) {
-            errorUsage = extractUsage(result.body.value);
+            errorUsage = providerUsage(result.body.value);
           }
 
           const errCode = isUnsupportedStatus(result.response.status)
@@ -369,7 +380,7 @@ export function createOpenAiCompatibleAdapter(
         }
         payload = result.body.value;
 
-        const usage = extractUsage(payload);
+        const usage = providerUsage(payload);
         const payloadRecord =
           payload !== null && typeof payload === "object"
             ? (payload as Record<string, unknown>)

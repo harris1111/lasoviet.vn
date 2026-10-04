@@ -23,10 +23,11 @@ const providerBody = (content: unknown, usage: Record<string, unknown> | null = 
 const ok = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const tariff = { inputPricePerMillion: 15_000n, outputPricePerMillion: 60_000n };
 
-async function harness(behaviour: (attempt: number) => Promise<Response>, options: { retryCount?: number; snapshotOverride?: string; tariffAvailable?: boolean } = {}) {
+async function harness(behaviour: (attempt: number) => Promise<Response>, options: { retryCount?: number; snapshotOverride?: string; tariffAvailable?: boolean; modelId?: string } = {}) {
+  const modelId = options.modelId ?? "gift-model";
   const cost = createInMemoryAiCostService();
   const pricing = await cost.savePricing({
-    pricingVersion: "v1", providerId: "9router-an", modelId: "gift-model", currency: "VND", inputPricePerMillion: 15_000, outputPricePerMillion: 60_000,
+    pricingVersion: "v1", providerId: "9router-an", modelId, currency: "VND", inputPricePerMillion: 15_000, outputPricePerMillion: 60_000,
     cachedInputPricePerMillion: 3_750, effectiveFrom: new Date("2026-09-01T00:00:00Z"), source: "approved", sourceCurrency: "VND", sourceReference: "founder",
     fxSource: "direct_vnd", fxRate: 1, fxTimestamp: new Date("2026-09-01T00:00:00Z"), referenceMetadata: {}, status: "active",
   });
@@ -35,7 +36,7 @@ async function harness(behaviour: (attempt: number) => Promise<Response>, option
     costRecorder: cost.recorder,
     loadTariff: async () => (options.tariffAvailable === false ? null : tariff),
     createProvider: (recorder) => createOpenAiCompatibleAdapter({
-      baseUrl: "https://ai.synthetic.test/v1", apiKey: "not-a-real-secret", modelId: "gift-model", allowedResolvedModelIds: ["gift-model"],
+      baseUrl: "https://ai.synthetic.test/v1", apiKey: "not-a-real-secret", modelId, allowedResolvedModelIds: [modelId],
       timeoutMs: 1000, retryCount: options.retryCount ?? 0, productionGate: createAiProductionGate("approved"), costRecorder: recorder,
       fetchImpl: async () => { physicalAttempts += 1; return behaviour(physicalAttempts); },
     }),
@@ -43,7 +44,7 @@ async function harness(behaviour: (attempt: number) => Promise<Response>, option
   const prompt = buildFreePalacePrompt({ locale: "vi", palaceId: "ziwei.palace.life", palaceLabel: "cung Mệnh", facts, concern: null });
   const call: FreePalaceGiftFrozenCallV1 = {
     version: 1, requestId: "123e4567-e89b-42d3-a456-426614174000", chartVersionId: "chart-v1", palaceId: "ziwei.palace.life", locale: "vi",
-    provider: "9router-an", model: "gift-model", promptVersion: "p", rulesVersion: "r", knowledgeVersion: "k", scorerVersion: "s", schemaVersion: "g",
+    provider: "9router-an", model: modelId, promptVersion: "p", rulesVersion: "r", knowledgeVersion: "k", scorerVersion: "s", schemaVersion: "g",
     pricingSnapshotId: options.snapshotOverride ?? pricing.id!, serializedPrompt: serializeFreePalacePrompt(prompt), maxOutputTokens: 2000,
     reservedMicroVnd: "200000000", deletionGeneration: 0,
   };
@@ -133,6 +134,17 @@ describe("free palace gift writer", () => {
     } finally {vi.useRealTimers();}
   });
 
+  it("retains the gift hold for complete-looking quarantined Gemini usage", async () => {
+    vi.useFakeTimers({toFake: ["Date"]}); vi.setSystemTime(new Date("2026-10-04T12:00:00Z"));
+    try {
+      const modelId = "ag/gemini-3.8-flash";
+      const h = await harness(async () => ok({...providerBody(goodContent()), model: modelId}), {modelId});
+      const outcome = await h.writer.run(h.call, attemptId);
+      expect(h.attempts()).toBe(1); expect(outcome).toMatchObject({settlement: {kind: "unknown"}, diagnostic: "usage_unknown"});
+      expect(outcome.publication).toBeUndefined();
+      expect(await h.cost.getAiCogsSummary({})).toMatchObject({unknownAttemptCount: 1, resolvedAttemptCount: 0, hasIncompleteAttempts: true});
+    } finally {vi.useRealTimers();}
+  });
   it("row 37: a reserved snapshot that is no longer the active tariff sends nothing", async () => {
     const h = await harness(async () => ok(providerBody(goodContent())), { snapshotOverride: "00000000-0000-4000-8000-000000000000" });
     const outcome = await h.writer.run(h.call, attemptId);

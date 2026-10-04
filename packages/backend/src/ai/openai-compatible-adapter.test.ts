@@ -476,13 +476,14 @@ describe("OpenAI-compatible adapter", () => {
 
 describe("AI usage cost integrity", () => {
   const now = new Date("2026-10-04T12:00:00Z");
-  async function recorded(usage: unknown, status = 200) {
+  async function recorded(usage: unknown, status = 200, models: {requested?: string; resolved?: string; providerId?: string} = {}) {
+    const requestedModel = models.requested ?? "synthetic-model", resolvedModel = models.resolved ?? requestedModel;
     vi.useFakeTimers({toFake: ["Date"]}); vi.setSystemTime(now);
     try {
-      const cost = createInMemoryAiCostService(); await cost.savePricing({...samplePricing, modelId: "synthetic-model"});
-      const fetchSpy = vi.fn(async () => jsonResponse({...responseBody('{"value":"sentinel"}'), usage}, status));
+      const cost = createInMemoryAiCostService(); await cost.savePricing({...samplePricing, providerId: models.providerId ?? "9router-an", modelId: requestedModel});
+      const fetchSpy = vi.fn(async () => jsonResponse({...responseBody('{"value":"sentinel"}'), model: resolvedModel, usage}, status));
       const adapter = createOpenAiCompatibleAdapter({baseUrl: "https://ai.synthetic.test/v1", apiKey: "synthetic",
-        modelId: "synthetic-model", allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 100, retryCount: 0,
+        modelId: requestedModel, allowedResolvedModelIds: [requestedModel, resolvedModel], providerId: models.providerId, timeoutMs: 100, retryCount: 0,
         productionGate: createAiProductionGate("approved"), costRecorder: cost.recorder, fetchImpl: fetchSpy});
       const result = await adapter.generateStructured({...request, use: "production_report_generation", costContext: {chartId: "usage-integrity"}});
       return {result, summary: await cost.getAiCogsPerChart("usage-integrity"), calls: fetchSpy.mock.calls.length};
@@ -528,6 +529,30 @@ describe("AI usage cost integrity", () => {
       expect(evidence.summary.records[0]).toMatchObject({tokensUnknown: true, costStatus: "unknown"});
       expect(evidence.summary.records[0]!.costMicroVnd).toBeUndefined();
     });
+  it.each([
+    {requested: "ag/gemini-3.8-flash"},
+    {requested: "ag/gemini-3.8-flash", resolved: "gemini-3.8-flash"},
+    {requested: "synthetic-alias", resolved: "ag/gemini-3.8-flash"},
+    {requested: "gemini-3.8-flash"},
+  ])("quarantines complete-looking 9router Gemini usage %#", async models => {
+    const evidence = await recorded({...complete, completion_tokens_details: {reasoning_tokens: 0}, cached_tokens: 0}, 200, models);
+    expect(evidence.result).toMatchObject({ok: true, value: {value: {value: "sentinel"}, usage: {tokensUnknown: true, costStatus: "unknown"}}});
+    expect(evidence.calls).toBe(1); expect(evidence.summary).toMatchObject({hasIncompleteAttempts: true, unknownAttemptCount: 1});
+    expect(evidence.summary.records[0]).toMatchObject({tokensUnknown: true, costStatus: "unknown"});
+    expect(evidence.summary.records[0]!.costMicroVnd).toBeUndefined();
+  });
+  it("retains supported cost for an explicitly different provider", async () => {
+    const evidence = await recorded(complete, 200, {requested: "ag/gemini-3.8-flash", providerId: "openrouter"});
+    expect(evidence.result).toMatchObject({ok: true, value: {usage: {tokensUnknown: false, costStatus: "resolved"}}});
+    expect(evidence.summary.records[0]).toMatchObject({costStatus: "resolved", costMicroVnd: "45000000"});
+  });
+  it("keeps Gemini probe cost unknown without a recorder while retaining structured output", async () => {
+    const modelId = "ag/gemini-3.8-flash";
+    const adapter = createOpenAiCompatibleAdapter({baseUrl: "https://ai.synthetic.test/v1", apiKey: "synthetic", modelId,
+      allowedResolvedModelIds: [modelId], timeoutMs: 100, retryCount: 0, productionGate: createAiProductionGate("approved"),
+      fetchImpl: async () => jsonResponse({...responseBody('{"value":"sentinel"}'), model: modelId, usage: complete})});
+    expect(await adapter.generateStructured(request)).toMatchObject({ok: true, value: {value: {value: "sentinel"}, usage: {tokensUnknown: true, costStatus: "unknown"}}});
+  });
   it("also records incomplete usage from an HTTP error as unknown", async () => {
     const evidence = await recorded({prompt_tokens: 1000}, 500);
     expect(evidence.calls).toBe(1); expect(evidence.result).toMatchObject({ok: false});
