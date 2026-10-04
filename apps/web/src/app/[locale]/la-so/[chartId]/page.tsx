@@ -125,6 +125,7 @@ export default async function ZiweiChartResultPage({
           chart={chartResult.value.chart}
           birthSummary={chartResult.value.birthSummary}
           chartId={chartId}
+          chartVersionId={chartResult.value.chartVersionId}
           initialState={tabState}
           locale={locale}
           loadEvidence={loadZiweiEvidence}

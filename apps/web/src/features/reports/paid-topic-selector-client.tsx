@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useState, type ReactNode, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
@@ -28,6 +28,7 @@ export type SelectorPackId = "LA-ENTRY-300" | "LA-START-1100" | "LA-DISCOVER-300
 export type SelectorOffer = SafeOfferPresentation & { sku: WalletUnlockDialogSku | null };
 
 export type PaidTopicSelectorClientProps = {
+  readingContent?: ReactNode;
   locale: ZiweiPresentationLocale;
   offers: SelectorOffer[];
   offerDescriptors: RenderedOfferDescriptor[];
@@ -63,6 +64,7 @@ function syncUrl(params: Record<string, string | undefined>) {
 }
 
 export function PaidTopicSelectorClient({
+  readingContent,
   locale,
   offers,
   offerDescriptors,
@@ -146,11 +148,11 @@ export function PaidTopicSelectorClient({
   const readingFaqs = [
     {
       q: locale === "en"
-        ? "How do Core Destiny and Comprehensive readings differ?"
-        : "Bản mệnh và Toàn diện khác nhau thế nào?",
+        ? "How do Core Destiny and Lifetime Zi Wei readings differ?"
+        : "Bản mệnh và Tử Vi trọn đời khác nhau thế nào?",
       a: locale === "en"
-        ? "Core Destiny focuses on your personality, core axis, strengths, and tensions. Comprehensive expands to career, wealth, love, health, 10-year decadal cycle, and monthly forecasts."
-        : "Bản mệnh nói về con người bạn: tính cách, trục Mệnh - Thân, điểm mạnh và điểm căng. Toàn diện mở rộng thêm công việc, tiền bạc, tình duyên, sức khoẻ, đại vận 10 năm và từng tháng hạn năm nay.",
+        ? "Core Destiny focuses on your personality, core axis, strengths, and tensions. Lifetime Zi Wei covers all 12 palaces, their connections, and decadal themes."
+        : "Bản mệnh nói về con người bạn: tính cách, trục Mệnh - Thân, điểm mạnh và điểm căng. Tử Vi trọn đời mở rộng đủ 12 cung, các mối liên hệ và đại vận.",
     },
     {
       q: locale === "en" ? "What is Lá?" : "Lá là gì?",
@@ -229,7 +231,7 @@ export function PaidTopicSelectorClient({
 
   return (
     <section aria-labelledby="topic-selector-heading" className="pricing-page-container">
-      <OfferViewTracker offers={offerDescriptors} />
+      {!readingContent && <OfferViewTracker offers={offerDescriptors} />}
       <TopupTracker activeTab={activeTab} />
 
       {/* Header */}
@@ -282,7 +284,7 @@ export function PaidTopicSelectorClient({
 
       {/* Tab 1: Luận giải (FD-065: NO VND on this tab!) */}
       <section id="luan-giai" aria-label={t("selection.tabReadings")} hidden={activeTab !== "luan-giai"}>
-        <div className="offers-grid" data-testid="topics-layer" role="radiogroup" aria-label={t("selection.tabReadings")}>
+        {readingContent ?? <div className="offers-grid" data-testid="topics-layer" role="radiogroup" aria-label={t("selection.tabReadings")}>
           {offers.map((offer) => {
             const isSelected = activeOffer?.offerKey === offer.offerKey;
             const isFeatured = offer.offerKey === "ziwei-comprehensive";
@@ -420,8 +422,8 @@ export function PaidTopicSelectorClient({
                   <div className="offer-upgrade-bar">
                     <span>
                       {locale === "en"
-                        ? "Upgrade to Comprehensive within 7 days for only"
-                        : "Nâng lên Toàn diện trong 7 ngày chỉ thêm"}{" "}
+                        ? "Upgrade to Lifetime Zi Wei within 7 days for only"
+                        : "Nâng lên Tử Vi trọn đời trong 7 ngày chỉ thêm"}{" "}
                       <b>720 Lá</b>
                     </span>
                   </div>
@@ -460,7 +462,7 @@ export function PaidTopicSelectorClient({
               </article>
             );
           })}
-        </div>
+        </div>}
       </section>
 
       {/* Tab 2: Hội viên (FD-093, Sắp có) */}
@@ -617,7 +619,7 @@ export function PaidTopicSelectorClient({
       </div>
 
       {/* Sticky Bottom Paybar: follows the active tab and the selected card/pack */}
-      <div className="paybar" role="region" aria-label="Đơn đang chọn">
+      <div hidden={Boolean(readingContent) && activeTab === "luan-giai"} className="paybar" role="region" aria-label="Đơn đang chọn">
         <div className="container">
           <div className="paybar-sum">
             {activeTab === "luan-giai" && activeOffer && (

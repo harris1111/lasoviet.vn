@@ -1,7 +1,7 @@
 ---
 phase: 5
 title: "Contextual unlock and offer page rebuild"
-status: pending
+status: in-progress
 priority: P1
 effort: "4d"
 dependencies: [1]
@@ -10,7 +10,7 @@ dependencies: [1]
 # Phase 5: Contextual unlock and offer page rebuild
 
 ## Overview
-Sell the exact thing the visitor is curious about, where they are curious, and turn `/la-so/{id}/chon-luan-giai` into a real price ladder. Today the backend can sell 12 single palaces at 120 Lá (`availability: "active"`) but no web surface offers them; the preview sheet of a locked palace/topic only links to a page that sells Bản mệnh/“Toàn diện”. **Needs founder decision #1 in plan.md.** Mobile-first.
+Sell the exact thing the visitor is curious about, where they are curious, and turn `/la-so/{id}/chon-luan-giai` into a real price ladder. Today the backend can sell 12 single palaces at 120 Lá (`availability: "active"`) but no web surface offers them; the preview sheet of a locked palace/topic only links to a page that sells Bản mệnh/“Toàn diện”. **Owner approved the contextual proposal on 2026-10-04; FD110 records the preview exception and FD113 retains the homepage fast path.** Mobile-first.
 
 ## Requirements
 - Functional
@@ -62,3 +62,7 @@ Sell the exact thing the visitor is curious about, where they are curious, and t
 ## Risk Assessment
 - Twelve buyable palaces could cannibalise Trọn đời → mitigated by the anchor-up secondary CTA and the rollover credit ("mua lẻ rồi vẫn được trừ"); watch phase-2 funnel mix (share of 960 vs 120 orders) for 2 weeks.
 - Reserved products must never be sold before content exists → availability check server-side in `walletIntentRequest` already enforces it.
+
+## Delivery record (2026-10-04)
+
+The implementation and acceptance boundaries are recorded in `docs/reviews/2026-10-04-lsv76-contextual-unlock.md`. Closed ladder query mapping lives in `features/commerce/offer-selection.ts`; legacy VND `checkout-offer.ts` aliases remain backward compatible and are not expanded into new purchase routes. The pure quote includes immutable chart version/locale, true ownership/report state, and authoritative credit source/expiry. Reserved products are visible without purchase controls. SePay and physical-device acceptance stay separate; no completion is inferred before deployment smoke.

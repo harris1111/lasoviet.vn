@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent }
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { CANONICAL_PALACE_SKU_MAP, type LaSku, type ZiweiPalaceId } from "@lasoviet/contracts";
+import { ContextualUnlock } from "../commerce/contextual-unlock";
 import type { NormalizedZiweiChartV1, ZiweiBirthSummaryV1, ZiweiEvidenceViewV1 } from "@lasoviet/contracts";
 import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { createFreeResultAnalytics } from "./free-result-analytics";
@@ -25,6 +27,7 @@ export type ZiweiFreeResultProps = {
   chart: NormalizedZiweiChartV1;
   birthSummary?: ZiweiBirthSummaryV1;
   chartId: string;
+  chartVersionId: string;
   basePath: string;
   locale: ZiweiPresentationLocale;
   initialState: ParsedResultTabState;
@@ -49,7 +52,7 @@ const mobileAnchors: Record<ZiweiResultTab, string> = {
 };
 
 export function ZiweiFreeResult({
-  chart, birthSummary, chartId, basePath, locale, initialState, model, signInHref, loadEvidence, recordEngagement,
+  chart, birthSummary, chartId, chartVersionId, basePath, locale, initialState, model, signInHref, loadEvidence, recordEngagement,
 }: ZiweiFreeResultProps) {
   const t = useTranslations("ziwei");
   const reportT = useTranslations("reports");
@@ -70,6 +73,8 @@ export function ZiweiFreeResult({
   const previewPalace = (initialState.tab === "palaces" || initialState.tab === "topics")
     ? model.palaces.find((palace) => palace.id === `ziwei.palace.${initialState.open}`) : undefined;
   const previewId = previewTopic?.id ?? previewPalace?.id;
+  const previewSku = previewPalace ? CANONICAL_PALACE_SKU_MAP[previewPalace.id as ZiweiPalaceId] as LaSku :
+    previewTopic?.id === "career_wealth" ? "ZIWEI-CAREER-P0" : previewTopic?.id === "relationship_marriage" ? "ZIWEI-RELATIONSHIP-P0" : undefined;
   // One native dialog owns focus and body overflow for both enlargement and previews.
   const modalId = previewId ? `preview:${previewId}` : chartExpanded ? "chart" : undefined;
   const offerHref = `${basePath}/chon-luan-giai`;
@@ -334,7 +339,9 @@ export function ZiweiFreeResult({
             <ReportScoreExplainer t={reportT} />
             <p>{t("freeResult.previewDescription")}</p>
             <div className="fd109-locked-region"><span>{t("freeResult.locked")}</span><p>{t("freeResult.deepReadingLocked")}</p></div>
-            <Link className="button" href={offerHref} onClick={trackDoor}>{t("freeResult.choose")}</Link>
+            {previewSku ? <ContextualUnlock key={previewId} chartId={chartId} chartVersionId={chartVersionId}
+              locale={locale} sku={previewSku} offerHref={offerHref} onDoor={trackDoor} /> :
+              <Link className="button" href={offerHref} onClick={trackDoor}>{t("freeResult.choose")}</Link>}
           </>}
         </div>
       </dialog>

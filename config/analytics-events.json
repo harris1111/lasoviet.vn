@@ -81,7 +81,8 @@
       "properties": [
         "offer_id",
         "placement",
-        "sku"
+        "sku",
+        "locale"
       ]
     },
     {

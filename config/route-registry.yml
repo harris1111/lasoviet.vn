@@ -865,6 +865,7 @@ routes:
     id: private.chart.topic
     path: "/la-so/{opaque_id}/chon-luan-giai"
     intent: private.chart.topic
+    # Closed offer/palace selection; unknown or repeated values fall back to lifetime.
     template: report-topic-selector
     discipline: tu-vi
 
@@ -1100,3 +1101,19 @@ routes:
     locale_owners: [vi]
     owner: commerce
     schema_types: []
+
+  - <<: *private_defaults
+    id: api.backend.wallet.quotes
+    path: /commerce/wallet/quotes
+    locale_behavior: unlocalized
+    intent: private.commerce.backend-wallet-price-quote
+    template: private-api
+    owner: commerce
+
+  - <<: *private_defaults
+    id: api.web.wallet.quotes
+    path: /api/commerce/wallet/quotes
+    locale_behavior: unlocalized
+    intent: private.commerce.web-wallet-price-quote
+    template: private-api
+    owner: commerce

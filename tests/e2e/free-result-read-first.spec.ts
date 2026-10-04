@@ -60,7 +60,7 @@ for (const locale of ["vi", "en"] as const) {
   }
 }
 
-test("FD109 locked preview keeps one destination and restores focus", async ({ page }) => {
+test("FD110 locked preview offers the selected palace and restores focus", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const chartUrl = new URL(await createAnonymousChart(page, "vi"));
   const trigger = page.getByTestId("fd109-palace-preview").first();
@@ -72,7 +72,8 @@ test("FD109 locked preview keeps one destination and restores focus", async ({ p
   await expect(dialog.locator('a[href*="/chon-luan-giai"]')).toHaveAttribute(
     "href", `${chartUrl.pathname}/chon-luan-giai`,
   );
-  await expect(dialog).not.toContainText(/\b(?:120|240|480|960)\s*Lá\b|₫/);
+  await expect(dialog).toContainText("120 Lá");
+  await expect(dialog).not.toContainText(/₫|VND|VNĐ/);
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();

@@ -11,6 +11,7 @@ const stylesRoot = resolve(root, "apps/web/src/styles");
 const stylesheet = readFileSync(resolve(stylesRoot, "global.css"), "utf8")
   .replace(/@import "\.\/([^"]+)";/g, (_, filename: string) =>
     readFileSync(resolve(stylesRoot, filename), "utf8"));
+const sheetStyles = readFileSync(resolve(stylesRoot, "contextual-unlock.css"), "utf8");
 let bundle = "";
 
 test.beforeAll(async () => {
@@ -103,7 +104,7 @@ async function mountFixture(page: Page, balance = 2200) {
     }
   });
   await page.goto("http://wallet-layout.test/");
-  await page.addStyleTag({ content: stylesheet });
+  await page.addStyleTag({ content: stylesheet + sheetStyles });
   await page.addScriptTag({ content: bundle });
   await expect(page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, 1000));
@@ -120,22 +121,22 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     const unlocks = await mountFixture(page);
     await page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" }).click();
-    const overlay = page.locator("body > .wallet-unlock-dialog-overlay");
+    const overlay = page.locator("body > dialog.unlock-sheet");
     const dialog = page.getByRole("dialog", { name: "Mở luận giải này" });
     await expect(overlay).toBeVisible();
-    await expect(page.locator(".paybar .wallet-unlock-dialog-overlay")).toHaveCount(0);
+    await expect(page.locator(".paybar dialog.unlock-sheet")).toHaveCount(0);
     await expect(dialog).toContainText("1240 Lá");
 
     const overlayBox = await overlay.boundingBox();
     const panelBox = await dialog.boundingBox();
     expect(overlayBox).not.toBeNull();
     expect(panelBox).not.toBeNull();
-    expect(overlayBox!.y).toBeCloseTo(0, 0);
-    expect(overlayBox!.height).toBeCloseTo(viewport.height, 0);
+    expect(overlayBox!.height).toBeLessThanOrEqual(viewport.height * 0.85 + 1);
     expect(panelBox!.y).toBeGreaterThanOrEqual(0);
     expect(panelBox!.y + panelBox!.height).toBeLessThanOrEqual(viewport.height);
     expect(panelBox!.x + panelBox!.width / 2).toBeCloseTo(viewport.width / 2, 0);
-    expect(panelBox!.y + panelBox!.height / 2).toBeCloseTo(viewport.height / 2, 0);
+    if (viewport.width >= 768) expect(panelBox!.y + panelBox!.height / 2).toBeCloseTo(viewport.height / 2, 0);
+    else expect(panelBox!.y + panelBox!.height).toBeCloseTo(viewport.height, 0);
     expect(await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
 
     const confirm = dialog.getByRole("button", { name: "Xác nhận mở", exact: true });
@@ -171,7 +172,7 @@ test("Escape, cancel, and backdrop dismiss without spending", async ({ page }) =
   await expect(trigger).toBeFocused();
   await expect(page.locator("body")).toHaveCSS("overflow", "auto");
   await trigger.click();
-  await page.locator("body > .wallet-unlock-dialog-overlay").click({ position: { x: 2, y: 2 } });
+  await page.mouse.click(2, 2);
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
   await expect(page.locator("body")).toHaveCSS("overflow", "auto");

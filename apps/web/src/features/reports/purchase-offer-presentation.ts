@@ -141,7 +141,7 @@ const OFFER_CONTENT: Record<
     },
     ctaLabel: {
       vi: "Chọn Tử Vi trọn đời — 79.000 ₫",
-      en: "Select Comprehensive Zi Wei Reading — 79,000 VND",
+      en: "Select Lifetime Zi Wei Reading — 79,000 VND",
     },
   },
 };
@@ -239,7 +239,7 @@ export function buildSafeOfferPresentations(
       }
     } else if (offerKey === "ziwei-natal-excerpt") {
       upgradeDisclosure = {
-        vi: "Nếu sau đó bạn muốn đọc bản toàn diện, 240 Lá này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.",
+        vi: "Nếu sau đó bạn muốn đọc Tử Vi trọn đời, 240 Lá này sẽ được trừ thẳng vào phí nâng cấp trong vòng 7 ngày kể từ thời điểm thanh toán.",
         en: "If you later wish to read the comprehensive report, this 240 Lá will be credited directly toward the upgrade fee within 7 days from payment.",
       };
     }
@@ -267,7 +267,7 @@ export function buildSafeOfferPresentations(
       shortTitle:
         offerKey === "ziwei-natal-excerpt"
           ? { vi: "Bản mệnh", en: "Core Destiny" }
-          : { vi: "Toàn diện", en: "Comprehensive" },
+          : { vi: "Tử Vi trọn đời", en: "Lifetime Zi Wei" },
       title: content.title,
       summary: content.summary,
       deliverables: content.deliverables,

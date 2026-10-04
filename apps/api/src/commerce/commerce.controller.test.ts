@@ -2220,3 +2220,28 @@ describe("SePay controller HTTP contract", () => {
     });
   });
 });
+
+describe("wallet quote controller", () => {
+  it("rejects malformed queries before account or repository access", async () => {
+    const guard = vi.spyOn(internalGuard, "verifyInternalActorToken");
+    const repo = vi.spyOn(backend, "createDatabaseCommerceRepository");
+    try {
+      for (const query of [{ chartId: "chart" }, { chartId: "chart", chartVersionId: "cv", locale: ["vi", "en"] }, { chartId: "chart", chartVersionId: "cv", locale: "vi", priceLa: 0 }]) {
+        await expect(controller().walletQuotes("Bearer test", query)).rejects.toBeInstanceOf(BadRequestException);
+      }
+      expect(guard).not.toHaveBeenCalled(); expect(repo).not.toHaveBeenCalled();
+    } finally { guard.mockRestore(); repo.mockRestore(); }
+  });
+  it("delegates only to the read-only quote operation with authenticated actor", async () => {
+    const actor = { kind: "account" as const, userId: "user", sessionId: "session", requestId: "request" };
+    const request = { chartId: "chart", chartVersionId: "cv", locale: "vi" as const };
+    const value = { ...request, version: 1, quotedAt: "2026-10-04T00:00:00Z", quotes: [] };
+    const readWalletQuotes = vi.fn().mockResolvedValue({ ok: true, value });
+    const guard = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue(actor);
+    const repo = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({ readWalletQuotes } as never);
+    try {
+      expect(await controller().walletQuotes("Bearer test", request)).toEqual({ ok: true, value });
+      expect(readWalletQuotes).toHaveBeenCalledWith(actor, request);
+    } finally { guard.mockRestore(); repo.mockRestore(); }
+  });
+});

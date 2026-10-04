@@ -1,3 +1,7 @@
+import { loadWalletQuotes } from "../../../../../features/commerce/load-wallet-quotes";
+import { resolveLadderSelection } from "../../../../../features/commerce/offer-selection";
+import { OfferLadder } from "../../../../../features/reports/offer-ladder";
+import { computeNormalizedPalaceScores } from "../../../../../features/reports/report-palace-score";
 import { customerContactConfig } from "@lasoviet/config";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -27,7 +31,7 @@ export default async function PaidTopicSelectionPage({
   searchParams,
 }: {
   params: Promise<{ chartId: string; locale: string }>;
-  searchParams?: Promise<{ tab?: string; pack?: string; offer?: string }>;
+  searchParams?: Promise<{ tab?: string; pack?: string; offer?: string | string[]; palace?: string | string[] }>;
 }) {
   const { chartId, locale: requestedLocale } = await params;
   const query = await searchParams;
@@ -53,6 +57,8 @@ export default async function PaidTopicSelectionPage({
     }
   }
 
+  const initialQuotes = actor ? await loadWalletQuotes(actor, { chartId, chartVersionId: chartResult.value.chartVersionId, locale }) : null;
+  const scores = Object.fromEntries([...computeNormalizedPalaceScores(chartResult.value.chart)].map(([id, value]) => [id, value.score]));
   let ownershipByOfferKey: Partial<Record<PublicOfferKey, OfferOwnershipState>> = {};
   let orderHistory: OrderHistoryItemV1[] = [];
   let userBalance = 0;
@@ -93,6 +99,9 @@ export default async function PaidTopicSelectionPage({
     <main className="topic-page" data-light-ready>
       <div className="container">
         <PaidTopicSelector
+          readingContent={<OfferLadder chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale}
+            initialSku={resolveLadderSelection(query?.offer, query?.palace)} balance={userBalance} scores={scores}
+            initialQuotes={!actor ? { status: "guest" } : initialQuotes ? { status: "ready", value: initialQuotes } : { status: "error" }} />}
           birthSummary={chartResult.value.birthSummary}
           locale={locale}
           ownershipByOfferKey={ownershipByOfferKey}

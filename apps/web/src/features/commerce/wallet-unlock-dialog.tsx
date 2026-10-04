@@ -53,6 +53,7 @@ type DialogState =
   | { step: "error"; kind: WalletUnlockErrorKind; code?: string };
 
 export type WalletUnlockDialogProps = {
+  embedded?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUnlocked: (reportId: string | null) => void;
@@ -102,6 +103,7 @@ function randomId(): string {
  * settlement can complete the purchase and return to the same chart section.
  */
 export function WalletUnlockDialog({
+  embedded = false,
   open,
   onOpenChange,
   onUnlocked,
@@ -195,7 +197,7 @@ export function WalletUnlockDialog({
   }, [state, sku]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || embedded) return;
     const triggerElement = typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
     const previousOverflow = typeof document !== "undefined" ? document.body.style.overflow : "";
     if (typeof document !== "undefined") {
@@ -213,7 +215,11 @@ export function WalletUnlockDialog({
       }
       triggerElement?.focus();
     };
-  }, [open, onOpenChange]);
+  }, [open, onOpenChange, embedded]);
+
+  useEffect(() => {
+    if (embedded && open) dialogRef.current?.focus();
+  }, [embedded, open]);
 
   if (!open) return null;
   if (typeof document === "undefined" || !document.body) return null;
@@ -281,16 +287,16 @@ export function WalletUnlockDialog({
 
   const dialogContent = (
     <div
-      className="wallet-unlock-dialog-overlay"
+      className={embedded ? "wallet-unlock-dialog-embedded" : "wallet-unlock-dialog-overlay"}
       onClick={() => onOpenChange(false)}
     >
       <div
         aria-labelledby={titleId}
-        aria-modal="true"
+        aria-modal={embedded ? undefined : true}
         className="wallet-unlock-dialog"
         onClick={(event) => event.stopPropagation()}
         ref={dialogRef}
-        role="dialog"
+        role={embedded ? "region" : "dialog"}
         tabIndex={-1}
       >
         <h2 id={titleId}>{labels.title}</h2>
@@ -380,7 +386,7 @@ export function WalletUnlockDialog({
             <a className="button button-primary" href={topUpHref} onClick={() => {
               void trackPackSelected({ pack_id: coveringPack.id, price_vnd: coveringPack.vndAmount, la_amount: coveringPack.totalLa });
             }}>
-              {t("selection.unlockDialogTopupAction", {
+              {embedded ? t("selection.unlockSheetTopup") : t("selection.unlockDialogTopupAction", {
                 pack: coveringPack.name[locale],
                 vnd: coveringPack.vndFormatted[locale],
               })}
@@ -395,5 +401,5 @@ export function WalletUnlockDialog({
     </div>
   );
 
-  return createPortal(dialogContent, document.body);
+  return embedded ? dialogContent : createPortal(dialogContent, document.body);
 }

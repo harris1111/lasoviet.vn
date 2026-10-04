@@ -8,11 +8,20 @@ import { topicIdForSku, topicReportVersions } from "../reports/topic-report-conf
 import { randomUUID } from "node:crypto";
 
 import { alias } from "drizzle-orm/pg-core";
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
+import { createReportQueryService, ReportQueryDataError } from "../reports/report-query.service.js";
 import { reportReservationAuthority } from "../reports/natal-report-authority.js";
 import { reservePaidReport } from "../reports/natal-report-reservation.js";
-import { and, desc, eq, gt, inArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, notInArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import {
   calculateRolloverCredit,
+  type LaSku,
+  LA_PRODUCT_CATALOG,
+  WalletQuoteRequestV1Schema,
+  WalletQuotesV1Schema,
+  type WalletQuoteRequestV1,
+  type WalletQuoteV1,
+  type WalletQuotesV1,
   findLaProduct,
   getLaPrice,
   isQualifyingRolloverSku,
@@ -32,6 +41,7 @@ import {
   birthProfileReadingContexts,
   birthProfiles,
   commerceEntitlements,
+  deletionRequests,
   evidenceSets,
   reportReservations,
   outbox,
@@ -181,12 +191,12 @@ async function writeAudit(
 
 async function verifiedAccount(database: Database, actor: CurrentActor, forUpdate = false) {
   if (actor.kind !== "account") return false;
-  const query = database.select({ id: authUsers.id, emailVerified: authUsers.emailVerified })
+  const query = database.select({ id: authUsers.id, emailVerified: authUsers.emailVerified, isAnonymous: authUsers.isAnonymous })
     .from(authUsers)
     .where(eq(authUsers.id, actor.userId))
     .limit(1);
   const [user] = forUpdate ? await query.for("update") : await query;
-  return user?.emailVerified === true;
+  return user?.emailVerified === true && user.isAnonymous === false;
 }
 
 async function ownedChart(database: Database, ownerId: string, chartId: string, chartVersionId: string) {
@@ -198,6 +208,9 @@ async function ownedChart(database: Database, ownerId: string, chartId: string, 
       eq(ziweiCharts.id, chartId),
       eq(ziweiChartVersions.id, chartVersionId),
       eq(birthProfiles.userId, ownerId),
+      isNull(birthProfiles.deletedAt),
+      notExists(database.select({ id: deletionRequests.id }).from(deletionRequests)
+        .where(and(eq(deletionRequests.userId, ownerId), eq(deletionRequests.status, "purged")))),
     ))
     .limit(1);
   return chart;
@@ -230,7 +243,7 @@ async function qualifyingRolloverSpends(
   database: Database,
   ownerId: string,
   chartId: string,
-): Promise<QualifyingSpend[]> {
+): Promise<Array<QualifyingSpend & { sku: LaSku }>> {
   const walletRows = await database
     .select({
       sku: commerceEntitlements.sku,
@@ -257,10 +270,11 @@ async function qualifyingRolloverSpends(
       ),
     );
 
-  const walletSpends: QualifyingSpend[] = [];
+  const walletSpends: Array<QualifyingSpend & { sku: LaSku }> = [];
   for (const row of walletRows) {
     if (isQualifyingRolloverSku(row.sku)) {
       walletSpends.push({
+        sku: row.sku as LaSku,
         amountLa: row.priceLa ?? getLaPrice(row.sku) ?? 120,
         spentAt: row.createdAt,
       });
@@ -271,9 +285,26 @@ async function qualifyingRolloverSpends(
 }
 
 type PriceResult =
-  | { ok: true; amountLa: number }
+  | { ok: true; amountLa: number; creditLa?: number; creditExpiresAt?: string; creditSourceSkus?: LaSku[] }
   | { ok: false; code: WalletUnlockServiceError };
 
+/** Purchase commands retain expiry cleanup; quote reads never mutate grants. */
+async function revokeExpiredMonthlyGrant(database: Database, ownerId: string, chartId: string, sku: string, now: Date, periodKey: string) {
+  if (sku !== "ZIWEI-MONTHLY-P0") return;
+  const member = await readActiveMembership(database, ownerId, now);
+  if (sku === "ZIWEI-MONTHLY-P0" && !member) {
+    // An expired membership grant must not prevent an explicit standalone purchase for the same month.
+    const freeSpends = database.select({ id: walletTransactions.id }).from(walletTransactions)
+      .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
+      .where(and(eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.priceLa, 0)));
+    await database.update(commerceEntitlements).set({ revokedAt: now, revocationReason: "membership_expired" }).where(and(
+      eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId), eq(commerceEntitlements.sku, sku),
+      eq(commerceEntitlements.periodKey, periodKey), isNull(commerceEntitlements.revokedAt), inArray(commerceEntitlements.ledgerSpendId, freeSpends),
+    ));
+  }
+}
+
+/** Read-only price projection, shared by quotes and authorized purchase commands. */
 async function price(
   database: Database,
   ownerId: string,
@@ -286,16 +317,11 @@ async function price(
   if (!product || product.availability !== "active") return { ok: false, code: "WALLET_INTENT_INVALID" };
 
   const member = await readActiveMembership(database, ownerId, now);
-  if (sku === "ZIWEI-MONTHLY-P0" && !member) {
-    // An expired membership grant must not prevent an explicit standalone purchase for the same month.
-    const freeSpends = database.select({ id: walletTransactions.id }).from(walletTransactions)
+  const expiredFreeSpends = sku === "ZIWEI-MONTHLY-P0" && !member
+    ? database.select({ id: walletTransactions.id }).from(walletTransactions)
       .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
-      .where(and(eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.priceLa, 0)));
-    await database.update(commerceEntitlements).set({ revokedAt: now, revocationReason: "membership_expired" }).where(and(
-      eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId), eq(commerceEntitlements.sku, sku),
-      eq(commerceEntitlements.periodKey, periodKey), isNull(commerceEntitlements.revokedAt), inArray(commerceEntitlements.ledgerSpendId, freeSpends),
-    ));
-  }
+      .where(and(eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.priceLa, 0)))
+    : undefined;
   const [sameSku] = await database.select({ id: commerceEntitlements.id })
     .from(commerceEntitlements)
     .leftJoin(walletTransactions, eq(walletTransactions.id, commerceEntitlements.ledgerSpendId))
@@ -306,6 +332,7 @@ async function price(
         ...(sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)
           ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
       eq(commerceEntitlements.periodKey, periodKey),
+      expiredFreeSpends ? or(isNull(commerceEntitlements.ledgerSpendId), notInArray(commerceEntitlements.ledgerSpendId, expiredFreeSpends)) : undefined,
       isNull(commerceEntitlements.revokedAt),
       or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, now)),
       or(
@@ -333,7 +360,13 @@ async function price(
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
     const rollover = calculateRolloverCredit({ spends, now });
-    return { ok: true as const, amountLa: membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member) };
+    const amountLa = membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member);
+    const creditLa = amountLa === rollover.effectivePriceLa ? product.priceLa - rollover.effectivePriceLa : 0;
+    const eligible = spends.filter(spend => spend.amountLa > 0 && rollover.windowOpenedAt && rollover.windowExpiresAt && spend.spentAt >= rollover.windowOpenedAt && spend.spentAt < rollover.windowExpiresAt);
+    return { ok: true as const, amountLa, creditLa, ...(creditLa > 0 ? {
+      creditExpiresAt: rollover.windowExpiresAt!.toISOString(),
+      creditSourceSkus: [...new Set(eligible.map(spend => spend.sku))],
+    } : {}) };
   }
 
   return { ok: true as const, amountLa: membershipPrice(product.priceLa, undefined, !!member) };
@@ -483,6 +516,68 @@ export function createWalletUnlockService(
   const daily = createDailyWalletUnlockService(database, wallet, { now, writer: options.dailyReadingWriter });
 
   return {
+    async readQuotes(actor: CurrentActor, request: WalletQuoteRequestV1): Promise<WalletResult<WalletQuotesV1>> {
+      if (actor.kind !== "account") return failed("WALLET_ACCOUNT_REQUIRED");
+      if (!await verifiedAccount(database, actor)) return failed("WALLET_ACCOUNT_INELIGIBLE");
+      const parsed = WalletQuoteRequestV1Schema.safeParse(request);
+      if (!parsed.success) return failed("WALLET_INTENT_INVALID");
+      const input = parsed.data;
+      if (!await ownedChart(database, actor.userId, input.chartId, input.chartVersionId)) return failed("WALLET_CHART_NOT_FOUND");
+      if (!await evidenceFor(database, input.chartVersionId)) return failed("WALLET_EVIDENCE_MISSING");
+      const quoteNow = now();
+      const quotes: WalletQuoteV1[] = [];
+      for (const catalogProduct of LA_PRODUCT_CATALOG) {
+        const product = findLaProduct(catalogProduct.sku)!;
+        const row: WalletQuoteV1 = { sku: product.sku as WalletQuoteV1["sku"], state: "unavailable", basePriceLa: product.priceLa,
+          priceLa: null, creditLa: 0, discountLa: 0, creditExpiresAt: null, creditSourceSkus: [], reportId: null, reportState: null };
+        if (!product.locales.includes(input.locale)) { quotes.push(row); continue; }
+        if (product.availability !== "active") { quotes.push({ ...row, state: "coming_soon" }); continue; }
+        const sku = product.sku;
+        if ((isSinglePalaceSku(sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(input.locale).family)) ||
+          ((topicIdForSku(sku) !== null || periodKindForSku(sku) !== null || sku === COMBO_SKU) && input.locale !== "vi") ||
+          (sku === "ZIWEI-MONTHLY-P0" && !options.resolveMonthlyPeriodKey) ||
+          ((sku === "ZIWEI-YEAR-2026-P0" || sku === COMBO_SKU) && deriveReportTimingLineage(quoteNow).targetYear !== 2026) ||
+          sku === DAILY_SKU || sku.startsWith("MEMBERSHIP-")) { quotes.push(row); continue; }
+        const periodKey = purchasePeriodKey(sku, quoteNow);
+        const selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
+        if (!selectedPrice.ok) {
+          if (selectedPrice.code === "WALLET_ENTITLEMENT_EXISTS") {
+            const candidates = await database.select({ reportId: reportReservations.reportId }).from(commerceEntitlements)
+              .innerJoin(reportReservations, reportReservationAuthority(database))
+              .where(and(eq(commerceEntitlements.ownerId, actor.userId), eq(commerceEntitlements.chartId, input.chartId),
+                or(eq(commerceEntitlements.sku, sku), ...((sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)) ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
+                eq(commerceEntitlements.periodKey, periodKey), isNull(commerceEntitlements.revokedAt),
+                eq(reportReservations.chartVersionId, input.chartVersionId), eq(reportReservations.locale, input.locale),
+                or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, quoteNow))))
+              .orderBy(desc(reportReservations.createdAt));
+            const repository = createDatabaseReportQueryRepository(database, () => quoteNow);
+            const reports = createReportQueryService({ repository, now: () => quoteNow });
+            let projection: Pick<WalletQuoteV1, "reportId" | "reportState"> = { reportId: null, reportState: "unavailable" };
+            for (const candidate of candidates) {
+              // Reuse reader authority, including linked reservations, paid source and immutable lineage.
+              const authorized = await repository.readAuthorizedReport(actor.userId, candidate.reportId);
+              if (!authorized || authorized.chartId !== input.chartId || authorized.reservation.chartVersionId !== input.chartVersionId || authorized.reservation.locale !== input.locale) continue;
+              try {
+                const report = await reports.getReport(actor, candidate.reportId);
+                if (!report.ok) continue;
+                const state = "state" in report.value ? report.value.state : "failed";
+                projection = { reportId: candidate.reportId, reportState: state === "ready" ? "ready" : state === "pending" ? "processing" : "unavailable" };
+                break;
+              } catch (error) {
+                if (!(error instanceof ReportQueryDataError)) throw error;
+              }
+            }
+            quotes.push({ ...row, state: "owned", ...projection });
+          } else quotes.push(row);
+          continue;
+        }
+        const creditLa = selectedPrice.creditLa ?? 0;
+        quotes.push({ ...row, state: "available", priceLa: selectedPrice.amountLa, creditLa,
+          discountLa: product.priceLa - creditLa - selectedPrice.amountLa,
+          creditExpiresAt: selectedPrice.creditExpiresAt ?? null, creditSourceSkus: selectedPrice.creditSourceSkus ?? [] });
+      }
+      return { ok: true, value: WalletQuotesV1Schema.parse({ ...input, version: 1, quotedAt: quoteNow.toISOString(), quotes }) };
+    },
     async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest): Promise<WalletResult<WalletPurchaseIntentV1>> {
       if (request.sku === DAILY_SKU) return daily.createPurchaseIntent(actor, request);
       if (!await verifiedAccount(database, actor)) return failed(actor.kind === "account" ? "WALLET_ACCOUNT_INELIGIBLE" : "WALLET_ACCOUNT_REQUIRED");
@@ -514,6 +609,7 @@ export function createWalletUnlockService(
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`wallet-intent:${ownerId}:${request.chartId}:${sku}`}))`);
         if (await ownedChart(transaction, ownerId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
         if (await evidenceFor(transaction, request.chartVersionId) === undefined) return failed("WALLET_EVIDENCE_MISSING");
+        await revokeExpiredMonthlyGrant(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow));
         const selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow));
         if (!selectedPrice.ok) return selectedPrice;
         const [pending] = await transaction.select().from(walletPurchaseIntents)
@@ -579,6 +675,7 @@ export function createWalletUnlockService(
       if (isSinglePalaceSku(intent.sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(intent.locale).family)) return failed("WALLET_INTENT_INVALID");
 
       if (intent.sku === DAILY_SKU) return daily.unlock(actor, request);
+      if (!await ownedChart(database, actor.userId, intent.chartId, intent.chartVersionId)) return failed("WALLET_CHART_NOT_FOUND");
 
       if (intent.status === "completed") {
         const [receipt] = await database.select({
@@ -683,6 +780,7 @@ export function createWalletUnlockService(
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return failed("WALLET_INTENT_INVALID");
 
+          await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
@@ -865,6 +963,7 @@ export function createWalletUnlockService(
           }
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
           if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");

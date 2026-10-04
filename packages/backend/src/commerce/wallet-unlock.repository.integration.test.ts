@@ -1,3 +1,5 @@
+import { createDatabaseDeletionRepository } from "../privacy/deletion.repository.js";
+import { createDatabaseBirthProfileRepository } from "../birth-profile/birth-profile.repository.js";
 import * as comboReservations from "./combo-report-reservation.js";
 import { createAuthEmailDeliveryService, createDatabaseAuthEmailDeliveryStore } from "../notifications/auth-email.js";
 import { createHanMonthReminderService } from "../notifications/han-month-reminder.service.js";
@@ -195,8 +197,114 @@ describe("wallet unlock repository integration", () => {
       capabilityId: "ziwei.identity.p0",
       ruleVersion: "ziwei.identity.v1",
     });
-    return { userId, chartId, chartVersionId, evidenceId, actor: actor(userId) };
+    return { userId, profileId, chartId, chartVersionId, evidenceId, actor: actor(userId) };
   }
+
+  async function quoteSnapshot() {
+    const tables = [walletAccounts, walletPurchaseIntents, walletTransactions, commerceEntitlements, reportReservations, walletCommandReceipts, auditLogs, outbox];
+    return Promise.all(tables.map(table => database.select().from(table)));
+  }
+
+  it("quotes closed catalog without writes and denies archived, purged, foreign or mismatched charts", async () => {
+    const owner = await ownerFixture("Quote privacy owner");
+    const other = await ownerFixture("Quote foreign owner");
+    const { service } = walletPorts(owner.userId, { reportVersionResolver: v4_1SensitivityReportVersions });
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi" as const };
+    const before = await quoteSnapshot();
+    const result = await service.readQuotes(owner.actor, request);
+    expect(result).toMatchObject({ ok: true, value: { chartId: owner.chartId, chartVersionId: owner.chartVersionId } });
+    if (!result.ok) throw new Error(result.code);
+    expect(result.value.quotes.find(item => item.sku === "ZIWEI-PALACE-LIFE-P0")).toMatchObject({ state: "available", priceLa: 120 });
+    expect(result.value.quotes.find(item => item.sku === "ZIWEI-COMBO-2026-P0")).toMatchObject({ state: "coming_soon", priceLa: null });
+    expect(await service.readQuotes(other.actor, request)).toMatchObject({ ok: false, code: "WALLET_CHART_NOT_FOUND" });
+    expect(await service.readQuotes(owner.actor, { ...request, chartVersionId: other.chartVersionId })).toMatchObject({ ok: false, code: "WALLET_CHART_NOT_FOUND" });
+    expect(await quoteSnapshot()).toEqual(before);
+    await database.update(authUsers).set({ emailVerified: false }).where(eq(authUsers.id, owner.userId));
+    expect(await service.readQuotes(owner.actor, request)).toMatchObject({ ok: false, code: "WALLET_ACCOUNT_INELIGIBLE" });
+    await database.update(authUsers).set({ emailVerified: true, isAnonymous: true }).where(eq(authUsers.id, owner.userId));
+    expect(await service.readQuotes(owner.actor, request)).toMatchObject({ ok: false, code: "WALLET_ACCOUNT_INELIGIBLE" });
+    await database.update(authUsers).set({ isAnonymous: false }).where(eq(authUsers.id, owner.userId));
+    expect(await createDatabaseBirthProfileRepository(database).archive(owner.actor, owner.profileId, frozenNow)).toBe(true);
+    const archived = await quoteSnapshot();
+    expect(await service.readQuotes(owner.actor, request)).toMatchObject({ ok: false, code: "WALLET_CHART_NOT_FOUND" });
+    expect(await service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-PALACE-LIFE-P0" })).toMatchObject({ ok: false, code: "WALLET_CHART_NOT_FOUND" });
+    expect(await quoteSnapshot()).toEqual(archived);
+    // Exercise the privacy marker while auth/chart rows still await physical cleanup.
+    const deletion = createDatabaseDeletionRepository(database);
+    expect(await deletion.request({ userId: other.userId, requestId: randomUUID(), requestedAt: frozenNow, recoverUntil: frozenNow })).toMatchObject({ ok: true });
+    expect(await deletion.purgeExpired(frozenNow, 10)).toHaveLength(1);
+    const purged = await quoteSnapshot();
+    expect(await service.readQuotes(other.actor, { ...request, chartId: other.chartId, chartVersionId: other.chartVersionId })).toMatchObject({ ok: false, code: "WALLET_CHART_NOT_FOUND" });
+    expect(await quoteSnapshot()).toEqual(purged);
+  });
+
+  it("quotes actual rollover charges and linked pending/failed reports without mutations", async () => {
+    const owner = await ownerFixture("Quote rollover owner");
+    let current = frozenNow;
+    const { service, repository, authority } = walletPorts(owner.userId, { reportVersionResolver: v4_1SensitivityReportVersions, now: () => current });
+    await repository.grant({ targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()), topUpOrderId: null, trustedGrantToken: authority.token });
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi" as const };
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0"]) {
+      const intent = await service.createPurchaseIntent(owner.actor, { ...request, sku });
+      if (!intent.ok) throw new Error(intent.code);
+      const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+      const unlock = await service.unlock(owner.actor, { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: wallet!.stateVersion, idempotencyKey: randomUUID() });
+      expect(unlock).toMatchObject({ ok: true });
+    }
+    const before = await quoteSnapshot();
+    const quote = await service.readQuotes(owner.actor, request);
+    if (!quote.ok) throw new Error(quote.code);
+    expect(quote.value.quotes.find(item => item.sku === "ZIWEI-IDENTITY-P0")).toMatchObject({ state: "available", priceLa: 720, creditLa: 240, discountLa: 0 });
+    const linked = quote.value.quotes.find(item => item.sku === "ZIWEI-PALACE-WEALTH-P0")!;
+    expect(linked).toMatchObject({ state: "owned", reportState: "processing" });
+    expect(linked.reportId).toBeTruthy();
+    expect(await quoteSnapshot()).toEqual(before);
+    const intent = await service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-IDENTITY-P0" });
+    expect(intent).toMatchObject({ ok: true, value: { amountLa: 720 } });
+    await database.update(reportReservations).set({ status: "complete" }).where(eq(reportReservations.chartVersionId, owner.chartVersionId));
+    const corrupt = await service.readQuotes(owner.actor, request);
+    expect(corrupt).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: linked.sku, state: "owned", reportId: null, reportState: "unavailable" })]) } });
+    await database.update(reportReservations).set({ status: "terminal_failure" }).where(eq(reportReservations.chartVersionId, owner.chartVersionId));
+    const failed = await service.readQuotes(owner.actor, request);
+    expect(failed).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: linked.sku, state: "owned", reportId: linked.reportId, reportState: "unavailable" })]) } });
+    const [account] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    const [spend] = await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, account!.id), eq(walletTransactions.kind, "spend"))).limit(1);
+    expect(await repository.restore({ actor: owner.actor, restoration: { kind: "restoration", actorId: owner.userId, originalSpendId: spend!.id, expectedWalletVersion: account!.stateVersion, reasonCode: "test.wallet.quote.restore", requestId: randomUUID(), traceId: randomUUID(), idempotencyKey: randomUUID() } })).toMatchObject({ ok: true });
+    const restoredBefore = await quoteSnapshot();
+    expect(await service.readQuotes(owner.actor, request)).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: "ZIWEI-IDENTITY-P0", priceLa: 840, creditLa: 120 })]) } });
+    expect(await quoteSnapshot()).toEqual(restoredBefore);
+    expect(await service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-IDENTITY-P0" })).toMatchObject({ ok: true, value: { amountLa: 840 } });
+    current = new Date(frozenNow.getTime() + 7 * 86_400_000);
+    const boundary = await service.readQuotes(owner.actor, request);
+    expect(boundary).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: "ZIWEI-IDENTITY-P0", priceLa: 960, creditLa: 0 })]) } });
+    expect(await service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-IDENTITY-P0" })).toMatchObject({ ok: true, value: { amountLa: 960 } });
+  }, 15_000);
+
+  it("charges the exact quoted rollover price through the atomic unlock command", async () => {
+    const owner = await ownerFixture("Quote actual lifetime debit");
+    const { service, repository, authority } = walletPorts(owner.userId, { reportVersionResolver: v4_1SensitivityReportVersions });
+    const initial = await repository.grant({ targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()), topUpOrderId: null, trustedGrantToken: authority.token });
+    if (!initial.ok) throw new Error("grant");
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi" as const };
+    let balance = initial.value.balance;
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0", "ZIWEI-IDENTITY-P0"] as const) {
+      const quotes = await service.readQuotes(owner.actor, request);
+      if (!quotes.ok) throw new Error(quotes.code);
+      const expected = sku === "ZIWEI-IDENTITY-P0" ? 720 : 120;
+      expect(quotes.value.quotes.find(quote => quote.sku === sku)?.priceLa).toBe(expected);
+      const intent = await service.createPurchaseIntent(owner.actor, { ...request, sku });
+      if (!intent.ok) throw new Error(intent.code);
+      expect(intent.value.amountLa).toBe(expected);
+      const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: balance.stateVersion, idempotencyKey: randomUUID() };
+      const outcome = await service.unlock(owner.actor, command);
+      if (!outcome.ok) throw new Error(outcome.code);
+      expect(balance.totalLa - outcome.value.balance.totalLa).toBe(expected);
+      const replay = await service.unlock(owner.actor, command);
+      expect(replay).toMatchObject({ ok: true, value: { balance: outcome.value.balance, reportId: outcome.value.reportId } });
+      balance = outcome.value.balance;
+    }
+    expect(balance.totalLa).toBe(1040);
+  }, 15_000);
 
   async function insertPaidPalace(owner: Awaited<ReturnType<typeof ownerFixture>>, sku: string, paidAt: Date) {
     const orderId = randomUUID();
@@ -327,6 +435,14 @@ describe("wallet unlock repository integration", () => {
     topicCatalogGate.enabled = true;
     try {
       const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-MONTHLY-P0", locale: "vi" };
+      await insertWalletSpend(owner, "ZIWEI-PALACE-LIFE-P0", 120, new Date(current.getTime() - 1000));
+      const memberQuoteBefore = await quoteSnapshot();
+      expect(await ports.service.readQuotes(owner.actor, { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi" })).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([
+        expect.objectContaining({ sku: "ZIWEI-IDENTITY-P0", priceLa: 768, creditLa: 0, discountLa: 192, creditExpiresAt: null, creditSourceSkus: [] }),
+        expect.objectContaining({ sku: "ZIWEI-MONTHLY-P0", priceLa: 0, discountLa: 300 }),
+      ]) } });
+      expect(await quoteSnapshot()).toEqual(memberQuoteBefore);
+      expect(await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-IDENTITY-P0" })).toMatchObject({ ok: true, value: { amountLa: 768 } });
       expect(await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-YEAR-2026-P0" })).toMatchObject({ ok: true, value: { amountLa: 384 } });
       const intent = await ports.service.createPurchaseIntent(owner.actor, request);
       expect(intent).toMatchObject({ ok: true, value: { amountLa: 0 } });
@@ -349,6 +465,10 @@ describe("wallet unlock repository integration", () => {
       current = new Date(frozenNow.getTime() + 30 * 86_400_000);
       expect(await validate()).toMatchObject({ ok: false });
       expect(await createDatabaseReportQueryRepository(database, () => current).readAuthorizedReport(owner.userId, first.value.reportId)).toBeNull();
+      const beforeQuote = await quoteSnapshot();
+      const monthlyQuote = await ports.service.readQuotes(owner.actor, { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi" });
+      expect(monthlyQuote).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: "ZIWEI-MONTHLY-P0", state: "available", priceLa: 300 })]) } });
+      expect(await quoteSnapshot()).toEqual(beforeQuote);
       const paidIntent = await ports.service.createPurchaseIntent(owner.actor, request);
       expect(paidIntent).toMatchObject({ ok: true, value: { amountLa: 300 } });
       if (!paidIntent.ok) throw new Error("paid");

@@ -28,6 +28,14 @@ const validRoute = {
 } as const;
 
 describe("route registry", () => {
+  it("keeps wallet quote endpoints private, unlocalized, non-purchasable and outside search indexing", () => {
+    for (const path of ["/commerce/wallet/quotes", "/api/commerce/wallet/quotes"]) {
+      expect(routeRegistry.find(route => route.path === path)).toMatchObject({
+        private: true, localeBehavior: "unlocalized", indexing: "noindex_nofollow",
+        robots: "noindex,nofollow", sitemap: false, purchasable: false,
+      });
+    }
+  });
   it("exposes the approved route states and one first purchasable SKU", () => {
     expect(routeStateSchema.options).toEqual([
       "reserved",
