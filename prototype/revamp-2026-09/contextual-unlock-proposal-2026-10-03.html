@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>Đề xuất mở cung tại chỗ · Lá Số Việt</title>
+<link rel="stylesheet" href="lsv-revamp.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:var(--surface,#15130f);color:var(--text-body,#e8dfd1);font-family:var(--font-ui,system-ui);line-height:1.6}main{max-width:1000px;margin:auto;padding:24px 20px 80px}h1,h2,h3{color:var(--text-heading,#f7e9ce);line-height:1.3}.note{padding:12px 16px;border:1px solid var(--border-soft,#57462d);border-radius:12px;background:var(--surface-raised,#201b14)}.muted{color:var(--text-muted,#b7a993)}button{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--border-soft,#57462d);border-radius:12px;min-height:48px;padding:10px 16px;background:var(--surface-raised,#201b14)}button:focus-visible{outline:3px solid #efc279;outline-offset:3px}button:disabled{opacity:.55;cursor:default}.primary{background:var(--gold-400,#d8ac60);color:#20180d;border-color:transparent;font-weight:650}.grid{display:grid;gap:16px}.card{padding:22px;border:1px solid var(--border-soft,#57462d);border-radius:18px;background:var(--surface-raised,#201b14)}.card h3{margin:0 0 8px}.row{display:flex;justify-content:space-between;gap:16px;align-items:center}.tag{font-size:12px;padding:3px 9px;border-radius:16px;background:#493b23;color:#f7d897}.price{font-size:25px;color:var(--gold-400,#d8ac60);font-weight:650}.actions{display:grid;gap:10px;margin-top:20px}.blur{height:72px;background:repeating-linear-gradient(0deg,#7b6b51 0 5px,transparent 5px 15px);filter:blur(6px);opacity:.3;margin:18px 0;mask-image:linear-gradient(#000,transparent)}dialog{width:min(600px,calc(100% - 24px));max-height:85svh;border:1px solid var(--border-soft,#57462d);border-radius:22px;padding:24px;background:var(--surface,#15130f);color:inherit;overflow:auto}dialog::backdrop{background:#000a}.close{float:right;padding:4px 12px;min-height:40px}.qr{width:180px;height:180px;margin:20px auto;display:grid;place-items:center;text-align:center;border:2px dashed #9c8156;background:#f2e8d6;color:#4a3a22;padding:16px}.ladder{margin-top:40px}.ladder .card{display:grid;gap:8px}.card p{margin:4px 0}.stage{display:none}.stage.active{display:block}@media(min-width:760px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:600px){dialog{margin:auto 0 0;width:100%;border-radius:22px 22px 0 0;padding-bottom:calc(24px + env(safe-area-inset-bottom))}}
+</style>
+</head>
+<body><main>
+<p class="note">BẢN MẪU ĐỀ XUẤT · Chưa duyệt thay đổi FD-109. Nội dung, số dư và giá còn lại là ví dụ. Mọi nút chỉ đổi màn hình mẫu; không tạo đơn, không nạp tiền.</p>
+<h1>Đọc trước. Mở đúng phần đang tò mò.</h1><p class="muted">Đề xuất cho các ticket 75–78: giữ thân trang miễn phí không có giá; chọn cung → xem trước → xác nhận trong cùng tấm.</p>
+<section class="card"><h2>Phần miễn phí đã đọc</h2><p>Tổng quan cá nhân và một cung đúng mối quan tâm. Đây là vị trí minh hoạ, không phải bài luận đã được sinh.</p><h3>Năm nay và chặng đường tiếp theo</h3><p>Đoạn được phép công khai dừng tại đây…</p><div class="blur" aria-hidden="true"></div><button id="preview-open">Xem trước cung Công việc</button></section>
+<section class="ladder"><h2>Bậc thang tại trang chọn luận giải</h2><p class="muted">Các mức đang bật; sản phẩm chờ chất lượng giữ “Sắp mở”. Giá cuối cùng trong ứng dụng sẽ lấy từ API báo giá.</p><div class="grid">
+<article class="card"><h3>Một cung</h3><span class="price">120 Lá</span><p>Đọc đúng một mối quan tâm.</p><button data-offer="palace">Chọn cung Công việc</button></article>
+<article class="card"><h3>Bản mệnh</h3><span class="price">240 Lá</span><p>Đọc nền tảng của bản thân.</p><button data-offer="identity">Chọn Bản mệnh</button></article>
+<article class="card"><div class="row"><h3>Tử Vi trọn đời</h3><span class="tag">Đáng nhất</span></div><span class="price">960 Lá</span><p>Ví dụ: đã mở 240 Lá hợp lệ trong 7 ngày → thêm 720 Lá.</p><button class="primary" data-offer="lifetime">Chọn Tử Vi trọn đời</button></article>
+<article class="card"><h3>Chủ đề · 480 Lá</h3><p>Tình duyên / Công việc & tài lộc</p><button disabled>Sắp mở</button><p>Combo · 1.300 Lá</p><button disabled>Sắp mở</button></article>
+</div></section></main>
+<dialog id="sheet" aria-labelledby="sheet-title"><button class="close" id="close" aria-label="Đóng tấm xem trước">×</button>
+<div id="preview" class="stage active"><p class="muted">Xem trước · ví dụ</p><h2 id="sheet-title">Cung Công việc</h2><p>Đoạn công khai, có căn cứ từ chính lá số; phần bị khoá không nằm trong HTML.</p><div class="blur" aria-hidden="true"></div><div class="actions"><button class="primary" id="buy">Mở cung này · 120 Lá</button><button id="anchor-up">Hoặc mở Tử Vi trọn đời · 960 Lá</button></div><p class="muted">Bạn vẫn ở trang lá số. Chỉ trừ Lá sau khi xác nhận.</p></div>
+<div id="topup" class="stage"><h2>Thiếu Lá — nạp ngay tại đây</h2><p id="intent"></p><p class="note">Ví dụ số dư 80 Lá. Ứng dụng thật chọn gói nhỏ nhất đủ dùng và hiển thị gói có lợi bên cạnh.</p><div class="qr">Vị trí VietQR<br><b>KHÔNG PHẢI QR THANH TOÁN</b></div><p class="muted">Đóng rồi mở lại vẫn giữ đơn đang chờ. Chỉ webhook SePay đã xác thực được xác nhận tiền về.</p><button class="primary" id="received">Mô phỏng tiền về và hoàn tất ý định</button></div>
+<div id="waiting" class="stage"><h2>Phần của bạn đang được chuẩn bị</h2><p>Đọc lại tổng quan miễn phí trong lúc chờ. Báo cáo sẽ tự mở khi sẵn sàng; không hiện đồng hồ đếm ngược giả.</p><div class="card"><h3>Đọc ngay phần đã có</h3><p>Liên kết về phần miễn phí vừa đọc.</p></div><p class="muted">Gợi ý nâng cấp chỉ dùng giá còn lại thật; combo/hội viên chưa bật sẽ không được chào mua trong bài.</p><button id="back-preview">Về tấm xem trước</button></div>
+</dialog>
+<script>
+// Static review proposal. No fetch, checkout, provider, storage, or account operation.
+const dialog=document.getElementById('sheet');let trigger;let selected='Cung Công việc · 120 Lá';
+function stage(id){for(const el of document.querySelectorAll('.stage'))el.classList.toggle('active',el.id===id);dialog.scrollTop=0;}
+function open(event,label){trigger=event.currentTarget;selected=label;stage('preview');document.getElementById('sheet-title').textContent=label;document.getElementById('buy').textContent='Mở '+label;dialog.showModal();document.getElementById('close').focus();}
+document.getElementById('preview-open').onclick=e=>open(e,'Cung Công việc · 120 Lá');
+for(const el of document.querySelectorAll('[data-offer]'))el.onclick=e=>open(e,{palace:'Cung Công việc · 120 Lá',identity:'Bản mệnh · 240 Lá',lifetime:'Tử Vi trọn đời · 960 Lá'}[el.dataset.offer]);
+function topup(){document.getElementById('intent').textContent='Ý định đã chọn: '+selected;stage('topup');}
+document.getElementById('buy').onclick=topup;document.getElementById('anchor-up').onclick=()=>{selected='Tử Vi trọn đời · 960 Lá';topup();};
+document.getElementById('received').onclick=()=>stage('waiting');document.getElementById('back-preview').onclick=()=>stage('preview');document.getElementById('close').onclick=()=>dialog.close();dialog.addEventListener('close',()=>trigger?.focus());
+</script></body></html>
