@@ -155,6 +155,20 @@ describe("AnalyticsRepository integration", () => {
     expect(await repository.recordEvent({ ...payload, properties: { ...payload.properties, feedback: "inaccurate" }, occurredAt: later, now: later })).toEqual({ ok: false, error: "IDEMPOTENCY_KEY_CONFLICT" });
   });
 
+  it("stores one financial upgrade for a committed receipt and rejects a conflicting charged amount", async () => {
+    const occurredAt = new Date("2026-10-04T00:00:00Z");
+    const event = {idempotencyKey: "upgrade-purchased:upg_0123456789abcdef0123456789abcdef", visitorId: "upgrade_receipt_visitor",
+      name: "upgrade_purchased", properties: {source_sku: "ZIWEI-PALACE-LIFE-P0", source_skus: ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0"],
+        target_sku: "ZIWEI-IDENTITY-P0", amount: 720, credit_amount: 240, currency: "LA"}, occurredAt, now: occurredAt};
+    const first = await repository.recordEvent(event);
+    expect(first).toMatchObject({ok: true, replayed: false});
+    if (!first.ok) throw new Error("upgrade ingestion");
+    const replay = await repository.recordEvent({...event, now: new Date("2026-10-12T00:00:00Z")});
+    expect(replay).toMatchObject({ok: true, replayed: true, event: {id: first.event.id, occurredAt}});
+    expect(await database.select().from(analyticsEvents).where(eq(analyticsEvents.idempotencyKey, event.idempotencyKey))).toHaveLength(1);
+    expect(await repository.recordEvent({...event, properties: {...event.properties, amount: 768}})).toMatchObject({ok: false, error: "IDEMPOTENCY_KEY_CONFLICT"});
+  });
+
   it("handles concurrent identical requests for the same idempotency key without unique storage errors", async () => {
     const now = new Date("2026-09-14T10:30:00Z");
     const key = "concurrent_idem_test";

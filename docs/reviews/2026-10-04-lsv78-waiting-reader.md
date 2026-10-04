@@ -15,3 +15,13 @@ The full repository suite passed 4,062 tests across 449 files, with three existi
 ## Ticket closure
 
 LSV78 is not Done. Its remaining money milestone needs automatic terminal compensation, a recovery-only view backed by proven posted reversal allocations/receipt, authoritative committed upgrade-credit purchase events, and shared-reservation/recovery/publication race coverage. The short/free overview, guarantee action and recovery notification criteria also need their own exact evidence where applicable; unavailable content is not fabricated here. SePay/physical-device/provider-quality gates remain separate. Target deployment smoke must be recorded before claiming this milestone deployed.
+
+## Deployed milestone smoke
+
+PR #281 merged as `eb811a33011700ec380f94f65796abdf1d0127dc` after exact-head independent GO and both CI checks. Master workflow `37183880444` passed verification, image publication and release promotion. The installed deploy gate recorded success at `2026-10-04T07:04:20Z`.
+
+All four exact-SHA application containers were healthy; public and loopback readiness returned 200, and both worker health CLIs passed. The 102 protected operator files were unchanged. Free generation remained OFF and payment provider/test settings were unchanged. Disabled Sentry shipped without public source maps or outgoing Sentry requests.
+
+Four VI/EN public authentication and anonymous-authorization cases passed. Twenty-four Chromium/Firefox real consent-chart cases covered VI/EN, 360/390/1280px and both themes: consent unticked, no profile before consent, 12 calculated palaces, contextual preview, focus/history restoration and offer/sign-in guards. Four synthetic anonymous actors/charts were deleted through the official privacy API and checked absent. Private evidence: `/home/debian/projects/lasoviet-lsv78-evidence-20261004`.
+
+These are deployed public regression checks, not paid-report/provider or physical-device acceptance. Full LSV78 remains in progress.

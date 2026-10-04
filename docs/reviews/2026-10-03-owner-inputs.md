@@ -9,6 +9,9 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 - Số liệu phễu trong 7 ngày đã có trong [tài liệu vận hành](../runbooks/funnel-dashboard.md). Có cả lượt kiểm thử, một số bước mới chưa đủ thời gian thu thập, nguồn xác nhận thanh toán chưa được kiểm chứng; chưa thể coi đây là tỷ lệ chuyển đổi hay doanh thu khách hàng.
 - Ưu tiên đọc miễn phí trước khi mời mua, PR [277](https://github.com/harris1111/lasoviet.vn/pull/277): đã bỏ link mua xuất hiện quá sớm ở đầu trang và merge/deploy; 48 ca dành cho khách chưa đăng nhập đều đạt trên Chromium/Firefox/WebKit, VI/EN, bốn kích thước màn hình và giao diện sáng/tối. LSV72 vẫn còn phần nghiệm thu thành viên, điện thoại thật và hiệu năng.
 
+- LSV76, PR [278](https://github.com/harris1111/lasoviet.vn/pull/278): đã merge/deploy và chuyển Done; bảng mở khóa dùng giá thật từ API, phần khấu trừ nâng cấp và giao dịch ví đã kiểm thử bằng PostgreSQL. Sản phẩm giữ chỗ vẫn chưa mở bán.
+- LSV78, PR [281](https://github.com/harris1111/lasoviet.vn/pull/281): phần màn hình chờ và gợi ý nâng cấp đã merge/deploy; 24 ca Chromium/Firefox trên bản chạy thật đạt, dữ liệu thử đã xóa. Toàn bộ ticket vẫn In Progress.
+
 ## Những quyết định và thông tin còn cần
 
 ### 1. Mua một cung ngay trong phần xem trước đang khóa — LSV75/76
@@ -95,7 +98,7 @@ Các đợt sự nghiệp, tình cảm, hằng ngày, tháng và năm vẫn hoã
 
 ### 10. Cấu hình Sentry trước khi test điện thoại — LSV81
 
-**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Đang chuẩn bị SDK chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Chưa có project nên mặc định không gửi dữ liệu.
+**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Phần SDK đã merge/deploy qua PR #279 và bản sửa build #280: chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Chưa có project nên Sentry vẫn tắt, chưa nhận lỗi thật.
 
 **Đề xuất:** dùng project do bạn quản lý. Đội kỹ thuật cấu hình rồi kiểm tra một lỗi giả lập có file/dòng nguồn đọc được trước khi bạn test Google/4G.
 

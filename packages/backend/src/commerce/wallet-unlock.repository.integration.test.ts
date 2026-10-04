@@ -301,9 +301,100 @@ describe("wallet unlock repository integration", () => {
       expect(balance.totalLa - outcome.value.balance.totalLa).toBe(expected);
       const replay = await service.unlock(owner.actor, command);
       expect(replay).toMatchObject({ ok: true, value: { balance: outcome.value.balance, reportId: outcome.value.reportId } });
+      if (sku === "ZIWEI-IDENTITY-P0") {
+        const upgrade = outcome.value.upgradePurchase;
+        expect(upgrade).toMatchObject({version: 1, occurredAt: frozenNow.toISOString(), targetSku: sku,
+          sourceSku: "ZIWEI-PALACE-LIFE-P0", sourceSkus: ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0"], chargedLa: 720, creditLa: 240, currency: "LA"});
+        expect(upgrade?.eventKey).toMatch(/^upg_[0-9a-f]{32}$/);
+        expect(JSON.stringify(upgrade)).not.toMatch(/spendId|walletId|chartId|entitlementId|birth/i);
+        expect(replay).toMatchObject({ok: true, value: {upgradePurchase: upgrade}});
+        const later = walletPorts(owner.userId, {reportVersionResolver: v4_1SensitivityReportVersions, now: () => new Date(frozenNow.getTime() + 8 * 86_400_000)});
+        expect(await later.service.unlock(owner.actor, command)).toMatchObject({ok: true, value: {upgradePurchase: upgrade}});
+
+        const [source] = await database.select().from(commerceEntitlements).where(and(eq(commerceEntitlements.ownerId, owner.userId), eq(commerceEntitlements.sku, "ZIWEI-PALACE-LIFE-P0")));
+        const restored = await repository.restore({actor: owner.actor, restoration: {kind: "restoration", actorId: owner.userId,
+          originalSpendId: source!.ledgerSpendId!, expectedWalletVersion: outcome.value.balance.stateVersion, reasonCode: "test.source.restore.after.upgrade",
+          requestId: randomUUID(), traceId: randomUUID(), idempotencyKey: randomUUID()}});
+        expect(restored).toMatchObject({ok: true, value: {balance: {totalLa: 1160}}});
+        expect(await later.service.unlock(owner.actor, command)).toMatchObject({ok: true, value: {upgradePurchase: upgrade}});
+      } else {
+        expect(outcome.value.upgradePurchase).toBeNull();
+      }
       balance = outcome.value.balance;
     }
     expect(balance.totalLa).toBe(1040);
+  }, 15_000);
+
+  it("preserves legacy receipts and rejects malformed or foreign source proofs without another debit", async () => {
+    const owner = await ownerFixture("Upgrade receipt authority");
+    const ports = walletPorts(owner.userId, {reportVersionResolver: v4_1SensitivityReportVersions});
+    const funded = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()), topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!funded.ok) throw new Error("fund");
+    let balance = funded.value.balance;
+    let command: Parameters<typeof ports.service.unlock>[1] | undefined;
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-IDENTITY-P0"] as const) {
+      const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku, locale: "vi"});
+      if (!intent.ok) throw new Error(intent.code);
+      command = {purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: balance.stateVersion, idempotencyKey: randomUUID()};
+      const unlocked = await ports.service.unlock(owner.actor, command);
+      if (!unlocked.ok) throw new Error(unlocked.code);
+      balance = unlocked.value.balance;
+    }
+    const [receipt] = await database.select().from(walletCommandReceipts).where(eq(walletCommandReceipts.idempotencyKey, command!.idempotencyKey));
+    type Stored = {continuation: {creditProof?: {sources: Array<{spendId: string; creditedLa: number}>}}};
+    const original = receipt!.result as Stored;
+    async function fixtureReceipt(value: Stored) {
+      // Corruption is confined to the disposable test database; retain all other guards.
+      await database.execute(sql`alter table wallet_command_receipts disable trigger wallet_command_receipts_immutable`);
+      try {
+        await database.update(walletCommandReceipts).set({result: value}).where(eq(walletCommandReceipts.id, receipt!.id));
+      } finally {
+        await database.execute(sql`alter table wallet_command_receipts enable trigger wallet_command_receipts_immutable`);
+      }
+    }
+    const legacy = structuredClone(original);
+    delete legacy.continuation.creditProof;
+    await expect(database.update(walletCommandReceipts).set({result: legacy}).where(eq(walletCommandReceipts.id, receipt!.id))).rejects.toThrow();
+    await fixtureReceipt(legacy);
+    expect(await ports.service.unlock(owner.actor, command!)).toMatchObject({ok: true, value: {upgradePurchase: null}});
+
+    const malformed = structuredClone(original);
+    malformed.continuation.creditProof!.sources[0]!.creditedLa -= 1;
+    await fixtureReceipt(malformed);
+    expect(await ports.service.unlock(owner.actor, command!)).toMatchObject({ok: false, code: "WALLET_RECONCILIATION_FAILED"});
+
+    const foreign = await ownerFixture("Foreign upgrade proof owner");
+    await insertWalletSpend(foreign, "ZIWEI-PALACE-LIFE-P0", 120, frozenNow);
+    const [foreignEntitlement] = await database.select().from(commerceEntitlements).where(and(eq(commerceEntitlements.ownerId, foreign.userId), eq(commerceEntitlements.sku, "ZIWEI-PALACE-LIFE-P0")));
+    const forged = structuredClone(original);
+    forged.continuation.creditProof!.sources[0]!.spendId = foreignEntitlement!.ledgerSpendId!;
+    await fixtureReceipt(forged);
+    expect(await ports.service.unlock(owner.actor, command!)).toMatchObject({ok: false, code: "WALLET_RECONCILIATION_FAILED"});
+    expect(await createWalletService(ports.repository).readBalance(owner.actor)).toMatchObject({ok: true, value: balance});
+    await fixtureReceipt(original);
+    expect(await ports.service.unlock(owner.actor, command!)).toMatchObject({ok: true, value: {upgradePurchase: {chargedLa: 840, creditLa: 120}}});
+  }, 15_000);
+
+  it("does not turn an actual 768-La membership debit into rollover attribution", async () => {
+    const owner = await ownerFixture("Member upgrade attribution");
+    const ports = walletPorts(owner.userId, {reportVersionResolver: v4_1SensitivityReportVersions});
+    const funded = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID(), 5000), topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!funded.ok) throw new Error("fund");
+    const membership = createMembershipService(database, createWalletService(ports.repository), {now: () => frozenNow,
+      catalog: sku => {const product = findLaProduct(sku); return product ? {...product, availability: "active"} : undefined;}});
+    const subscription = await membership.createIntent(owner.actor, {sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi"});
+    if (!subscription.ok) throw new Error("subscription");
+    const purchased = await membership.purchase(owner.actor, {purchaseIntentId: subscription.value.id, expectedIntentVersion: subscription.value.stateVersion,
+      expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()});
+    if (!purchased.ok) throw new Error("membership purchase");
+    const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+    if (!intent.ok) throw new Error(intent.code);
+    expect(intent.value.amountLa).toBe(768);
+    const before = await createWalletService(ports.repository).readBalance(owner.actor);
+    if (!before.ok) throw new Error("balance");
+    const unlocked = await ports.service.unlock(owner.actor, {purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion,
+      expectedWalletVersion: before.value.stateVersion, idempotencyKey: randomUUID()});
+    expect(unlocked).toMatchObject({ok: true, value: {upgradePurchase: null, balance: {totalLa: before.value.totalLa - 768}}});
   }, 15_000);
 
   async function insertPaidPalace(owner: Awaited<ReturnType<typeof ownerFixture>>, sku: string, paidAt: Date) {
@@ -1539,14 +1630,15 @@ describe("wallet unlock repository integration", () => {
     });
     if (!funded.ok) throw new Error(`grant failed: ${funded.error.code}`);
 
-    // Spend 8 single palaces within 7-day window (8 * 120 = 960 Lá)
+    // Ten posted spends exceed the ceiling; the ninth credited source is partial.
     const palaceSkus = [
       "ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-SIBLINGS-P0", "ZIWEI-PALACE-SPOUSE-P0",
       "ZIWEI-PALACE-CHILDREN-P0", "ZIWEI-PALACE-WEALTH-P0", "ZIWEI-PALACE-HEALTH-P0",
       "ZIWEI-PALACE-TRAVEL-P0", "ZIWEI-PALACE-FRIENDS-P0",
+      "ZIWEI-PALACE-CAREER-P0", "ZIWEI-PALACE-PARENTS-P0",
     ];
     for (const pSku of palaceSkus) {
-      await insertWalletSpend(zeroOwner, pSku, 120, new Date(frozenNow.getTime() - 1000));
+      await insertWalletSpend(zeroOwner, pSku, pSku === "ZIWEI-PALACE-LIFE-P0" ? 96 : 120, new Date(frozenNow.getTime() - 1000));
     }
 
     // Purchase intent has priceLa = 0
@@ -1568,6 +1660,19 @@ describe("wallet unlock repository integration", () => {
     });
     expect(unlockResult.ok).toBe(true);
     if (!unlockResult.ok) throw new Error("Expected zero unlock to succeed");
+    expect(unlockResult.value.upgradePurchase).toMatchObject({chargedLa: 0, creditLa: 960,
+      sourceSku: "ZIWEI-PALACE-CAREER-P0", occurredAt: frozenNow.toISOString()});
+    expect(unlockResult.value.upgradePurchase?.sourceSkus).toHaveLength(9);
+    expect(unlockResult.value.upgradePurchase?.sourceSkus).not.toContain("ZIWEI-PALACE-WEALTH-P0");
+    const [zeroReceipt] = await database.select().from(walletCommandReceipts)
+      .where(eq(walletCommandReceipts.idempotencyKey, "zero-cost-unlock-key-1"));
+    const zeroProof = (zeroReceipt!.result as {continuation: {creditProof: {creditLa: number; sources: Array<{sku: string; amountLa: number; creditedLa: number}>}}}).continuation.creditProof;
+    expect(zeroProof.creditLa).toBe(960);
+    expect(zeroProof.sources.find(source => source.sku === "ZIWEI-PALACE-TRAVEL-P0"))
+      .toMatchObject({amountLa: 120, creditedLa: 24});
+    expect(zeroProof.sources.find(source => source.sku === "ZIWEI-PALACE-LIFE-P0"))
+      .toMatchObject({amountLa: 96, creditedLa: 96});
+    expect(zeroProof.sources.some(source => source.sku === "ZIWEI-PALACE-WEALTH-P0")).toBe(false);
     expect(unlockResult.value.intent.amountLa).toBe(0);
     expect(unlockResult.value.balance.totalLa).toBe(500); // 0 Lá debited!
 
@@ -1598,6 +1703,7 @@ describe("wallet unlock repository integration", () => {
       idempotencyKey: "zero-cost-unlock-key-1",
     });
     expect(replayResult.ok).toBe(true);
+    if (replayResult.ok) expect(replayResult.value.upgradePurchase).toEqual(unlockResult.value.upgradePurchase);
 
     // Verify wallet history does not crash and does not contain 0-delta entries
     const history = await zeroRepo.readHistory(zeroOwner.actor);

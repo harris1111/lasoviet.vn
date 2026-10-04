@@ -920,3 +920,5 @@ export { FreePalaceGiftContentV1Schema, FreePalaceGiftFactV1Schema, FreePalaceGi
 
 export { WalletQuoteRequestV1Schema, WalletQuoteV1Schema, WalletQuotesV1Schema } from "./wallet-quotes-v1.js";
 export type { WalletQuoteRequestV1, WalletQuoteV1, WalletQuotesV1 } from "./wallet-quotes-v1.js";
+export { WalletUnlockRequestV1Schema, WalletUnlockResultV1Schema, WalletUpgradePurchaseV1Schema } from "./wallet-unlock-result-v1.js";
+export type { WalletUpgradePurchaseV1 } from "./wallet-unlock-result-v1.js";

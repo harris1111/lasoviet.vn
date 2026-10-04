@@ -269,6 +269,22 @@ describe("analytics events web route (acceptance 5)", () => {
     expect(mockSendCommand).not.toHaveBeenCalled();
   });
 
+  it("rejects browser-forged upgrade purchases before server signing or ingestion", async () => {
+    const request = new NextRequest("http://localhost:3000/api/analytics/events", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({...validPayload, event: {name: "upgrade_purchased", properties: {
+        source_sku: "ZIWEI-PALACE-LIFE-P0", target_sku: "ZIWEI-IDENTITY-P0",
+        amount: 840, credit_amount: 120, currency: "LA",
+      }}}),
+    });
+    const response = await testHandler(request);
+    expect(response.status).toBe(400);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(mockSendCommand).not.toHaveBeenCalled();
+    expect(mockGetSession).not.toHaveBeenCalled();
+  });
+
   it("rejects occurredAt timestamps skewed by more than 5 minutes relative to server clock", async () => {
     // 6 minutes in the future
     const futurePayload = {

@@ -599,6 +599,36 @@ describe("SePay controller HTTP contract", () => {
     }
   });
 
+  it.each([
+    ["ZIWEI-TODAY-P0", 60, null], ["ZIWEI-TODAY-P0", 48, null],
+    ["ZIWEI-MONTHLY-P0", 0, "report-1"],
+    ["ZIWEI-PALACE-LIFE-P0", 96, "report-1"],
+    ["ZIWEI-NATAL-EXCERPT-P0", 192, "report-1"],
+    ["ZIWEI-COMBO-2026-P0", 1300, "report-1"],
+    ["ZIWEI-COMBO-2026-P0", 1040, "report-1"],
+  ] as const)("projects completed %s at %i La without upgrade attribution", async (sku, amountLa, reportId) => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
+      kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
+    });
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      unlockWalletPurchase: vi.fn().mockResolvedValue({ok: true, value: {
+        intent: {id: "intent-1", sku, chartVersionId: "private-version", locale: "vi", amountLa,
+          status: "completed", stateVersion: 2, createdAt: "2026-10-04T00:00:00Z"},
+        balance: {version: 1, stateVersion: 2, totalLa: 500, purchasedLa: 0, promotionalLa: 500, updatedAt: "2026-10-04T00:00:00Z"},
+        reportId, receipt: "private-receipt",
+      }}),
+    } as never);
+    try {
+      const result = await controller().unlockWallet("Bearer valid-token", {
+        purchaseIntentId: "intent-1", expectedIntentVersion: 1, expectedWalletVersion: 1, idempotencyKey: "unlock-1",
+      });
+      expect(result).toMatchObject({ok: true, value: {intent: {sku, amountLa}, reportId, upgradePurchase: null}});
+      expect(JSON.stringify(result)).not.toMatch(/private-version|private-receipt/);
+    } finally {
+      authSpy.mockRestore(); repoSpy.mockRestore();
+    }
+  });
+
   it("returns a redacted wallet unlock and the mixed V2 library projection", async () => {
     const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({
       kind: "account", userId: "user-1", sessionId: "session-1", requestId: "request-1",
@@ -654,6 +684,7 @@ describe("SePay controller HTTP contract", () => {
             version: 1, stateVersion: 2, totalLa: 760, purchasedLa: 0, promotionalLa: 760, updatedAt: "2026-09-17T00:00:00.000Z",
           },
           reportId: "report-1",
+          upgradePurchase: null,
         },
       });
       expect(JSON.stringify(unlocked)).not.toMatch(/private-version|private-receipt|invoice|allocation|chart-1|chart-2|provider/i);

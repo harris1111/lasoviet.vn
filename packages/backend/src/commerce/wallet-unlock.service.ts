@@ -5,17 +5,19 @@ import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } fr
 import { calculateBonusExpiry } from "@lasoviet/contracts";
 import { periodKindForSku, periodReportVersions, purchasePeriodKey as resolvePurchasePeriodKey } from "../reports/period-report-config.js";
 import { topicIdForSku, topicReportVersions } from "../reports/topic-report-config.js";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 import { alias } from "drizzle-orm/pg-core";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 import { createReportQueryService, ReportQueryDataError } from "../reports/report-query.service.js";
 import { reportReservationAuthority } from "../reports/natal-report-authority.js";
 import { reservePaidReport } from "../reports/natal-report-reservation.js";
-import { and, desc, eq, gt, inArray, notInArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
+import { and, desc, eq, gt, lte, inArray, notInArray, isNotNull, isNull, ne, notExists, or, sql } from "drizzle-orm";
 import {
   calculateRolloverCredit,
+  ROLLOVER_WINDOW_MS,
   type LaSku,
+  LaSkuSchema,
   LA_PRODUCT_CATALOG,
   WalletQuoteRequestV1Schema,
   WalletQuotesV1Schema,
@@ -34,6 +36,9 @@ import {
   type WalletTransactionReceiptV1,
   WalletTransactionReceiptV1Schema,
   WalletPurchaseIntentV1Schema,
+  WalletUpgradePurchaseV1Schema,
+  type WalletUpgradePurchaseV1,
+  z,
 } from "@lasoviet/contracts";
 import {
   auditLogs,
@@ -49,6 +54,7 @@ import {
   walletCommandReceipts,
   walletPurchaseIntents,
   walletTransactions,
+  walletLedgerEntries,
   ziweiChartVersions,
   ziweiCharts,
   type Database,
@@ -71,7 +77,29 @@ const nonEmptyId = (value: string) => value.trim().length > 0;
 
 type ComboAnnualContinuation = {entitlementId: string; reservationId: string; reportId: string; reportVersionId: string; outboxId: string};
 
+const creditProofSchema = z.object({
+  version: z.literal(1),
+  creditLa: z.number().int().positive().max(960),
+  sources: z.array(z.object({
+    spendId: z.string().uuid(),
+    sku: LaSkuSchema.refine(isQualifyingRolloverSku),
+    amountLa: z.number().int().positive(),
+    creditedLa: z.number().int().positive(),
+    spentAt: z.iso.datetime({ offset: true }),
+  }).strict()).min(1).max(13),
+}).strict().superRefine((proof, context) => {
+  if (new Set(proof.sources.map(source => source.spendId)).size !== proof.sources.length ||
+      proof.sources.some(source => source.creditedLa > source.amountLa) ||
+      proof.sources.reduce((sum, source) => sum + source.creditedLa, 0) !== proof.creditLa ||
+      Math.min(960, proof.sources.reduce((sum, source) => sum + source.amountLa, 0)) !== proof.creditLa) {
+    context.addIssue({ code: "custom", message: "Credit proof must match unique original spend allocations" });
+  }
+});
+type CreditProof = z.infer<typeof creditProofSchema>;
+const compareCreditCode = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
+
 type UnlockContinuation = {
+  creditProof?: CreditProof;
   annual?: ComboAnnualContinuation;
   entitlementId: string;
   reservationId: string;
@@ -88,12 +116,13 @@ const continuationCodec: WalletResultCodec<UnlockContinuation> = {
     const candidate = value as Partial<UnlockContinuation>;
     if (
       !Object.keys(candidate).every((key) => [
-        "entitlementId", "reservationId", "reportId", "reportVersionId", "outboxId", "intentId", "intentStateVersion", "annual",
+        "entitlementId", "reservationId", "reportId", "reportVersionId", "outboxId", "intentId", "intentStateVersion", "annual", "creditProof",
       ].includes(key)) ||
       ![candidate.entitlementId, candidate.reservationId, candidate.reportId, candidate.reportVersionId, candidate.outboxId, candidate.intentId]
         .every((id) => typeof id === "string" && id.trim().length > 0) ||
       !Number.isInteger(candidate.intentStateVersion) || candidate.intentStateVersion! < 1
     ) return { success: false };
+    if (candidate.creditProof !== undefined && !creditProofSchema.safeParse(candidate.creditProof).success) return {success: false};
     if (candidate.annual !== undefined && (!candidate.annual || typeof candidate.annual !== "object" ||
       Object.keys(candidate.annual).sort().join(",") !== "entitlementId,outboxId,reportId,reportVersionId,reservationId" ||
       !Object.values(candidate.annual).every(value => typeof value === "string" && value.trim().length > 0))) return {success: false};
@@ -132,6 +161,7 @@ export type WalletUnlockOutcome = {
   intent: WalletPurchaseIntentV1;
   balance: WalletBalanceV1;
   reportId: string;
+  upgradePurchase?: WalletUpgradePurchaseV1 | null;
 };
 
 export type WalletResult<T> =
@@ -243,10 +273,12 @@ async function qualifyingRolloverSpends(
   database: Database,
   ownerId: string,
   chartId: string,
-): Promise<Array<QualifyingSpend & { sku: LaSku }>> {
+  now: Date,
+): Promise<Array<QualifyingSpend & { sku: LaSku; spendId: string }>> {
   const walletRows = await database
     .select({
       sku: commerceEntitlements.sku,
+      spendId: walletTransactions.id,
       priceLa: walletPurchaseIntents.priceLa,
       createdAt: walletTransactions.createdAt,
     })
@@ -263,18 +295,29 @@ async function qualifyingRolloverSpends(
       walletPurchaseIntents,
       eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
     )
+    .innerJoin(walletAccounts, eq(walletAccounts.id, walletTransactions.walletId))
     .where(
       and(
         eq(commerceEntitlements.ownerId, ownerId),
         eq(commerceEntitlements.chartId, chartId),
+        eq(walletAccounts.ownerId, ownerId),
+        eq(walletPurchaseIntents.ownerId, ownerId),
+        eq(walletPurchaseIntents.chartId, chartId),
+        eq(walletPurchaseIntents.sku, commerceEntitlements.sku),
+        eq(walletPurchaseIntents.status, "completed"),
+        isNull(commerceEntitlements.revokedAt),
+        or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, now)),
+        lte(walletTransactions.createdAt, now),
+        sql`COALESCE((SELECT sum(${walletLedgerEntries.amountLa}) FROM ${walletLedgerEntries} WHERE ${walletLedgerEntries.transactionId} = ${walletTransactions.id}), 0) = -${walletPurchaseIntents.priceLa}`,
       ),
     );
 
-  const walletSpends: Array<QualifyingSpend & { sku: LaSku }> = [];
+  const walletSpends: Array<QualifyingSpend & { sku: LaSku; spendId: string }> = [];
   for (const row of walletRows) {
     if (isQualifyingRolloverSku(row.sku)) {
       walletSpends.push({
         sku: row.sku as LaSku,
+        spendId: row.spendId,
         amountLa: row.priceLa ?? getLaPrice(row.sku) ?? 120,
         spentAt: row.createdAt,
       });
@@ -285,7 +328,7 @@ async function qualifyingRolloverSpends(
 }
 
 type PriceResult =
-  | { ok: true; amountLa: number; creditLa?: number; creditExpiresAt?: string; creditSourceSkus?: LaSku[] }
+  | { ok: true; amountLa: number; creditLa?: number; creditExpiresAt?: string; creditSourceSkus?: LaSku[]; creditProof?: CreditProof }
   | { ok: false; code: WalletUnlockServiceError };
 
 /** Purchase commands retain expiry cleanup; quote reads never mutate grants. */
@@ -358,14 +401,23 @@ async function price(
   }
 
   if (sku === "ZIWEI-IDENTITY-P0") {
-    const spends = await qualifyingRolloverSpends(database, ownerId, chartId);
+    const spends = await qualifyingRolloverSpends(database, ownerId, chartId, now);
     const rollover = calculateRolloverCredit({ spends, now });
     const amountLa = membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member);
     const creditLa = amountLa === rollover.effectivePriceLa ? product.priceLa - rollover.effectivePriceLa : 0;
     const eligible = spends.filter(spend => spend.amountLa > 0 && rollover.windowOpenedAt && rollover.windowExpiresAt && spend.spentAt >= rollover.windowOpenedAt && spend.spentAt < rollover.windowExpiresAt);
+    let remaining = creditLa;
+    const sources: CreditProof["sources"] = [];
+    for (const spend of eligible.sort((a, b) => a.spentAt.getTime() - b.spentAt.getTime() || compareCreditCode(a.sku, b.sku) || compareCreditCode(a.spendId, b.spendId))) {
+      if (remaining <= 0) break;
+      const creditedLa = Math.min(remaining, spend.amountLa);
+      sources.push({spendId: spend.spendId, sku: spend.sku, amountLa: spend.amountLa, creditedLa, spentAt: spend.spentAt.toISOString()});
+      remaining -= creditedLa;
+    }
     return { ok: true as const, amountLa, creditLa, ...(creditLa > 0 ? {
       creditExpiresAt: rollover.windowExpiresAt!.toISOString(),
-      creditSourceSkus: [...new Set(eligible.map(spend => spend.sku))],
+      creditSourceSkus: [...new Set(sources.map(spend => spend.sku))],
+      creditProof: creditProofSchema.parse({version: 1, creditLa, sources}),
     } : {}) };
   }
 
@@ -420,7 +472,7 @@ async function verifyLineageAndRespond(
   commandId: string,
   balance: WalletBalanceV1,
   continuation: UnlockContinuation,
-): Promise<WalletResult<{ intent: WalletPurchaseIntentV1; balance: WalletBalanceV1; reportId: string }>> {
+): Promise<WalletResult<WalletUnlockOutcome>> {
   const sourceEntitlement = alias(commerceEntitlements, "source_entitlement");
   const [lineage] = await db.select({
     origin: sourceEntitlement,
@@ -495,12 +547,56 @@ async function verifyLineageAndRespond(
         annual.event.eventType !== "report.generation.requested.v2" || !hasUnlockOutboxLineage(annual.event.payload, annual.reservation)) return failed("WALLET_RECONCILIATION_FAILED");
   } else if (continuation.annual) return failed("WALLET_RECONCILIATION_FAILED");
 
+  let upgradePurchase: WalletUpgradePurchaseV1 | null = null;
+  if (continuation.creditProof !== undefined) {
+    const parsed = creditProofSchema.safeParse(continuation.creditProof);
+    const completedAt = lineage.intent.completedAt;
+    if (!parsed.success || lineage.intent.sku !== "ZIWEI-IDENTITY-P0" || completedAt === null ||
+        parsed.data.creditLa + lineage.intent.priceLa !== 960) return failed("WALLET_RECONCILIATION_FAILED");
+    const proof = parsed.data;
+    // This is historical proof: later source revocation/restoration cannot erase
+    // the credit that was applied to this still-authorized target at commit.
+    const original = await db.select({spendId: walletTransactions.id, sku: walletPurchaseIntents.sku,
+      amountLa: walletPurchaseIntents.priceLa, spentAt: walletTransactions.createdAt})
+      .from(walletTransactions).innerJoin(walletAccounts, eq(walletAccounts.id, walletTransactions.walletId))
+      .innerJoin(walletPurchaseIntents, eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId))
+      .where(and(inArray(walletTransactions.id, proof.sources.map(source => source.spendId)),
+        eq(walletTransactions.kind, "spend"), eq(walletAccounts.ownerId, ownerId),
+        eq(walletPurchaseIntents.ownerId, ownerId), eq(walletPurchaseIntents.chartId, lineage.intent.chartId),
+        eq(walletPurchaseIntents.status, "completed"),
+        sql`COALESCE((SELECT sum(${walletLedgerEntries.amountLa}) FROM ${walletLedgerEntries} WHERE ${walletLedgerEntries.transactionId} = ${walletTransactions.id}), 0) = -${walletPurchaseIntents.priceLa}`));
+    if (original.length !== proof.sources.length || proof.sources.some(source => {
+      const row = original.find(item => item.spendId === source.spendId);
+      return !row || row.sku !== source.sku || row.amountLa !== source.amountLa || row.spentAt.toISOString() !== source.spentAt;
+    })) return failed("WALLET_RECONCILIATION_FAILED");
+    const ordered = [...proof.sources].sort((a, b) => Date.parse(a.spentAt) - Date.parse(b.spentAt) || compareCreditCode(a.sku, b.sku) || compareCreditCode(a.spendId, b.spendId));
+    const openedAt = Date.parse(ordered[0]!.spentAt);
+    if (completedAt.getTime() < openedAt || completedAt.getTime() >= openedAt + ROLLOVER_WINDOW_MS ||
+        ordered.some(source => Date.parse(source.spentAt) > completedAt.getTime())) return failed("WALLET_RECONCILIATION_FAILED");
+    let remaining = proof.creditLa;
+    for (const source of ordered) {
+      const expected = Math.min(remaining, source.amountLa);
+      if (source.creditedLa !== expected || expected <= 0) return failed("WALLET_RECONCILIATION_FAILED");
+      remaining -= expected;
+    }
+    if (remaining !== 0) return failed("WALLET_RECONCILIATION_FAILED");
+    const primary = [...proof.sources].sort((a, b) => b.creditedLa - a.creditedLa || compareCreditCode(a.sku, b.sku) || compareCreditCode(a.spendId, b.spendId))[0]!;
+    const projected = WalletUpgradePurchaseV1Schema.safeParse({version: 1,
+      eventKey: `upg_${createHash("sha256").update(transactionId).digest("hex").slice(0, 32)}`,
+      occurredAt: completedAt.toISOString(), targetSku: "ZIWEI-IDENTITY-P0", sourceSku: primary.sku,
+      sourceSkus: [...new Set(proof.sources.map(source => source.sku))].sort(),
+      chargedLa: lineage.intent.priceLa, creditLa: proof.creditLa, currency: "LA"});
+    if (!projected.success) return failed("WALLET_RECONCILIATION_FAILED");
+    upgradePurchase = projected.data;
+  }
+
   return {
     ok: true as const,
     value: {
       intent: projectIntent(lineage.intent),
       balance,
       reportId: continuation.reportId,
+      upgradePurchase,
     },
   };
 }
@@ -848,6 +944,7 @@ export function createWalletUnlockService(
           if (completed === undefined) throw new Error("WALLET_INTENT_COMPLETE_FAILED");
 
           const continuation: UnlockContinuation = {
+            ...(selectedPrice.creditProof ? {creditProof: selectedPrice.creditProof} : {}),
             entitlementId: entitlement.id,
             reservationId: reservation.id,
             reportId: reservation.reportId,
@@ -1019,6 +1116,7 @@ export function createWalletUnlockService(
           if (sku === COMBO_SKU && !await hasCompleteComboAuthority(transaction, {intent: completed, entitlement})) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           return {
             ...(annual ? {annual} : {}),
+            ...(selectedPrice.creditProof ? {creditProof: selectedPrice.creditProof} : {}),
             entitlementId: entitlement.id,
             reservationId: reservation.id,
             reportId: reservation.reportId,
