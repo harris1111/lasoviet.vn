@@ -129,3 +129,5 @@ export {
 export type { FreeAiSubjectKind, FreeAiTransaction } from "./free-ai-quota-link.js";
 
 export {reportWalletCompensations} from "./schema/report-compensation.js";
+
+export { lockRecoveryCaptureCoordination, RECOVERY_CAPTURE_COORDINATION_LOCK } from "./recovery-capture-lock.js";

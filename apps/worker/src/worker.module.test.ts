@@ -6,6 +6,7 @@ import {
 } from "./worker.module.js";
 import {
   createAiProductionGate,
+  createPendingTopUpRecoveryCaptureService,
   createReportGenerationService,
 } from "@lasoviet/backend";
 
@@ -14,6 +15,7 @@ vi.mock("@lasoviet/backend", async (importOriginal) => {
   return {
     ...actual,
     createReportGenerationService: vi.fn(actual.createReportGenerationService),
+    createPendingTopUpRecoveryCaptureService: vi.fn(actual.createPendingTopUpRecoveryCaptureService),
   };
 });
 
@@ -357,6 +359,14 @@ describe("createMaintenanceRunner", () => {
   it("throws WORKER_CONFIG_INVALID when DATABASE_URL is missing", () => {
     delete process.env.DATABASE_URL;
     expect(() => createMaintenanceRunner()).toThrow("WORKER_CONFIG_INVALID");
+  });
+
+  it.each([undefined, "capture"])("wires closed recovery mode %j with the existing disabled-provider TTL", mode => {
+    if (mode) process.env.FUNNEL_RECOVERY_MODE = mode;
+    createMaintenanceRunner();
+    expect(vi.mocked(createPendingTopUpRecoveryCaptureService)).toHaveBeenLastCalledWith(expect.objectContaining({
+      mode: mode ?? "disabled", orderTtlSeconds: 86400,
+    }));
   });
 
   it("initializes runner successfully with analytics retention wired", () => {

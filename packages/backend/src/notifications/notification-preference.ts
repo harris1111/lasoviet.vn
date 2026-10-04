@@ -1,3 +1,4 @@
+import { lockRecoveryCaptureCoordination } from "@lasoviet/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -165,37 +166,40 @@ export function createDatabaseNotificationPreferenceStore(
       const isUnsubAll = preferences.unsubscribedAll ?? false;
       const unsubAt = isUnsubAll ? now : null;
 
-      await database
-        .insert(notificationPreferences)
-        .values({
-          id: `pref:${userId}`,
-          userId,
-          emailFingerprint: emailFp,
-          nurtureEmailsAllowed: preferences.nurtureEmailsAllowed ?? true,
-          hanRemindersAllowed: preferences.hanRemindersAllowed ?? true,
-          unsubscribedAll: isUnsubAll,
-          unsubscribedAt: unsubAt,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .onConflictDoUpdate({
-          target: notificationPreferences.userId,
-          set: {
-            ...(preferences.nurtureEmailsAllowed !== undefined
-              ? { nurtureEmailsAllowed: preferences.nurtureEmailsAllowed }
-              : {}),
-            ...(preferences.hanRemindersAllowed !== undefined
-              ? { hanRemindersAllowed: preferences.hanRemindersAllowed }
-              : {}),
-            ...(preferences.unsubscribedAll !== undefined
-              ? {
-                  unsubscribedAll: preferences.unsubscribedAll,
-                  unsubscribedAt: preferences.unsubscribedAll ? now : null,
-                }
-              : {}),
+      await database.transaction(async (transaction) => {
+        await lockRecoveryCaptureCoordination(transaction);
+        await transaction
+          .insert(notificationPreferences)
+          .values({
+            id: `pref:${userId}`,
+            userId,
+            emailFingerprint: emailFp,
+            nurtureEmailsAllowed: preferences.nurtureEmailsAllowed ?? true,
+            hanRemindersAllowed: preferences.hanRemindersAllowed ?? true,
+            unsubscribedAll: isUnsubAll,
+            unsubscribedAt: unsubAt,
+            createdAt: now,
             updatedAt: now,
-          },
-        });
+          })
+          .onConflictDoUpdate({
+            target: notificationPreferences.userId,
+            set: {
+              ...(preferences.nurtureEmailsAllowed !== undefined
+                ? { nurtureEmailsAllowed: preferences.nurtureEmailsAllowed }
+                : {}),
+              ...(preferences.hanRemindersAllowed !== undefined
+                ? { hanRemindersAllowed: preferences.hanRemindersAllowed }
+                : {}),
+              ...(preferences.unsubscribedAll !== undefined
+                ? {
+                    unsubscribedAll: preferences.unsubscribedAll,
+                    unsubscribedAt: preferences.unsubscribedAll ? now : null,
+                  }
+                : {}),
+              updatedAt: now,
+            },
+          });
+      });
     },
 
     async unsubscribeByToken(
@@ -213,55 +217,58 @@ export function createDatabaseNotificationPreferenceStore(
       const now = nowValue();
       const emailFp = fingerprintEmail(email, secret);
 
-      if (userId) {
-        await database
-          .insert(notificationPreferences)
-          .values({
-            id: `pref:${userId}`,
-            userId,
-            emailFingerprint: emailFp,
-            nurtureEmailsAllowed: false,
-            hanRemindersAllowed: false,
-            unsubscribedAll: true,
-            unsubscribedAt: now,
-            createdAt: now,
-            updatedAt: now,
-          })
-          .onConflictDoUpdate({
-            target: notificationPreferences.userId,
-            set: {
+      await database.transaction(async (transaction) => {
+        await lockRecoveryCaptureCoordination(transaction);
+        if (userId) {
+          await transaction
+            .insert(notificationPreferences)
+            .values({
+              id: `pref:${userId}`,
+              userId,
+              emailFingerprint: emailFp,
               nurtureEmailsAllowed: false,
               hanRemindersAllowed: false,
               unsubscribedAll: true,
               unsubscribedAt: now,
+              createdAt: now,
               updatedAt: now,
-            },
-          });
-      } else {
-        await database
-          .insert(notificationPreferences)
-          .values({
-            id: `pref-fp:${emailFp.slice(0, 32)}`,
-            userId: null,
-            emailFingerprint: emailFp,
-            nurtureEmailsAllowed: false,
-            hanRemindersAllowed: false,
-            unsubscribedAll: true,
-            unsubscribedAt: now,
-            createdAt: now,
-            updatedAt: now,
-          })
-          .onConflictDoUpdate({
-            target: notificationPreferences.emailFingerprint,
-            set: {
+            })
+            .onConflictDoUpdate({
+              target: notificationPreferences.userId,
+              set: {
+                nurtureEmailsAllowed: false,
+                hanRemindersAllowed: false,
+                unsubscribedAll: true,
+                unsubscribedAt: now,
+                updatedAt: now,
+              },
+            });
+        } else {
+          await transaction
+            .insert(notificationPreferences)
+            .values({
+              id: `pref-fp:${emailFp.slice(0, 32)}`,
+              userId: null,
+              emailFingerprint: emailFp,
               nurtureEmailsAllowed: false,
               hanRemindersAllowed: false,
               unsubscribedAll: true,
               unsubscribedAt: now,
+              createdAt: now,
               updatedAt: now,
-            },
-          });
-      }
+            })
+            .onConflictDoUpdate({
+              target: notificationPreferences.emailFingerprint,
+              set: {
+                nurtureEmailsAllowed: false,
+                hanRemindersAllowed: false,
+                unsubscribedAll: true,
+                unsubscribedAt: now,
+                updatedAt: now,
+              },
+            });
+        }
+      });
     },
 
     async isNonTransactionalAllowed(recipient: string, userId?: string, kind: "nurture" | "han" = "nurture"): Promise<boolean> {

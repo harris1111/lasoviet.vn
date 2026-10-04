@@ -12,6 +12,7 @@ import {
   birthProfileRevisions,
   birthProfiles,
   calculationRuns,
+  lockRecoveryCaptureCoordination,
   type Database,
   ziweiChartVersions,
   ziweiCharts,
@@ -123,6 +124,7 @@ export function createDatabaseZiweiCalculationRepository(
 
     async create(input) {
       return database.transaction(async (transaction) => {
+        await lockRecoveryCaptureCoordination(transaction);
         const prior = await existing(
           transaction,
           input.idempotencyKey,

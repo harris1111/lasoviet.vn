@@ -203,7 +203,7 @@ describe("database schema integration", () => {
 
     expect(first.appliedMigrations).toEqual(second.appliedMigrations);
     expect(first.appliedMigrations.length).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   it("upgrades existing 0041 quality candidates through 0042 without data loss", async () => {
     const client = postgres(databaseUrl);

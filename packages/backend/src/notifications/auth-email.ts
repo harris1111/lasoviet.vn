@@ -461,6 +461,9 @@ export function createAuthEmailDeliveryService(
 function fromDatabaseRecord(
   record: typeof notificationDeliveries.$inferSelect,
 ): AuthEmailDeliveryRecord {
+  if (record.status === "captured" || record.kind === "recovery_pending_topup") {
+    throw new Error("CAPTURE_RECORD_NOT_DELIVERABLE");
+  }
   return {
     id: record.id,
     idempotencyKey: record.idempotencyKey,

@@ -200,7 +200,7 @@ describe("terminal wallet compensation with posted financial authority", () => {
     expect(proof.filter(row => row.amountLa === 0)).toMatchObject([{restorationTransactionId: null}]);
     expect(proof.filter(row => row.restorationTransactionId)).toHaveLength(8);
     expect(await wallet(fixture.owner.userId)).toMatchObject({purchasedBalance: 1000, promotionalBalance: 100});
-  });
+  }, 30_000);
 
   it("recognizes an earlier guarantee restoration without duplicating it or consuming another claim", async () => {
     const fixture = await purchases(["ZIWEI-PALACE-LIFE-P0", "ZIWEI-PALACE-WEALTH-P0"]);

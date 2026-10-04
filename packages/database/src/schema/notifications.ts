@@ -22,6 +22,7 @@ export const notificationDeliveryKind = pgEnum("notification_delivery_kind", [
   "han_month_reminder",
   "delayed_unlock_completed",
   "membership_expiry",
+  "recovery_pending_topup",
 ]);
 
 export const notificationDeliveryStatus = pgEnum("notification_delivery_status", [
@@ -31,6 +32,7 @@ export const notificationDeliveryStatus = pgEnum("notification_delivery_status",
   "failed_retryable",
   "failed_permanent",
   "delivery_unknown",
+  "captured",
 ]);
 
 export const notificationPreferences = pgTable(

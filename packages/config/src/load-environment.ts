@@ -126,6 +126,7 @@ const NORMALIZED_FIELD_VARIABLES: Record<string, string> = {
   "sepay.webhookSecret": "SEPAY_WEBHOOK_SECRET",
   sepayAutoApproveTopUps: "SEPAY_AUTO_APPROVE_TOPUPS",
   freePalaceGenerationEnabled: "FREE_PALACE_GENERATION_ENABLED",
+  funnelRecoveryMode: "FUNNEL_RECOVERY_MODE",
   "telegram.botToken": "TELEGRAM_BOT_TOKEN",
   "telegram.chatId": "TELEGRAM_CHAT_ID",
 };
@@ -450,7 +451,13 @@ export function loadEnvironment(
     return invalidEnvironment("FREE_PALACE_GENERATION_ENABLED");
   }
 
+  const funnelRecoveryMode = source.FUNNEL_RECOVERY_MODE ?? "disabled";
+  if (funnelRecoveryMode !== "disabled" && funnelRecoveryMode !== "capture") {
+    return invalidEnvironment("FUNNEL_RECOVERY_MODE");
+  }
+
   const normalized: AppEnvironment = {
+    funnelRecoveryMode,
     freePalaceGenerationEnabled,
     sepayAutoApproveTopUps,
     nodeEnv: parsedNodeEnv.data as NodeEnvironment,

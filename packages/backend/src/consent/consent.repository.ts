@@ -6,6 +6,7 @@ import type { CurrentActor } from "@lasoviet/contracts";
 import {
   auditLogs,
   consents,
+  lockRecoveryCaptureCoordination,
   type Database,
 } from "@lasoviet/database";
 
@@ -47,6 +48,7 @@ export function createDatabaseConsentRepository(
   return {
     async record(input) {
       return database.transaction(async (transaction) => {
+        await lockRecoveryCaptureCoordination(transaction);
         const owner =
           input.actor.kind === "account"
             ? { userId: input.actor.userId, anonymousActorId: null }

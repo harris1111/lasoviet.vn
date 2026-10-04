@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq, gt, lte } from "drizzle-orm";
+import { and, eq, gt, lte, sql } from "drizzle-orm";
 
 import {
   accountBehaviorProfiles,
@@ -12,7 +12,9 @@ import {
   deletionRequests,
   enqueueOutbox,
   lockFreeAiCoordination,
+  lockRecoveryCaptureCoordination,
   outbox,
+  notificationDeliveries,
   type Database,
 } from "@lasoviet/database";
 import { WALLET_UPGRADE_EVENT_TYPE } from "../commerce/wallet-upgrade-event.js";
@@ -57,6 +59,7 @@ export function createDatabaseDeletionRepository(
   return {
     async request(input) {
       return database.transaction(async (transaction) => {
+        await lockRecoveryCaptureCoordination(transaction);
         const [existing] = await transaction
           .select()
           .from(deletionRequests)
@@ -113,6 +116,7 @@ export function createDatabaseDeletionRepository(
 
     async cancel(userId, requestId, now) {
       return database.transaction(async (transaction) => {
+        await lockRecoveryCaptureCoordination(transaction);
         const [cancelled] = await transaction
           .update(deletionRequests)
           .set({
@@ -162,6 +166,7 @@ export function createDatabaseDeletionRepository(
         await database.transaction(async (transaction) => {
           // Coordination lock first, the same order admission and publication use.
           await lockFreeAiCoordination(transaction);
+          await lockRecoveryCaptureCoordination(transaction);
           const [updated] = await transaction
             .update(deletionRequests)
             .set({
@@ -203,6 +208,14 @@ export function createDatabaseDeletionRepository(
           // while holding the purge marker, which also fences concurrent delivery.
           await transaction.delete(outbox).where(and(
             eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE), eq(outbox.actorId, updated.userId),
+          ));
+          await transaction.delete(notificationDeliveries).where(and(
+            eq(notificationDeliveries.kind, "recovery_pending_topup"),
+            sql`${notificationDeliveries.requestPayload}->>'userId' = ${updated.userId}`,
+          ));
+          await transaction.delete(outbox).where(and(
+            eq(outbox.eventType, "notification.recovery.captured.v1"),
+            eq(outbox.actorId, updated.userId),
           ));
           await enqueueOutbox(transaction, {
             schemaVersion: 1,

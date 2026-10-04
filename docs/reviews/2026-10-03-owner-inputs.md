@@ -92,6 +92,8 @@ Các đợt sự nghiệp, tình cảm, hằng ngày, tháng và năm vẫn hoã
 
 **Trả lời:** theo khuyến nghị đã duyệt: chỉ ghi nhận thông báo trong môi trường thử, không gửi thật; chưa có người nhận được chỉ định.
 
+**Tiến độ kỹ thuật:** LSV79 đã có bản ghi nhận nhắc đơn nạp đang chờ: giữ đúng đơn/lá số/phiên bản, kiểm tra đồng ý và hủy đăng ký, chống ghi trùng; mặc định tắt. Bộ kiểm thử đạt 4.177 ca và 17 bài kiểm tra script. Còn CI, deploy và nghiệm thu bản phát hành trước khi chốt mốc này; toàn bộ ticket vẫn còn phần nhắc lá số và tiếp tục mua trong ứng dụng.
+
 ### 9. Đặc tả công cụ trả phí đầu tiên của gói thành viên — LSV64
 
 **Bối cảnh:** quyết định tạm giữ gói thành viên vẫn có hiệu lực. Chỉ có luồng luận giải ngày/tháng chưa đáp ứng toàn bộ quyền lợi FD-093, và không được tự ý giảm quyền lợi đã hứa.
@@ -102,7 +104,7 @@ Các đợt sự nghiệp, tình cảm, hằng ngày, tháng và năm vẫn hoã
 
 ### 10. Cấu hình Sentry trước khi test điện thoại — LSV81
 
-**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Phần SDK đã merge/deploy qua PR #279 và bản sửa build #280: chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Ngày 04/10 bạn đã chọn org `cashcow-73`, project `javascript-nextjs`, kết nối wizard/quyền đọc và bật ngăn lưu IP. DSN/token đã được lưu đúng chỗ trong GitHub. Lỗi thử trên bản staging đã được xác nhận qua MCP, có file/dòng TypeScript đọc được: [JAVASCRIPT-NEXTJS-1](https://cashcow-73.sentry.io/issues/JAVASCRIPT-NEXTJS-1). Đội kỹ thuật tiếp tục review và nghiệm thu bản deploy bật Sentry trước khi báo Done.
+**Bối cảnh:** bạn đề nghị thêm Sentry để có trace lỗi phía trình duyệt. Phần SDK đã merge/deploy qua PR #279 và bản sửa build #280: chỉ nhận lỗi, gắn SHA bản deploy, lọc dữ liệu riêng tư; Replay/trace hiệu năng tắt, source map chỉ upload riêng. Ngày 04/10 bạn đã chọn org `cashcow-73`, project `javascript-nextjs`, kết nối wizard/quyền đọc và bật ngăn lưu IP. DSN/token đã được lưu đúng chỗ trong GitHub. Lỗi thử trên bản staging đã được xác nhận qua MCP, có file/dòng TypeScript đọc được: [JAVASCRIPT-NEXTJS-1](https://cashcow-73.sentry.io/issues/JAVASCRIPT-NEXTJS-1). LSV81 đã nghiệm thu bản deploy, có trace đọc được mã nguồn và đã chuyển Done.
 
 **Đề xuất:** dùng project do bạn quản lý. Đội kỹ thuật cấu hình rồi kiểm tra một lỗi giả lập có file/dòng nguồn đọc được trước khi bạn test Google/4G.
 
@@ -117,3 +119,5 @@ AI miễn phí giữ các trần đã duyệt: 3.000 VND/phiên bản lá số v
 ## Phần việc kỹ thuật còn lại
 
 Nguồn sự kiện `upgrade_purchased` bền vững và hoàn Lá khi tạo báo cáo thất bại đã deploy/nghiệm thu. Nghiệm thu đầy đủ luồng tiếp tục mua/hoàn tiền qua nhà cung cấp thật, bảo mật và báo giá phần xem trước đang khóa, chất lượng bài tổng quan miễn phí dài, đủ bằng chứng A17/trình duyệt/hiệu năng và sáu luồng kiểm thử chuẩn (golden paths) trong CI vẫn là việc của đội kỹ thuật. Đây không phải câu hỏi để chủ sở hữu tự giải quyết. Không chuyển cả ticket sang Done chỉ nhờ bản mẫu hoặc một phần kiểm thử sau deploy.
+
+**Cập nhật kiểm thử và chất lượng 04/10:** PR #288 đã có 12/12 luồng chuẩn mobile/desktop đạt khi chạy riêng; còn CI và bằng chứng deploy. Model `ag/gemini-3.8-flash` có trên broker, bảng giá đang cài đã được xác minh. Đội kỹ thuật cần hoàn thiện ghi nhận phí reasoning/cache creation và giữ ngân sách tổng 200.000 VND trước khi chạy đợt chất lượng thật. Đây là việc kỹ thuật, không cần bạn duyệt ngân sách lại.
