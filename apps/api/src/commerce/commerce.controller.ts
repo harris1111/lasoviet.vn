@@ -502,6 +502,8 @@ export class CommerceController {
     });
     return {
       ok: true,
+      // Private provenance only; browser request fields cannot assert this authority.
+      ...("durableTopUpAnalytics" in result && result.durableTopUpAnalytics === true ? {durableTopUpAnalytics: true} : {}),
       value: WalletUnlockResultV1Schema.parse({
         intent,
         balance: WalletBalanceV1Schema.parse(result.value.balance),

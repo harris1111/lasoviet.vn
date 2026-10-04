@@ -1,6 +1,7 @@
+import { WALLET_TOPUP_UNLOCK_EVENT_TYPE } from "../commerce/wallet-topup-unlock-event.js";
 import { randomUUID } from "node:crypto";
 
-import { and, eq, gt, lte, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lte, sql } from "drizzle-orm";
 
 import {
   accountBehaviorProfiles,
@@ -207,7 +208,7 @@ export function createDatabaseDeletionRepository(
           // This outbox has no account FK. Remove its financial analytics payloads
           // while holding the purge marker, which also fences concurrent delivery.
           await transaction.delete(outbox).where(and(
-            eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE), eq(outbox.actorId, updated.userId),
+            inArray(outbox.eventType, [WALLET_UPGRADE_EVENT_TYPE, WALLET_TOPUP_UNLOCK_EVENT_TYPE]), eq(outbox.actorId, updated.userId),
           ));
           await transaction.delete(notificationDeliveries).where(and(
             eq(notificationDeliveries.kind, "recovery_pending_topup"),

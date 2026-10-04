@@ -5,6 +5,7 @@ import * as dbs from "../../../packages/database/dist/index.js";
 import * as contracts from "../../../packages/contracts/dist/index.js";
 import {createDatabaseAssetDownloadRepository} from "../../../packages/backend/dist/storage/asset-download.service.js";
 import {createDatabaseWalletRepository} from "../../../packages/backend/dist/wallet/wallet.repository.js";
+import {createWalletBusinessOutboxRunner} from "../../../packages/backend/dist/analytics/wallet-upgrade-outbox.js";
 import {REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY, REPORT_RENDER_VERSION_V4_1_SENSITIVITY} from "../../../packages/backend/dist/reports/identity-report-config.js";
 const {eq, and} = createRequire(import.meta.resolve("../../../packages/database/dist/index.js"))("drizzle-orm");
 const {SignJWT} = await import(createRequire(import.meta.resolve("../../../apps/web/package.json")).resolve("jose"));
@@ -16,7 +17,10 @@ assert(/^[A-Za-z0-9_-]{1,200}$/.test(request.ownerId));
 const database = dbs.createDatabase(process.env.DATABASE_URL);
 const [owner] = await database.select().from(dbs.authUsers).where(eq(dbs.authUsers.id, request.ownerId));
 assert(owner?.emailVerified && !owner.isAnonymous && owner.email.endsWith("@example.test"));
-if (request.action === "fund") {
+if (request.action === "dispatch_business") {
+  const result = await createWalletBusinessOutboxRunner(database, {workerId: "isolated-funnel-financial-proof"}).runOnce();
+  console.log(JSON.stringify({dispatched: result.dispatched, noProviderCalls: true}));
+} else if (request.action === "fund") {
   const pack = contracts.WalletTopUpCatalogV1.find(item => item.id === "LA-START-1100");
   const now = new Date(), authority = {token: {}, actorId: owner.id}, id = randomUUID();
   await database.insert(dbs.commerceOrders).values({id, ownerId: owner.id, invoiceNumber: randomUUID(), kind: "wallet_topup", sku: pack.id, amount: pack.vndAmount, currency: "VND", locale: "vi", status: "paid", paidAt: now});

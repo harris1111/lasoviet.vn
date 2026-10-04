@@ -67,7 +67,9 @@ export async function POST(request: Request): Promise<Response> {
   }
   const value = parsed.data;
   const idempotencyKey = command.data.idempotencyKey;
-  await sendServerAnalyticsEvent({
+  // A receipt-backed continuation already owns these events durably, even before delivery.
+  const durableTopUpAnalytics = "durableTopUpAnalytics" in response && response.durableTopUpAnalytics === true;
+  if (!durableTopUpAnalytics) await sendServerAnalyticsEvent({
     name: "la_spent",
     idempotencyKey: `la-spent:${actor.userId}:${idempotencyKey}`,
     userId: actor.userId,

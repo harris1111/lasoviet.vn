@@ -66,6 +66,19 @@ describe("POST /api/commerce/wallet/unlock", () => {
     expect(privateApiClient).not.toHaveBeenCalled();
   });
 
+  for (const marker of [true, false, undefined]) {
+    it(`uses private continuation authority rather than a browser key prefix: ${marker}`, async () => {
+      vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
+      const value = {intent: {id: "intent-1", sku: "ZIWEI-IDENTITY-P0", productTitle: "Lifetime", amountLa: 960, locale: "vi", status: "completed", stateVersion: 2, createdAt: "2026-09-27T10:00:00.000Z"},
+        balance: {version: 1, stateVersion: 2, totalLa: 0, purchasedLa: 0, promotionalLa: 0, updatedAt: "2026-09-27T10:00:00.000Z"}, reportId: "report-1"};
+      vi.mocked(privateApiClient).mockReturnValue({request: vi.fn().mockResolvedValue({ok: true, value, durableTopUpAnalytics: marker})});
+      const {POST} = await import("./route.js");
+      const response = await POST(jsonRequest({purchaseIntentId: "intent-1", expectedIntentVersion: 1, expectedWalletVersion: 1, idempotencyKey: "topup-unlock:invented"}));
+      expect(response.status).toBe(200); expect(await response.json()).toEqual(value);
+      expect(sendServerAnalyticsEvent).toHaveBeenCalledTimes(marker === true ? 0 : 1);
+    });
+  }
+
   it("spends and returns the report id on success, emitting one la_spent event", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     const request = vi.fn().mockResolvedValue({
