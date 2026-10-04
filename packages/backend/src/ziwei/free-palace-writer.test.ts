@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { FreePalaceGiftFactV1, FreePalaceGiftFrozenCallV1 } from "@lasoviet/contracts";
 import { createInMemoryAiCostService } from "../ai/ai-cost.js";
 import { createAiProductionGate, createOpenAiCompatibleAdapter } from "../ai/openai-compatible-adapter.js";
@@ -18,7 +18,7 @@ const goodContent = (over: Record<string, unknown> = {}) => ({
   keyPoints: [point("Bạn thích tự mình sắp xếp trình tự công việc."), point("Bạn cần thời gian trước khi chốt một lựa chọn lớn."), point("Bạn dễ được người khác tin cậy.", "fact:two")],
   narrative: prose, do: [point("Dành một buổi mỗi tuần để rà soát ưu tiên.")], avoid: [point("Tránh ôm hết mọi việc về mình.")], evidenceKeys: ["fact:one", "fact:two"], ...over,
 });
-const providerBody = (content: unknown, usage: Record<string, number> | null = { prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500 }) =>
+const providerBody = (content: unknown, usage: Record<string, unknown> | null = { prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500 }) =>
   ({ model: "gift-model", choices: [{ message: { content: typeof content === "string" ? content : JSON.stringify(content) } }], ...(usage ? { usage } : {}) });
 const ok = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const tariff = { inputPricePerMillion: 15_000n, outputPricePerMillion: 60_000n };
@@ -115,6 +115,22 @@ describe("free palace gift writer", () => {
   it("a response without usage cannot be priced, so the whole hold is retained as unknown", async () => {
     const h = await harness(async () => ok(providerBody(goodContent(), null)));
     expect((await h.writer.run(h.call, attemptId)).settlement).toEqual({ kind: "unknown" });
+  });
+
+  it.each([
+    {prompt_tokens: 1000}, {completion_tokens: 500},
+    {prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500, completion_tokens_details: {reasoning_tokens: 200}},
+    {prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500, prompt_tokens_details: {cache_creation_tokens: 100}},
+  ])("retains the entire free-gift reservation for incomplete or unpriced usage %#", async usage => {
+    vi.useFakeTimers({toFake: ["Date"]}); vi.setSystemTime(new Date("2026-10-04T12:00:00Z"));
+    try {
+    const h = await harness(async () => ok(providerBody(goodContent(), usage)));
+    const outcome = await h.writer.run(h.call, attemptId);
+    expect(h.attempts()).toBe(1); expect(outcome).toMatchObject({settlement: {kind: "unknown"}, diagnostic: "usage_unknown"});
+    expect(outcome.publication).toBeUndefined();
+    const summary = await h.cost.getAiCogsSummary({});
+    expect(summary).toMatchObject({unknownAttemptCount: 1, resolvedAttemptCount: 0, hasIncompleteAttempts: true});
+    } finally {vi.useRealTimers();}
   });
 
   it("row 37: a reserved snapshot that is no longer the active tariff sends nothing", async () => {
