@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { WalletUnlockRequestV1Schema, WalletUnlockResultV1Schema } from "@lasoviet/contracts";
 import { sendServerAnalyticsEvent } from "../../../../../analytics/server-analytics";
+import { sendServerUpgradePurchasedEvent } from "../../../../../features/analytics/server-funnel-analytics";
 
 import { privateApiClient, PrivateApiClientError } from "../../../../../api/private-api-client";
 import {
@@ -32,6 +34,10 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return NextResponse.json({ code: "WALLET_INTENT_INVALID" }, { status: 400, headers: NO_STORE_HEADERS });
   }
+  const command = WalletUnlockRequestV1Schema.safeParse(body);
+  if (!command.success) {
+    return NextResponse.json({code: "WALLET_INTENT_INVALID"}, {status: 400, headers: NO_STORE_HEADERS});
+  }
 
   let response: unknown;
   try {
@@ -40,7 +46,7 @@ export async function POST(request: Request): Promise<Response> {
       {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(command.data),
       },
     );
   } catch (error) {
@@ -52,21 +58,16 @@ export async function POST(request: Request): Promise<Response> {
     throw error;
   }
 
-  if (typeof response !== "object" || response === null || !("ok" in response) || !response.ok) {
+  if (typeof response !== "object" || response === null || !("ok" in response) || response.ok !== true || !("value" in response)) {
     return NextResponse.json({ code: "UPSTREAM_UNAVAILABLE" }, { status: 502, headers: NO_STORE_HEADERS });
   }
 
-  const value = (response as unknown as {
-    value: {
-      intent: { sku: string; amountLa: number };
-      balance: { totalLa: number };
-      reportId: string | null;
-    };
-  }).value;
-  const idempotencyKey =
-    typeof (body as { idempotencyKey?: unknown })?.idempotencyKey === "string"
-      ? (body as { idempotencyKey: string }).idempotencyKey
-      : actor.requestId;
+  const parsed = WalletUnlockResultV1Schema.safeParse(response.value);
+  if (!parsed.success || parsed.data.intent.id !== command.data.purchaseIntentId) {
+    return NextResponse.json({code: "UPSTREAM_UNAVAILABLE"}, {status: 502, headers: NO_STORE_HEADERS});
+  }
+  const value = parsed.data;
+  const idempotencyKey = command.data.idempotencyKey;
   await sendServerAnalyticsEvent({
     name: "la_spent",
     idempotencyKey: `la-spent:${actor.userId}:${idempotencyKey}`,
@@ -78,7 +79,18 @@ export async function POST(request: Request): Promise<Response> {
       balance_after: value.balance.totalLa,
       feature_id: "wallet_unlock_dialog",
     },
-  });
+  }).catch(() => undefined);
+
+  if (value.upgradePurchase) {
+    const upgrade = value.upgradePurchase;
+    await sendServerUpgradePurchasedEvent({
+      userId: actor.userId, requestId: actor.requestId,
+      sourceSku: upgrade.sourceSku, sourceSkus: upgrade.sourceSkus,
+      targetSku: upgrade.targetSku, amount: upgrade.chargedLa, creditLa: upgrade.creditLa,
+      currency: upgrade.currency, occurredAt: upgrade.occurredAt,
+      idempotencyKey: `upgrade-purchased:${upgrade.eventKey}`,
+    }).catch(() => undefined);
+  }
 
   return NextResponse.json(value, { status: 200, headers: NO_STORE_HEADERS });
 }

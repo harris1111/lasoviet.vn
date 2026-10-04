@@ -219,6 +219,8 @@
       "name": "upgrade_purchased",
       "properties": [
         "source_sku",
+        "source_skus",
+        "credit_amount",
         "target_sku",
         "amount",
         "currency"

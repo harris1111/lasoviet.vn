@@ -25,6 +25,7 @@ import {
   WalletBalanceV1Schema,
   WalletQuoteRequestV1Schema,
   WalletQuotesV1Schema,
+  WalletUnlockResultV1Schema,
   WalletHistoryV1Schema,
   WalletTopUpOrderCreateV1Schema,
   type WalletTopUpContinuationViewV1,
@@ -501,11 +502,12 @@ export class CommerceController {
     });
     return {
       ok: true,
-      value: {
+      value: WalletUnlockResultV1Schema.parse({
         intent,
         balance: WalletBalanceV1Schema.parse(result.value.balance),
         reportId: result.value.reportId,
-      },
+        upgradePurchase: result.value.upgradePurchase ?? null,
+      }),
     };
   }
 

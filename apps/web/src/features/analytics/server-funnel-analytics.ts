@@ -41,11 +41,14 @@ export async function sendServerWelcomeGrantEvent(
 export type ServerUpgradePurchasedParams = {
   userId: string;
   sourceSku: string;
+  sourceSkus?: string[];
+  creditLa?: number;
   targetSku: string;
   amount: number;
   currency: string;
   idempotencyKey: string;
   requestId?: string;
+  occurredAt?: Date | string;
 };
 
 export async function sendServerUpgradePurchasedEvent(
@@ -54,6 +57,8 @@ export async function sendServerUpgradePurchasedEvent(
 ): Promise<ServerAnalyticsResult> {
   const properties = sanitizeAnalyticsProperties({
     source_sku: params.sourceSku,
+    ...(params.sourceSkus ? {source_skus: params.sourceSkus} : {}),
+    ...(params.creditLa !== undefined ? {credit_amount: params.creditLa} : {}),
     target_sku: params.targetSku,
     amount: params.amount,
     currency: params.currency,
@@ -65,6 +70,7 @@ export async function sendServerUpgradePurchasedEvent(
       idempotencyKey: params.idempotencyKey,
       userId: params.userId,
       requestId: params.requestId,
+      occurredAt: params.occurredAt,
       properties,
     },
     dependencies,

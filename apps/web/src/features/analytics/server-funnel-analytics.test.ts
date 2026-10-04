@@ -110,4 +110,14 @@ describe("server-funnel-analytics", () => {
       },
     });
   });
+
+  it("preserves the committed occurrence time and full source set without duplicating revenue", async () => {
+    const send = vi.fn().mockResolvedValue({ok: true, value: {replayed: false}});
+    const params = {userId: "user", sourceSku: "ZIWEI-NATAL-EXCERPT-P0", sourceSkus: ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-PALACE-LIFE-P0"],
+      targetSku: "ZIWEI-IDENTITY-P0", amount: 600, creditLa: 360, currency: "LA", idempotencyKey: "upgrade-purchased:opaque-receipt", occurredAt: "2026-10-04T00:00:00Z"};
+    await sendServerUpgradePurchasedEvent(params, {getVisitorId: async () => sampleVisitorId, sendIngestCommand: send, now: () => new Date("2026-10-12T00:00:00Z")});
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0]![0]).toMatchObject({occurredAt: params.occurredAt, idempotencyKey: params.idempotencyKey,
+      event: {name: "upgrade_purchased", properties: {source_sku: params.sourceSku, source_skus: params.sourceSkus, amount: 600, credit_amount: 360, currency: "LA"}}});
+  });
 });

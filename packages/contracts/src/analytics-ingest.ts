@@ -28,7 +28,10 @@ export const BrowserAnalyticsEventRequestV1Schema = z
     occurredAt: z.string().datetime(),
     event: z
       .object({
-        name: CanonicalAnalyticsEventNameSchema,
+        name: CanonicalAnalyticsEventNameSchema.refine(
+          name => name !== "upgrade_purchased",
+          "Upgrade purchases require a committed server receipt",
+        ),
         properties: z.record(z.string().max(64), AnalyticsPropertyValueSchema),
       })
       .strict(),
