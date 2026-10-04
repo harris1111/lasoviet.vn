@@ -5,7 +5,7 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 ## Những việc đã làm xong mà không cần thêm ý kiến
 
 - Trang chủ, PR [274](https://github.com/harris1111/lasoviet.vn/pull/274): đã merge và deploy; luồng đồng ý xử lý dữ liệu → lập lá số thật bằng VI/EN và 22 ca kiểm tra kích thước màn hình đều đạt.
-- Ghi nhận sự kiện không trùng khi gửi lại, PR [275](https://github.com/harris1111/lasoviet.vn/pull/275): đã merge/deploy; gửi lại phản hồi thật chỉ tạo một sự kiện, dữ liệu xung đột hoặc lệch thời gian bị từ chối, dữ liệu kiểm thử đã xóa. Toàn bộ LSV57 vẫn ở In Review.
+- Ghi nhận sự kiện không trùng khi gửi lại, PR [275](https://github.com/harris1111/lasoviet.vn/pull/275): đã merge/deploy; gửi lại phản hồi thật chỉ tạo một sự kiện, dữ liệu xung đột hoặc lệch thời gian bị từ chối, dữ liệu kiểm thử đã xóa. Đây là nghiệm thu riêng PR275; trạng thái toàn bộ LSV57 được cập nhật trên Kaneo sau các bước triển khai tiếp theo.
 - Số liệu phễu trong 7 ngày đã có trong [tài liệu vận hành](../runbooks/funnel-dashboard.md). Có cả lượt kiểm thử, một số bước mới chưa đủ thời gian thu thập, nguồn xác nhận thanh toán chưa được kiểm chứng; chưa thể coi đây là tỷ lệ chuyển đổi hay doanh thu khách hàng.
 - Ưu tiên đọc miễn phí trước khi mời mua, PR [277](https://github.com/harris1111/lasoviet.vn/pull/277): đã bỏ link mua xuất hiện quá sớm ở đầu trang và merge/deploy; 48 ca dành cho khách chưa đăng nhập đều đạt trên Chromium/Firefox/WebKit, VI/EN, bốn kích thước màn hình và giao diện sáng/tối. LSV72 vẫn còn phần nghiệm thu thành viên, điện thoại thật và hiệu năng.
 
@@ -44,7 +44,7 @@ Bạn có thể trả lời theo số hoặc điền vào các dòng **Trả l�
 
 **Trả lời:** bạn yêu cầu để phần SePay sandbox/tài khoản kiểm thử này làm sau. Chưa tuyên bố nghiệm thu thanh toán đạt.
 
-Không thực hiện giao dịch ngân hàng thật thay cho phần sandbox đã hoãn.
+Không thực hiện giao dịch ngân hàng thật thay cho phần sandbox đã hoãn. Các nghiệm thu ví nội bộ, khấu trừ nâng cấp, đọc báo cáo đã lưu và bảo đảm hoàn Lá được tách riêng; đạt các mục này không đồng nghĩa SePay đã đạt.
 
 ### 4. Ngân sách, model và review 5 luận giải trả phí — LSV58/62/63/68
 
@@ -92,7 +92,7 @@ Các đợt sự nghiệp, tình cảm, hằng ngày, tháng và năm vẫn hoã
 
 **Trả lời:** theo khuyến nghị đã duyệt: chỉ ghi nhận thông báo trong môi trường thử, không gửi thật; chưa có người nhận được chỉ định.
 
-**Tiến độ kỹ thuật:** LSV79 đã có bản ghi nhận nhắc đơn nạp đang chờ: giữ đúng đơn/lá số/phiên bản, kiểm tra đồng ý và hủy đăng ký, chống ghi trùng; mặc định tắt. Bộ kiểm thử đạt 4.177 ca và 17 bài kiểm tra script. Còn CI, deploy và nghiệm thu bản phát hành trước khi chốt mốc này; toàn bộ ticket vẫn còn phần nhắc lá số và tiếp tục mua trong ứng dụng.
+**Tiến độ kỹ thuật:** LSV79 đã có bản ghi nhận nhắc đơn nạp đang chờ: giữ đúng đơn/lá số/phiên bản, kiểm tra đồng ý và hủy đăng ký, chống ghi trùng; mặc định tắt. Bộ kiểm thử đạt 4.177 ca và 17 bài kiểm tra script. PR [289](https://github.com/harris1111/lasoviet.vn/pull/289) đã qua review/CI, merge, deploy và nghiệm thu bản phát hành `2a53982a`; dữ liệu thử đã xóa. Toàn bộ ticket vẫn còn phần nhắc lá số và tiếp tục mua trong ứng dụng, chưa gửi thật.
 
 ### 9. Đặc tả công cụ trả phí đầu tiên của gói thành viên — LSV64
 
@@ -118,6 +118,10 @@ AI miễn phí giữ các trần đã duyệt: 3.000 VND/phiên bản lá số v
 
 ## Phần việc kỹ thuật còn lại
 
-Nguồn sự kiện `upgrade_purchased` bền vững và hoàn Lá khi tạo báo cáo thất bại đã deploy/nghiệm thu. Nghiệm thu đầy đủ luồng tiếp tục mua/hoàn tiền qua nhà cung cấp thật, bảo mật và báo giá phần xem trước đang khóa, chất lượng bài tổng quan miễn phí dài, đủ bằng chứng A17/trình duyệt/hiệu năng và sáu luồng kiểm thử chuẩn (golden paths) trong CI vẫn là việc của đội kỹ thuật. Đây không phải câu hỏi để chủ sở hữu tự giải quyết. Không chuyển cả ticket sang Done chỉ nhờ bản mẫu hoặc một phần kiểm thử sau deploy.
+Nguồn sự kiện `upgrade_purchased` bền vững và hoàn Lá khi tạo báo cáo thất bại đã deploy/nghiệm thu. Nghiệm thu đầy đủ luồng tiếp tục mua/hoàn tiền qua nhà cung cấp thật, bảo mật và báo giá phần xem trước đang khóa, chất lượng bài tổng quan miễn phí dài, đủ bằng chứng A17/trình duyệt/hiệu năng và các phần còn lại của nghiệm thu toàn phễu vẫn là việc của đội kỹ thuật. Đây không phải câu hỏi để chủ sở hữu tự giải quyết. Không chuyển cả ticket sang Done chỉ nhờ bản mẫu hoặc một phần kiểm thử sau deploy.
 
-**Cập nhật kiểm thử và chất lượng 04/10:** PR #288 đã có 12/12 luồng chuẩn mobile/desktop đạt khi chạy riêng; còn CI và bằng chứng deploy. Model `ag/gemini-3.8-flash` có trên broker, bảng giá đang cài đã được xác minh. Đội kỹ thuật cần hoàn thiện ghi nhận phí reasoning/cache creation và giữ ngân sách tổng 200.000 VND trước khi chạy đợt chất lượng thật. Đây là việc kỹ thuật, không cần bạn duyệt ngân sách lại.
+**Cập nhật kiểm thử và chất lượng 04/10:** PR [288](https://github.com/harris1111/lasoviet.vn/pull/288) có 12/12 luồng chuẩn mobile/desktop đạt trong CI, đã merge/deploy cùng bản `2a53982a`; cấu hình và dữ liệu thử đã được kiểm tra. LSV80 vẫn còn phạm vi nghiệm thu nhà cung cấp/thiết bị thật. Model `ag/gemini-3.8-flash` có trên broker, bảng giá đang cài đã được xác minh. Broker đang sửa số token trả về và tự thử lại phía sau; đội kỹ thuật cần bằng chứng phí đầy đủ, giới hạn số lần gọi và cơ chế giữ trần tổng 200.000 VND trước khi chạy đợt chất lượng thật. Đây là việc kỹ thuật, không cần bạn duyệt ngân sách lại.
+
+## 04/10 — triển khai tiếp theo
+
+LSV61 đã deploy PR [290](https://github.com/harris1111/lasoviet.vn/pull/290), qua nghiệm thu trên image phát hành và chuyển Done. LSV71/68 đã deploy PR [291](https://github.com/harris1111/lasoviet.vn/pull/291), nghiệm thu 50 trường hợp phí giả lập; vẫn In Review vì còn kiểm chứng phí đầy đủ và giới hạn thử lại của nhà cung cấp. Chưa gọi AI trả phí. Xem [bản nghiệm thu ngắn](2026-10-04-nghiem-thu-con-lai.md) để trả lời phần thiết bị thật và review nội dung khi nhận bộ mẫu.
