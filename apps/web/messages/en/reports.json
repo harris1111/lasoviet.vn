@@ -225,7 +225,12 @@
     "next_step_title": "Next step",
     "next_step_description": "Your incident and payment details have been recorded. Please contact support below for priority handling and report fulfillment.",
     "support_action": "Contact support",
-    "view_orders_action": "View order history"
+    "view_orders_action": "View order history",
+    "wallet_unlock_confirmation": "Unlocked with La.",
+    "facts_title": "Explore your chart while you wait",
+    "facts_description": "These are calculated facts from the chart you purchased, separate from the reading being written. Structural strength does not rate your life as good or bad.",
+    "structural_score": "Structural strength: {score}/100",
+    "wallet_failure_description": "The reading could not be completed. Contact support with the reference below to check your La transaction. This page has no confirmed La refund."
   },
   "reader": {
     "eyebrow": "Interpretation Report",
@@ -340,16 +345,18 @@
     "title": "Continue with your complete lifetime reading",
     "description": "Explore the twelve palaces, major chart patterns, life themes and the current decadal and annual context.",
     "price": "Your upgrade: {amount} Lá",
-    "credit": "Your current discount: {amount} Lá against the 960 Lá list price.",
+    "credit": "Your eligible purchases provide {amount} La in rollover credit.",
     "terms": "Eligible palace and Natal Excerpt purchases on this chart count toward rollover for 7 days from the first purchase. The final price and balance are checked again before you confirm.",
     "loading": "Checking your upgrade price…",
-    "unavailable": "Open the confirmation to check your current price and balance.",
+    "unavailable": "Upgrade pricing is unavailable. Try again later.",
     "unlock": "Review upgrade",
     "topup": "Top up Lá",
     "palaces": "Twelve palace readings",
     "patterns": "Major patterns and life themes",
     "timing": "Current decade and year",
-    "scope": "Only titles and placeholders are shown until you unlock."
+    "scope": "Only titles and placeholders are shown until you unlock.",
+    "openedPalaces": "You have unlocked {count}/12 palaces",
+    "creditExpiry": "Rollover credit expires on {date}."
   },
   "topicReader": {
     "eyebrow": "Topic deep dive",

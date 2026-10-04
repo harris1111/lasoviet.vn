@@ -1,5 +1,7 @@
 "use client";
 
+import { Fragment } from "react";
+import { ReaderUpgrade } from "./reader-upgrade";
 import { PeriodReportReader } from "./period-report-reader";
 import { TopicReportReader } from "./topic-report-reader";
 
@@ -610,9 +612,12 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
           {typeof action === "string" ? action : <>{action.recommendation}<p>{action.rationale}</p></>}
         </li>)}</ul>
       </>}
-      {report.content.palaceReadings.map((palace) => <section key={palace.palaceId} id={palace.palaceId}>
-        <h2>{palace.title}</h2><p style={{ whiteSpace: "pre-line" }}>{palace.narrative}</p>
-      </section>)}
+      {report.content.palaceReadings.map((palace, index) => <Fragment key={palace.palaceId}>
+        <section id={palace.palaceId}>
+          <h2>{palace.title}</h2><p style={{ whiteSpace: "pre-line" }}>{palace.narrative}</p>
+        </section>
+        {index === 0 && <ReaderUpgrade locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} />}
+      </Fragment>)}
     </main>;
   }
   if (report.contentVersion === "ziwei.period-reading.v1") return <PeriodReportReader report={report} />;

@@ -140,6 +140,16 @@ describe("ReportProgress component", () => {
     });
   });
 
+  it("shows wallet failure support without a receipt, payment confirmation or refund claim", () => {
+    const html = renderToStaticMarkup(<ReportProgress locale="vi" view={{version: 2, state: "failed", locale: "vi", purchaseSource: "wallet_spend", reportId: "private-report", reportVersionId: "private-version", errorCode: "REPORT_GENERATION_FAILED", supportReference: "RPT-SAFE"}} />);
+    expect(html).toContain("RPT-SAFE");
+    expect(html).toContain("/lien-he");
+    expect(html).not.toContain("private-report");
+    expect(html).not.toContain("private-version");
+    expect(html).not.toContain("Đã ghi nhận thanh toán thành công");
+    expect(html).not.toContain("Đã hoàn");
+  });
+
   describe("Terminal failure state", () => {
     it("renders invoice, both localized timestamps, support reference, next step, and prefilled support URL", () => {
       const html = renderToStaticMarkup(<ReportProgress locale="vi" view={mockFailedVi} />);

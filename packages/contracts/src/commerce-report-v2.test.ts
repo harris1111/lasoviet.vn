@@ -14,7 +14,8 @@ describe("commerce report V2 contracts", () => {
     expect(AccountLibraryItemV2Schema.safeParse({ ...item, sku: "ZIWEI-IDENTITY-P0" }).success).toBe(false);
     expect(AccountLibraryItemV2Schema.safeParse({ ...item, chartId: "chart" }).success).toBe(false);
     const terminalFailure = {
-      version: 2, purchaseSource: "wallet_spend", reportId: "report", reportVersionId: "version",
+      version: 2, purchaseSource: "wallet_spend",
+      state: "failed", locale: "vi", reportId: "report", reportVersionId: "version",
       errorCode: "REPORT_GENERATION_FAILED", supportReference: "support",
     };
     expect(ReportFailedWalletSpendViewV2Schema.safeParse(terminalFailure).success).toBe(true);

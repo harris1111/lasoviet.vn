@@ -196,6 +196,8 @@ export const ReportPendingViewV1Schema = z.object({
   sku: z.union([PaidReportSkuSchema, z.string().refine(isSinglePalaceSku)]),
   fulfillmentStatus: z.enum(REPORT_PENDING_STATUSES),
   refreshAfterMs: z.literal(5000),
+  purchaseSource: z.enum(["order", "wallet_spend"]).optional(),
+  chartSnapshot: ReportChartSnapshotV1Schema.nullable().optional(),
 }).strict();
 export type ReportPendingViewV1 = z.infer<typeof ReportPendingViewV1Schema>;
 

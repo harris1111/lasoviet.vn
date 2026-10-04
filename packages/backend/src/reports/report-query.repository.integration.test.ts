@@ -17,6 +17,8 @@ import {
   commerceOrders,
   createDatabase,
   evidenceSets,
+  deletionRequests,
+  reportSourceSnapshots,
   reportReservations,
   reportVersions,
   runMigrations,
@@ -29,6 +31,7 @@ import {
   type Database,
 } from "@lasoviet/database";
 
+import { buildFrozenChartFixture } from "./topic-report.test-fixture.js";
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createDatabaseReportGenerationSourceRepository } from "./report-generation.repository.js";
 import { createDatabaseDailyReadingAccess } from "../commerce/personal-daily-reading.service.js";
@@ -475,6 +478,22 @@ describe("report query repository wallet authority", () => {
       ok: true,
       value: { readingContextRevisionId: null },
     });
+  });
+
+  it("loads reservation-bound frozen inputs before a report is published and denies purged accounts", async () => {
+    const owner = await ownerFixture();
+    const wallet = await addWallet(owner);
+    const {chart, snapshot} = buildFrozenChartFixture();
+    await database.update(ziweiChartVersions).set({normalizedOutput: chart}).where(eq(ziweiChartVersions.id, owner.chartVersionId));
+    const frozen = {...snapshot.snapshot, chartVersionId: owner.chartVersionId};
+    await database.insert(reportSourceSnapshots).values({...snapshot, id: randomUUID(), reportId: wallet.reportId, reportVersionId: wallet.reportVersionId, chartVersionId: owner.chartVersionId, snapshot: frozen});
+    const repository = createDatabaseReportQueryRepository(database, () => new Date("2026-10-04T00:00:00Z"));
+    const pending = await repository.readAuthorizedReport(owner.userId, wallet.reportId);
+    expect(pending?.version).toBeNull();
+    expect(pending?.chartNormalizedOutput).toEqual(chart);
+    expect(pending?.sourceSnapshot).toEqual(frozen);
+    await database.insert(deletionRequests).values({id: randomUUID(), userId: owner.userId, status: "purged", recoverUntil: new Date("2026-10-02T00:00:00Z"), requestedAt: new Date("2026-10-01T00:00:00Z"), purgeAfter: new Date("2026-10-02T00:00:00Z")});
+    expect(await repository.readAuthorizedReport(owner.userId, wallet.reportId)).toBeNull();
   });
 
   it("fails closed for another owner, actual restoration, pending, and cancelled wallet authority", async () => {

@@ -183,6 +183,8 @@ const validFailedView = {
 const validWalletFailedView = {
   version: 2 as const,
   purchaseSource: "wallet_spend" as const,
+  state: "failed" as const,
+  locale: "vi" as const,
   reportId: "rep-wallet-4",
   reportVersionId: "rep-wallet-ver-4",
   errorCode: "REPORT_GENERATION_FAILED",
@@ -310,7 +312,7 @@ describe("createReportLoader", () => {
     });
   });
 
-  it("maps strict wallet terminal failure to REPORT_FAILED", async () => {
+  it("loads a strict wallet terminal recovery instead of hiding it as not found", async () => {
     const resolveVerifiedAccountActor = vi.fn().mockResolvedValue(mockActor);
     const request = vi.fn().mockResolvedValue({
       ok: true,
@@ -319,14 +321,7 @@ describe("createReportLoader", () => {
     const privateApiClient = vi.fn().mockReturnValue({ request });
     const loader = createReportLoader({ resolveVerifiedAccountActor, privateApiClient });
 
-    await expect(loader.loadReport("rep-wallet-4")).resolves.toEqual({
-      ok: false,
-      error: {
-        code: "REPORT_FAILED",
-        messageKey: "reports.report_failed",
-        retryable: false,
-      },
-    });
+    await expect(loader.loadReport("rep-wallet-4")).resolves.toEqual({ok: true, value: validWalletFailedView});
   });
 
   it("rejects a wallet failure hybrid with invoice lineage", async () => {

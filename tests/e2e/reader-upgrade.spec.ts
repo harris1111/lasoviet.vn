@@ -7,6 +7,7 @@ const require = createRequire(resolve(root, "package.json"));
 const { build } = createRequire(require.resolve("vite"))("esbuild");
 const stylesRoot = resolve(root, "apps/web/src/styles");
 const stylesheet = readFileSync(resolve(stylesRoot, "global.css"), "utf8").replace(/@import "\.\/([^"]+)";/g, (_, name: string) => readFileSync(resolve(stylesRoot, name), "utf8"));
+const sheetStyles = readFileSync(resolve(stylesRoot, "contextual-unlock.css"), "utf8");
 let bundle = "";
 test.beforeAll(async () => {
   const result = await build({
@@ -24,7 +25,7 @@ test.beforeAll(async () => {
     alias: { "@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts") },
     plugins: [{ name: "isolated-router", setup(builder: any) {
       builder.onResolve({ filter: /^next\/navigation$/ }, () => ({ path: "router", namespace: "fixture" }));
-      builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "export const useRouter = () => ({push: path => {window.fixtureDestination = path}, refresh: () => {window.fixtureRefresh = true}});", loader: "js" }));
+      builder.onLoad({ filter: /.*/, namespace: "fixture" }, () => ({ contents: "const router = {push: path => {window.fixtureDestination = path}, refresh: () => {window.fixtureRefresh = true}}; export const useRouter = () => router;", loader: "js" }));
     } }],
   });
   bundle = result.outputFiles[0].text;
@@ -34,10 +35,17 @@ for (const [locale, width, price] of [["vi", 390, 480], ["en", 1440, 960], ["vi"
   test(`server-priced reader upgrade ${locale} ${width}px ${price} La`, async ({ page }) => {
     page.on("pageerror", error => console.error(error.message));
     await page.setViewportSize({ width, height: 844 });
+    await page.clock.setFixedTime(new Date("2026-10-04T00:00:00Z"));
     const spends: unknown[] = [];
+    const intents: unknown[] = [];
     await page.route("**/*", async route => {
       const path = new URL(route.request().url()).pathname;
-      if (path.endsWith("/purchase-intents")) {
+      if (path.endsWith("/quotes")) {
+        expect(route.request().method()).toBe("GET");
+        const credit = 960 - price;
+        await route.fulfill({json: {version: 1, chartId: "chart-fixture", chartVersionId: "version-fixture", locale, quotedAt: "2026-10-04T00:00:00Z", quotes: [{sku: "ZIWEI-IDENTITY-P0", state: "available", basePriceLa: 960, priceLa: price, creditLa: credit, discountLa: 0, creditExpiresAt: credit ? "2026-10-10T00:00:00Z" : null, creditSourceSkus: credit ? ["ZIWEI-NATAL-EXCERPT-P0"] : [], reportId: null, reportState: null}]}});
+      } else if (path.endsWith("/purchase-intents")) {
+        intents.push(route.request().postDataJSON());
         expect(route.request().postDataJSON()).toEqual({ chartId: "chart-fixture", chartVersionId: "version-fixture", locale, sku: "ZIWEI-IDENTITY-P0" });
         await route.fulfill({ json: { id: "intent", sku: "ZIWEI-IDENTITY-P0", chartVersionId: "version-fixture", locale, amountLa: price, status: "pending", stateVersion: 2, createdAt: "2026-09-30T10:00:00Z" } });
       } else if (path.endsWith("/balance")) {
@@ -50,16 +58,19 @@ for (const [locale, width, price] of [["vi", 390, 480], ["en", 1440, 960], ["vi"
       } else await route.abort();
     });
     await page.goto(`https://upgrade.test/?locale=${locale}`);
-    await page.addStyleTag({ content: stylesheet });
+    await page.addStyleTag({ content: stylesheet + sheetStyles });
     await page.addScriptTag({ content: bundle });
     await expect(page.getByRole("status")).toContainText(`${price} Lá`);
     expect(spends).toHaveLength(0);
+    expect(intents).toHaveLength(0);
     await expect(page.locator("[data-locked=true]")).toHaveCount(3);
     expect(await page.locator(".blur-bar").allTextContents()).toEqual(Array(9).fill(""));
     expect(await page.locator(".reader-upgrade").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await expect(page.locator(".reader-upgrade-topup")).toHaveAttribute("href", locale === "en" ? "/en/nap-la" : "/nap-la");
     await page.getByRole("button", { name: locale === "vi" ? "Xem giá và xác nhận nâng cấp" : "Review upgrade" }).click();
     await expect(page.getByRole("dialog")).toBeVisible();
+    await expect.poll(() => intents.length).toBe(1);
+    expect(await page.locator("dialog").evaluate((dialog: HTMLDialogElement) => dialog.matches(":modal"))).toBe(true);
     expect(spends).toHaveLength(0);
     await page.getByRole("button", { name: locale === "vi" ? "Xác nhận mở" : "Confirm unlock", exact: true }).click();
     await expect.poll(() => spends.length).toBe(1);
