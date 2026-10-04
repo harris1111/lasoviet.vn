@@ -12,6 +12,7 @@ import {
   createAuthEmailDeliveryService,
   createDelayedUnlockCompletionService,
   createVerifiedSignInNurtureService,
+  createPendingTopUpRecoveryCaptureService,
   createHanMonthReminderService,
   createDatabaseNotificationPreferenceStore,
   createDatabaseAnonymousRetentionRepository,
@@ -94,6 +95,11 @@ export function createMaintenanceRunner() {
     database,
     environment.value.internalActorSecret ?? "",
   );
+  const recoveryCapture = createPendingTopUpRecoveryCaptureService({
+    database, mode: environment.value.funnelRecoveryMode,
+    tokenSecret: environment.value.internalActorSecret,
+    orderTtlSeconds: environment.value.sepay.environment !== "disabled" ? environment.value.sepay.orderTtlSeconds : 86400,
+  });
   const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
   const hanReminder = createHanMonthReminderService(database, { preferenceStore, tokenSecret: environment.value.internalActorSecret, resolveLunarDay: lunarReminderDay });
   const delayedUnlock = createDelayedUnlockCompletionService(database);
@@ -129,6 +135,7 @@ export function createMaintenanceRunner() {
         }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: async (limit) => {
+      await recoveryCapture.scanAndCapture(limit);
       await nurture.scanAndEnqueue(limit);
       await hanReminder.scanAndEnqueue(limit);
       await delayedUnlock.scan((request) => email.send(request), limit);

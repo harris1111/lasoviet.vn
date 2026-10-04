@@ -90,6 +90,7 @@ export type AppEnvironment = {
   sepay: SePayEnvironment;
   sepayAutoApproveTopUps?: boolean;
   freePalaceGenerationEnabled?: boolean;
+  funnelRecoveryMode?: "disabled" | "capture";
   telegram?: {
     botToken: string;
     chatId: string;
@@ -243,6 +244,7 @@ export const AppEnvironmentSchema: z.ZodType<AppEnvironment> = z
     sepay: SePayEnvironmentSchema,
     sepayAutoApproveTopUps: z.boolean().default(false),
     freePalaceGenerationEnabled: z.boolean().optional(),
+    funnelRecoveryMode: z.enum(["disabled", "capture"]).optional(),
     telegram: z
       .object({
         botToken: trimmedNonEmpty,

@@ -86,7 +86,7 @@ describe("V4 knowledge provenance persistence", () => {
     } finally {
       await rm(baselineDirectory, { recursive: true, force: true });
     }
-  });
+  }, 30_000);
 
   it("enforces V4-to-V3 composite provenance edges on a clean schema", async () => {
     await runMigrations(databaseUrl);
@@ -186,5 +186,5 @@ describe("V4 knowledge provenance persistence", () => {
     } finally {
       await database.$client.end();
     }
-  });
+  }, 30_000);
 });

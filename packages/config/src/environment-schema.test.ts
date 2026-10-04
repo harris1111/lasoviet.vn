@@ -452,7 +452,7 @@ describe("environment loading", () => {
       ...completeSmtp,
       ...completeS3,
     });
-    expect(result).toEqual({ ok: true, value: { ...validNormalizedProduction, freePalaceGenerationEnabled: false } });
+    expect(result).toEqual({ ok: true, value: { ...validNormalizedProduction, freePalaceGenerationEnabled: false, funnelRecoveryMode: "disabled" } });
   });
 
   it("enables Garage only with its closed activation group", () => {
