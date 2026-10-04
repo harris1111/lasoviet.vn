@@ -56,5 +56,9 @@ export const ReportFailedWalletSpendViewV2Schema = z.object({
   reportVersionId: id,
   errorCode: z.literal("REPORT_GENERATION_FAILED"),
   supportReference: z.string().trim().min(1).max(120),
+  compensation: z.discriminatedUnion("status", [
+    z.object({status: z.literal("restored"), amountLa: z.number().int().positive(), completedAt: z.iso.datetime()} ).strict(),
+    z.object({status: z.literal("access_revoked"), amountLa: z.literal(0), completedAt: z.iso.datetime()} ).strict(),
+  ]).optional(),
 }).strict();
 export type ReportFailedWalletSpendViewV2 = z.infer<typeof ReportFailedWalletSpendViewV2Schema>;

@@ -1,3 +1,5 @@
+import {hasRecordedReportCompensation} from "./report-wallet-proof.js";
+import {hasActiveReportPurchase} from "./report-wallet-compensation.js";
 import { createHash, randomUUID } from "node:crypto";
 import { and, eq, gt, inArray, lte, ne, or, sql } from "drizzle-orm";
 import {
@@ -351,6 +353,12 @@ async function executeTerminalRecoveryInTransaction(
   if (!reservation) {
     return { ok: false, code: "REPORT_NOT_FOUND" };
   }
+  // The reservation lock serializes these reads with posted compensation. Do
+  // not acquire wallet locks here after the reservation (financial lock order).
+  if (await hasRecordedReportCompensation(transaction, reservation.id) &&
+      !await hasActiveReportPurchase(transaction, reservation)) {
+    return {ok: false, code: "WORKFLOW_STATE_CONFLICT"};
+  }
 
   const [existingVersion] = await transaction
     .select({ id: reportVersions.id })
@@ -592,6 +600,12 @@ export async function restartInvalidOutputWithCurrentVersionInTransaction(
   if (!reservation) {
     return { ok: false, code: "REPORT_NOT_FOUND" };
   }
+  // The reservation lock serializes these reads with posted compensation. Do
+  // not acquire wallet locks here after the reservation (financial lock order).
+  if (await hasRecordedReportCompensation(transaction, reservation.id) &&
+      !await hasActiveReportPurchase(transaction, reservation)) {
+    return {ok: false, code: "WORKFLOW_STATE_CONFLICT"};
+  }
 
   const [existingVersion] = await transaction
     .select({ id: reportVersions.id })
@@ -699,7 +713,8 @@ export async function restartInvalidOutputWithCurrentVersionInTransaction(
   };
 }
 
-export function createReportService(database: Database) {
+export function createReportService(database: Database, options: {now?: () => Date} = {}) {
+  const now = options.now ?? (() => new Date());
   return {
     async startGenerating(params: {
       reportVersionId: string;
@@ -710,7 +725,7 @@ export function createReportService(database: Database) {
       | { ok: false; code: "REPORT_NOT_FOUND" | "WORKFLOW_STATE_CONFLICT" | "LEASE_LOST" }
     > {
       return database.transaction(async (tx) => {
-        const current = new Date();
+        const current = now();
         if (params.workerId) {
           const [job] = await tx
             .select({ id: reportQueueJobs.id })
@@ -790,7 +805,7 @@ export function createReportService(database: Database) {
       | { ok: false; code: "LEASE_LOST" | "REPORT_NOT_FOUND" | "WORKFLOW_STATE_CONFLICT" }
     > {
       return database.transaction(async (tx) => {
-        const current = new Date();
+        const current = now();
 
         const [fencedJob] = await tx
           .update(reportQueueJobs)

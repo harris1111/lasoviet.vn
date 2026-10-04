@@ -96,6 +96,16 @@ export type WalletSpendCommand<T = Record<string, never>> = {
   continuationResultCodec?: WalletResultCodec<T>;
 };
 
+type SystemWalletRestorationCommand = {
+  ownerId: string;
+  trustedAuthorityToken: object;
+  originalSpendId: string;
+  expectedWalletVersion: number;
+  idempotencyKey: string;
+  requestId: string;
+  traceId: string;
+};
+
 export type WalletRestorationCommand = {
   actor: CurrentActor;
   restoration: WalletRestorationV1;
@@ -271,7 +281,7 @@ async function replayReceipt(
 
 async function writeAudit(
   database: Database,
-  actorId: string,
+  actorId: string | null,
   action: "wallet.grant" | "wallet.spend" | "wallet.restoration",
   walletId: string,
   reasonCode: string,
@@ -302,7 +312,7 @@ async function writeAudit(
 
 export function createDatabaseWalletRepository(
   database: Database,
-  options: { now?: () => Date; trustedGrantAuthority?: TrustedGrantAuthority } = {},
+  options: { now?: () => Date; trustedGrantAuthority?: TrustedGrantAuthority; trustedTerminalRestorationToken?: object } = {},
 ) {
   const now = options.now ?? (() => new Date());
 
@@ -580,18 +590,36 @@ export function createDatabaseWalletRepository(
       });
     },
 
-    async restore(command: WalletRestorationCommand): Promise<WalletResult<WalletTransactionReceiptV1>> {
-      const { actor, restoration } = command;
-      if (actor.kind !== "account") return failure("WALLET_ACCOUNT_REQUIRED");
-      if (restoration.actorId !== actor.userId) return failure("WALLET_INVALID_COMMAND");
+    async restore(command: WalletRestorationCommand | SystemWalletRestorationCommand): Promise<WalletResult<WalletTransactionReceiptV1>> {
+      const system = "trustedAuthorityToken" in command;
+      if (system && (!options.trustedTerminalRestorationToken || command.trustedAuthorityToken !== options.trustedTerminalRestorationToken)) {
+        return failure("WALLET_INVALID_COMMAND");
+      }
+      if (!system && command.actor.kind !== "account") return failure("WALLET_ACCOUNT_REQUIRED");
+      if (!system && command.actor.kind === "account" && command.restoration.actorId !== command.actor.userId) return failure("WALLET_INVALID_COMMAND");
+      const ownerId = system ? command.ownerId : command.actor.kind === "account" ? command.actor.userId : "";
+      const auditActorId = system ? null : ownerId;
+      const restoration = system ? {
+        originalSpendId: command.originalSpendId, expectedWalletVersion: command.expectedWalletVersion,
+        idempotencyKey: command.idempotencyKey, requestId: command.requestId, traceId: command.traceId,
+        actorId: null, reasonCode: "report_terminal_failure",
+      } : command.restoration;
       const fingerprint = walletFingerprint({
-        operation: "wallet.restoration", ownerId: actor.userId, actorId: restoration.actorId, originalSpendId: restoration.originalSpendId,
+        operation: system ? "wallet.report_terminal_restoration" : "wallet.restoration", ownerId, actorId: restoration.actorId, originalSpendId: restoration.originalSpendId,
         expectedWalletVersion: restoration.expectedWalletVersion, reasonCode: restoration.reasonCode, idempotencyKey: restoration.idempotencyKey,
       });
       return mutate(async (transaction) => {
-        const authority = await accountEligible(transaction, actor, true);
-        if (authority !== "ok") return failure(authority);
-        const wallet = await lockedWallet(transaction, actor.userId);
+        if (system) {
+          // Private financial authority never impersonates a customer session.
+          // Preserve the database invariant for verified, non-anonymous wallet owners.
+          const [owner] = await transaction.select({id: authUsers.id, anonymous: authUsers.isAnonymous, verified: authUsers.emailVerified})
+            .from(authUsers).where(eq(authUsers.id, ownerId)).limit(1).for("update");
+          if (!owner || owner.anonymous || !owner.verified) return failure("WALLET_ACCOUNT_INELIGIBLE");
+        } else {
+          const authority = await accountEligible(transaction, command.actor, true);
+          if (authority !== "ok") return failure(authority);
+        }
+        const wallet = await lockedWallet(transaction, ownerId);
         if (wallet === undefined) return failure("WALLET_NOT_FOUND");
         if (!await reconcile(transaction, wallet)) return failure("WALLET_RECONCILIATION_FAILED");
         const replay = await replayReceipt(transaction, wallet.id, restoration.idempotencyKey, fingerprint);
@@ -644,7 +672,7 @@ export function createDatabaseWalletRepository(
           walletId: wallet.id, idempotencyKey: restoration.idempotencyKey, fingerprint, transactionId: entry.id,
           result: { receipt: commandReceipt, continuation: {} },
         });
-        await writeAudit(transaction, actor.userId, "wallet.restoration", wallet.id, restoration.reasonCode, restoration.requestId, restoration.traceId,
+        await writeAudit(transaction, auditActorId, "wallet.restoration", wallet.id, restoration.reasonCode, restoration.requestId, restoration.traceId,
           wallet.stateVersion, updated.stateVersion, purchasedDelta, promotionalDelta);
         return { ok: true, value: commandReceipt };
       });

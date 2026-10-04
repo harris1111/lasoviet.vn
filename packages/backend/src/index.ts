@@ -856,3 +856,5 @@ export {
 export type { FreePalaceRequestOutcome, FreePalaceRequestService } from "./ziwei/free-palace-request.service.js";
 export { createFreePalaceEngagementService, FREE_PALACE_ENGAGEMENT_TABS, FREE_PALACE_ENGAGEMENT_THRESHOLD } from "./ziwei/free-palace-engagement.service.js";
 export type { FreePalaceEngagementService } from "./ziwei/free-palace-engagement.service.js";
+
+export {createReportWalletCompensationRunner} from "./reports/report-wallet-compensation.js";

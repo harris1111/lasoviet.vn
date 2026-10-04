@@ -104,7 +104,10 @@ export function ReportProgress({ locale, view }: ReportProgressProps) {
         <div role="alert" className="report-progress-card report-progress-failed">
           <p className="eyebrow">{t("progress.failed_eyebrow")}</p>
           <h1>{t("progress.failed_title")}</h1>
-          <p>{t("progress.wallet_failure_description")}</p>
+          <p>{view.compensation ? view.compensation.status === "restored"
+            ? t("progress.wallet_restored_description", {amount: view.compensation.amountLa})
+            : t("progress.wallet_zero_charge_revoked_description")
+            : t("progress.wallet_failure_description")}</p>
           <p>{t("progress.support_reference_label")}: <strong>{view.supportReference}</strong></p>
           <div className="report-progress-actions">
             <Link className="button button-primary" href={`${isVi ? "" : "/en"}/lien-he`}>{t("progress.support_action")}</Link>

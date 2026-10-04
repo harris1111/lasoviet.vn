@@ -127,3 +127,5 @@ export {
   sampleFreeAiClock,
 } from "./free-ai-quota-link.js";
 export type { FreeAiSubjectKind, FreeAiTransaction } from "./free-ai-quota-link.js";
+
+export {reportWalletCompensations} from "./schema/report-compensation.js";

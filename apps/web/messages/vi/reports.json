@@ -230,7 +230,9 @@
     "facts_title": "Xem lá số trong lúc chờ",
     "facts_description": "Đây là dữ kiện tính toán trên lá số đã mua, không phải phần luận giải đang được viết. Độ mạnh cấu trúc không phải điểm tốt xấu của cuộc đời.",
     "structural_score": "Độ mạnh cấu trúc: {score}/100",
-    "wallet_failure_description": "Báo cáo chưa thể hoàn tất. Vui lòng liên hệ hỗ trợ với mã bên dưới để kiểm tra giao dịch Lá. Trang này chưa có xác nhận hoàn Lá."
+    "wallet_failure_description": "Báo cáo chưa thể hoàn tất. Vui lòng liên hệ hỗ trợ với mã bên dưới để kiểm tra giao dịch Lá. Trang này chưa có xác nhận hoàn Lá.",
+    "wallet_restored_description": "Báo cáo chưa thể hoàn thành. Đã hoàn {amount} Lá về ví; các phần mua này đã khóa lại. Bạn có thể kiểm tra lịch sử ví hoặc chọn mở lại.",
+    "wallet_zero_charge_revoked_description": "Báo cáo chưa thể hoàn thành. Lần mở này không trừ Lá nên không có khoản Lá cần hoàn; quyền mở đã khóa lại."
   },
   "reader": {
     "eyebrow": "Báo cáo luận giải",

@@ -1,15 +1,23 @@
 import { createHash, randomUUID } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
+import {hasActiveReportPurchase} from "./report-wallet-compensation.js";
+import {hasRecordedReportCompensation} from "./report-wallet-proof.js";
 
 import type { IdentityReportV1, Result } from "@lasoviet/contracts";
 import {
   outbox,
+  authUsers,
+  commerceEntitlements,
+  deletionRequests,
+  lockFreeAiCoordination,
   reportAssets,
   reportGenerationAttempts,
   reportQueueJobs,
   reportReservations,
   reportVersions,
+  walletAccounts,
+  walletTransactions,
   type Database,
 } from "@lasoviet/database";
 
@@ -51,6 +59,7 @@ export type ImmutableReportVersionRecord = typeof reportVersions.$inferSelect;
 export type ReportGenerationAttemptRecord = typeof reportGenerationAttempts.$inferSelect;
 
 export type ReportVersionRepositoryOptions = {
+  now?: () => Date;
   betterAuthUrl: string;
   recipientFingerprintSecret: string;
 };
@@ -85,7 +94,7 @@ export function createDatabaseReportVersionRepository(
   database: Database,
   options: ReportVersionRepositoryOptions,
 ): ReportVersionRepository {
-  void options;
+  const clock = options.now ?? (() => new Date());
 
   return {
     async getImmutableVersion(reportVersionId: string): Promise<ImmutableReportVersionRecord | null> {
@@ -110,7 +119,7 @@ export function createDatabaseReportVersionRepository(
           status: "running",
           providerId: input.providerId,
           modelId: input.modelId,
-          startedAt: new Date(),
+          startedAt: clock(),
         })
         .onConflictDoNothing()
         .returning();
@@ -130,7 +139,7 @@ export function createDatabaseReportVersionRepository(
     async recordFailedAttempt(input: { jobId: string; attemptNumber: number; errorCode: string }): Promise<Result<void, ReportVersionConflictCode>> {
       const [updated] = await database
         .update(reportGenerationAttempts)
-        .set({ status: "failed", errorCode: input.errorCode, completedAt: new Date() })
+        .set({ status: "failed", errorCode: input.errorCode, completedAt: clock() })
         .where(and(eq(reportGenerationAttempts.jobId, input.jobId), eq(reportGenerationAttempts.attemptNumber, input.attemptNumber)))
         .returning();
       return updated ? { ok: true, value: undefined } : conflict();
@@ -141,7 +150,7 @@ export function createDatabaseReportVersionRepository(
 
       try {
         return await database.transaction(async (tx) => {
-          const now = new Date();
+          const now = clock();
 
           const [existing] = await tx.select().from(reportVersions).where(eq(reportVersions.reportVersionId, input.reportVersionId)).limit(1);
           if (existing) {
@@ -190,6 +199,17 @@ export function createDatabaseReportVersionRepository(
             return { ok: true, value: existing };
           }
 
+          // Financial mutations lock the owner/wallet before reservation. Purge
+          // and compensation acquire coordination first; preserve that order.
+          await lockFreeAiCoordination(tx);
+          const [funding] = await tx.select().from(commerceEntitlements)
+            .where(eq(commerceEntitlements.id, input.entitlementId)).limit(1);
+          if (!funding) throw new ConflictError();
+          const [purged] = await tx.select({id: deletionRequests.id}).from(deletionRequests)
+            .where(and(eq(deletionRequests.userId, funding.ownerId), eq(deletionRequests.status, "purged"))).limit(1);
+          if (purged) throw new ConflictError();
+          await tx.select({id: authUsers.id}).from(authUsers).where(eq(authUsers.id, funding.ownerId)).limit(1).for("update");
+          await tx.select({id: walletAccounts.id}).from(walletAccounts).where(eq(walletAccounts.ownerId, funding.ownerId)).limit(1).for("update");
           const [fencedQueue] = await tx
             .select({ id: reportQueueJobs.id })
             .from(reportQueueJobs)
@@ -218,6 +238,10 @@ export function createDatabaseReportVersionRepository(
             )
             .returning();
           if (!reservationFenced) throw new ConflictError();
+          const [reversal] = funding.ledgerSpendId ? await tx.select({id: walletTransactions.id}).from(walletTransactions)
+            .where(eq(walletTransactions.reversalOfTransactionId, funding.ledgerSpendId)).limit(1) : [];
+          if ((funding.revokedAt || reversal || await hasRecordedReportCompensation(tx, reservationFenced.id)) &&
+              !await hasActiveReportPurchase(tx, reservationFenced)) throw new ConflictError();
 
           const pdfAssetId = randomUUID();
           const [versionInserted] = await tx
@@ -339,7 +363,7 @@ export function createDatabaseReportVersionRepository(
     },
 
     async consumeRewriteBudget(reportVersionId: string): Promise<Result<{ consumed: boolean }, ReportVersionConflictCode>> {
-      const now = new Date();
+      const now = clock();
       const [updated] = await database
         .update(reportReservations)
         .set({ rewriteConsumedAt: now, updatedAt: now })

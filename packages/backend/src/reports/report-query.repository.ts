@@ -1,3 +1,5 @@
+import {readCompensatedReportFailure} from "./report-compensated-failure.js";
+import type {ReportFailedWalletSpendViewV2} from "@lasoviet/contracts";
 import { COMBO_SKU, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
 import { readActiveMembership } from "../commerce/membership.service.js";
 import { findLaProduct } from "@lasoviet/contracts";
@@ -75,6 +77,7 @@ function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
 }
 
 export type ReportQueryRepository = {
+  readCompensatedFailure?(ownerId: string, reportId: string): Promise<ReportFailedWalletSpendViewV2 | null>;
   readAuthorizedReport(
     ownerId: string,
     reportId: string,
@@ -386,6 +389,7 @@ export function createDatabaseReportQueryRepository(
   }
 
   return {
+    readCompensatedFailure(ownerId, reportId) {return readCompensatedReportFailure(database, ownerId, reportId);},
     async readAuthorizedReport(ownerId: string, reportId: string) {
       if (!ownerId || !reportId) {
         return null;
