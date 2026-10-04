@@ -9,7 +9,7 @@ The six Phase9 paths run at 390×844 and 1440×900 against the actual production
 | Guest → chart → preview → email sign-in | Original owned chart, tab and palace preserved after sign-in |
 | Funded → palace confirmation → reader | Actual120-La debit and entitlement, paid reservation-bound synthetic reader |
 | Short balance → pack → simulated paid → unlock | Smallest pack selected; original immutable continuation completed; same preview and reader link |
-| Excerpt → reader → lifetime upgrade | Actual240-La debit, meaningful reading before upsell,720-La quoted/confirmed upgrade, newly unlocked content |
+| Excerpt → reader → lifetime upgrade | Actual240-La debit, meaningful reading before upsell,720-La quoted/confirmed upgrade, committed upgrade and retained readable report |
 | Soft navigation → offer controls → top-up controls | Both active fixed offers, all12 palace choices, held products non-purchasable, all3 tabs and4 packs interactive |
 | Owned missing evidence → readable error → retry | Actual API failure on an owned fault-injected evidence row; restore in finally; retry succeeds without debit |
 
