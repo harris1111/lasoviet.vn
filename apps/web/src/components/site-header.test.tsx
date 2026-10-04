@@ -255,7 +255,8 @@ describe("SiteHeader authenticated account state", () => {
     expect(html).toContain("HA");
   });
 
-  it("resolves authenticated account from authClient.useSession when account prop is omitted", () => {
+  it.each(["vi", "en"] as const)("keeps the %s server header identical when the shared client session cache is already populated", locale => {
+    const beforeSession = renderToStaticMarkup(SiteHeader({ locale }));
     mockUseSession.mockReturnValue({
       data: {
         user: {
@@ -270,13 +271,13 @@ describe("SiteHeader authenticated account state", () => {
       isPending: false,
     });
 
-    const header = SiteHeader({ locale: "vi" });
+    const header = SiteHeader({ locale });
     const html = renderToStaticMarkup(header);
 
-    expect(countOccurrences(html, 'href="/tai-khoan"')).toBe(2);
-    expect(html).not.toContain("/dang-nhap");
-    expect(html).toContain('src="https://lh3.googleusercontent.com/user.jpg"');
-    expect(html).toContain("Tài khoản");
+    expect(html).toBe(beforeSession);
+    expect(countOccurrences(html, "/dang-nhap")).toBe(2);
+    expect(html).not.toContain("header-avatar-image");
+    expect(html).not.toContain("header-avatar-initials");
   });
 
   it("renders account link in discipline variant as well", () => {
