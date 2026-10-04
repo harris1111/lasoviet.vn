@@ -913,7 +913,7 @@ export function ComprehensiveReportReader({
 
               {/* Tier 1 In-Reader Upgrade Box: Only rendered after reading meaningful content */}
               {!isTier2 && canShowUpgrade && (
-                <ReaderUpgrade key={`${report.chartId}:${report.chartVersionId}:${locale}`} locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} />
+                <ReaderUpgrade key={`${report.chartId}:${report.chartVersionId}:${locale}`} locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} reportVersionId={report.reportVersionId} reportLocale={report.locale} upgradePreview={report.upgradePreview} />
               )}
 
               {v4_1Content && (

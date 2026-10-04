@@ -358,7 +358,9 @@
     "timing": "Current decade and year",
     "scope": "Only titles and placeholders are shown until you unlock.",
     "openedPalaces": "You have unlocked {count}/12 palaces",
-    "creditExpiry": "Rollover credit expires on {date}."
+    "creditExpiry": "Rollover credit expires on {date}.",
+    "sectionCoverage": "Other report sections: {opened} open · {locked} locked.",
+    "palaceCoverage": "Palaces: {opened} open · {locked} locked."
   },
   "topicReader": {
     "eyebrow": "Topic deep dive",

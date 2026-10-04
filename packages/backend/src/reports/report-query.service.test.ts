@@ -1701,16 +1701,42 @@ describe("report query service", () => {
       });
     }
 
+    it("projects an immutable clipped source and truthful excerpt coverage without its locked remainder", async () => {
+      const record = v4_1Record({sku: "ZIWEI-NATAL-EXCERPT-P0", scope: TIER_1_ENTITLEMENT_SCOPE});
+      const content = record.version!.structuredContent as ReturnType<typeof validV4_1StructuredContent>;
+      const opening = "This exact immutable palace opening is long enough to be a useful source sentence.";
+      content.palaceReadings[0]!.narrative = opening + " LOCKED_REMAINDER_SENTINEL " + "Private remaining narrative. ".repeat(20);
+      const service = createReportQueryService({repository: {readAuthorizedReport: vi.fn().mockResolvedValue(record)}, now: () => new Date("2026-10-04T12:00:00.000Z")});
+      const result = await service.getReport(accountActor, record.reservation.reportId);
+      if (!result.ok || !("upgradePreview" in result.value)) throw Error("Expected authorized ready report");
+      expect(result.value.upgradePreview).toMatchObject({reportVersionId: record.reservation.reportVersionId,
+        chartVersionId: record.reservation.chartVersionId, locale: "vi", coverage: {openedSections: 4, lockedSections: 5, openedPalaces: 0, lockedPalaces: 12},
+        lockedPart: {palaceId: "ziwei.palace.life", clippedSentences: [opening + "…"]}});
+      expect(JSON.stringify(result.value)).not.toContain("LOCKED_REMAINDER_SENTINEL");
+      expect(JSON.stringify(result.value)).not.toContain(content.palaceReadings[0]!.narrative);
+    });
+
+    it("omits unavailable short prose while retaining honest version-specific coverage", async () => {
+      const record = v4_1Record({sku: "ZIWEI-NATAL-EXCERPT-P0", scope: TIER_1_ENTITLEMENT_SCOPE});
+      const service = createReportQueryService({repository: {readAuthorizedReport: vi.fn().mockResolvedValue(record)}, now: () => new Date("2026-10-04T12:00:00.000Z")});
+      const result = await service.getReport(accountActor, record.reservation.reportId);
+      if (!result.ok || !("upgradePreview" in result.value)) throw Error("Expected authorized ready report");
+      expect(result.value.upgradePreview?.lockedPart).toBeUndefined();
+      expect(result.value.upgradePreview?.coverage).toEqual({openedSections: 4, lockedSections: 5, openedPalaces: 0, lockedPalaces: 12});
+    });
+
     it("projects only owned palaces and adds identity sections only after the excerpt is owned", async () => {
       const record = v4_1Record();
       record.entitlements = [{ id: "life", chartId: "chart-1", sku: "ZIWEI-PALACE-LIFE-P0", scope: { sections: [], palaces: ["ziwei.palace.life"] }, active: true, source: "ledger_spend" }];
       const repository = { readAuthorizedReport: vi.fn().mockResolvedValue(record) };
-      const service = createReportQueryService({ repository });
+      const service = createReportQueryService({ repository, now: () => new Date("2026-10-04T12:00:00.000Z") });
       const first = await service.getReport(accountActor, record.reservation.reportId);
       expect(first.ok).toBe(true);
       if (!first.ok || !("contentVersion" in first.value) || first.value.contentVersion !== "ziwei-palaces.v1") throw new Error("expected palace projection");
       expect(first.value.content.palaceReadings.map((palace) => palace.palaceId)).toEqual(["ziwei.palace.life"]);
       expect(first.value.content.identity).toBeUndefined();
+      expect(first.value.chartVersionId).toBe(record.reservation.chartVersionId);
+      expect(first.value.upgradePreview?.coverage).toEqual({openedSections: 0, lockedSections: 9, openedPalaces: 1, lockedPalaces: 11});
       expect(JSON.stringify(first.value)).not.toContain("annualSnapshot");
       record.entitlements.push({ ...record.entitlements[0]!, id: "spouse", scope: { sections: [], palaces: ["ziwei.palace.spouse"] } });
       record.entitlements.push({ ...record.entitlements[0]!, id: "excerpt", sku: "ZIWEI-NATAL-EXCERPT-P0", scope: TIER_1_ENTITLEMENT_SCOPE });
@@ -1719,6 +1745,11 @@ describe("report query service", () => {
       expect(second.value.content.palaceReadings.map((palace) => palace.palaceId)).toEqual(["ziwei.palace.life", "ziwei.palace.spouse"]);
       expect(second.value.content.identity).toBeDefined();
       expect(second.value.content.lockedPalaces).toHaveLength(10);
+      expect(second.value.upgradePreview?.coverage).toEqual({openedSections: 4, lockedSections: 5, openedPalaces: 2, lockedPalaces: 10});
+      record.entitlements.find(item => item.id === "excerpt")!.expiresAt = new Date("2026-10-04T11:59:59.999Z");
+      const expired = await service.getReport(accountActor, record.reservation.reportId);
+      if (!expired.ok || !("upgradePreview" in expired.value)) throw Error("Expected retained owned palaces");
+      expect(expired.value.upgradePreview?.coverage).toEqual({openedSections: 0, lockedSections: 9, openedPalaces: 2, lockedPalaces: 10});
     });
 
     it("owner reads V4 comprehensive report with contentVersion ziwei-comprehensive.v2, decadal, annual, actions, and NO sensitivity", async () => {

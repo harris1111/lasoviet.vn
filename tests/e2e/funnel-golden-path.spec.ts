@@ -10,7 +10,7 @@ const evidence = process.env.LSV_FUNNEL_EVIDENCE_DIRECTORY!;
 const identity = JSON.parse(readFileSync(path.join(evidence, "identity.json"), "utf8"));
 if (identity.network !== "lsv80-qa" || !identity.builtCandidateNotPublishedArtifact || !identity.noWorkerRunning) throw Error("OWNED_ISOLATED_QA_REQUIRED");
 const database = (statement: string) => execFileSync("docker", ["exec", "lsv80-qa-db", "psql", "-U", "qa", "-d", "lsv80_qa", "-Atc", statement], {encoding: "utf8"}).trim();
-function fixture(action: string, ownerId: string, chart?: {chartId: string; chartVersionId: string}) {
+function fixture(action: string, ownerId: string, chart?: {chartId: string; chartVersionId: string; reportId?: string}) {
   return JSON.parse(execFileSync("docker", ["run", "--rm", "-i", "--network", "lsv80-qa", "--env-file", path.join(evidence, "app.env"), "-v", `${identity.sourceRoot}:/app:ro`, "-v", `${evidence}/qa-cert.pem:/qa-cert.pem:ro`, "-w", "/app", "node:24.16.0-bookworm-slim", "node", "tests/e2e/helpers/funnel-qa-fixtures.mjs"], {
     input: JSON.stringify({action, ownerId, ...chart}), encoding: "utf8",
   }));
@@ -90,10 +90,63 @@ async function readyReader(page: Page, ownerId: string, chart: {chartId: string;
   return reportId as string;
 }
 
+async function authorizedPreviewPrivacy(page: Page, ownerId: string, chart: {chartId: string; chartVersionId: string}, reportId: string, openedSections: number, openedPalaces: number) {
+  const view = fixture("read", ownerId, {...chart, reportId});
+  const stored = JSON.parse(database(`select json_build_object('reportId',report_id,'reportVersionId',report_version_id,'chartVersionId',chart_version_id,'locale',locale) from report_versions where report_id='${reportId}'`));
+  expect(view).toMatchObject({...stored, chartId: chart.chartId});
+  expect(view.upgradePreview).toMatchObject({reportVersionId: view.reportVersionId, chartVersionId: chart.chartVersionId, locale: view.locale,
+    coverage: {openedSections, lockedSections: 9 - openedSections, openedPalaces, lockedPalaces: 12 - openedPalaces}});
+  const tail = "LSV61_PRIVATE_TAIL_ziwei_palace_life";
+  const source = JSON.parse(database(`select structured_content->'palaceReadings' from report_versions where report_id='${reportId}'`)) as Array<{palaceId: string; title: string; narrative: string}>;
+  const ownedPalaces = new Set((view.content.palaceReadings ?? []).map((item: {palaceId: string}) => item.palaceId));
+  const hiddenTails = source.filter(item => !ownedPalaces.has(item.palaceId)).map(item => `LSV61_PRIVATE_TAIL_${item.palaceId.replaceAll(".", "_")}`);
+  const assertHidden = (body: string) => {for (const marker of hiddenTails) expect(body).not.toContain(marker);};
+  assertHidden(JSON.stringify(view));
+  const upgrade = page.getByTestId("reader-upgrade");
+  await expect(upgrade.getByTestId("reader-upgrade-section-coverage")).toContainText(`${openedSections} đã mở`);
+  await expect(upgrade.getByTestId("reader-upgrade-palace-coverage")).toContainText(`${openedPalaces} đã mở`);
+  const clipped = view.upgradePreview.lockedPart.clippedSentences[0];
+  expect(clipped.length).toBeLessThanOrEqual(201);
+  const original = source.find(item => item.palaceId === view.upgradePreview.lockedPart.palaceId)!;
+  expect(ownedPalaces.has(original.palaceId)).toBe(false);
+  expect(view.upgradePreview.lockedPart.title).toBe(original.title);
+  expect(original.narrative.startsWith(clipped.slice(0, -1))).toBe(true);
+  await expect(upgrade.getByTestId("reader-upgrade-preview")).toContainText(clipped);
+  await expect(upgrade.locator(".locked-preview-blur-bars")).toHaveAttribute("aria-hidden", "true");
+  expect(await upgrade.locator(".locked-preview-blur-bars").textContent()).toBe("");
+  assertHidden(await page.content());
+  assertHidden(await page.locator("main").ariaSnapshot());
+  const html = await page.request.get(`/bao-cao/${reportId}`);
+  expect(html.status()).toBe(200); assertHidden(await html.text());
+  const rsc = await page.request.get(`/bao-cao/${reportId}?_rsc=lsv61`, {headers: {RSC: "1"}});
+  expect(rsc.status()).toBe(200); expect(rsc.headers()["content-type"]).toContain("text/x-component");
+  assertHidden(await rsc.text());
+  await page.emulateMedia({media: "print"});
+  try {assertHidden(await page.locator("body").innerText());
+    await expect(upgrade.locator(".locked-preview-blur-bars")).toBeHidden();
+  } finally {await page.emulateMedia({media: "screen"});}
+  expect(fixture("asset_denial", ownerId, {...chart, reportId})).toEqual({partialScopeDeniedWithStoredMetadata: true, metadataRestored: true, noPdfBytesOrStoreCalls: true});
+  const asset = database(`select pdf_asset_id from report_versions where report_id='${reportId}'`);
+  // No PDF is generated: a partial owner must not receive any download projection.
+  const denied = await page.request.get(`/api/downloads/${asset}`);
+  expect(denied.status()).toBe(404); expect(await denied.text()).not.toContain("objectKey");
+  return {tail, reportVersionId: view.reportVersionId};
+}
+
 for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "desktop", width: 1440, height: 900}]) {
   test.describe(`real-network funnel ${viewport.name}`, () => {
     test.use({viewport: {width: viewport.width, height: viewport.height}});
     test.beforeEach(async ({page}) => {
+      await page.addInitScript(() => {
+        const state = Object.assign(window, {__lsv61FirstSectionObserved: false});
+        const NativeObserver = window.IntersectionObserver;
+        window.IntersectionObserver = class extends NativeObserver {
+          observe(target: Element) {
+            super.observe(target);
+            if (target.matches('[data-testid="reader-first-owned-section-end"]')) state.__lsv61FirstSectionObserved = true;
+          }
+        };
+      });
       await page.clock.setFixedTime(new Date("2026-10-04T12:00:00.000Z"));
       await expect.poll(async () => {try {return (await page.request.get("/health/ready")).status();} catch {return 0;}}).toBe(200);
     });
@@ -125,7 +178,17 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       const dialog = await preview(page, chart.chartId); await dialog.getByTestId("contextual-palace-unlock").click();
       await expect(dialog).toContainText("120 Lá"); await dialog.getByRole("button", {name: "Xác nhận mở", exact: true}).click();
       await expect(dialog.getByTestId("contextual-unlock-success")).toBeVisible();
-      await readyReader(page, owner.ownerId, chart);
+      const reportId = await readyReader(page, owner.ownerId, chart);
+      await expect.poll(() => page.evaluate(() => "__lsv61FirstSectionObserved" in window && window.__lsv61FirstSectionObserved)).toBe(true);
+      expect(await page.getByTestId("reader-first-owned-section-end").evaluate(element => element.getBoundingClientRect().top > window.innerHeight)).toBe(true);
+      expect(await page.locator("main.report-reader").evaluate(element => (window.scrollY - (element as HTMLElement).offsetTop) / (element.scrollHeight - window.innerHeight))).toBeLessThan(0.2);
+      await expect(page.getByTestId("reader-upgrade")).toHaveCount(0);
+      await page.locator('[id="ziwei.palace.wealth"]').scrollIntoViewIfNeeded();
+      await page.locator('[id="ziwei.palace.wealth"]').evaluate(element => window.scrollTo(0, element.getBoundingClientRect().bottom + window.scrollY - 100));
+      await expect(page.getByTestId("reader-upgrade")).toBeVisible();
+      await authorizedPreviewPrivacy(page, owner.ownerId, chart, reportId, 0, 1);
+      await page.goto(`/en/bao-cao/${reportId}`);
+      await page.waitForURL(`${canonical}/bao-cao/${reportId}`);
       expect(database(`select count(*) from commerce_entitlements where owner_id='${owner.ownerId}' and sku='ZIWEI-PALACE-WEALTH-P0' and revoked_at is null`)).toBe("1");
     });
     test("short balance → selected pack → simulated paid → immutable automatic unlock", async ({page}) => {
@@ -149,14 +212,21 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       const dialog = page.locator("dialog.unlock-sheet"); await expect(dialog).toContainText("240 Lá");
       await dialog.getByRole("button", {name: "Xác nhận mở", exact: true}).click();
       await expect(page.locator(".offer-ladder-summary [role=status]")).toBeVisible();
-      await readyReader(page, owner.ownerId, chart);
+      const reportId = await readyReader(page, owner.ownerId, chart);
       await page.locator("#section-strengths-tensions").scrollIntoViewIfNeeded();
+      const {tail: lockedTail, reportVersionId: originalVersionId} = await authorizedPreviewPrivacy(page, owner.ownerId, chart, reportId, 4, 0);
       const upgrade = page.locator(".reader-upgrade"); await expect(upgrade).toContainText("720 Lá");
       await upgrade.getByRole("button", {name: "Xem giá và xác nhận nâng cấp", exact: true}).click();
       await expect(page.locator("dialog.unlock-sheet")).toContainText("720 Lá");
       await page.locator("dialog.unlock-sheet").getByRole("button", {name: "Xác nhận mở", exact: true}).click();
       await expect.poll(() => database(`select count(*) from wallet_purchase_intents where owner_id='${owner.ownerId}' and sku='ZIWEI-IDENTITY-P0' and status='completed' and price_la=720`)).toBe("1");
-      await expect(page.locator("main")).toContainText("Cung kiểm thử");
+      await expect(page.locator("main")).toContainText(lockedTail);
+      const upgraded = fixture("read", owner.ownerId, {...chart, reportId});
+      expect(upgraded.upgradePreview.coverage).toEqual({openedSections: 9, lockedSections: 0, openedPalaces: 12, lockedPalaces: 0});
+      expect(upgraded.reportVersionId).toBe(originalVersionId);
+      const spent = database(`select count(*) from wallet_transactions t join wallet_accounts a on a.id=t.wallet_id where a.owner_id='${owner.ownerId}' and t.kind='spend'`);
+      await page.reload(); await expect(page.locator("main")).toContainText(lockedTail);
+      expect(database(`select count(*) from wallet_transactions t join wallet_accounts a on a.id=t.wallet_id where a.owner_id='${owner.ownerId}' and t.kind='spend'`)).toBe(spent);
     });
     test("offer and top-up controls remain live after soft navigation", async ({page}) => {
       const owner = await account(page.context()); const chart = await createChart(page);

@@ -1,3 +1,4 @@
+import { buildReaderUpgradePreview } from "./reader-upgrade-preview.js";
 import { periodKindForSku, isPeriodReportTuple, periodReportVersions } from "./period-report-config.js";
 import { ZiweiPeriodReadingContentV1Schema, ZiweiPeriodReadingFactsV1Schema, projectPeriodReadingPublicContent } from "@lasoviet/contracts";
 import { topicIdForSku, isTopicReportTuple, topicReportVersions } from "./topic-report-config.js";
@@ -189,14 +190,18 @@ function projectOwnedPalaces(
         ? projectComprehensiveReportPublicContentV2(stored as ZiweiComprehensiveReportContentV2, TIER_1_ENTITLEMENT_SCOPE)
         : projectComprehensiveReportPublicContent(stored as ZiweiComprehensiveReportContentV1, TIER_1_ENTITLEMENT_SCOPE)
     : undefined;
+  const palaceReadings = stored.palaceReadings.filter((palace) => palaces.has(palace.palaceId))
+    .map(({ palaceId, title, narrative }) => ({ palaceId, title, narrative }));
   return ReportPalacesReadyViewV1Schema.parse({
     version: 1, state: "ready", contentVersion: "ziwei-palaces.v1", locale: "vi",
     reportId: record.reservation.reportId, reportVersionId: record.reservation.reportVersionId,
     sku: record.reservation.sku, fulfillmentStatus: record.reservation.status,
     chartId: record.chartId,
+    chartVersionId: record.reservation.chartVersionId,
+    upgradePreview: buildReaderUpgradePreview({stored, projected: {...identity, palaceReadings},
+      reportVersionId: record.reservation.reportVersionId, chartVersionId: record.reservation.chartVersionId, locale: "vi"}),
     content: {
-      palaceReadings: stored.palaceReadings.filter((palace) => palaces.has(palace.palaceId))
-        .map(({ palaceId, title, narrative }) => ({ palaceId, title, narrative })),
+      palaceReadings,
       lockedPalaces: ZIWEI_PALACE_IDS.filter((palace) => !palaces.has(palace)),
       ...(identity ? { identity } : {}),
     },
@@ -478,6 +483,8 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          upgradePreview: buildReaderUpgradePreview({stored: parsedV4_1.data, projected: publicContent,
+            reportVersionId: reservation.reportVersionId, chartVersionId: version.chartVersionId, locale: "vi"}),
           chartId: record.chartId,
           chartSnapshot: buildReportChartSnapshotFromStored(
             record.chartNormalizedOutput,
@@ -550,6 +557,8 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          upgradePreview: buildReaderUpgradePreview({stored: parsedV4.data, projected: publicContent,
+            reportVersionId: reservation.reportVersionId, chartVersionId: version.chartVersionId, locale: "vi"}),
           chartId: record.chartId,
           chartSnapshot: buildReportChartSnapshotFromStored(
             record.chartNormalizedOutput,
@@ -620,6 +629,8 @@ export function createReportQueryService(options: {
           sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus,
           content: publicContent,
+          upgradePreview: buildReaderUpgradePreview({stored: parsedV3.data, projected: publicContent,
+            reportVersionId: reservation.reportVersionId, chartVersionId: version.chartVersionId, locale: "vi"}),
           chartId: record.chartId,
           lineage: {
             supersedesReportVersionId: version.supersedesReportVersionId ?? null,
