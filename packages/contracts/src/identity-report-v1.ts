@@ -720,6 +720,27 @@ export function projectComprehensiveReportPublicContentV3(
   };
 }
 
+export const ReportUpgradePreviewV1Schema = z.object({
+  version: z.literal(1),
+  reportVersionId: z.string().trim().min(1),
+  chartVersionId: z.string().trim().min(1),
+  locale: z.enum(["vi", "en"]),
+  coverage: z.object({
+    openedSections: z.number().int().min(0).max(9),
+    lockedSections: z.number().int().min(0).max(9),
+    openedPalaces: z.number().int().min(0).max(12),
+    lockedPalaces: z.number().int().min(0).max(12),
+  }).strict().refine(value => value.openedSections + value.lockedSections <= 9 &&
+    value.openedPalaces + value.lockedPalaces <= 12, "Coverage exceeds the closed report scope"),
+  lockedPart: z.object({
+    palaceId: z.enum(ZIWEI_PALACE_IDS),
+    title: z.string().trim().min(1).max(120),
+    clippedSentences: z.array(z.string().trim().min(1).max(201)).min(1).max(2),
+    lengthHint: z.number().int().min(2).max(8),
+  }).strict().optional(),
+}).strict();
+export type ReportUpgradePreviewV1 = z.infer<typeof ReportUpgradePreviewV1Schema>;
+
 const baseReportReadyViewV1Schema = z.object({
   chartId: z.string().trim().min(1).optional(),
   chartVersionId: z.string().trim().min(1).optional(),
@@ -759,6 +780,7 @@ export const ReportLegacyReadyViewV1Schema = baseReportReadyViewV1Schema.extend(
 export type ReportLegacyReadyViewV1 = z.infer<typeof ReportLegacyReadyViewV1Schema>;
 
 export const ReportComprehensiveTier1ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  upgradePreview: ReportUpgradePreviewV1Schema.optional(),
   contentVersion: z.literal("ziwei-comprehensive.v1"),
   locale: z.literal("vi"),
   content: ComprehensiveReportTier1PublicContentV1Schema,
@@ -768,6 +790,7 @@ export type ReportComprehensiveTier1ReadyViewV1 = z.infer<
 >;
 
 export const ReportComprehensiveTier2ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  upgradePreview: ReportUpgradePreviewV1Schema.optional(),
   contentVersion: z.literal("ziwei-comprehensive.v1"),
   locale: z.literal("vi"),
   content: ComprehensiveReportTier2PublicContentV1Schema,
@@ -777,6 +800,7 @@ export type ReportComprehensiveTier2ReadyViewV1 = z.infer<
 >;
 
 export const ReportComprehensiveReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  upgradePreview: ReportUpgradePreviewV1Schema.optional(),
   contentVersion: z.literal("ziwei-comprehensive.v1"),
   locale: z.literal("vi"),
   content: ComprehensiveReportPublicContentV1Schema,
@@ -786,6 +810,7 @@ export type ReportComprehensiveReadyViewV1 = z.infer<
 >;
 
 export const ReportComprehensiveV2ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  upgradePreview: ReportUpgradePreviewV1Schema.optional(),
   contentVersion: z.literal("ziwei-comprehensive.v2"),
   locale: z.literal("vi"),
   content: ComprehensiveReportPublicContentV2Schema,
@@ -796,6 +821,7 @@ export type ReportComprehensiveV2ReadyViewV1 = z.infer<
 >;
 
 export const ReportComprehensiveV3ReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  upgradePreview: ReportUpgradePreviewV1Schema.optional(),
   contentVersion: z.literal("ziwei-comprehensive.v3"),
   locale: z.literal("vi"),
   content: ComprehensiveReportPublicContentV3Schema,
@@ -806,6 +832,7 @@ export type ReportComprehensiveV3ReadyViewV1 = z.infer<
 >;
 
 export const ReportPalacesReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
+  upgradePreview: ReportUpgradePreviewV1Schema.optional(),
   contentVersion: z.literal("ziwei-palaces.v1"),
   locale: z.literal("vi"),
   content: z.object({

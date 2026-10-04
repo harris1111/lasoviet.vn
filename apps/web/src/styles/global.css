@@ -1187,6 +1187,7 @@ html[data-theme="light"]:has([data-light-ready]) .result-tab-button.is-active {
 /* FD-105: owned-reader upgrades show public labels and empty placeholders. */
 .reader-upgrade-previews { display: grid; gap: 12px; margin-block: 16px; min-width: 0; }
 .reader-upgrade-previews .secure-locked-preview-card { min-width: 0; }
+.reader-upgrade-previews > :only-child { grid-column: 1 / -1; }
 .reader-upgrade .btn-upgrade { min-height: 44px; max-width: 100%; white-space: normal; }
 .reader-upgrade-topup { display: inline-flex; align-items: center; min-height: 44px; margin-inline-start: 16px; }
 @media (min-width: 760px) { .reader-upgrade-previews { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

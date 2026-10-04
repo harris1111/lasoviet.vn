@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import type {
   EvidenceItemV1,
   ReportLegacyReadyViewV1,
+  ReportPalacesReadyViewV1,
   ReportReadyViewV1,
   ReportComprehensiveV3ReadyViewV1,
 } from "@lasoviet/contracts";
@@ -601,10 +602,27 @@ function LegacyReportReader({ locale, report }: LegacyReportReaderProps) {
   );
 }
 
-export function ReportReader({ locale, report }: ReportReaderProps) {
-  if (report.contentVersion === "ziwei-palaces.v1") {
+function PalaceReportReader({locale, report}: {locale: "vi" | "en"; report: ReportPalacesReadyViewV1}) {
+  const root = useRef<HTMLElement>(null);
+  const firstSectionEnd = useRef<HTMLSpanElement>(null);
+  const [canShowUpgrade, setCanShowUpgrade] = useState(false);
+  useEffect(() => {
+    const marker = firstSectionEnd.current;
+    const observer = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) setCanShowUpgrade(true);
+    });
+    if (marker) observer?.observe(marker);
+    const onScroll = () => {
+      const reader = root.current;
+      if (!reader) return;
+      const range = reader.scrollHeight - window.innerHeight;
+      if (range > 0 && (window.scrollY - reader.offsetTop) / range >= 0.2) setCanShowUpgrade(true);
+    };
+    window.addEventListener("scroll", onScroll, {passive: true});
+    return () => {observer?.disconnect(); window.removeEventListener("scroll", onScroll);};
+  }, []);
     const identity = report.content.identity;
-    return <main className="report-reader">
+    return <main className="report-reader" ref={root}>
       {identity && <>
         {[identity.overview, identity.coreAxis, identity.strengthsAndTensions].map((section) =>
           <section key={section.title}><h2>{section.title}</h2><p>{section.narrative}</p></section>)}
@@ -616,10 +634,16 @@ export function ReportReader({ locale, report }: ReportReaderProps) {
         <section id={palace.palaceId}>
           <h2>{palace.title}</h2><p style={{ whiteSpace: "pre-line" }}>{palace.narrative}</p>
         </section>
-        {index === 0 && <ReaderUpgrade locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} />}
+        {index === 0 && <>
+          <span ref={firstSectionEnd} aria-hidden="true" style={{display: "block", height: 1}} />
+          {canShowUpgrade && <ReaderUpgrade locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} reportVersionId={report.reportVersionId} reportLocale={report.locale} upgradePreview={report.upgradePreview} />}
+        </>}
       </Fragment>)}
     </main>;
-  }
+}
+
+export function ReportReader({ locale, report }: ReportReaderProps) {
+  if (report.contentVersion === "ziwei-palaces.v1") return <PalaceReportReader key={report.reportVersionId} locale={locale} report={report} />;
   if (report.contentVersion === "ziwei.period-reading.v1") return <PeriodReportReader report={report} />;
   if (report.contentVersion === "ziwei.topic-deep-dive.v1") return <TopicReportReader report={report} />;
   if (report.contentVersion === "ziwei-comprehensive.v1") {

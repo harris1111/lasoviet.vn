@@ -358,7 +358,9 @@
     "timing": "Đại vận và năm hiện tại",
     "scope": "Chỉ hiển thị tiêu đề và hình minh họa cho đến khi bạn mở.",
     "openedPalaces": "Bạn đã mở {count}/12 cung",
-    "creditExpiry": "Khấu trừ có hiệu lực đến {date}."
+    "creditExpiry": "Khấu trừ có hiệu lực đến {date}.",
+    "sectionCoverage": "Các mục ngoài phần cung: {opened} đã mở · {locked} còn khóa.",
+    "palaceCoverage": "Các cung: {opened} đã mở · {locked} còn khóa."
   },
   "topicReader": {
     "eyebrow": "Luận giải chuyên sâu",
