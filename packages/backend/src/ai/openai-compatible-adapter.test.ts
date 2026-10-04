@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "@lasoviet/contracts";
+import { createInMemoryAiCostService } from "./ai-cost.js";
 import type { BeginAttemptInput, CompleteAttemptInput } from "./ai-cost.js";
 import {
   createAiProductionGate,
@@ -470,4 +471,102 @@ describe("OpenAI-compatible adapter", () => {
       expect(JSON.stringify(completeCalls)).not.toContain("Here is the result");
     },
   );
+});
+
+
+describe("AI usage cost integrity", () => {
+  const now = new Date("2026-10-04T12:00:00Z");
+  async function recorded(usage: unknown, status = 200, models: {requested?: string; resolved?: string; providerId?: string} = {}) {
+    const requestedModel = models.requested ?? "synthetic-model", resolvedModel = models.resolved ?? requestedModel;
+    vi.useFakeTimers({toFake: ["Date"]}); vi.setSystemTime(now);
+    try {
+      const cost = createInMemoryAiCostService(); await cost.savePricing({...samplePricing, providerId: models.providerId ?? "9router-an", modelId: requestedModel});
+      const fetchSpy = vi.fn(async () => jsonResponse({...responseBody('{"value":"sentinel"}'), model: resolvedModel, usage}, status));
+      const adapter = createOpenAiCompatibleAdapter({baseUrl: "https://ai.synthetic.test/v1", apiKey: "synthetic",
+        modelId: requestedModel, allowedResolvedModelIds: [requestedModel, resolvedModel], providerId: models.providerId, timeoutMs: 100, retryCount: 0,
+        productionGate: createAiProductionGate("approved"), costRecorder: cost.recorder, fetchImpl: fetchSpy});
+      const result = await adapter.generateStructured({...request, use: "production_report_generation", costContext: {chartId: "usage-integrity"}});
+      return {result, summary: await cost.getAiCogsPerChart("usage-integrity"), calls: fetchSpy.mock.calls.length};
+    } finally {vi.useRealTimers();}
+  }
+  const complete = {prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500};
+  const unresolved: Array<[string, unknown]> = [
+    ["missing input", {completion_tokens: 500}], ["missing output", {prompt_tokens: 1000}],
+    ["null input", {...complete, prompt_tokens: null}], ["numeric string", {...complete, completion_tokens: "500"}],
+    ["negative", {...complete, prompt_tokens: -1}], ["fraction", {...complete, completion_tokens: 0.5}],
+    ["unsafe integer", {...complete, prompt_tokens: Number.MAX_SAFE_INTEGER + 1}],
+    ["overflowing total", {prompt_tokens: Number.MAX_SAFE_INTEGER, completion_tokens: 1}],
+    ["contradictory total", {...complete, total_tokens: 1600}], ["null total", {...complete, total_tokens: null}],
+    ["negative cache", {...complete, cached_tokens: -1}], ["cache beyond input", {...complete, cached_tokens: 1001}],
+    ["cache aliases disagree", {...complete, cached_tokens: 10, prompt_tokens_details: {cached_tokens: 11}}],
+    ["malformed detail", {...complete, completion_tokens_details: []}],
+    ["nested reasoning", {...complete, completion_tokens_details: {reasoning_tokens: 200}}],
+    ["top-level reasoning", {...complete, reasoning_tokens: 200}],
+    ["nested cache creation", {...complete, prompt_tokens_details: {cache_creation_tokens: 100}}],
+    ["top-level cache creation", {...complete, cache_creation_input_tokens: 100}],
+    ["unsupported cache read", {...complete, cache_read_input_tokens: 100}],
+    ["audio", {...complete, prompt_tokens_details: {audio_tokens: 20}}],
+    ["prediction", {...complete, completion_tokens_details: {rejected_prediction_tokens: 20}}],
+    ["malformed extra counter", {...complete, completion_tokens_details: {reasoning_tokens: null}}],
+  ];
+  it.each(unresolved)("keeps %s unresolved instead of inventing a partial cost", async (_name, usage) => {
+    const evidence = await recorded(usage);
+    expect(evidence.calls).toBe(1); expect(evidence.result).toMatchObject({ok: true, value: {usage: {tokensUnknown: true, costStatus: "unknown"}}});
+    expect(evidence.summary).toMatchObject({hasIncompleteAttempts: true, unknownAttemptCount: 1});
+    expect(evidence.summary.records).toHaveLength(1);
+    expect(evidence.summary.records[0]).toMatchObject({tokensUnknown: true, costStatus: "unknown"});
+    expect(evidence.summary.records[0]!.costVnd).toBeUndefined(); expect(evidence.summary.records[0]!.costMicroVnd).toBeUndefined();
+  });
+  it.each(["top-level", "prompt_tokens_details", "completion_tokens_details", "input_tokens_details", "output_tokens_details"].flatMap(location =>
+    ["reasoning_tokens", "cache_creation_input_tokens", "cache_creation_tokens", "cache_read_input_tokens", "audio_tokens", "accepted_prediction_tokens", "rejected_prediction_tokens"]
+      .map(dimension => [location, dimension] as const)))
+    ("keeps unpriced %s.%s out of resolved COGS", async (location, dimension) => {
+      const extra = location === "top-level" ? {[dimension]: 100} : {[location]: {[dimension]: 100}};
+      const evidence = await recorded({...complete, ...extra});
+      expect(evidence.result).toMatchObject({ok: true, value: {usage: {tokensUnknown: true, costStatus: "unknown"}}});
+      expect(evidence.summary).toMatchObject({hasIncompleteAttempts: true, unknownAttemptCount: 1});
+      expect(evidence.summary.records).toHaveLength(1);
+      expect(evidence.summary.records[0]).toMatchObject({tokensUnknown: true, costStatus: "unknown"});
+      expect(evidence.summary.records[0]!.costMicroVnd).toBeUndefined();
+    });
+  it.each([
+    {requested: "ag/gemini-3.8-flash"},
+    {requested: "ag/gemini-3.8-flash", resolved: "gemini-3.8-flash"},
+    {requested: "synthetic-alias", resolved: "ag/gemini-3.8-flash"},
+    {requested: "gemini-3.8-flash"},
+  ])("quarantines complete-looking 9router Gemini usage %#", async models => {
+    const evidence = await recorded({...complete, completion_tokens_details: {reasoning_tokens: 0}, cached_tokens: 0}, 200, models);
+    expect(evidence.result).toMatchObject({ok: true, value: {value: {value: "sentinel"}, usage: {tokensUnknown: true, costStatus: "unknown"}}});
+    expect(evidence.calls).toBe(1); expect(evidence.summary).toMatchObject({hasIncompleteAttempts: true, unknownAttemptCount: 1});
+    expect(evidence.summary.records[0]).toMatchObject({tokensUnknown: true, costStatus: "unknown"});
+    expect(evidence.summary.records[0]!.costMicroVnd).toBeUndefined();
+  });
+  it("retains supported cost for an explicitly different provider", async () => {
+    const evidence = await recorded(complete, 200, {requested: "ag/gemini-3.8-flash", providerId: "openrouter"});
+    expect(evidence.result).toMatchObject({ok: true, value: {usage: {tokensUnknown: false, costStatus: "resolved"}}});
+    expect(evidence.summary.records[0]).toMatchObject({costStatus: "resolved", costMicroVnd: "45000000"});
+  });
+  it("keeps Gemini probe cost unknown without a recorder while retaining structured output", async () => {
+    const modelId = "ag/gemini-3.8-flash";
+    const adapter = createOpenAiCompatibleAdapter({baseUrl: "https://ai.synthetic.test/v1", apiKey: "synthetic", modelId,
+      allowedResolvedModelIds: [modelId], timeoutMs: 100, retryCount: 0, productionGate: createAiProductionGate("approved"),
+      fetchImpl: async () => jsonResponse({...responseBody('{"value":"sentinel"}'), model: modelId, usage: complete})});
+    expect(await adapter.generateStructured(request)).toMatchObject({ok: true, value: {value: {value: "sentinel"}, usage: {tokensUnknown: true, costStatus: "unknown"}}});
+  });
+  it("also records incomplete usage from an HTTP error as unknown", async () => {
+    const evidence = await recorded({prompt_tokens: 1000}, 500);
+    expect(evidence.calls).toBe(1); expect(evidence.result).toMatchObject({ok: false});
+    expect(evidence.summary.records[0]).toMatchObject({tokensUnknown: true, costStatus: "unknown"});
+  });
+  it.each(["cached_tokens", "prompt_cache_hit_tokens", "prompt_tokens_details", "input_tokens_details"])("preserves exact supported cache cost via %s", async alias => {
+    const cache = alias.endsWith("details") ? {[alias]: {cached_tokens: 300}} : {[alias]: 300};
+    const evidence = await recorded({...complete, ...cache});
+    expect(evidence.summary).toMatchObject({hasIncompleteAttempts: false, unknownAttemptCount: 0});
+    expect(evidence.summary.records[0]).toMatchObject({inputTokens: 1000, outputTokens: 500, cachedTokens: 300,
+      totalTokens: 1500, tokensUnknown: false, costStatus: "resolved", costMicroVnd: "41625000", costVnd: 42});
+  });
+  it("derives a missing total from two complete counters and accepts zero extra dimensions", async () => {
+    const evidence = await recorded({prompt_tokens: 1000, completion_tokens: 500, completion_tokens_details: {reasoning_tokens: 0}, prompt_tokens_details: {cache_creation_tokens: 0}});
+    expect(evidence.summary.records[0]).toMatchObject({totalTokens: 1500, costStatus: "resolved", costMicroVnd: "45000000", costVnd: 45});
+  });
 });

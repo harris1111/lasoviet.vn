@@ -70,41 +70,28 @@ function extractUsage(payload: unknown): {
   tokensUnknown: boolean;
 } {
   const usage = (payload as { usage?: Record<string, unknown> })?.usage;
-  if (!usage || typeof usage !== "object") {
-    return { tokensUnknown: true };
-  }
-  const promptTokens = typeof usage.prompt_tokens === "number" ? usage.prompt_tokens : undefined;
-  const completionTokens =
-    typeof usage.completion_tokens === "number" ? usage.completion_tokens : undefined;
-  const totalTokens = typeof usage.total_tokens === "number" ? usage.total_tokens : undefined;
-
-  let cachedTokens = 0;
-  if (typeof usage.cached_tokens === "number") {
-    cachedTokens = usage.cached_tokens;
-  } else if (typeof usage.prompt_cache_hit_tokens === "number") {
-    cachedTokens = usage.prompt_cache_hit_tokens;
-  } else if (
-    usage.prompt_tokens_details &&
-    typeof usage.prompt_tokens_details === "object" &&
-    typeof (usage.prompt_tokens_details as Record<string, unknown>).cached_tokens === "number"
-  ) {
-    cachedTokens = (usage.prompt_tokens_details as Record<string, unknown>).cached_tokens as number;
-  }
-
-  if (promptTokens === undefined && completionTokens === undefined) {
-    return { tokensUnknown: true };
-  }
-
-  const input = promptTokens ?? 0;
-  const output = completionTokens ?? 0;
-  const total = totalTokens ?? input + output;
-  return {
-    inputTokens: input,
-    outputTokens: output,
-    cachedTokens,
-    totalTokens: total,
-    tokensUnknown: false,
-  };
+  const unknown = { tokensUnknown: true };
+  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return unknown;
+  const counter = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+  const input = usage.prompt_tokens, output = usage.completion_tokens;
+  // A missing counter is not an authoritative zero-charge proof.
+  if (!counter(input) || !counter(output) || !Number.isSafeInteger(input + output)) return unknown;
+  const details = [usage.prompt_tokens_details, usage.completion_tokens_details, usage.input_tokens_details, usage.output_tokens_details];
+  if (details.some(value => value !== undefined && (value === null || typeof value !== "object" || Array.isArray(value)))) return unknown;
+  const records = details.map(value => (value ?? {}) as Record<string, unknown>);
+  const unpricedNames = ["reasoning_tokens", "cache_creation_input_tokens", "cache_creation_tokens",
+    "cache_read_input_tokens", "audio_tokens", "accepted_prediction_tokens", "rejected_prediction_tokens"] as const;
+  const extraDimensions = [usage, ...records].flatMap(record => unpricedNames.map(name => record[name]));
+  // The current immutable three-rate tariff cannot resolve these billed dimensions.
+  if (extraDimensions.some(value => value !== undefined && (!counter(value) || value !== 0))) return unknown;
+  const aliases = [usage.cached_tokens, usage.prompt_cache_hit_tokens, records[0]!.cached_tokens, records[2]!.cached_tokens]
+    .filter(value => value !== undefined);
+  if (aliases.some(value => !counter(value) || value > input)) return unknown;
+  const cached = (aliases[0] as number | undefined) ?? 0;
+  if (aliases.some(value => value !== cached)) return unknown;
+  const total = usage.total_tokens === undefined ? input + output : usage.total_tokens;
+  if (!counter(total) || total !== input + output) return unknown;
+  return { inputTokens: input, outputTokens: output, cachedTokens: cached, totalTokens: total, tokensUnknown: false };
 }
 
 function extractFirstJsonObject(raw: string): string | undefined {
@@ -230,6 +217,17 @@ export function createOpenAiCompatibleAdapter(
   const fetchImpl = options.fetchImpl ?? fetch;
   const providerId = options.providerId ?? resolveOpenAiCompatibleProviderId(options.baseUrl);
   const allowedResolvedModelIds = new Set(options.allowedResolvedModelIds);
+  const providerUsage = (payload: unknown): ReturnType<typeof extractUsage> => {
+    const resolved = payload !== null && typeof payload === "object"
+      ? (payload as Record<string, unknown>).model : undefined;
+    // Installed 9router Gemini translation removes cache evidence and buffers
+    // client counters; even complete-looking usage cannot prove the billed cost.
+    if (providerId === "9router-an" && [options.modelId, resolved].some(model =>
+      typeof model === "string" && /^(?:ag\/)?gemini-/i.test(model.trim()))) {
+      return { tokensUnknown: true };
+    }
+    return extractUsage(payload);
+  };
 
   return {
     async generateStructured<TSchema extends z.ZodType>(
@@ -339,7 +337,7 @@ export function createOpenAiCompatibleAdapter(
         if (!result.response.ok) {
           let errorUsage = { tokensUnknown: true };
           if (result.body.ok) {
-            errorUsage = extractUsage(result.body.value);
+            errorUsage = providerUsage(result.body.value);
           }
 
           const errCode = isUnsupportedStatus(result.response.status)
@@ -382,7 +380,7 @@ export function createOpenAiCompatibleAdapter(
         }
         payload = result.body.value;
 
-        const usage = extractUsage(payload);
+        const usage = providerUsage(payload);
         const payloadRecord =
           payload !== null && typeof payload === "object"
             ? (payload as Record<string, unknown>)
@@ -429,7 +427,7 @@ export function createOpenAiCompatibleAdapter(
 
         let recordedCostVnd: number | undefined;
         let recordedCostMicroVnd: string | undefined;
-        let recordedCostStatus: "resolved" | "unknown" = "resolved";
+        let recordedCostStatus: "resolved" | "unknown" = usage.tokensUnknown ? "unknown" : "resolved";
 
         if (options.costRecorder && attemptId) {
           const compRes = await options.costRecorder.completeAttempt({
