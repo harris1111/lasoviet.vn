@@ -1008,7 +1008,7 @@ describe("wallet unlock repository integration", () => {
       sku: "ZIWEI-IDENTITY-P0",
       locale: "en",
     });
-    const tierTwoConflict = await service.createPurchaseIntent(base.actor, {
+    const tierTwoReplacement = await service.createPurchaseIntent(base.actor, {
       chartId: base.chartId,
       chartVersionId: base.chartVersionId,
       sku: "ZIWEI-IDENTITY-P0",
@@ -1030,9 +1030,63 @@ describe("wallet unlock repository integration", () => {
     expect(tierOne).toMatchObject({ ok: true, value: { amountLa: 240, locale: "vi" }, reused: false });
     expect(tierTwo).toMatchObject({ ok: true, value: { amountLa: 960, locale: "en" }, reused: false });
     expect(tierTwoReplay).toMatchObject({ ok: true, value: { amountLa: 960, locale: "en" }, reused: true });
-    expect(tierTwoConflict).toEqual({ ok: false, code: "WALLET_INTENT_VERSION_CONFLICT" });
+    expect(tierTwoReplacement).toMatchObject({ ok: true, value: { amountLa: 960, locale: "vi" }, reused: false });
+    if (tierTwo.ok && tierTwoReplacement.ok) expect(tierTwoReplacement.value.id).not.toBe(tierTwo.value.id);
     expect(upgrade).toMatchObject({ ok: true, value: { amountLa: 720 }, reused: false });
     expect(expiredUpgrade).toMatchObject({ ok: true, value: { amountLa: 960 }, reused: false });
+  });
+
+  it.each([['vi', 'en'], ['en', 'vi']] as const)("replaces unpaid %s terms with immutable %s terms and fences the old command", async (originalLocale, nextLocale) => {
+    const owner = await ownerFixture("Locale replacement");
+    const {service, repository, authority} = walletPorts(owner.userId);
+    const funded = await repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()), topUpOrderId: null, trustedGrantToken: authority.token});
+    if (!funded.ok) throw new Error(funded.code);
+    const request = {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-IDENTITY-P0"};
+    const first = await service.createPurchaseIntent(owner.actor, {...request, locale: originalLocale});
+    if (!first.ok) throw new Error(first.code);
+    expect(await service.createPurchaseIntent(owner.actor, {...request, locale: "fr"})).toEqual({ok: false, code: "WALLET_INTENT_INVALID"});
+    expect(await service.createPurchaseIntent(owner.actor, {...request, locale: originalLocale})).toMatchObject({ok: true, value: first.value, reused: true});
+    const replacement = await service.createPurchaseIntent(owner.actor, {...request, locale: nextLocale});
+    if (!replacement.ok) throw new Error(replacement.code);
+    expect(replacement.value).toMatchObject({locale: nextLocale, amountLa: 960, stateVersion: 1});
+    expect(replacement.value.id).not.toBe(first.value.id);
+    const [old] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, first.value.id));
+    expect(old).toMatchObject({locale: originalLocale, status: "cancelled", stateVersion: first.value.stateVersion + 1});
+    const command = {purchaseIntentId: first.value.id, expectedIntentVersion: first.value.stateVersion, expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()};
+    expect(await service.unlock(owner.actor, command)).toEqual({ok: false, code: "WALLET_INTENT_VERSION_CONFLICT"});
+    const result = await service.unlock(owner.actor, {...command, purchaseIntentId: replacement.value.id});
+    if (!result.ok) throw new Error(result.code);
+    expect(result.value.balance.totalLa).toBe(1040);
+    const reservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId));
+    expect(reservations).toEqual([expect.objectContaining({locale: nextLocale})]);
+    expect(await service.unlock(owner.actor, {...command, purchaseIntentId: replacement.value.id})).toEqual(result);
+  });
+
+  it("serializes locale replacement against a direct unlock without double spending", async () => {
+    const owner = await ownerFixture("Locale unlock race");
+    const {service, repository, authority} = walletPorts(owner.userId);
+    const funded = await repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()), topUpOrderId: null, trustedGrantToken: authority.token});
+    if (!funded.ok) throw new Error(funded.code);
+    const request = {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-IDENTITY-P0", locale: "vi"};
+    const initial = await service.createPurchaseIntent(owner.actor, request);
+    if (!initial.ok) throw new Error(initial.code);
+    const [replacement, unlocked] = await Promise.all([
+      service.createPurchaseIntent(owner.actor, {...request, locale: "en"}),
+      service.unlock(owner.actor, {purchaseIntentId: initial.value.id, expectedIntentVersion: initial.value.stateVersion, expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()}),
+    ]);
+    expect(Number(replacement.ok) + Number(unlocked.ok)).toBe(1);
+    const intents = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.ownerId, owner.userId));
+    const reservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId));
+    if (unlocked.ok) {
+      expect(reservations).toEqual([expect.objectContaining({locale: "vi"})]);
+      expect(intents).toHaveLength(1);
+      expect(replacement).toMatchObject({ok: false, code: "WALLET_ENTITLEMENT_EXISTS"});
+    } else {
+      expect(reservations).toHaveLength(0);
+      expect(intents.map(intent => [intent.locale, intent.status]).sort()).toEqual([["en", "pending"], ["vi", "cancelled"]]);
+      expect(unlocked.ok).toBe(false);
+      if (!unlocked.ok) expect(["WALLET_INTENT_VERSION_CONFLICT", "WALLET_INVALID_INTENT"]).toContain(unlocked.code);
+    }
   });
 
   it("applies dynamic 7-day rollover discount from single palace and excerpt spends into Tử Vi trọn đời (960 base)", async () => {

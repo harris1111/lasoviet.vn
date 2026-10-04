@@ -286,6 +286,42 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, chart.chartVersionId))).toHaveLength(1);
   });
 
+  it.each(["replace-first", "settle-first", "concurrent"])("keeps original top-up locale authority and credits once during %s replacement", async (ordering) => {
+    const {actor, repository, continuation, chart, intent} = await continuationFixture("ZIWEI-IDENTITY-P0");
+    const created = await repository.createTopUpOrder(actor, "LA-START-1100", "vi", continuation);
+    if (!created.ok) throw new Error(created.code);
+    const payment = {invoiceNumber: created.value.invoiceNumber, providerEventId: randomUUID(), amount: 99000, currency: "VND", traceId: "locale-replacement"};
+    const replace = () => repository.createWalletPurchaseIntent(actor, {chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku: intent.sku, locale: "en"});
+    let replacement;
+    if (ordering === "replace-first") {replacement = await replace(); expect(await repository.recordPaid(payment)).toMatchObject({ok: true});}
+    else if (ordering === "settle-first") {expect(await repository.recordPaid(payment)).toMatchObject({ok: true}); replacement = await replace();}
+    else {const outcomes = await Promise.all([replace(), repository.recordPaid(payment)]); replacement = outcomes[0]; expect(outcomes[1]).toMatchObject({ok: true});}
+    expect(await repository.recordPaid(payment)).toMatchObject({ok: true, replayed: true});
+    const projection = await repository.readTopUpOrderProjection(actor, created.value.id);
+    expect(projection?.continuation?.returnPath).toBe(`/la-so/${chart.chartId}?tab=palaces&topupOrder=${created.value.id}&open=life`);
+    const [binding] = await database.select().from(walletTopUpContinuations).where(eq(walletTopUpContinuations.orderId, created.value.id));
+    expect(binding).toMatchObject({purchaseIntentId: intent.id, intentStateVersion: intent.stateVersion, confirmedPriceLa: 960});
+    const reservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, chart.chartVersionId));
+    const wallet = await walletOf(actor.userId);
+    const transactions = await database.select().from(walletTransactions).where(eq(walletTransactions.walletId, wallet!.id));
+    expect(transactions.filter(row => row.kind === "grant")).toHaveLength(1);
+    if (replacement.ok) {
+      expect(projection?.continuation).toMatchObject({status: "blocked", errorCode: "INTENT_TERMS_CHANGED"});
+      expect(wallet?.purchasedBalance).toBe(1000);
+      expect(transactions.filter(row => row.kind === "spend")).toHaveLength(0);
+      expect(reservations).toHaveLength(0);
+      const [original] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, intent.id));
+      expect(original).toMatchObject({status: "cancelled", locale: "vi"});
+      expect(replacement.value).toMatchObject({locale: "en", amountLa: 960});
+    } else {
+      expect(replacement).toMatchObject({code: "WALLET_ENTITLEMENT_EXISTS"});
+      expect(projection?.continuation?.status).toBe("completed");
+      expect(wallet?.purchasedBalance).toBe(140);
+      expect(transactions.filter(row => row.kind === "spend")).toHaveLength(1);
+      expect(reservations).toEqual([expect.objectContaining({locale: "vi"})]);
+    }
+  });
+
   it("credits two separately paid QR orders but completes their shared intent only once", async () => {
     const { actor, repository, continuation } = await continuationFixture();
     const small = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
