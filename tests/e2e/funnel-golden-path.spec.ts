@@ -15,9 +15,19 @@ function fixture(action: string, ownerId: string, chart?: {chartId: string; char
     input: JSON.stringify({action, ownerId, ...chart}), encoding: "utf8",
   }));
 }
+let signupCount = 0;
+let lastSignupAt = 0;
 async function account(context: BrowserContext, signIn = true) {
+  // Better Auth 1.7.2 limits this shared test IP to three sign-ups in
+  // a rolling 10-second window. Preserve the production limiter.
+  if (signupCount > 0 && signupCount % 3 === 0) {
+    const remaining = lastSignupAt + 11_000 - Date.now();
+    if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+  }
   const email = `qa-golden-${randomUUID()}@example.test`, password = randomUUID() + randomUUID();
   const signup = await context.request.post(`${canonical}/api/auth/sign-up/email`, {headers: {origin: canonical}, data: {name: "Isolated golden path", email, password}});
+  signupCount += 1;
+  lastSignupAt = Date.now();
   expect(signup.ok(), `SUPPORTED_SIGNUP_STATUS_${signup.status()}`).toBe(true);
   let verification = "";
   await expect.poll(() => {
@@ -64,7 +74,7 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
   test.describe(`real-network funnel ${viewport.name}`, () => {
     test.use({viewport: {width: viewport.width, height: viewport.height}});
     test.beforeEach(async ({page}) => {
-      await page.clock.install({time: new Date("2026-10-04T12:00:00.000Z")});
+      await page.clock.setFixedTime(new Date("2026-10-04T12:00:00.000Z"));
       await expect.poll(async () => {try {return (await page.request.get("/health/ready")).status();} catch {return 0;}}).toBe(200);
     });
     test("guest homepage → chart → preview → real email sign-in → same preview", async ({page, browser}) => {

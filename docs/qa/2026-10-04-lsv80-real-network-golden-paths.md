@@ -15,7 +15,7 @@ The six Phase9 paths run at 390×844 and 1440×900 against the actual production
 
 Funding uses the trusted wallet kernel with synthetic paid orders in the owned QA database. Disabled-provider auto-approval exercises orchestration only; it is not SePay acceptance or real revenue. The reader fixture validates actual chart ownership/version, completed purchase, exact SKU, live entitlement, posted negative ledger sum and immutable command receipt before inserting contract-valid, explicitly synthetic content and a pending PDF asset. No worker or AI provider runs; AI attempt count must remain zero. Writer quality and PDF storage are not accepted by this fixture.
 
-The browser clock starts at a fixed injected instant with advancing timers. Framework/auth transport clocks remain operational; expiry/pricing contracts use their existing frozen clocks. Test retries, video, screenshot and trace recording are disabled. Private identities, verification links, environment files and raw failure data remain outside Git; CI does not upload them. Four exact owned container/image identities and an internal-only network are checked before cleanup; setup failures also remove attempted owned resources and private credentials. Existing or unrelated resources are never deleted.
+Browser Date is fixed at an injected business instant; browser timers and animation scheduling remain real. Framework/auth transport clocks remain operational; expiry/pricing contracts use their existing frozen clocks. Test retries, video, screenshot and trace recording are disabled. Private identities, verification links, environment files and raw failure data remain outside Git; CI does not upload them. Four exact owned container/image identities and an internal-only network are checked before cleanup; setup failures also remove attempted owned resources and private credentials. Existing or unrelated resources are never deleted.
 
 ## Validation
 
@@ -28,3 +28,9 @@ After pnpm install --frozen-lockfile and pnpm build, install Chromium with pnpm 
 ## Remaining closure
 
 Physical Google/4G acceptance, authenticated SePay acceptance, real writer-quality gates, clean customer baseline and staged-rollout comparison remain separate requirements. No customer conversion rate or bank revenue is inferred from synthetic data. Keep the full ticket In Review until all applicable criteria have evidence.
+
+CI initially exposed the unchanged Better Auth 1.7.2 shared-IP limit (three sign-ups per rolling 10 seconds). Fixture signup batches now wait for that window after each three accounts, retaining the limiter and asserting every signup succeeds; no IP spoofing, configuration override or request retry. Per-test budget includes this deliberate wait. Final-head CI is required after this correction.
+
+Browser business time is frozen with `page.clock.setFixedTime`; browser animation and timer scheduling stays real. An exploratory run under concurrent workspace checks had one desktop pointer timeout, preserved as failed evidence. A clean final-head rerun is required, with no retries or forced clicks.
+
+Final clean local run passed 12/12 in 2.4 minutes, with verified removal of all four owned QA containers, the internal network and credentials (`/home/debian/projects/lasoviet-lsv80-pacing-fixedtime-evidence-20261004`). The pacing reference is the completed signup response, conservatively after server rate-limit consumption.
