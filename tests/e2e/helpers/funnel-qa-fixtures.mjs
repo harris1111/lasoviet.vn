@@ -3,9 +3,11 @@ import {createHash, randomUUID} from "node:crypto";
 import {createRequire} from "node:module";
 import * as dbs from "../../../packages/database/dist/index.js";
 import * as contracts from "../../../packages/contracts/dist/index.js";
+import {createDatabaseAssetDownloadRepository} from "../../../packages/backend/dist/storage/asset-download.service.js";
 import {createDatabaseWalletRepository} from "../../../packages/backend/dist/wallet/wallet.repository.js";
 import {REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY, REPORT_RENDER_VERSION_V4_1_SENSITIVITY} from "../../../packages/backend/dist/reports/identity-report-config.js";
 const {eq, and} = createRequire(import.meta.resolve("../../../packages/database/dist/index.js"))("drizzle-orm");
+const {SignJWT} = await import(createRequire(import.meta.resolve("../../../apps/web/package.json")).resolve("jose"));
 assert.equal(new URL(process.env.DATABASE_URL).hostname, "lsv80-qa-db");
 assert.equal(process.env.FREE_PALACE_GENERATION_ENABLED, "false");
 let input = ""; for await (const chunk of process.stdin) input += chunk;
@@ -30,6 +32,37 @@ if (request.action === "fund") {
   const rows = await database.update(dbs.evidenceSets).set({capabilityId: request.action === "evidence_off" ? hidden : original}).where(and(eq(dbs.evidenceSets.chartVersionId, version.id), eq(dbs.evidenceSets.capabilityId, request.action === "evidence_off" ? original : hidden))).returning({id: dbs.evidenceSets.id});
   assert.equal(rows.length, 1);
   console.log(JSON.stringify({ownedEvidenceFault: request.action}));
+} else if (request.action === "asset_denial") {
+  assert(/^[a-f0-9-]{36}$/.test(request.reportId));
+  const [binding] = await database.select({asset: dbs.reportAssets, ownerId: dbs.commerceEntitlements.ownerId, sku: dbs.commerceEntitlements.sku})
+    .from(dbs.reportAssets).innerJoin(dbs.reportReservations, eq(dbs.reportReservations.reportVersionId, dbs.reportAssets.reportVersionId))
+    .innerJoin(dbs.commerceEntitlements, eq(dbs.commerceEntitlements.id, dbs.reportReservations.entitlementId))
+    .where(eq(dbs.reportAssets.reportId, request.reportId));
+  assert(binding && binding.ownerId === owner.id && binding.sku !== "ZIWEI-IDENTITY-P0");
+  assert.equal(binding.asset.status, "render_pending");
+  await database.transaction(async tx => {
+    // Metadata-only fault probe: no PDF bytes or object-store client exist here.
+    await tx.update(dbs.reportAssets).set({status: "stored"}).where(eq(dbs.reportAssets.id, binding.asset.id));
+    assert.equal(await createDatabaseAssetDownloadRepository(tx).findOwnedStoredPdf(binding.asset.id, owner.id), null,
+      "PARTIAL_SCOPE_MUST_DENY_EVEN_STORED_ASSET_METADATA");
+    await tx.update(dbs.reportAssets).set({status: "render_pending"}).where(eq(dbs.reportAssets.id, binding.asset.id));
+  });
+  console.log(JSON.stringify({partialScopeDeniedWithStoredMetadata: true, metadataRestored: true, noPdfBytesOrStoreCalls: true}));
+} else if (request.action === "read") {
+  assert(/^[a-f0-9-]{36}$/.test(request.reportId));
+  assert.equal(new URL(process.env.PRIVATE_API_URL).hostname, "lsv80-qa-api");
+  const [session] = await database.select().from(dbs.authSessions).where(eq(dbs.authSessions.userId, owner.id));
+  assert(session && session.expiresAt > new Date());
+  const expiry = Math.floor(Date.now() / 1000) + 60;
+  const token = await new SignJWT({version: 1, kind: "account", sub: owner.id, sid: session.id,
+    requestId: randomUUID(), emailVerified: true}).setProtectedHeader({alg: "HS256"})
+    .setIssuer(contracts.INTERNAL_ACTOR_ISSUER).setAudience(contracts.INTERNAL_ACTOR_AUDIENCE)
+    .setIssuedAt().setExpirationTime(expiry).sign(new TextEncoder().encode(process.env.INTERNAL_ACTOR_SECRET));
+  const response = await fetch(`${process.env.PRIVATE_API_URL}/reports/${request.reportId}`, {headers: {authorization: `Bearer ${token}`}});
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert(result.ok && result.value.state === "ready", "AUTHORIZED_READY_HTTP_PROJECTION_REQUIRED");
+  console.log(JSON.stringify(result.value));
 } else if (request.action === "ready") {
   assert(/^[a-f0-9-]{36}$/.test(request.chartId));
   const [chart] = await database.select({ownerId: dbs.birthProfiles.userId}).from(dbs.ziweiCharts).innerJoin(dbs.birthProfiles, eq(dbs.birthProfiles.id, dbs.ziweiCharts.profileId)).where(eq(dbs.ziweiCharts.id, request.chartId));
@@ -58,7 +91,8 @@ if (request.action === "fund") {
   const part = title => ({title, narrative, evidenceKeys: ["ziwei.palace.life"]});
   const content = contracts.ZiweiComprehensiveReportContentV3Schema.parse({
     overview: part("Tổng quan kiểm thử"), coreAxis: part("Mệnh và Thân kiểm thử"), keyConfigurations: [part("Cấu trúc kiểm thử")],
-    palaceReadings: contracts.ZIWEI_PALACE_IDS.map(palaceId => ({...part("Cung kiểm thử"), palaceId})),
+    palaceReadings: contracts.ZIWEI_PALACE_IDS.map(palaceId => ({...part("Cung kiểm thử " + palaceId), palaceId,
+      narrative: narrative + " " + ("Đoạn văn bản giả lập còn khóa dành riêng cho việc xác minh quyền đọc và vị trí mô đun nâng cấp.\n\n").repeat(32) + `LSV61_PRIVATE_TAIL_${palaceId.replaceAll(".", "_")}`})),
     thematicSynthesis: contracts.ZIWEI_THEMATIC_SYNTHESIS_IDS.map(id => ({...part("Chủ đề kiểm thử"), id})),
     strengthsAndTensions: part("Điểm mạnh kiểm thử"),
     currentDecadal: {...part("Đại vận kiểm thử"), state: "active", index: 2, ageRange: [25, 34], yearRange: [2020, 2029]},
@@ -72,6 +106,6 @@ if (request.action === "fund") {
     await transaction.insert(dbs.reportAssets).values({id: pdfAssetId, reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY, objectKey: `synthetic-ci/${pdfAssetId}.pdf`, status: "render_pending"});
     await transaction.update(dbs.reportReservations).set({status: "complete", updatedAt: new Date()}).where(and(eq(dbs.reportReservations.id, reservation.id), eq(dbs.reportReservations.status, "requested")));
   });
-  console.log(JSON.stringify({reportId: reservation.reportId, syntheticReaderNotWriterAcceptance: true}));
+  console.log(JSON.stringify({reportId: reservation.reportId, pdfAssetId, syntheticReaderNotWriterAcceptance: true}));
 } else {throw Error("CLOSED_FIXTURE_ACTION_REQUIRED");}
 process.exit(0);

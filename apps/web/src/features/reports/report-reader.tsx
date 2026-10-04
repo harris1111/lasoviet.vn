@@ -635,7 +635,7 @@ function PalaceReportReader({locale, report}: {locale: "vi" | "en"; report: Repo
           <h2>{palace.title}</h2><p style={{ whiteSpace: "pre-line" }}>{palace.narrative}</p>
         </section>
         {index === 0 && <>
-          <span ref={firstSectionEnd} aria-hidden="true" style={{display: "block", height: 1}} />
+          <span ref={firstSectionEnd} data-testid="reader-first-owned-section-end" aria-hidden="true" style={{display: "block", height: 1}} />
           {canShowUpgrade && <ReaderUpgrade locale={locale} chartId={report.chartId} chartVersionId={report.chartVersionId} reportVersionId={report.reportVersionId} reportLocale={report.locale} upgradePreview={report.upgradePreview} />}
         </>}
       </Fragment>)}
