@@ -18,7 +18,9 @@ test.beforeAll(async () => {
       import {ComprehensiveReportReader} from "./src/features/reports/comprehensive-report-reader";
       import reports from "./messages/vi/reports.json";
       import {report} from "../../tests/e2e/helpers/report-reader-fixture";
-      createRoot(document.getElementById("fixture")).render(<NextIntlClientProvider locale="vi" timeZone="Asia/Ho_Chi_Minh" messages={{reports}}><ComprehensiveReportReader report={report}/></NextIntlClientProvider>);
+      import nativeSnapshot from "../../tests/e2e/helpers/report-reader-native-snapshot.json";
+      const mobileReport = {...report, chartSnapshot: nativeSnapshot.chartSnapshot, content: {...report.content, palaceReadings: report.content.palaceReadings.map((palace, index) => ({...palace, title: "Cung thử nghiệm số " + (index + 1), narrative: "Nội dung mô phỏng dành riêng cho kiểm thử luồng đọc. Đây không phải luận giải đã nghiệm thu chất lượng. " + ("Đoạn văn bản giả lập còn khóa dành riêng cho việc xác minh quyền đọc và vị trí mô đun nâng cấp.\\n\\n").repeat(32) + "LSV61_PRIVATE_TAIL_" + palace.palaceId.replaceAll(".", "_")}))}};
+      createRoot(document.getElementById("fixture")).render(<NextIntlClientProvider locale="vi" timeZone="Asia/Ho_Chi_Minh" messages={{reports}}><ComprehensiveReportReader report={mobileReport}/></NextIntlClientProvider>);
     `, loader: "tsx", resolveDir: resolve(root, "apps/web") },
     bundle: true, write: false, format: "iife", platform: "browser", jsx: "automatic",
     alias: {"@lasoviet/contracts": resolve(root, "tests/e2e/helpers/browser-commerce-contracts.ts")},
@@ -30,6 +32,7 @@ test.beforeAll(async () => {
 for (const width of [320, 390, 1440]) {
   test(`chart navigation, focus and print at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await page.clock.setFixedTime(new Date("2026-10-05T03:00:00Z"));
     await page.emulateMedia({ reducedMotion: "reduce" });
     const errors: string[] = [];
     page.on("pageerror", error => { errors.push(error.message); console.error(error.message); });
@@ -42,6 +45,26 @@ for (const width of [320, 390, 1440]) {
     await page.addScriptTag({ content: bundle });
     await expect(page.locator(".report-reader-root")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const firstPalace = page.locator(".report-palace-card").first();
+    await expect(firstPalace.locator(".report-band")).toBeVisible();
+    const palaceCardsFit = () => page.locator(".report-palace-card").evaluateAll(cards => cards.every(card => {
+      const rect = card.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= innerWidth;
+    }));
+    expect(await palaceCardsFit()).toBe(true);
+    if (width <= 600) {
+      await expect(firstPalace.locator("summary > .report-chart")).toBeHidden();
+    } else {
+      await expect(firstPalace.locator("summary > .report-chart")).toBeVisible();
+    }
+    const initiallyOpen = await firstPalace.evaluate(card => (card as HTMLDetailsElement).open);
+    await firstPalace.locator("summary").focus();
+    await page.keyboard.press("Enter");
+    await expect.poll(() => firstPalace.evaluate(card => (card as HTMLDetailsElement).open)).toBe(!initiallyOpen);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(await palaceCardsFit()).toBe(true);
+    await page.keyboard.press("Enter");
+    await expect.poll(() => firstPalace.evaluate(card => (card as HTMLDetailsElement).open)).toBe(initiallyOpen);
     if (width < 1200) {
       const trigger = page.getByRole("button", {name: "Xem lá số", exact: true});
       await trigger.click();
