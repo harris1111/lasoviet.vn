@@ -61,6 +61,7 @@ html[data-theme="light"] .report-chart .mk-dv { background: rgb(23 79 122 / 12%)
 html[data-theme="light"] .report-chart .mk-ln { background: rgb(47 111 87 / 14%); color: #2f6f57; }
 
 @media (max-width: 600px) {
+  .report-palace-card { min-width: 0; overflow-wrap: anywhere; }
   .report-palace-card > summary { grid-template-columns: minmax(0, 1fr); }
   .report-palace-card > summary > .report-chart { display: none; }
   .report-palace-card > summary > .report-subcard-title,

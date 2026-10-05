@@ -19,7 +19,7 @@ test.beforeAll(async () => {
       import reports from "./messages/vi/reports.json";
       import {report} from "../../tests/e2e/helpers/report-reader-fixture";
       import nativeSnapshot from "../../tests/e2e/helpers/report-reader-native-snapshot.json";
-      const mobileReport = {...report, chartSnapshot: nativeSnapshot.chartSnapshot, content: {...report.content, palaceReadings: report.content.palaceReadings.map((palace, index) => ({...palace, title: "Cung thử nghiệm số " + (index + 1)}))}};
+      const mobileReport = {...report, chartSnapshot: nativeSnapshot.chartSnapshot, content: {...report.content, palaceReadings: report.content.palaceReadings.map((palace, index) => ({...palace, title: "Cung thử nghiệm số " + (index + 1), narrative: "Nội dung mô phỏng dành riêng cho kiểm thử luồng đọc. Đây không phải luận giải đã nghiệm thu chất lượng. " + ("Đoạn văn bản giả lập còn khóa dành riêng cho việc xác minh quyền đọc và vị trí mô đun nâng cấp.\\n\\n").repeat(32) + "LSV61_PRIVATE_TAIL_" + palace.palaceId.replaceAll(".", "_")}))}};
       createRoot(document.getElementById("fixture")).render(<NextIntlClientProvider locale="vi" timeZone="Asia/Ho_Chi_Minh" messages={{reports}}><ComprehensiveReportReader report={mobileReport}/></NextIntlClientProvider>);
     `, loader: "tsx", resolveDir: resolve(root, "apps/web") },
     bundle: true, write: false, format: "iife", platform: "browser", jsx: "automatic",
