@@ -43,7 +43,7 @@ export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale, inc
   }, [chartId, chartVersionId, locale, requestKey]);
   if (includedOnly && (!reading || locale !== "vi")) return null;
   const purchasable = !includedOnly && locale === "vi" && findLaProduct("ZIWEI-TODAY-P0")?.availability === "active";
-  return <section data-testid="personal-daily-reading" className="container result-paid-report-cta" aria-labelledby="personal-daily-title">
+  return <section data-testid="personal-daily-reading" className="container result-paid-report-cta personal-daily-reading-panel" aria-labelledby="personal-daily-title">
     <h2 id="personal-daily-title">{t("title")}</h2>
     {reading ? <>
       <p>{reading.calendar.solarDateFormatted} · {reading.calendar.dayStemBranch}</p>
