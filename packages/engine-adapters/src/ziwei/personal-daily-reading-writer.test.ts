@@ -60,8 +60,8 @@ describe("personal-daily-reading-writer", () => {
     expect(reading.chartGrounding.dailyMutagens.length).toBeGreaterThan(0);
 
     // Reading sections
-    expect(reading.reading.headline).toContain("Ngày Kỷ Hợi chạm cung");
-    expect(reading.reading.overview).toContain("năng lượng nhật lưu hội tụ");
+    expect(reading.reading.headline).toContain("Ngày Kỷ Hợi:");
+    expect(reading.reading.overview).toContain("phần nói về");
     expect(reading.reading.aspects).toHaveLength(4);
 
     const aspectKeys = reading.reading.aspects.map((a) => a.key);
@@ -88,6 +88,23 @@ describe("personal-daily-reading-writer", () => {
     expect(reading.qualityGate.rulesChecked).toContain("FD089_NO_DEATH_LIFESPAN");
     expect(reading.qualityGate.rulesChecked).toContain("FD089_NO_RITUALS_AMULETS");
   });
+
+  it("keeps daily prose plain and explains the actual palace even without major stars", () => {
+    const now = () => new Date("2026-09-30T03:00:00Z");
+    let emptyMajorStars = 0;
+    const palaces = new Set<string>();
+    for (let day = 11; day <= 30; day++) {
+      const reading = writePersonalDailyReading(testProfile, {asOfDate: `2026-09-${day}`, now});
+      const text = JSON.stringify(reading.reading);
+      expect(text).not.toMatch(/vận trình|thân tâm|nhật lưu|tọa thủ|cung vị|thị phi|bạn\. ngày/iu);
+      expect(reading.reading.overview).toContain(`cung ${reading.chartGrounding.touchedPalaceName}, phần nói về`);
+      palaces.add(reading.chartGrounding.touchedPalaceId);
+      if (!reading.chartGrounding.majorStars.length) emptyMajorStars++;
+      expect(reading).toEqual(writePersonalDailyReading(testProfile, {asOfDate: `2026-09-${day}`, now}));
+    }
+    expect(palaces.size).toBe(12);
+    expect(emptyMajorStars).toBeGreaterThan(0);
+  }, 30_000);
 
   describe("FD-089 quality gates", () => {
     it("rejects content containing death / lifespan terms", () => {
