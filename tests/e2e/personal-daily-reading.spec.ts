@@ -8,6 +8,9 @@ const require = createRequire(resolve(root, "package.json"));
 const { build } = createRequire(require.resolve("vite"))("esbuild");
 // Real deterministic engine output for a synthetic profile; no paid provider calls.
 const reading = JSON.parse(readFileSync(resolve(root, "plan/evidence/2026-10-05-personal-daily-editorial-qa.json"), "utf8")).samples[0].reading;
+const stylesRoot = resolve(root, "apps/web/src/styles");
+const stylesheet = readFileSync(resolve(stylesRoot, "global.css"), "utf8")
+  .replace(/@import "\.\/([^"]+)";/g, (_, filename: string) => readFileSync(resolve(stylesRoot, filename), "utf8"));
 let bundle = "";
 test.beforeAll(async () => {
   const result = await build({
@@ -38,13 +41,15 @@ test.beforeAll(async () => {
 
 async function mount(page: Page, locale = "vi") {
   await page.clock.install({time: new Date("2026-09-30T00:00:00Z")});
-  await page.route("https://daily.test/", route => route.fulfill({contentType: "text/html", body: '<html><body><main id="fixture"></main></body></html>'}));
+  await page.route("https://daily.test/", route => route.fulfill({contentType: "text/html", body: '<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><main id="fixture"></main><nav class="report-chart-mobile-bar"><button>Xem lá số</button><button>Mục lục</button><span>9/12</span></nav></body></html>'}));
+  await page.route("**/images/**", route => route.fulfill({status: 204}));
   await page.goto("https://daily.test/");
+  await page.addStyleTag({content: stylesheet});
   await page.addScriptTag({content: bundle});
   await page.evaluate(({chartId, chartVersionId, locale}) => (window as any).fixtureRender(chartId, chartVersionId, locale), {chartId: reading.chartId, chartVersionId: reading.chartVersionId, locale});
 }
 
-for (const width of [390, 1440]) test(`included engine reading without paid controls at ${width}px`, async ({page}) => {
+for (const width of [320, 390, 1440]) test(`included engine reading without paid controls at ${width}px`, async ({page}) => {
   await page.setViewportSize({width, height: 844});
   await page.route("**/daily-reading", route => route.fulfill({json: reading, headers: {"x-daily-purchased": "false"}}));
   await mount(page);
@@ -53,6 +58,24 @@ for (const width of [390, 1440]) test(`included engine reading without paid cont
   await expect(panel).toContainText(reading.reading.overview);
   await expect(panel.getByRole("button", {name: /mở khóa|hoàn Lá/i})).toHaveCount(0);
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await panel.locator("h2, h3").evaluateAll(headings => headings.every(heading => {
+    const next = heading.nextElementSibling;
+    if (!next) return false;
+    const title = heading.getBoundingClientRect(), content = next.getBoundingClientRect();
+    return content.top >= title.bottom && Math.abs(content.left - title.left) <= 1;
+  }))).toBe(true);
+  const lastFeedback = panel.getByRole("button", {name: "Không đúng", exact: true});
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  expect(await lastFeedback.evaluate(button => {
+    const rect = button.getBoundingClientRect();
+    const toolbar = document.querySelector(".report-chart-mobile-bar")!;
+    const toolbarRect = toolbar.getBoundingClientRect();
+    return rect.bottom <= innerHeight && (getComputedStyle(toolbar).display === "none" || rect.bottom <= toolbarRect.top)
+      && button.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+  })).toBe(true);
+  await lastFeedback.focus();
+  await expect(lastFeedback).toBeFocused();
 });
 
 for (const scenario of ["foreign-chart", "foreign-version", "failed-quality", "malformed", "expired"] as const) {

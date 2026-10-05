@@ -11,6 +11,7 @@
   font: 500 15px var(--font-ui); cursor: pointer;
 }
 .report-chart-mobile-bar span { min-width: 40px; color: var(--text-muted); font: 500 13px var(--font-mono); text-align: right; }
+.personal-daily-reading-panel.result-paid-report-cta { display: block; }
 .report-reader-root { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 .report-reader-layout { grid-template-columns: minmax(0, 1fr); }
 .report-toc-sidebar { display: none; }
