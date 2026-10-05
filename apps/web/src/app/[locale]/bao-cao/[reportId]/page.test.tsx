@@ -56,6 +56,11 @@ vi.mock("../../../../features/reports/load-report", () => ({
   },
 }));
 
+const dailyPanel = vi.hoisted(() => vi.fn());
+vi.mock("../../../../features/ziwei/personal-daily-reading-panel", () => ({
+  PersonalDailyReadingPanel: (props: unknown) => { dailyPanel(props); return <div data-testid="included-daily-entry" />; },
+}));
+
 const sectionIds = [
   "personal_summary",
   "data_and_method",
@@ -211,6 +216,7 @@ describe("ReportPage", () => {
       ReportPage({ params: Promise.resolve({ locale: "vi", reportId: "rep-1" }) }),
     ).rejects.toThrow("NEXT_REDIRECT:/dang-nhap?callbackURL=%2Fbao-cao%2Frep-1");
     expect(redirect).toHaveBeenCalledWith("/dang-nhap?callbackURL=%2Fbao-cao%2Frep-1");
+    expect(dailyPanel).not.toHaveBeenCalled();
   });
 
   it("redirects unauthenticated EN visitor to localized sign-in callback", async () => {
@@ -286,6 +292,7 @@ describe("ReportPage", () => {
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('role="status"');
+    expect(dailyPanel).not.toHaveBeenCalled();
     expect(html).toContain("Báo cáo đang được xử lý");
     expect(html).toContain("Đang tổng hợp nội dung luận giải...");
     expect(html).not.toContain("<script>");
@@ -304,6 +311,7 @@ describe("ReportPage", () => {
     const html = renderToStaticMarkup(element);
 
     expect(html).toContain('role="alert"');
+    expect(dailyPanel).not.toHaveBeenCalled();
     expect(html).toContain("Chưa thể hoàn tất báo cáo");
     expect(html).toContain("LSV-INV-FAILED-1");
     expect(html).toContain("REF-FAILED-1");
@@ -350,6 +358,24 @@ describe("ReportPage", () => {
     // Must never render script sentinels as raw HTML
     expect(html).not.toContain("<script>alert('xss')</script>");
     expect(html).toContain("&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;");
+  });
+
+  it("mounts the included-only daily entry with the authorized ready chart/version", async () => {
+    vi.mocked(reportLoader.loadReport).mockResolvedValue({ok: true, value: {...mockReadyVi, chartId: "owned-chart", chartVersionId: "owned-version"}});
+    dailyPanel.mockClear();
+    const {default: ReportPage} = await import("./page");
+    const html = renderToStaticMarkup(await ReportPage({params: Promise.resolve({locale: "vi", reportId: "rep-vi-1"})}));
+    expect(html).toContain('data-testid="included-daily-entry"');
+    expect(dailyPanel).toHaveBeenCalledWith({chartId: "owned-chart", chartVersionId: "owned-version", locale: "vi", includedOnly: true});
+  });
+
+  it("omits the daily entry when the ready report lacks authorized chart binding", async () => {
+    vi.mocked(reportLoader.loadReport).mockResolvedValue({ok: true, value: mockReadyVi});
+    dailyPanel.mockClear();
+    const {default: ReportPage} = await import("./page");
+    const html = renderToStaticMarkup(await ReportPage({params: Promise.resolve({locale: "vi", reportId: "rep-vi-1"})}));
+    expect(html).not.toContain('data-testid="included-daily-entry"');
+    expect(dailyPanel).not.toHaveBeenCalled();
   });
 
   it("exports force-dynamic and static robots metadata", async () => {

@@ -131,6 +131,9 @@ describe("terminal wallet compensation with posted financial authority", () => {
     const publisher = createDatabaseReportQueuePublisher(database);
     await publisher.publish({schemaVersion: 2, name: "report.generate.v2", sourceEventId: event!.eventId, traceId: event!.traceId,
       idempotencyKey: `report-generate:${fixture.reservation.reportVersionId}`, payload: event!.payload as never});
+    // PostgreSQL defaultNow uses wall time; align this owned job with the injected fixture clock.
+    await database.update(reportQueueJobs).set({availableAt: current})
+      .where(eq(reportQueueJobs.id, `report-generate:${fixture.reservation.reportVersionId}`));
     const queue = createDatabaseReportQueueStore(database, workerId);
     const service = createReportService(database, {now: () => current});
     const processor = createReportGenerateProcessor({database, workerId, reportService: service,
@@ -150,6 +153,8 @@ describe("terminal wallet compensation with posted financial authority", () => {
     const [reservation] = await database.select().from(reportReservations).where(eq(reportReservations.id, fixture.reservation.id));
     const [failure] = await database.select().from(outbox).where(and(eq(outbox.aggregateId, reservation!.reportVersionId), eq(outbox.eventType, "report.fulfillment.failed.v1")));
     expect(reservation?.status).toBe("terminal_failure"); expect(failure).toBeDefined();
+    // The failure outbox also uses a PostgreSQL scheduling default.
+    await database.update(outbox).set({availableAt: current}).where(eq(outbox.id, failure!.id));
     return {reservation: reservation!, failure: failure!, current};
   }
   const runner = (current: Date, extra: Partial<Parameters<typeof createReportWalletCompensationRunner>[1]> = {}) =>
@@ -275,6 +280,9 @@ describe("terminal wallet compensation with posted financial authority", () => {
     const [event] = await database.select().from(outbox).where(and(eq(outbox.eventType, "report.generation.requested.v2"), sql`${outbox.payload}->>'reportVersionId' = ${fixture.reservation.reportVersionId}`));
     await createDatabaseReportQueuePublisher(database).publish({schemaVersion: 2, name: "report.generate.v2",
       sourceEventId: event!.eventId, traceId: event!.traceId, idempotencyKey: `report-generate:${fixture.reservation.reportVersionId}`, payload: event!.payload as never});
+    // Keep publication scheduling on the same frozen clock as generation and compensation.
+    await database.update(reportQueueJobs).set({availableAt: current})
+      .where(eq(reportQueueJobs.id, `report-generate:${fixture.reservation.reportVersionId}`));
     const job = await createDatabaseReportQueueStore(database, workerId).claimNext(current);
     expect(job?.id).toBe(`report-generate:${fixture.reservation.reportVersionId}`);
     const start = await createReportService(database, {now: () => current}).startGenerating({reportVersionId: fixture.reservation.reportVersionId, jobId: job!.id, workerId});

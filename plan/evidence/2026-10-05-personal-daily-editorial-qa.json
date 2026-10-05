@@ -1,0 +1,2697 @@
+{
+  "kind": "deterministic-daily-editorial-qa",
+  "syntheticProfiles": true,
+  "externalPaidCalls": 0,
+  "consecutivePassingGenerations": 20,
+  "editorialAcceptance": "independent-review-go-for-included-vietnamese-bonus",
+  "catalogActivation": "reserved",
+  "samples": [
+    {
+      "sample": 1,
+      "syntheticInput": {
+        "birthDate": "1980-01-01",
+        "localTime": "00:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-11",
+      "sha256": "50a7dade624a360e15766bd4da75027d168bc4d521fb3ead1232deb72776eaf1",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-1",
+        "chartVersionId": "synthetic-version-1",
+        "asOfDate": "2026-09-11",
+        "calendar": {
+          "solarDate": "2026-09-11",
+          "solarDateFormatted": "Thứ Sáu, 11/9/2026",
+          "lunarDateFormatted": "1/8 Bính Ngọ",
+          "dayStemBranch": "Mậu Tý",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.life",
+          "touchedPalaceName": "Mệnh",
+          "earthlyBranch": "ziwei.branch.rat",
+          "majorStars": [
+            "Liêm Trinh",
+            "Thiên Tướng"
+          ],
+          "dailyStars": [
+            "attractive(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Tham Lang"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "helper"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thiên Cơ"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Mậu Tý: chủ động khẳng định định hướng bản thân",
+          "overview": "Ngày Mậu Tý trên lá số của bạn ứng với cung Mệnh, phần nói về chủ động khẳng định định hướng bản thân. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Tập trung vào các quyết định mang tính chiến lược cá nhân. Rà soát lại mục tiêu ngắn hạn và giữ vững nhịp độ làm việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.rat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Cân nhắc các khoản chi tiêu trực tiếp cho kế hoạch nâng cao kỹ năng hoặc cải thiện công cụ làm việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Giao tiếp thẳng thắn, rõ ràng với người xung quanh nhưng giữ thái độ ôn hòa và cởi mở.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Chú ý điều hòa năng lượng, không để áp lực mục tiêu cá nhân gây căng thẳng thần kinh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Xác định rõ việc trọng tâm trong ngày và giải quyết dứt điểm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh bảo thủ hoặc tranh cãi áp đặt quan điểm cá nhân.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.life",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-11",
+          "daily.branch.ziwei.branch.rat",
+          "daily.palace.ziwei.palace.life",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-11T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 2,
+      "syntheticInput": {
+        "birthDate": "1981-02-02",
+        "localTime": "02:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-12",
+      "sha256": "5c86df91b10749120085d9e3ebc4e7de9dd236c4deac96e9ab22168daf96a397",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-2",
+        "chartVersionId": "synthetic-version-2",
+        "asOfDate": "2026-09-12",
+        "calendar": {
+          "solarDate": "2026-09-12",
+          "solarDateFormatted": "Thứ Bảy, 12/9/2026",
+          "lunarDateFormatted": "2/8 Bính Ngọ",
+          "dayStemBranch": "Kỷ Sửu",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.parents",
+          "touchedPalaceName": "Phụ Mẫu",
+          "earthlyBranch": "ziwei.branch.ox",
+          "majorStars": [
+            "Thiên Lương"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Vũ Khúc"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Tham Lang"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Lương"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "artist"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Kỷ Sửu: quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ",
+          "overview": "Ngày Kỷ Sửu trên lá số của bạn ứng với cung Phụ Mẫu, phần nói về quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Cần rà soát kỹ văn bản pháp lý, giấy tờ hành chính và tuân thủ chặt chẽ quy định tổ chức.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.ox"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chú ý các khoản chi phí liên quan đến hóa đơn, thuế hoặc phụng dưỡng đấng sinh thành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Gọi điện thăm hỏi cha mẹ, người lớn tuổi hoặc thầy cô đã dẫn dắt mình.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Học hỏi sự điềm đạm từ thế hệ đi trước để rèn luyện đức tính kiên nhẫn.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Hoàn tất các thủ tục giấy tờ tồn đọng và thăm hỏi bậc sinh thành.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Không ký tá bất kỳ văn bản nào khi chưa đọc kỹ toàn bộ điều khoản.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.parents",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-12",
+          "daily.branch.ziwei.branch.ox",
+          "daily.palace.ziwei.palace.parents",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-12T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 3,
+      "syntheticInput": {
+        "birthDate": "1982-03-03",
+        "localTime": "04:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-13",
+      "sha256": "3481e12228d963d4415a5b5a1f0393d1ba8877e871588f1a7151a0a62ec6cdaa",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-3",
+        "chartVersionId": "synthetic-version-3",
+        "asOfDate": "2026-09-13",
+        "calendar": {
+          "solarDate": "2026-09-13",
+          "solarDateFormatted": "Chủ Nhật, 13/9/2026",
+          "lunarDateFormatted": "3/8 Bính Ngọ",
+          "dayStemBranch": "Canh Dần",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.parents",
+          "touchedPalaceName": "Phụ Mẫu",
+          "earthlyBranch": "ziwei.branch.tiger",
+          "majorStars": [
+            "Thiên Cơ",
+            "Thái Âm"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Dương"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Vũ Khúc"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thiên Đồng"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Canh Dần: quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ",
+          "overview": "Ngày Canh Dần trên lá số của bạn ứng với cung Phụ Mẫu, phần nói về quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Cần rà soát kỹ văn bản pháp lý, giấy tờ hành chính và tuân thủ chặt chẽ quy định tổ chức.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.tiger"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chú ý các khoản chi phí liên quan đến hóa đơn, thuế hoặc phụng dưỡng đấng sinh thành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Gọi điện thăm hỏi cha mẹ, người lớn tuổi hoặc thầy cô đã dẫn dắt mình.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Học hỏi sự điềm đạm từ thế hệ đi trước để rèn luyện đức tính kiên nhẫn.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Hoàn tất các thủ tục giấy tờ tồn đọng và thăm hỏi bậc sinh thành.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Không ký tá bất kỳ văn bản nào khi chưa đọc kỹ toàn bộ điều khoản.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.parents",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-13",
+          "daily.branch.ziwei.branch.tiger",
+          "daily.palace.ziwei.palace.parents",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-13T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 4,
+      "syntheticInput": {
+        "birthDate": "1983-04-04",
+        "localTime": "06:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-14",
+      "sha256": "6c83e2bc6ed127ce5c62a8d616822541951df2c56e4b7a1d4c907752ed75739a",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-4",
+        "chartVersionId": "synthetic-version-4",
+        "asOfDate": "2026-09-14",
+        "calendar": {
+          "solarDate": "2026-09-14",
+          "solarDateFormatted": "Thứ Hai, 14/9/2026",
+          "lunarDateFormatted": "4/8 Bính Ngọ",
+          "dayStemBranch": "Tân Mão",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.property",
+          "touchedPalaceName": "Điền Trạch",
+          "earthlyBranch": "ziwei.branch.rabbit",
+          "majorStars": [
+            "Thiên Cơ",
+            "Cự Môn"
+          ],
+          "dailyStars": [
+            "Lưu Khôi",
+            "Lưu Hỷ"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Cự Môn"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thái Dương"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "artist"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "scholar"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Tân Mão: không gian sống, tích lũy tài sản và sự ổn định của gia đình",
+          "overview": "Ngày Tân Mão trên lá số của bạn ứng với cung Điền Trạch, phần nói về không gian sống, tích lũy tài sản và sự ổn định của gia đình. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thích hợp để sắp xếp lại không gian làm việc gọn gàng, tạo cảm hứng sáng tạo và tập trung.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.rabbit"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Xem xét các kế hoạch tích lũy dài hạn, bảo dưỡng tài sản vật chất và nhà ở.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Quan tâm chăm sóc các thành viên trong gia đình, xây dựng không khí ấm cúng tại tổ ấm.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Dọn dẹp môi trường sống thoáng đãng, mang lại năng lượng trong lành cho cả nhà.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Sắp xếp lại bàn làm việc hoặc sửa sang một góc sinh hoạt trong nhà.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh mua sắm các vật dụng gia đình đắt đỏ mà chưa thực sự cần thiết.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.property",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-14",
+          "daily.branch.ziwei.branch.rabbit",
+          "daily.palace.ziwei.palace.property",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-14T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 5,
+      "syntheticInput": {
+        "birthDate": "1984-05-05",
+        "localTime": "08:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-15",
+      "sha256": "a0e9b1e85ebd9f5235c36093e40c2435e2601557bd4eefdcc813f6b39e931eaa",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-5",
+        "chartVersionId": "synthetic-version-5",
+        "asOfDate": "2026-09-15",
+        "calendar": {
+          "solarDate": "2026-09-15",
+          "solarDateFormatted": "Thứ Ba, 15/9/2026",
+          "lunarDateFormatted": "5/8 Bính Ngọ",
+          "dayStemBranch": "Nhâm Thìn",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.property",
+          "touchedPalaceName": "Điền Trạch",
+          "earthlyBranch": "ziwei.branch.dragon",
+          "majorStars": [
+            "Cự Môn"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thiên Lương"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Tử Vi"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "officer"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Vũ Khúc"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Nhâm Thìn: không gian sống, tích lũy tài sản và sự ổn định của gia đình",
+          "overview": "Ngày Nhâm Thìn trên lá số của bạn ứng với cung Điền Trạch, phần nói về không gian sống, tích lũy tài sản và sự ổn định của gia đình. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thích hợp để sắp xếp lại không gian làm việc gọn gàng, tạo cảm hứng sáng tạo và tập trung.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.dragon"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Xem xét các kế hoạch tích lũy dài hạn, bảo dưỡng tài sản vật chất và nhà ở.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Quan tâm chăm sóc các thành viên trong gia đình, xây dựng không khí ấm cúng tại tổ ấm.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Dọn dẹp môi trường sống thoáng đãng, mang lại năng lượng trong lành cho cả nhà.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Sắp xếp lại bàn làm việc hoặc sửa sang một góc sinh hoạt trong nhà.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh mua sắm các vật dụng gia đình đắt đỏ mà chưa thực sự cần thiết.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.property",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-15",
+          "daily.branch.ziwei.branch.dragon",
+          "daily.palace.ziwei.palace.property",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-15T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 6,
+      "syntheticInput": {
+        "birthDate": "1985-06-06",
+        "localTime": "10:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-16",
+      "sha256": "c274ec96faf3ef6a0cf2ddf32c5f95f5124b8516fc2bd86cab9be25ea2fc03ca",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-6",
+        "chartVersionId": "synthetic-version-6",
+        "asOfDate": "2026-09-16",
+        "calendar": {
+          "solarDate": "2026-09-16",
+          "solarDateFormatted": "Thứ Tư, 16/9/2026",
+          "lunarDateFormatted": "6/8 Bính Ngọ",
+          "dayStemBranch": "Quý Tỵ",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.friends",
+          "touchedPalaceName": "Nô Bộc",
+          "earthlyBranch": "ziwei.branch.snake",
+          "majorStars": [
+            "Thiên Lương"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Phá Quân"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Cự Môn"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Tham Lang"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Quý Tỵ: mạng lưới bạn bè, đối tác xã hội và sự hỗ trợ cộng đồng",
+          "overview": "Ngày Quý Tỵ trên lá số của bạn ứng với cung Nô Bộc, phần nói về mạng lưới bạn bè, đối tác xã hội và sự hỗ trợ cộng đồng. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Tham khảo ý kiến chuyên môn từ những người có kinh nghiệm trong mạng lưới quan hệ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.snake"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Cảnh giác trước những lời mời hợp tác tài chính hấp dẫn từ người chưa đủ độ tin cậy.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Duy trì tương tác tích cực với bạn bè chân thành; tránh các hội nhóm bàn luận chuyện người khác.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Chọn lọc môi trường tiếp xúc để giữ cho tâm trí luôn nhẹ nhàng, tích cực.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Gặp gỡ hoặc trò chuyện cùng người bạn có tư duy tích cực, xây dựng.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh chia sẻ các thông tin bảo mật công việc cho người ngoài cuộc.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.friends",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-16",
+          "daily.branch.ziwei.branch.snake",
+          "daily.palace.ziwei.palace.friends",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-16T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 7,
+      "syntheticInput": {
+        "birthDate": "1986-07-07",
+        "localTime": "12:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-17",
+      "sha256": "9fa8b3e739a0da6770c1b1781e920d366cd4daedd8e3e66bbebf380378bc2b1d",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-7",
+        "chartVersionId": "synthetic-version-7",
+        "asOfDate": "2026-09-17",
+        "calendar": {
+          "solarDate": "2026-09-17",
+          "solarDateFormatted": "Thứ Năm, 17/9/2026",
+          "lunarDateFormatted": "7/8 Bính Ngọ",
+          "dayStemBranch": "Giáp Ngọ",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.friends",
+          "touchedPalaceName": "Nô Bộc",
+          "earthlyBranch": "ziwei.branch.horse",
+          "majorStars": [
+            "Tử Vi"
+          ],
+          "dailyStars": [
+            "Lưu Mã"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Liêm Trinh"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Phá Quân"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Vũ Khúc"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thái Dương"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Giáp Ngọ: mạng lưới bạn bè, đối tác xã hội và sự hỗ trợ cộng đồng",
+          "overview": "Ngày Giáp Ngọ trên lá số của bạn ứng với cung Nô Bộc, phần nói về mạng lưới bạn bè, đối tác xã hội và sự hỗ trợ cộng đồng. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Tham khảo ý kiến chuyên môn từ những người có kinh nghiệm trong mạng lưới quan hệ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.horse"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Cảnh giác trước những lời mời hợp tác tài chính hấp dẫn từ người chưa đủ độ tin cậy.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Duy trì tương tác tích cực với bạn bè chân thành; tránh các hội nhóm bàn luận chuyện người khác.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Chọn lọc môi trường tiếp xúc để giữ cho tâm trí luôn nhẹ nhàng, tích cực.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Gặp gỡ hoặc trò chuyện cùng người bạn có tư duy tích cực, xây dựng.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh chia sẻ các thông tin bảo mật công việc cho người ngoài cuộc.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.friends",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-17",
+          "daily.branch.ziwei.branch.horse",
+          "daily.palace.ziwei.palace.friends",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-17T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 8,
+      "syntheticInput": {
+        "birthDate": "1987-08-08",
+        "localTime": "14:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-18",
+      "sha256": "7a8347cd5c021e9209c8b425a1577369cd9b229d795ee81917810a7b8b1daf66",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-8",
+        "chartVersionId": "synthetic-version-8",
+        "asOfDate": "2026-09-18",
+        "calendar": {
+          "solarDate": "2026-09-18",
+          "solarDateFormatted": "Thứ Sáu, 18/9/2026",
+          "lunarDateFormatted": "8/8 Bính Ngọ",
+          "dayStemBranch": "Ất Mùi",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.health",
+          "touchedPalaceName": "Tật Ách",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Lương"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Tử Vi"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thái Âm"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Ất Mùi: chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt",
+          "overview": "Ngày Ất Mùi trên lá số của bạn ứng với cung Tật Ách, phần nói về chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hạn chế những cuộc tranh luận gây căng thẳng thần kinh; ưu tiên môi trường yên tĩnh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Uống đủ nước, vận động nhẹ giữa các giờ làm việc và đi ngủ đúng giờ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.health",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Dành 20-30 phút nghỉ ngơi tĩnh tâm hoặc đi bộ thư giãn sau giờ làm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.health",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-18",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.health",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-18T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 9,
+      "syntheticInput": {
+        "birthDate": "1988-09-09",
+        "localTime": "16:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-19",
+      "sha256": "efd409ee3ec4ce32397a2a63a614c4069da1b7281af45a1f273657575ec6d91c",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-9",
+        "chartVersionId": "synthetic-version-9",
+        "asOfDate": "2026-09-19",
+        "calendar": {
+          "solarDate": "2026-09-19",
+          "solarDateFormatted": "Thứ Bảy, 19/9/2026",
+          "lunarDateFormatted": "9/8 Bính Ngọ",
+          "dayStemBranch": "Bính Thân",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.wealth",
+          "touchedPalaceName": "Tài Bạch",
+          "earthlyBranch": "ziwei.branch.monkey",
+          "majorStars": [
+            "Phá Quân"
+          ],
+          "dailyStars": [
+            "Lưu Khôi"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "scholar"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Liêm Trinh"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Bính Thân: dòng tiền, thu chi và kiểm soát ngân sách",
+          "overview": "Ngày Bính Thân trên lá số của bạn ứng với cung Tài Bạch, phần nói về dòng tiền, thu chi và kiểm soát ngân sách. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Ưu tiên rà soát hiệu quả doanh thu, giải quyết các khoản công nợ hoặc kiểm tra sổ sách kế toán.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.monkey"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Tập trung giữ an toàn dòng vốn. Hạn chế chi tiêu theo cảm xúc hoặc các quyết định đầu tư lướt sóng.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Minh bạch và sòng phẳng trong mọi giao dịch tài chính với người quen để tránh khúc mắc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Tránh để những bận tâm tiền bạc làm ảnh hưởng đến bữa ăn và giấc ngủ ngon.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Lập danh sách các khoản cần chi và đối chiếu lại trước khi chuyển khoản.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tuyệt đối kiêng cho vay mượn thiếu cam kết rõ ràng hoặc xuất tiền vội vàng.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.wealth",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-19",
+          "daily.branch.ziwei.branch.monkey",
+          "daily.palace.ziwei.palace.wealth",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-19T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 10,
+      "syntheticInput": {
+        "birthDate": "1989-10-10",
+        "localTime": "18:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-20",
+      "sha256": "5ebc00c985ee1b1f6f7ffecbeb480dd6e5b568cf614d54811019301f90611688",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-10",
+        "chartVersionId": "synthetic-version-10",
+        "asOfDate": "2026-09-20",
+        "calendar": {
+          "solarDate": "2026-09-20",
+          "solarDateFormatted": "Chủ Nhật, 20/9/2026",
+          "lunarDateFormatted": "10/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Dậu",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.wealth",
+          "touchedPalaceName": "Tài Bạch",
+          "earthlyBranch": "ziwei.branch.rooster",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Khôi",
+            "Lưu Mã"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Dậu: dòng tiền, thu chi và kiểm soát ngân sách",
+          "overview": "Ngày Đinh Dậu trên lá số của bạn ứng với cung Tài Bạch, phần nói về dòng tiền, thu chi và kiểm soát ngân sách. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Ưu tiên rà soát hiệu quả doanh thu, giải quyết các khoản công nợ hoặc kiểm tra sổ sách kế toán.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.rooster"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Tập trung giữ an toàn dòng vốn. Hạn chế chi tiêu theo cảm xúc hoặc các quyết định đầu tư lướt sóng.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Minh bạch và sòng phẳng trong mọi giao dịch tài chính với người quen để tránh khúc mắc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Tránh để những bận tâm tiền bạc làm ảnh hưởng đến bữa ăn và giấc ngủ ngon.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.wealth",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Lập danh sách các khoản cần chi và đối chiếu lại trước khi chuyển khoản.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tuyệt đối kiêng cho vay mượn thiếu cam kết rõ ràng hoặc xuất tiền vội vàng.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.wealth",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-20",
+          "daily.branch.ziwei.branch.rooster",
+          "daily.palace.ziwei.palace.wealth",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-20T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 11,
+      "syntheticInput": {
+        "birthDate": "1990-11-11",
+        "localTime": "20:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-21",
+      "sha256": "a07788f2f2ea8c5b8f830ee030ac95299af735dd606615a6e9d4f2acacbb7404",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-11",
+        "chartVersionId": "synthetic-version-11",
+        "asOfDate": "2026-09-21",
+        "calendar": {
+          "solarDate": "2026-09-21",
+          "solarDateFormatted": "Thứ Hai, 21/9/2026",
+          "lunarDateFormatted": "11/8 Bính Ngọ",
+          "dayStemBranch": "Mậu Tuất",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.spouse",
+          "touchedPalaceName": "Phu Thê",
+          "earthlyBranch": "ziwei.branch.dog",
+          "majorStars": [
+            "Thái Dương"
+          ],
+          "dailyStars": [
+            "Lưu Khôi"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Tham Lang"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "helper"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thiên Cơ"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Mậu Tuất: hợp tác đôi bên và giữ hòa khí trong gia đình",
+          "overview": "Ngày Mậu Tuất trên lá số của bạn ứng với cung Phu Thê, phần nói về hợp tác đôi bên và giữ hòa khí trong gia đình. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thích hợp để rà soát các hợp đồng hợp tác song phương hoặc đàm phán thỏa thuận đối tác.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.dog"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Minh bạch trong các khoản chi chung của gia đình hoặc kế hoạch tài chính cùng người đồng hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Dành thời gian lắng nghe tâm tư của bạn đời hoặc đối phương, chủ động nhường nhịn khi có khác biệt.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Duy trì cảm xúc tích cực, tạo không khí ấm áp trong các buổi trò chuyện cuối ngày.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Lắng nghe kỹ trước khi đưa ra nhận định hoặc phản hồi.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh nhắc lại mâu thuẫn cũ hoặc so đo lời nói khi mệt mỏi.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.spouse",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-21",
+          "daily.branch.ziwei.branch.dog",
+          "daily.palace.ziwei.palace.spouse",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-21T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 12,
+      "syntheticInput": {
+        "birthDate": "1991-12-12",
+        "localTime": "22:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-22",
+      "sha256": "9fb0886341a6f1cb283b96adc886052a7798c37464889fa8824265b6e77d2b0e",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-12",
+        "chartVersionId": "synthetic-version-12",
+        "asOfDate": "2026-09-22",
+        "calendar": {
+          "solarDate": "2026-09-22",
+          "solarDateFormatted": "Thứ Ba, 22/9/2026",
+          "lunarDateFormatted": "12/8 Bính Ngọ",
+          "dayStemBranch": "Kỷ Hợi",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.spouse",
+          "touchedPalaceName": "Phu Thê",
+          "earthlyBranch": "ziwei.branch.pig",
+          "majorStars": [
+            "Thiên Cơ"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Vũ Khúc"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Tham Lang"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Lương"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "artist"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Kỷ Hợi: hợp tác đôi bên và giữ hòa khí trong gia đình",
+          "overview": "Ngày Kỷ Hợi trên lá số của bạn ứng với cung Phu Thê, phần nói về hợp tác đôi bên và giữ hòa khí trong gia đình. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thích hợp để rà soát các hợp đồng hợp tác song phương hoặc đàm phán thỏa thuận đối tác.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.pig"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Minh bạch trong các khoản chi chung của gia đình hoặc kế hoạch tài chính cùng người đồng hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Dành thời gian lắng nghe tâm tư của bạn đời hoặc đối phương, chủ động nhường nhịn khi có khác biệt.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Duy trì cảm xúc tích cực, tạo không khí ấm áp trong các buổi trò chuyện cuối ngày.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.spouse",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Lắng nghe kỹ trước khi đưa ra nhận định hoặc phản hồi.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh nhắc lại mâu thuẫn cũ hoặc so đo lời nói khi mệt mỏi.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.spouse",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-22",
+          "daily.branch.ziwei.branch.pig",
+          "daily.palace.ziwei.palace.spouse",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-22T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 13,
+      "syntheticInput": {
+        "birthDate": "1992-01-13",
+        "localTime": "00:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-23",
+      "sha256": "3b1810bba6e45f1391bd9e1800f191caa4a3b01fac19c50e5fd911b7e17b7608",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-13",
+        "chartVersionId": "synthetic-version-13",
+        "asOfDate": "2026-09-23",
+        "calendar": {
+          "solarDate": "2026-09-23",
+          "solarDateFormatted": "Thứ Tư, 23/9/2026",
+          "lunarDateFormatted": "13/8 Bính Ngọ",
+          "dayStemBranch": "Canh Tý",
+          "solarTerm": "Bạch Lộ"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.siblings",
+          "touchedPalaceName": "Huynh Đệ",
+          "earthlyBranch": "ziwei.branch.rat",
+          "majorStars": [
+            "Phá Quân"
+          ],
+          "dailyStars": [
+            "Lưu Mã"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Dương"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Vũ Khúc"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thiên Đồng"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Canh Tý: tương tác đồng nghiệp và các mối quan hệ hỗ trợ",
+          "overview": "Ngày Canh Tý trên lá số của bạn ứng với cung Huynh Đệ, phần nói về tương tác đồng nghiệp và các mối quan hệ hỗ trợ. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho các buổi thảo luận nhóm, phân chia nhiệm vụ và phối hợp ăn ý giữa các cộng sự.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.siblings",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.rat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Rõ ràng trong việc chia sẻ chi phí chung hoặc các thỏa thuận hùn hạp tài chính nhỏ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.siblings",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Hỏi thăm, gắn kết tình cảm với anh chị em hoặc bạn bè thân thiết có cùng chí hướng.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.siblings",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Giữ không gian trò chuyện thoải mái, tránh ôm đồm việc của người khác.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.siblings",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Chủ động kết nối và lắng nghe góc nhìn từ đồng nghiệp thân tín.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Không nên can thiệp quá sâu vào việc riêng tư của cộng sự.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.siblings",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-23",
+          "daily.branch.ziwei.branch.rat",
+          "daily.palace.ziwei.palace.siblings",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-23T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 14,
+      "syntheticInput": {
+        "birthDate": "1993-02-14",
+        "localTime": "02:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-24",
+      "sha256": "4f4293673b065c9c2d712f9d98d8ba716190b17769f087cad53f25014227356f",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-14",
+        "chartVersionId": "synthetic-version-14",
+        "asOfDate": "2026-09-24",
+        "calendar": {
+          "solarDate": "2026-09-24",
+          "solarDateFormatted": "Thứ Năm, 24/9/2026",
+          "lunarDateFormatted": "14/8 Bính Ngọ",
+          "dayStemBranch": "Tân Sửu",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.life",
+          "touchedPalaceName": "Mệnh",
+          "earthlyBranch": "ziwei.branch.ox",
+          "majorStars": [
+            "Thiên Đồng",
+            "Cự Môn"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Cự Môn"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thái Dương"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "artist"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "scholar"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Tân Sửu: chủ động khẳng định định hướng bản thân",
+          "overview": "Ngày Tân Sửu trên lá số của bạn ứng với cung Mệnh, phần nói về chủ động khẳng định định hướng bản thân. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Tập trung vào các quyết định mang tính chiến lược cá nhân. Rà soát lại mục tiêu ngắn hạn và giữ vững nhịp độ làm việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.ox"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Cân nhắc các khoản chi tiêu trực tiếp cho kế hoạch nâng cao kỹ năng hoặc cải thiện công cụ làm việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Giao tiếp thẳng thắn, rõ ràng với người xung quanh nhưng giữ thái độ ôn hòa và cởi mở.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Chú ý điều hòa năng lượng, không để áp lực mục tiêu cá nhân gây căng thẳng thần kinh.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.life",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Xác định rõ việc trọng tâm trong ngày và giải quyết dứt điểm.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh bảo thủ hoặc tranh cãi áp đặt quan điểm cá nhân.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.life",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-24",
+          "daily.branch.ziwei.branch.ox",
+          "daily.palace.ziwei.palace.life",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-24T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 15,
+      "syntheticInput": {
+        "birthDate": "1994-03-15",
+        "localTime": "04:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-25",
+      "sha256": "1bc617f0bfb1be2275096858ee3a6ef01b699ca55654f8143e8e6c4192204960",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-15",
+        "chartVersionId": "synthetic-version-15",
+        "asOfDate": "2026-09-25",
+        "calendar": {
+          "solarDate": "2026-09-25",
+          "solarDateFormatted": "Thứ Sáu, 25/9/2026",
+          "lunarDateFormatted": "15/8 Bính Ngọ",
+          "dayStemBranch": "Nhâm Dần",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.parents",
+          "touchedPalaceName": "Phụ Mẫu",
+          "earthlyBranch": "ziwei.branch.tiger",
+          "majorStars": [
+            "Thiên Cơ",
+            "Thái Âm"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thiên Lương"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Tử Vi"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "officer"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Vũ Khúc"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Nhâm Dần: quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ",
+          "overview": "Ngày Nhâm Dần trên lá số của bạn ứng với cung Phụ Mẫu, phần nói về quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Cần rà soát kỹ văn bản pháp lý, giấy tờ hành chính và tuân thủ chặt chẽ quy định tổ chức.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.tiger"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chú ý các khoản chi phí liên quan đến hóa đơn, thuế hoặc phụng dưỡng đấng sinh thành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Gọi điện thăm hỏi cha mẹ, người lớn tuổi hoặc thầy cô đã dẫn dắt mình.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Học hỏi sự điềm đạm từ thế hệ đi trước để rèn luyện đức tính kiên nhẫn.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.parents",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Hoàn tất các thủ tục giấy tờ tồn đọng và thăm hỏi bậc sinh thành.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Không ký tá bất kỳ văn bản nào khi chưa đọc kỹ toàn bộ điều khoản.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.parents",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-25",
+          "daily.branch.ziwei.branch.tiger",
+          "daily.palace.ziwei.palace.parents",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-25T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 16,
+      "syntheticInput": {
+        "birthDate": "1995-04-16",
+        "localTime": "06:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-26",
+      "sha256": "713e049cd018b6712194995f91792d2720d8d22fc5e9c079138fea36064f98e2",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-16",
+        "chartVersionId": "synthetic-version-16",
+        "asOfDate": "2026-09-26",
+        "calendar": {
+          "solarDate": "2026-09-26",
+          "solarDateFormatted": "Thứ Bảy, 26/9/2026",
+          "lunarDateFormatted": "16/8 Bính Ngọ",
+          "dayStemBranch": "Quý Mão",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.fortune",
+          "touchedPalaceName": "Phúc Đức",
+          "earthlyBranch": "ziwei.branch.rabbit",
+          "majorStars": [
+            "Tử Vi",
+            "Tham Lang"
+          ],
+          "dailyStars": [
+            "Lưu Việt",
+            "Lưu Mã"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Phá Quân"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Cự Môn"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Tham Lang"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Quý Mão: tâm an, chiều sâu tinh thần và sự thanh thản nội tâm",
+          "overview": "Ngày Quý Mão trên lá số của bạn ứng với cung Phúc Đức, phần nói về tâm an, chiều sâu tinh thần và sự thanh thản nội tâm. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Giữ cái nhìn bao dung và bình tĩnh trước mọi biến động hoặc áp lực trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.fortune",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.rabbit"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Xem nhẹ những tính toán vụn vặt; ưu tiên hành động hướng tới giá trị bền vững lâu dài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.fortune",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Thấu hiểu và chia sẻ với người thân; giữ tâm thế dĩ hòa vi quý trong ứng xử.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.fortune",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Dành thời gian đọc sách, thiền định hoặc nghe nhạc thư giãn để nuôi dưỡng tinh thần.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.fortune",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Lắng đọng tâm trí 15 phút đầu ngày để xác lập năng lượng an yên.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh suy nghĩ luẩn quẩn về những việc ngoài tầm kiểm soát của bản thân.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.fortune",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-26",
+          "daily.branch.ziwei.branch.rabbit",
+          "daily.palace.ziwei.palace.fortune",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-26T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 17,
+      "syntheticInput": {
+        "birthDate": "1996-05-17",
+        "localTime": "08:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-27",
+      "sha256": "dc908ba4ef52dd5ce58b099ed587f75a0718fe940e8d63ecb39ba5bba84c5eab",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-17",
+        "chartVersionId": "synthetic-version-17",
+        "asOfDate": "2026-09-27",
+        "calendar": {
+          "solarDate": "2026-09-27",
+          "solarDateFormatted": "Chủ Nhật, 27/9/2026",
+          "lunarDateFormatted": "17/8 Bính Ngọ",
+          "dayStemBranch": "Giáp Thìn",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.property",
+          "touchedPalaceName": "Điền Trạch",
+          "earthlyBranch": "ziwei.branch.dragon",
+          "majorStars": [
+            "Thất Sát"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Liêm Trinh"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Phá Quân"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Vũ Khúc"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thái Dương"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Giáp Thìn: không gian sống, tích lũy tài sản và sự ổn định của gia đình",
+          "overview": "Ngày Giáp Thìn trên lá số của bạn ứng với cung Điền Trạch, phần nói về không gian sống, tích lũy tài sản và sự ổn định của gia đình. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thích hợp để sắp xếp lại không gian làm việc gọn gàng, tạo cảm hứng sáng tạo và tập trung.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.dragon"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Xem xét các kế hoạch tích lũy dài hạn, bảo dưỡng tài sản vật chất và nhà ở.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Quan tâm chăm sóc các thành viên trong gia đình, xây dựng không khí ấm cúng tại tổ ấm.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Dọn dẹp môi trường sống thoáng đãng, mang lại năng lượng trong lành cho cả nhà.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.property",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Sắp xếp lại bàn làm việc hoặc sửa sang một góc sinh hoạt trong nhà.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh mua sắm các vật dụng gia đình đắt đỏ mà chưa thực sự cần thiết.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.property",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-27",
+          "daily.branch.ziwei.branch.dragon",
+          "daily.palace.ziwei.palace.property",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-27T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 18,
+      "syntheticInput": {
+        "birthDate": "1997-06-18",
+        "localTime": "10:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-28",
+      "sha256": "0edf8c23f9ed38ce9487e82427e49f0c3d4f97579a3c4a34875e56fe5e190e3f",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-18",
+        "chartVersionId": "synthetic-version-18",
+        "asOfDate": "2026-09-28",
+        "calendar": {
+          "solarDate": "2026-09-28",
+          "solarDateFormatted": "Thứ Hai, 28/9/2026",
+          "lunarDateFormatted": "18/8 Bính Ngọ",
+          "dayStemBranch": "Ất Tỵ",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.career",
+          "touchedPalaceName": "Quan Lộc",
+          "earthlyBranch": "ziwei.branch.snake",
+          "majorStars": [
+            "Tử Vi",
+            "Thất Sát"
+          ],
+          "dailyStars": [],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Lương"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Tử Vi"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Thái Âm"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Ất Tỵ: tiến độ công việc, uy tín nghề nghiệp và trách nhiệm",
+          "overview": "Ngày Ất Tỵ trên lá số của bạn ứng với cung Quan Lộc, phần nói về tiến độ công việc, uy tín nghề nghiệp và trách nhiệm. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Tập trung hoàn thành các mục tiêu quan trọng đúng hạn. Rà soát chất lượng hồ sơ báo cáo chuyên môn.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.career",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.snake"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Định giá đúng công sức và năng lực của bản thân trong các đề xuất thù lao hoặc hợp đồng.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.career",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Giữ thái độ chuyên nghiệp, tôn trọng kỷ luật chung và tôn trọng cấp trên lẫn cộng sự.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.career",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Cân bằng giữa giờ làm việc và thời gian nghỉ để duy trì độ sắc bén trong tư duy.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.career",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Lập kế hoạch công việc chi tiết từ đầu ngày và thực hiện theo từng nấc.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh trì hoãn các việc trọng tâm hoặc nhận thêm việc khi chưa xong việc cũ.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.career",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-28",
+          "daily.branch.ziwei.branch.snake",
+          "daily.palace.ziwei.palace.career",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-28T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 19,
+      "syntheticInput": {
+        "birthDate": "1998-07-19",
+        "localTime": "12:30",
+        "gender": "male"
+      },
+      "asOfDate": "2026-09-29",
+      "sha256": "f0834d4a98805e3842bc44c71c23f46f19f2ec5910d6505c041b9fcf8c856521",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-19",
+        "chartVersionId": "synthetic-version-19",
+        "asOfDate": "2026-09-29",
+        "calendar": {
+          "solarDate": "2026-09-29",
+          "solarDateFormatted": "Thứ Ba, 29/9/2026",
+          "lunarDateFormatted": "19/8 Bính Ngọ",
+          "dayStemBranch": "Bính Ngọ",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.friends",
+          "touchedPalaceName": "Nô Bộc",
+          "earthlyBranch": "ziwei.branch.horse",
+          "majorStars": [
+            "Vũ Khúc",
+            "Thiên Phủ"
+          ],
+          "dailyStars": [
+            "scholar(d)",
+            "Lưu Mã"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "scholar"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Liêm Trinh"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Bính Ngọ: mạng lưới bạn bè, đối tác xã hội và sự hỗ trợ cộng đồng",
+          "overview": "Ngày Bính Ngọ trên lá số của bạn ứng với cung Nô Bộc, phần nói về mạng lưới bạn bè, đối tác xã hội và sự hỗ trợ cộng đồng. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Tham khảo ý kiến chuyên môn từ những người có kinh nghiệm trong mạng lưới quan hệ.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.horse"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Cảnh giác trước những lời mời hợp tác tài chính hấp dẫn từ người chưa đủ độ tin cậy.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Duy trì tương tác tích cực với bạn bè chân thành; tránh các hội nhóm bàn luận chuyện người khác.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Chọn lọc môi trường tiếp xúc để giữ cho tâm trí luôn nhẹ nhàng, tích cực.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.friends",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Gặp gỡ hoặc trò chuyện cùng người bạn có tư duy tích cực, xây dựng.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Tránh chia sẻ các thông tin bảo mật công việc cho người ngoài cuộc.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.friends",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-29",
+          "daily.branch.ziwei.branch.horse",
+          "daily.palace.ziwei.palace.friends",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-29T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    },
+    {
+      "sample": 20,
+      "syntheticInput": {
+        "birthDate": "1999-08-20",
+        "localTime": "14:30",
+        "gender": "female"
+      },
+      "asOfDate": "2026-09-30",
+      "sha256": "e7e866205dbdd2bf37428e998eaf5691e957efb93e3cbdb316ea8b55fe833636",
+      "quality": {
+        "ok": true,
+        "errors": []
+      },
+      "reading": {
+        "version": 1,
+        "chartId": "synthetic-daily-20",
+        "chartVersionId": "synthetic-version-20",
+        "asOfDate": "2026-09-30",
+        "calendar": {
+          "solarDate": "2026-09-30",
+          "solarDateFormatted": "Thứ Tư, 30/9/2026",
+          "lunarDateFormatted": "20/8 Bính Ngọ",
+          "dayStemBranch": "Đinh Mùi",
+          "solarTerm": "Thu Phân"
+        },
+        "chartGrounding": {
+          "touchedPalaceId": "ziwei.palace.travel",
+          "touchedPalaceName": "Thiên Di",
+          "earthlyBranch": "ziwei.branch.goat",
+          "majorStars": [],
+          "dailyStars": [
+            "Lưu Việt",
+            "scholar(d)"
+          ],
+          "dailyMutagens": [
+            {
+              "mutagen": "loc",
+              "starName": "Thái Âm"
+            },
+            {
+              "mutagen": "quyen",
+              "starName": "Thiên Đồng"
+            },
+            {
+              "mutagen": "khoa",
+              "starName": "Thiên Cơ"
+            },
+            {
+              "mutagen": "ky",
+              "starName": "Cự Môn"
+            }
+          ]
+        },
+        "reading": {
+          "headline": "Ngày Đinh Mùi: gặp gỡ bên ngoài, đi lại và mở rộng không gian sống",
+          "overview": "Ngày Đinh Mùi trên lá số của bạn ứng với cung Thiên Di, phần nói về gặp gỡ bên ngoài, đi lại và mở rộng không gian sống. Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.",
+          "aspects": [
+            {
+              "key": "work",
+              "title": "Công việc & Trách nhiệm",
+              "guidance": "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.work",
+                "daily.branch.ziwei.branch.goat"
+              ]
+            },
+            {
+              "key": "finances",
+              "title": "Tài chính & Dòng tiền",
+              "guidance": "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.finances"
+              ]
+            },
+            {
+              "key": "relationships",
+              "title": "Tình cảm & Hòa khí",
+              "guidance": "Tạo ấn tượng lịch thiệp, chu đáo với những người mới quen trong công việc.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.relationships"
+              ]
+            },
+            {
+              "key": "wellbeing",
+              "title": "Sức khỏe & Sinh hoạt",
+              "guidance": "Chú ý an toàn khi tham gia giao thông, chuẩn bị đồ đạc cẩn thận trước khi xuất hành.",
+              "evidenceKeys": [
+                "daily.palace.ziwei.palace.travel",
+                "daily.aspect.wellbeing"
+              ]
+            }
+          ],
+          "actionPlan": {
+            "recommendations": [
+              "Kiểm tra kỹ lịch trình, phương tiện và hồ sơ cần mang theo trước khi ra ngoài.",
+              "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số."
+            ],
+            "cautions": [
+              "Hạn chế vội vã khi đi lại trên đường vào giờ cao điểm.",
+              "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế."
+            ],
+            "evidenceKeys": [
+              "daily.palace.ziwei.palace.travel",
+              "daily.action.recommendations",
+              "daily.action.cautions"
+            ]
+          }
+        },
+        "evidenceKeys": [
+          "daily.date.2026-09-30",
+          "daily.branch.ziwei.branch.goat",
+          "daily.palace.ziwei.palace.travel",
+          "daily.aspect.work",
+          "daily.aspect.finances",
+          "daily.aspect.relationships",
+          "daily.aspect.wellbeing",
+          "daily.action.recommendations",
+          "daily.action.cautions"
+        ],
+        "qualityGate": {
+          "passed": true,
+          "checkedAt": "2026-09-30T03:00:00.000Z",
+          "rulesChecked": [
+            "FD089_NO_DEATH_LIFESPAN",
+            "FD089_NO_RITUALS_AMULETS",
+            "FD089_NO_LOTTERY_GAMBLING",
+            "FD089_ENGINE_EVIDENCE_ANCHORED"
+          ]
+        }
+      }
+    }
+  ]
+}
