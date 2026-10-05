@@ -4,6 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { createCampaignBudget, withBudget } from "./lib/campaign-budget.mjs";
 
 const kinds = ["monthly", "annual"];
 export async function runPeriodCampaign({ selectedPeriods, runs, makeInput, generate, record }) {
@@ -95,13 +96,13 @@ async function main(args) {
       manifest.status = "dry_run_not_acceptance";
     } else {
       Object.assign(manifest, await runPeriodCampaign({ selectedPeriods, runs, makeInput,
-        generate: input => backend.writePeriodReading(input),
+        generate: withBudget(createCampaignBudget(), "period-reading", { maxCalls: 2 }, input => backend.writePeriodReading(input)),
         record: async evidence => { manifest.evidence = evidence; await save(); } }));
       if (manifest.status !== "passed") process.exitCode = 1;
     }
-  } catch {
+  } catch (error) {
     manifest.status = "failed";
-    manifest.reason = "CAMPAIGN_EXECUTION_FAILED";
+    manifest.reason = typeof error?.code === "string" && error.code.startsWith("BUDGET_") ? error.code : "CAMPAIGN_EXECUTION_FAILED";
     process.exitCode = 1;
   } finally {
     await save();
