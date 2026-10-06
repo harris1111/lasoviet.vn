@@ -1,3 +1,4 @@
+import { authorizeCanonicalMutation } from "../../../../../api/authorize-canonical-mutation";
 import { NextResponse } from "next/server";
 import { WalletUnlockRequestV1Schema, WalletUnlockResultV1Schema } from "@lasoviet/contracts";
 import { sendServerAnalyticsEvent } from "../../../../../analytics/server-analytics";
@@ -8,7 +9,7 @@ import {
   resolveVerifiedAccountActor,
 } from "../../../../../auth/resolve-current-actor";
 
-const NO_STORE_HEADERS = { "cache-control": "no-store" };
+const NO_STORE_HEADERS = { "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
 
 /**
  * Browser-facing proxy for spending Lá on a confirmed purchase intent
@@ -17,6 +18,7 @@ const NO_STORE_HEADERS = { "cache-control": "no-store" };
  * pack sheet instead of showing a generic error.
  */
 export async function POST(request: Request): Promise<Response> {
+  if (!authorizeCanonicalMutation(request)) return NextResponse.json({code: "REQUEST_ORIGIN_INVALID"}, {status: 403, headers: NO_STORE_HEADERS});
   let actor;
   try {
     actor = await resolveVerifiedAccountActor();
