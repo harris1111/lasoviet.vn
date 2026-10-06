@@ -59,5 +59,5 @@ export default async function ReportPage({
     </>;
   }
 
-  return <ReportProgress locale={reportView.locale} view={reportView} />;
+  return <ReportProgress locale={reportView.locale} view={reportView} notificationEnabled={process.env.REPORT_READY_SUBSCRIPTION_MODE === "capture"} />;
 }

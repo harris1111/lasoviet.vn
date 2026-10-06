@@ -424,5 +424,17 @@
     "overview": "Tổng quan",
     "periods": "Các giai đoạn trong bài luận",
     "cautions": "Điều nên lưu ý"
+  },
+  "notification": {
+    "title": "Thông báo báo cáo",
+    "description": "Báo tôi khi báo cáo này hoàn tất.",
+    "subscribe": "Báo tôi khi xong",
+    "cancel": "Hủy yêu cầu nhắc riêng",
+    "saving": "Đang lưu…",
+    "registered": "Đã đăng ký cho báo cáo này.",
+    "processed": "Yêu cầu nhắc riêng đã được xử lý.",
+    "suppressed": "Yêu cầu này không còn đủ điều kiện.",
+    "automatic_notice": "Hủy yêu cầu nhắc riêng không hủy thông báo tự động của đơn mua.",
+    "error": "Chưa lưu được yêu cầu. Vui lòng thử lại sau."
   }
 }

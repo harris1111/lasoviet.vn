@@ -1,5 +1,6 @@
 "use client";
 
+import { ReportNotification } from "./report-notification";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ import type {
 
 export type ReportProgressProps = {
   locale: "vi" | "en";
+  notificationEnabled?: boolean;
   view: ReportPendingViewV1 | ReportFailedViewV1 | ReportFailedWalletSpendViewV2;
 };
 
@@ -63,7 +65,7 @@ export function buildSupportMailto(
   return `mailto:${view.supportEmail}?subject=${encodeURIComponent(view.supportSubject)}&body=${encodeURIComponent(body)}`;
 }
 
-export function ReportProgress({ locale, view }: ReportProgressProps) {
+export function ReportProgress({ locale, view, notificationEnabled = false }: ReportProgressProps) {
   const router = useRouter();
   const t = useTranslations("reports");
   const isVi = locale === "vi";
@@ -210,6 +212,7 @@ export function ReportProgress({ locale, view }: ReportProgressProps) {
             </Link>
           </div>
         </div>
+        {notificationEnabled && <ReportNotification key={`${view.reportId}:${view.reportVersionId}`} reportId={view.reportId} reportVersionId={view.reportVersionId} locale={locale} />}
         {view.chartSnapshot && <WaitingChartFacts locale={locale} snapshot={view.chartSnapshot} />}
       </section>
     </main>

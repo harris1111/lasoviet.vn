@@ -424,5 +424,17 @@
     "overview": "Overview",
     "periods": "Reading periods",
     "cautions": "Things to consider"
+  },
+  "notification": {
+    "title": "Report notification",
+    "description": "Notify me when this report is ready.",
+    "subscribe": "Notify me when ready",
+    "cancel": "Cancel additional reminder",
+    "saving": "Saving…",
+    "registered": "Registered for this report.",
+    "processed": "The additional request has been processed.",
+    "suppressed": "This request is no longer eligible.",
+    "automatic_notice": "Canceling this additional request does not cancel automatic purchase notifications.",
+    "error": "Your request could not be saved. Please try again later."
   }
 }

@@ -1,5 +1,10 @@
 import {
   Controller,
+  Body,
+  Post,
+  Query,
+  HttpException,
+  BadRequestException,
   Get,
   Headers,
   Inject,
@@ -7,7 +12,8 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 
-import type { ReportQueryService } from "@lasoviet/backend";
+import { createReportNotificationService, ReportNotificationError, resolveReportNotificationMode, type ReportQueryService } from "@lasoviet/backend";
+import { ReportNotificationCommandV1Schema } from "@lasoviet/contracts";
 import type {
   CurrentActor,
   ReportFailedWalletSpendViewV2,
@@ -60,6 +66,32 @@ export class ReportsController {
         error instanceof ActorTokenError ? error.code : "ACTOR_TOKEN_INVALID";
       throw new UnauthorizedException({ code });
     }
+  }
+
+  private noticeService() {
+    return createReportNotificationService(this.database, {mode: resolveReportNotificationMode(process.env.REPORT_READY_SUBSCRIPTION_MODE)});
+  }
+  private noticeError(error: unknown): never {
+    if (error instanceof ReportNotificationError) throw new HttpException({code: error.code},
+      error.code === "REPORT_NOTICE_DISABLED" ? 503 : error.code === "REPORT_NOT_FOUND" ? 404 : 409);
+    throw error;
+  }
+  @Get(":reportId/notification")
+  async readNotification(@Headers("authorization") authorization: string | undefined,
+    @Param("reportId") reportId: string, @Query() query: Record<string, unknown> = {}) {
+    if (Object.keys(query).length) throw new BadRequestException({code: "REPORT_NOTICE_REQUEST_INVALID"});
+    const actor = await this.actor(authorization);
+    try { return {ok: true as const, value: await this.noticeService().read(actor, reportId)}; }
+    catch (error) { return this.noticeError(error); }
+  }
+  @Post(":reportId/notification")
+  async updateNotification(@Headers("authorization") authorization: string | undefined,
+    @Param("reportId") reportId: string, @Body() body: unknown, @Query() query: Record<string, unknown> = {}) {
+    const parsed = ReportNotificationCommandV1Schema.safeParse(body);
+    if (!parsed.success || Object.keys(query).length) throw new BadRequestException({code: "REPORT_NOTICE_REQUEST_INVALID"});
+    const actor = await this.actor(authorization);
+    try { return {ok: true as const, value: await this.noticeService().command(actor, reportId, parsed.data)}; }
+    catch (error) { return this.noticeError(error); }
   }
 
   @Get(":reportId")

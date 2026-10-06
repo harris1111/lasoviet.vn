@@ -860,3 +860,4 @@ export type { FreePalaceEngagementService } from "./ziwei/free-palace-engagement
 export {createReportWalletCompensationRunner} from "./reports/report-wallet-compensation.js";
 
 export { createPendingTopUpRecoveryCaptureService, RECOVERY_CAPTURE_EVENT_TYPE, PENDING_TOPUP_RECOVERY_DELAY_MS } from "./notifications/pending-topup-recovery-capture.js";
+export { createReportNotificationService, resolveReportNotificationMode, ReportNotificationError, REPORT_NOTIFICATION_CAPTURE_EVENT } from "./notifications/report-notification.service.js";
