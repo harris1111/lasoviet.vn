@@ -38,6 +38,8 @@ export type WalletTopUpContinuationRequestV1 = z.infer<typeof WalletTopUpContinu
 export const WalletTopUpContinuationViewV1Schema = z.object({
   status: z.enum(["pending", "completed", "blocked"]),
   unlockedSku: z.string().min(1).optional(),
+  purchaseIntentId: z.string().uuid().optional(),
+  chartVersionId: z.string().min(1).optional(),
   returnPath: z.string().regex(/^\/(?:en\/)?la-so\/[^?#]+(?:\?[^#]*)?$/),
   reportId: id.nullable(),
   remainingLa: amount.nullable(),

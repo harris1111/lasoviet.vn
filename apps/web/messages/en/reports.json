@@ -132,7 +132,16 @@
     "ladderDescription": "Buy one palace or the full chart reading. Eligible individual purchases count toward your upgrade within 7 days.",
     "ladderScore": "Structural strength: {score}/100",
     "ladderSelect": "Select this reading",
-    "ladderBalance": "Balance: {balance} Lá"
+    "ladderBalance": "Balance: {balance} Lá",
+    "inlinePackLabel": "Choose a Lá pack",
+    "inlinePackBonus": "Better value · +{bonus} bonus Lá",
+    "inlineRemaining": "After topping up, {item} opens and you have {balance} Lá left.",
+    "inlineConfirm": "Pay {amount} and unlock {item}",
+    "inlineProcessing": "When payment is confirmed, {item} opens automatically.",
+    "inlineSaveQr": "Open QR image to save",
+    "inlineOrderLink": "Reopen this payment order",
+    "inlineError": "Could not check the payment order. Retry to continue with the same order.",
+    "inlineReconfirm": "Not transferred — choose a pack again"
   },
   "checkout": {
     "eyebrow": "Payment",

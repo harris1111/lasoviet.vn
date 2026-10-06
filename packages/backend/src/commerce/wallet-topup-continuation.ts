@@ -81,6 +81,8 @@ export async function readTopUpContinuation(database: Database, orderId: string,
   return {
     status: row.continuation.status as WalletTopUpContinuationViewV1["status"],
     unlockedSku: row.intent.sku,
+    purchaseIntentId: row.intent.id,
+    chartVersionId: row.intent.chartVersionId,
     returnPath: `${prefix}/la-so/${encodeURIComponent(row.intent.chartId)}?${params}`,
     reportId: row.intent.sku === "ZIWEI-TODAY-P0" ? null : row.continuation.reportId,
     remainingLa: row.continuation.remainingLa, errorCode: row.continuation.errorCode,
