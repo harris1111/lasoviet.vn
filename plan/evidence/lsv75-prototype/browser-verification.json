@@ -1,0 +1,25 @@
+{
+  "kind": "prototype-only-browser-checks",
+  "checks": [
+    {
+      "width": 390,
+      "overviewWords": 1278,
+      "priceOnlyInDeliberatePreview": true,
+      "inPlacePreview": true,
+      "escapeCloses": true,
+      "lightAndDarkNoOverflow": true,
+      "paidCalls": 0,
+      "mutations": 0
+    },
+    {
+      "width": 1440,
+      "overviewWords": 1278,
+      "priceOnlyInDeliberatePreview": true,
+      "inPlacePreview": true,
+      "escapeCloses": true,
+      "lightAndDarkNoOverflow": true,
+      "paidCalls": 0,
+      "mutations": 0
+    }
+  ]
+}
