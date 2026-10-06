@@ -4,7 +4,6 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { createCampaignBudget, withBudget } from "./lib/campaign-budget.mjs";
 
 const topics = ["relationship_marriage", "career_wealth"];
 export async function runTopicCampaign({ selectedTopics, runs, makeInput, generate, record }) {
@@ -94,13 +93,13 @@ async function main(args) {
       manifest.status = "dry_run_not_acceptance";
     } else {
       Object.assign(manifest, await runTopicCampaign({ selectedTopics, runs, makeInput,
-        generate: withBudget(createCampaignBudget(), "topic-deep-dive", { maxCalls: 2 }, input => backend.generateZiweiTopicDeepDiveWithQualityLoopV4(input)),
+        generate: input => backend.generateZiweiTopicDeepDiveWithQualityLoopV4(input),
         record: async evidence => { manifest.evidence = evidence; await save(); } }));
       if (manifest.status !== "passed") process.exitCode = 1;
     }
-  } catch (error) {
+  } catch {
     manifest.status = "failed";
-    manifest.reason = typeof error?.code === "string" && error.code.startsWith("BUDGET_") ? error.code : "CAMPAIGN_EXECUTION_FAILED";
+    manifest.reason = "CAMPAIGN_EXECUTION_FAILED";
     process.exitCode = 1;
   } finally {
     await save();

@@ -1,43 +1,30 @@
-# Kế hoạch đưa các ticket In Review sang Done — 05/10/2026
+# PR 297: lifetime campaign budget guard repair
 
-Nguồn: đọc toàn bộ comment của 18 ticket còn In Review trên Kaneo (LSV-51 đã chuyển Done hôm nay). Quy tắc: chỉ Done khi có bằng chứng deploy/smoke; không dùng mô phỏng để thay thanh toán thật, máy thật hay chất lượng AI thật.
+## Bounded authorization
 
-## A. Claude làm trực tiếp được (không cần anh, An hay tiền thật)
+The owner authorized this repair and a public model/pricing lookup on 2026-10-06. FD-112 authorizes only the lifetime v4.2 real-quality campaign, capped at 200,000 VND including retries, after routing and pricing verification. Other campaigns remain deferred. No additional budget approval is required. This PR supplies a durable budget primitive and synthetic verification; it does not activate a provider, change billing tables, or run a campaign.
 
-| # | Việc | Ticket có thể Done | Cách làm | Điều kiện Done |
-|---|---|---|---|---|
-| A1 | Đối chiếu tiêu chí của LSV-54 với bằng chứng đã có: 12 luồng CI (mua cung 120 Lá, đoạn trích 240, rollover 720), PR #290 (kiểm nguồn/riêng tư/đếm cung của trang đọc) | LSV-54 | Đọc `docs/qa/2026-10-04-lsv80-*.md`, `lsv61-*.md`, test PR #290; lập bảng "tiêu chí → test/bằng chứng". Chỉ nếu đủ 3 ý: dùng chung một lần tạo, trang đọc chỉ hiện đúng cung đã mua, chặn PDF một phần | Bảng phủ hết tiêu chí. Thiếu ý nào thì viết thêm test CI cho ý đó (Sonnet viết, Opus review), deploy, rồi Done |
-| A2 | Đóng LSV-53 theo phạm vi đã chốt (xem câu hỏi ở mục C) | LSV-53 | Ghi comment phân định: phần AI cá nhân hoá chuyển hẳn sang LSV-71/75; phần che mờ + khung đọc trước + banner 24 giờ đã deploy và smoke ngày 1/10 | Anh đồng ý phạm vi, sau đó em chuyển Done |
-| A3 | Ngân sách chiến dịch AI: viết khoá ngân sách bền, đặt trước khi gửi, và giới hạn số lần gọi lại cho cả request | Gỡ blocker của LSV-71, 68, 58, 63, 62 (chưa tới Done) | Code theo yêu cầu của An (comment 4/10): đặt trước 200.000 VND gồm chạy lại, dừng khi chạm trần, test trên PostgreSQL thật. Sonnet viết, Opus review | PR merge, CI xanh, deploy, smoke với nhà cung cấp giả |
-| A4 | Rà lại các ticket đã xong phần mình: dọn bảng, ghi comment tình trạng thật cho từng ticket | Không ticket nào | Một comment tổng hợp "đã xong gì, còn chặn gì" trên từng ticket để lần sau khỏi đọc lại | Comment đã đăng |
-| A5 | Chuẩn bị gói nghiệm thu máy thật cho anh | LSV-72, 73, 80 (anh làm bước cuối) | Rút gọn checklist đã có trong `docs/reviews/2026-10-04-nghiem-thu-con-lai.md` thành một trang một màn hình; có ô điền kết quả | Anh có file để điền khi thử |
+Allowed changes: the campaign budget library/worker/tests, root script-test registration, and this record. Remove this PR's topic/period wiring because those campaigns are deferred. No UI, production adapter, operator setting, migration, pricing activation or paid call.
 
-Lưu ý khi làm A3: theo quy tắc của anh, code production do Sonnet viết, Opus chỉ review. Việc không đụng giao diện nên không cần báo trước về mobile-first.
+## Findings and correction
 
-## B. Làm được một phần, phần còn lại bị chặn
+The previous guard guesses 1,500 VND per call, splits the approved cap among unapproved campaigns, can delete an active lock after 30 seconds, and does not fsync reservations. It also permits arithmetic/configuration and journal transitions that cannot prove a cap. Replace the guessed rate with explicit positive safe-integer bounds supplied by a caller after independent route/rate/retry verification. Enforce the fixed maximum and lifetime-only scope. Use the installed Linux `flock` utility, which releases locks when a process dies; never reclaim a lock by elapsed age. Serialize and fsync a versioned journal before returning a reservation or dispatch permission. Sent/unknown/crashed reservations remain charged. Release is permitted only before a durable dispatch marker. Corrupt/incompatible journals fail closed without resetting exposure. Verify real process concurrency, restart/crash retention, malformed records, permissions, cap exhaustion and dispatch/refund fencing.
 
-| Ticket | Em làm được | Còn lại chặn bởi |
-|---|---|---|
-| LSV-78 | Nhắc khách quay lại và khôi phục trong ứng dụng (code, tắt mặc định) | Gửi email thật và phần đo doanh thu khôi phục thật |
-| LSV-79 | Phần nhắc sau khi xem lá số xong chưa mua | Như trên, cộng số liệu có phân loại khách |
-| LSV-60 | Giữ nguyên phần đã xong (nhắc chờ nạp, nurture) | Email nhắc tháng hạn phụ thuộc LSV-63. Gửi email thật chưa được bật |
-| LSV-70 | Không còn việc em làm riêng | Chờ LSV-71 |
-| LSV-71, 68 | A3 (khoá ngân sách, giới hạn gọi lại) | Dữ liệu phí đầy đủ từ broker, anh đọc 5 bản luận giải thật |
+## Public pricing lookup and remaining gate
 
-## C. Chưa làm được: ghi chú cho anh
+Google's official model catalog lists `gemini-3.8-flash`. Its direct API pricing checked on 2026-10-06 is USD 0.75/million input tokens, 3.75/million output tokens including thinking, and 0.075/million cached input tokens. The page describes these as promotional through 2026-12-31, after which pricing can change. Sources: https://ai.google.dev/gemini-api/docs/models and https://ai.google.dev/gemini-api/docs/pricing .
 
-1. **LSV-50 (nạp Lá thật):** cần mở SePay sandbox hoặc thật. Anh đã hoãn SePay. Vì vậy LSV-50 chặn cả LSV-77. Muốn Done thì cần anh cho phép mở SePay thử.
-2. **LSV-72, 73, 80:** anh thử Google, Safari và 4G trên điện thoại thật. Em chuẩn bị file ở A5 nhưng không thể thay anh.
-3. **LSV-58, 62, 63 (nội dung cần chạy thật 20 lần mỗi loại, 40 lần cho 58 và 63):** cần anh duyệt ngân sách số tiền và model cho đợt thử (đã duyệt 200.000 VND và `ag/gemini-3.8-flash` ở mức tổng thể; em cần xác nhận phân bổ giữa các loại), và anh đọc nội dung. Cũng cần A3 xong và broker trả phí đầy đủ.
-4. **LSV-64 (hội viên), LSV-65 (combo):** anh đã giữ không bán. Mở bán cần anh quyết (A: giữ nguyên và chọn công cụ trả phí cần làm trước; B: thu nhỏ gói hội viên). LSV-65 còn phụ thuộc LSV-63 và 68.
-5. **LSV-66 (hợp đôi):** hoãn theo quyết định của anh, cần BaZi. Chưa có phương pháp BaZi chọn; cần anh chọn có ưu tiên làm hay không.
-6. **LSV-53:** anh xác nhận hai điều: (a) phần AI cá nhân hoá của "magnet" được chuyển hẳn sang LSV-71/75; (b) em được Done phần che mờ + khung đọc trước đã chạy thật.
-7. **Gửi email thật (LSV-60, 78, 79):** hiện ở chế độ ghi nhận, không gửi. Cần anh cho phép bật gửi thật và chọn nhóm nhận.
+Read-only inspection of the installed gateway pricing source still reports input 1.5, output 7.5, cached 0.15, reasoning 11.25 and cache-creation 1.875 USD/million. Direct Google prices do not prove this gateway route's actual accounting. Existing AG/Gemini usage quarantine remains binding: authoritative raw usage and a proven whole-request retry/fallback bound are still required. Do not remove quarantine or substitute the public direct rate for active gateway pricing. No paid completion has been sent by this task.
 
-## Thứ tự thực thi đề xuất
+## Release gates
 
-1. A1 và A2 trước vì chỉ đọc và đối chiếu, nhanh, có thể đóng hai ticket ngay.
-2. A5 và A4 cùng lúc.
-3. A3 (có code) sau khi anh duyệt kế hoạch này.
+Focused synthetic tests, required i18n/lint/producer-rebuilding typecheck, independent exact-head review and green CI precede merge. Deployment and installed synthetic smoke precede milestone closure. Full LSV68/71 remain In Review; 20 consecutive full real reports plus owner review of five are still required. This guard alone does not establish model quality or verified provider costs.
 
-Mỗi PR đi theo quy trình FD-097: nhánh ngắn, PR vào `master`, test xanh, chờ anh hoặc Lãm duyệt mới merge.
+## Independent review correction
+
+The first independent review returned NO GO for reinitializing a missing/empty journal and insufficient persistence of newly created directory entries. The correction adds a persistent initialization marker to the OS lock file before creating the journal. Existing empty journals and missing initialized journals fail closed without changing exposure. Every newly created directory and its parent entry are fsynced. The original journal/marker must be retained together; all real campaign invocations must use one canonical persistent path and execution identity. Changing the path or deleting both files is not a supported reset or migration. This is a single-host campaign primitive, not a distributed billing database.
+
+Thirteen focused synthetic tests now pass, including real competing processes, crash/restart, held lock, loss/truncation, malformed transitions, nested directory initialization and callback denial at cap. No hardware power-loss test is claimed. Required i18n/lint/producer-rebuilding typecheck passed before this final review correction; repeat verification and independent review are required before push.
+
+
+A second review rejected a concurrent-bootstrap race: a process could observe an ancestor created by a peer before that peer fsynced its parent entry. Directory preparation now always traverses and synchronizes the entire chain, including existing directories. A six-process nested-bootstrap regression passes; independent working-diff review returned GO after all 13 tests passed independently. Required i18n/lint/producer-rebuilding typecheck pass with zero errors and four existing unrelated lint warnings. Final eslint and exact-head review precede push.

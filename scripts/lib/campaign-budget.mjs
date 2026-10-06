@@ -1,92 +1,91 @@
-import { appendFileSync, mkdirSync, readFileSync, rmSync, existsSync, statSync } from "node:fs";
-import { randomUUID } from "node:crypto";
+import { closeSync, constants, fstatSync, fsyncSync, lstatSync, mkdirSync, openSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-// Owner-approved lifetime cap for all real-provider quality campaigns, retries included (FD-082 / LSV-68).
+// FD-112 approves only this campaign; this primitive does not verify provider prices.
 export const TOTAL_CAP_VND = 200_000;
-// Proposed split of the cap. Unallocated remainder stays as reserve.
-export const DEFAULT_ALLOCATIONS_VND = { "v4.2-report": 80_000, "topic-deep-dive": 45_000, "period-reading": 45_000, "daily-reading": 20_000 };
-// Conservative worst case for one provider call. Cost of broker responses is unknown (LSV-71),
-// so every reservation is charged in full and never refunded after a call was sent.
-export const DEFAULT_PER_CALL_RESERVE_VND = 1_500;
-
-const LOCK_STALE_MS = 30_000;
+export const DEFAULT_ALLOCATIONS_VND = Object.freeze({ "v4.2-report": TOTAL_CAP_VND });
 export class CampaignBudgetError extends Error {
   constructor(code) { super(code); this.code = code; }
 }
-
 export function defaultLedgerPath() {
   return process.env.CAMPAIGN_BUDGET_LEDGER ?? join(homedir(), ".lasoviet", "campaign-budget.jsonl");
 }
-
-function withLock(path, fn) {
-  const lock = `${path}.lock`;
-  mkdirSync(dirname(path), { recursive: true });
-  for (let attempt = 0; attempt < 200; attempt++) {
-    try { mkdirSync(lock); break; } catch (error) {
-      if (error.code !== "EEXIST") throw error;
-      if (existsSync(lock) && Date.now() - statSync(lock).mtimeMs > LOCK_STALE_MS) rmSync(lock, { recursive: true, force: true });
-      else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
-    }
-    if (attempt === 199) throw new CampaignBudgetError("BUDGET_LEDGER_LOCK_TIMEOUT");
+function syncDirectory(path) {
+  const fd = openSync(path, constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+  try { fsyncSync(fd); } finally { closeSync(fd); }
+}
+function prepareDirectory(path) {
+  const parent = dirname(path);
+  if (parent !== path) prepareDirectory(parent);
+  try {
+    if (!lstatSync(path).isDirectory()) throw new CampaignBudgetError("BUDGET_DIRECTORY_UNSAFE");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    try { mkdirSync(path, { mode: 0o700 }); } catch (failure) { if (failure.code !== "EEXIST") throw failure; }
+    if (!lstatSync(path).isDirectory()) throw new CampaignBudgetError("BUDGET_DIRECTORY_UNSAFE");
   }
-  try { return fn(); } finally { rmSync(lock, { recursive: true, force: true }); }
+  // Also sync existing ancestors: another process may have just created them.
+  syncDirectory(path);
+  if (parent !== path) syncDirectory(parent);
 }
 
-function replay(path) {
-  const totals = { total: 0, byCampaign: {}, open: new Map() };
-  if (!existsSync(path)) return totals;
-  for (const line of readFileSync(path, "utf8").split("\n")) {
-    if (!line.trim()) continue;
-    const row = JSON.parse(line);
-    if (row.type === "reserve") {
-      totals.open.set(row.id, row);
-      totals.total += row.vnd;
-      totals.byCampaign[row.campaign] = (totals.byCampaign[row.campaign] ?? 0) + row.vnd;
-    } else if (row.type === "release" && totals.open.has(row.id)) {
-      const open = totals.open.get(row.id);
-      totals.open.delete(row.id);
-      totals.total -= open.vnd;
-      totals.byCampaign[open.campaign] -= open.vnd;
-    } else if (row.type === "settle") {
-      totals.open.delete(row.id); // a settled reservation stays charged in full
-    }
-  }
-  return totals;
-}
-
-export function createCampaignBudget({ ledgerPath = defaultLedgerPath(), totalCapVnd = TOTAL_CAP_VND, allocationsVnd = DEFAULT_ALLOCATIONS_VND } = {}) {
-  const append = row => appendFileSync(ledgerPath, JSON.stringify({ ...row, at: new Date().toISOString() }) + "\n", { mode: 0o600 });
-  return {
-    ledgerPath,
-    status() {
-      return withLock(ledgerPath, () => { const t = replay(ledgerPath); return { totalVnd: t.total, byCampaign: { ...t.byCampaign }, openReservations: t.open.size, capVnd: totalCapVnd }; });
-    },
-    // Must be called before the provider is contacted. Throws instead of letting a call overrun the cap.
-    reserve(campaign, vnd) {
-      if (!Number.isInteger(vnd) || vnd <= 0) throw new CampaignBudgetError("BUDGET_RESERVATION_INVALID");
-      if (!(campaign in allocationsVnd)) throw new CampaignBudgetError("BUDGET_CAMPAIGN_UNKNOWN");
-      return withLock(ledgerPath, () => {
-        const t = replay(ledgerPath);
-        if (t.total + vnd > totalCapVnd) throw new CampaignBudgetError("BUDGET_TOTAL_CAP_REACHED");
-        if ((t.byCampaign[campaign] ?? 0) + vnd > allocationsVnd[campaign]) throw new CampaignBudgetError("BUDGET_CAMPAIGN_CAP_REACHED");
-        const id = randomUUID();
-        append({ type: "reserve", id, campaign, vnd });
-        return id;
+const worker = fileURLToPath(new URL("./campaign-budget-ledger-worker.mjs", import.meta.url));
+export function createCampaignBudget({ ledgerPath = defaultLedgerPath(), totalCapVnd = TOTAL_CAP_VND,
+  allocationsVnd = DEFAULT_ALLOCATIONS_VND, now = () => new Date() } = {}) {
+  if (!Number.isSafeInteger(totalCapVnd) || totalCapVnd <= 0 || totalCapVnd > TOTAL_CAP_VND ||
+      !allocationsVnd || Object.keys(allocationsVnd).length !== 1 ||
+      !Object.hasOwn(allocationsVnd, "v4.2-report") || !Number.isSafeInteger(allocationsVnd["v4.2-report"]) ||
+      allocationsVnd["v4.2-report"] <= 0 || allocationsVnd["v4.2-report"] > totalCapVnd ||
+      typeof ledgerPath !== "string" || !ledgerPath.trim()) throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
+  const path = resolve(ledgerPath);
+  const config = { totalCapVnd, allocationVnd: allocationsVnd["v4.2-report"] };
+  function command(action, fields = {}) {
+    let fd;
+    try {
+      prepareDirectory(dirname(path));
+      const directory = lstatSync(dirname(path));
+      if (directory.uid !== process.getuid() || (directory.mode & 0o077)) throw new CampaignBudgetError("BUDGET_DIRECTORY_UNSAFE");
+      fd = openSync(`${path}.lock`, constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
+      const stat = fstatSync(fd);
+      if (!stat.isFile() || stat.nlink !== 1 || stat.uid !== process.getuid() || (stat.mode & 0o077)) {
+        throw new CampaignBudgetError("BUDGET_LOCK_UNSAFE");
+      }
+      const at = now().toISOString();
+      const output = execFileSync("flock", ["--exclusive", "--wait", "5", "/proc/self/fd/3", process.execPath, worker], {
+        input: JSON.stringify({ path, config, action, at, ...fields }), encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe", fd], timeout: 10_000,
       });
-    },
-    // Call only when the provider was provably never contacted.
-    release(id) { withLock(ledgerPath, () => append({ type: "release", id })); },
-    // After a call was sent the reservation stays charged; settle only closes it.
-    settle(id) { withLock(ledgerPath, () => append({ type: "settle", id })); },
+      const result = JSON.parse(output);
+      if (result.error) throw new CampaignBudgetError(result.error);
+      return result.value;
+    } catch (error) {
+      if (error instanceof CampaignBudgetError) throw error;
+      throw new CampaignBudgetError("BUDGET_STORAGE_UNAVAILABLE");
+    } finally { if (fd !== undefined) closeSync(fd); }
+  }
+  return {
+    ledgerPath: path,
+    status: () => command("status"),
+    reserve: (campaign, vnd) => command("reserve", { campaign, vnd }),
+    markDispatched: id => command("dispatch", { id }),
+    release: id => command("release", { id }),
+    settle: id => command("settle", { id }),
   };
 }
-
-// Wraps one generation (which may call the provider up to 1 + maxRewriteAttempts times).
-export function withBudget(budget, campaign, { perCallVnd = DEFAULT_PER_CALL_RESERVE_VND, maxCalls }, generate) {
+// Bounds must cover ALL underlying retries/fallbacks and come from verified pricing.
+// A wrapper cannot establish those facts; callers must verify them before using it.
+export function withBudget(budget, campaign, { perCallVnd, maxCalls } = {}, generate) {
+  if (!Number.isSafeInteger(perCallVnd) || perCallVnd <= 0 || !Number.isSafeInteger(maxCalls) || maxCalls <= 0 ||
+      !Number.isSafeInteger(perCallVnd * maxCalls) || typeof generate !== "function") {
+    throw new CampaignBudgetError("BUDGET_BOUND_UNVERIFIED");
+  }
   return async input => {
     const id = budget.reserve(campaign, perCallVnd * maxCalls);
+    // Durable dispatch permission precedes ANY callback that can contact a provider.
+    budget.markDispatched(id);
     try { return await generate(input); } finally { budget.settle(id); }
   };
 }
