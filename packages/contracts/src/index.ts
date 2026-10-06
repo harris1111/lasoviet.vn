@@ -924,3 +924,5 @@ export { WalletQuoteRequestV1Schema, WalletQuoteV1Schema, WalletQuotesV1Schema }
 export type { WalletQuoteRequestV1, WalletQuoteV1, WalletQuotesV1 } from "./wallet-quotes-v1.js";
 export { WalletUnlockRequestV1Schema, WalletUnlockResultV1Schema, WalletUpgradePurchaseV1Schema } from "./wallet-unlock-result-v1.js";
 export type { WalletUpgradePurchaseV1 } from "./wallet-unlock-result-v1.js";
+export { PendingUnlockHintV1Schema } from "./pending-unlock-v1.js";
+export type { PendingUnlockHintV1 } from "./pending-unlock-v1.js";

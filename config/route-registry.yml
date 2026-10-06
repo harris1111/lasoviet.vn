@@ -1135,3 +1135,21 @@ routes:
     intent: api.web.payments.self-claim
     template: private-api
     owner: engineering
+
+  - <<: *private_defaults
+    id: api.backend.wallet.pending-unlock
+    path: /commerce/wallet/pending-unlock
+    locale_behavior: unlocalized
+    locale_owners: [vi]
+    intent: api.backend.wallet.pending-unlock
+    template: private-api
+    owner: engineering
+
+  - <<: *private_defaults
+    id: api.web.wallet.pending-unlock
+    path: /api/commerce/wallet/pending-unlock
+    locale_behavior: unlocalized
+    locale_owners: [vi]
+    intent: api.web.wallet.pending-unlock
+    template: private-api
+    owner: engineering

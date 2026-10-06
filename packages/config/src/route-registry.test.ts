@@ -288,3 +288,10 @@ it("keeps inline payment commands private and outside SEO surfaces", () => {
       localeBehavior: "unlocalized", localeOwners: ["vi"], robots: "noindex,nofollow", sitemap: false, purchasable: false });
   }
 });
+
+it("keeps purchase recovery hints private and outside SEO surfaces", () => {
+  for (const id of ["api.backend.wallet.pending-unlock", "api.web.wallet.pending-unlock"]) {
+    expect(routeRegistry.find(route => route.id === id)).toMatchObject({ status: "live_noindex", private: true,
+      localeBehavior: "unlocalized", robots: "noindex,nofollow", sitemap: false, purchasable: false });
+  }
+});

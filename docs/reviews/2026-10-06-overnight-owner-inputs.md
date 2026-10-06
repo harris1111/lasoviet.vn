@@ -38,7 +38,17 @@ Trả lời theo số là được. Không cần gửi API key, token, mật kh�
 
 **Trả lời:** giữ như hiện tại / cho gửi thử tới nhóm …, loại …
 
-## 4. LSV77 — nghiệm thu điện thoại sau phần QR trong tấm
+## 4. LSV79 — vị trí lời nhắc quay lại
+
+**Bối cảnh:** kế hoạch cũ ghi “mọi trang”, nhưng các quyết định đã duyệt giữ trang chủ và thân trang đọc miễn phí không có giá. Bản mới chỉ nhắc phần đang thiếu Lá trên trang tài khoản, chọn luận giải và báo cáo đã mua; liên kết mở đúng món để xác nhận lại. Chưa gửi ra ngoài, chưa gắn nội dung móc nối do AI bịa thêm.
+
+**Giải pháp:** A) giữ phạm vi này; B) cho thêm một lời nhắc không có giá trên trang miễn phí, sau mốc đọc xong hoặc khi người dùng mở preview khóa.
+
+**Đề xuất:** A trước; nếu chọn B thì giữ nguyên quy tắc “đọc trước, hỏi sau”. Đo doanh thu theo nguồn nhắc còn cần liên kết click được ghi nhận đáng tin cậy; bản ghi thông báo thử không được tính là gửi thật hay doanh thu thu hồi.
+
+**Trả lời:** A / B …
+
+## 5. LSV77 — nghiệm thu điện thoại sau phần QR trong tấm
 
 **Bối cảnh:** phần nạp ngay trong tấm mở khóa dùng lại đơn, QR và cơ chế thanh toán cũ. Kiểm thử trình duyệt mô phỏng đạt ở 390/1440px; việc mở app ngân hàng và lưu QR trên điện thoại thật chưa được chứng minh.
 
@@ -48,7 +58,7 @@ Trả lời theo số là được. Không cần gửi API key, token, mật kh�
 
 **Trả lời:** thiết bị …; app ngân hàng …; hoặc để sau.
 
-## 5. LSV64 — công cụ đầu tiên của hội viên
+## 6. LSV64 — công cụ đầu tiên của hội viên
 
 **Bối cảnh:** hội viên đang giữ; chỉ có luận giải ngày/tháng chưa đủ các quyền lợi đã hứa.
 

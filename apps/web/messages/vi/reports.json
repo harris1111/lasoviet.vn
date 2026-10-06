@@ -141,7 +141,11 @@
     "inlineSaveQr": "Mở ảnh QR để lưu",
     "inlineOrderLink": "Mở lại đơn thanh toán này",
     "inlineError": "Chưa kiểm tra được đơn thanh toán. Thử lại để tiếp tục với cùng đơn.",
-    "inlineReconfirm": "Chưa chuyển tiền — chọn lại gói"
+    "inlineReconfirm": "Chưa chuyển tiền — chọn lại gói",
+    "pendingUnlockLabel": "Tiếp tục phần đã chọn",
+    "pendingUnlockBody": "Bạn đang xem {item} — còn thiếu {gap} Lá.",
+    "pendingUnlockContinue": "Tiếp tục đọc",
+    "pendingUnlockDismiss": "Ẩn lời nhắc này"
   },
   "checkout": {
     "eyebrow": "Thanh toán",
