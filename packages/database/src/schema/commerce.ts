@@ -1,4 +1,4 @@
-import type { EntitlementScope } from "@lasoviet/contracts";
+import type { SePayPaymentProvenanceV1, EntitlementScope } from "@lasoviet/contracts";
 import { sql } from "drizzle-orm";
 import {
   check,
@@ -58,6 +58,7 @@ export const commercePaymentEvents = pgTable("commerce_payment_events", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderId: uuid("order_id").notNull().references(() => commerceOrders.id),
   providerEventId: text("provider_event_id").notNull(),
+  providerProvenance: jsonb("provider_provenance").$type<SePayPaymentProvenanceV1>(),
   amount: integer("amount").notNull(),
   currency: text("currency").notNull(),
   status: text("status").notNull(),
@@ -66,6 +67,15 @@ export const commercePaymentEvents = pgTable("commerce_payment_events", {
 }, (table) => [
   uniqueIndex("commerce_payment_events_provider_unique").on(table.providerEventId),
   index("commerce_payment_events_order_idx").on(table.orderId),
+  check("commerce_payment_events_provenance_check", sql`(${table.providerProvenance} IS NULL OR (jsonb_typeof(${table.providerProvenance}) = 'object'
+ AND ${table.providerProvenance} ?& ARRAY['version','provider','environment','authentication','channel','authenticatedAcceptedAt']
+ AND ${table.providerProvenance} - ARRAY['version','provider','environment','authentication','channel','authenticatedAcceptedAt'] = '{}'::jsonb
+ AND ${table.providerProvenance}->'version' = '1'::jsonb AND ${table.providerProvenance}->>'provider' = 'sepay'
+ AND ${table.providerProvenance}->>'environment' IN ('sandbox','production')
+ AND ((${table.providerProvenance}->>'authentication' = 'hmac' AND ${table.providerProvenance}->>'channel' = 'bank')
+   OR (${table.providerProvenance}->>'authentication' = 'shared_secret' AND ${table.providerProvenance}->>'channel' = 'ipn'))
+ AND jsonb_typeof(${table.providerProvenance}->'authenticatedAcceptedAt') = 'string'
+ AND ${table.providerProvenance}->>'authenticatedAcceptedAt' ~ '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$') IS TRUE)`),
 ]);
 
 export const commerceEntitlements = pgTable("commerce_entitlements", {
@@ -92,6 +102,7 @@ export const commerceEntitlements = pgTable("commerce_entitlements", {
 export const commerceUnmatchedPayments = pgTable("commerce_unmatched_payments", {
   id: uuid("id").defaultRandom().primaryKey(),
   providerEventId: text("provider_event_id").notNull(),
+  providerProvenance: jsonb("provider_provenance").$type<SePayPaymentProvenanceV1>(),
   rawPayload: jsonb("raw_payload").notNull(),
   amount: integer("amount").notNull(),
   reason: text("reason").notNull(),
@@ -101,6 +112,15 @@ export const commerceUnmatchedPayments = pgTable("commerce_unmatched_payments", 
   staleAlertedAt: timestamp("stale_alerted_at", { withTimezone: true, mode: "date" }),
 }, (table) => [
   uniqueIndex("commerce_unmatched_payments_provider_event_unique").on(table.providerEventId),
+  check("commerce_unmatched_payments_provenance_check", sql`(${table.providerProvenance} IS NULL OR (jsonb_typeof(${table.providerProvenance}) = 'object'
+ AND ${table.providerProvenance} ?& ARRAY['version','provider','environment','authentication','channel','authenticatedAcceptedAt']
+ AND ${table.providerProvenance} - ARRAY['version','provider','environment','authentication','channel','authenticatedAcceptedAt'] = '{}'::jsonb
+ AND ${table.providerProvenance}->'version' = '1'::jsonb AND ${table.providerProvenance}->>'provider' = 'sepay'
+ AND ${table.providerProvenance}->>'environment' IN ('sandbox','production')
+ AND ((${table.providerProvenance}->>'authentication' = 'hmac' AND ${table.providerProvenance}->>'channel' = 'bank')
+   OR (${table.providerProvenance}->>'authentication' = 'shared_secret' AND ${table.providerProvenance}->>'channel' = 'ipn'))
+ AND jsonb_typeof(${table.providerProvenance}->'authenticatedAcceptedAt') = 'string'
+ AND ${table.providerProvenance}->>'authenticatedAcceptedAt' ~ '^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$') IS TRUE)`),
   index("commerce_unmatched_payments_received_claimed_idx").on(table.receivedAt, table.claimedAt),
   check("commerce_unmatched_payments_amount_positive", sql`${table.amount} > 0`),
 ]);

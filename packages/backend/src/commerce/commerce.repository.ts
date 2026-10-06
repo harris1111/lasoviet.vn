@@ -1,3 +1,4 @@
+import { SePayPaymentProvenanceV1Schema, type SePayPaymentProvenanceV1 } from "@lasoviet/contracts";
 import { readPendingUnlockHint } from "./pending-unlock-hint.js";
 import { hasDurableTopUpUnlock } from "./wallet-topup-unlock-event.js";
 import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
@@ -307,6 +308,7 @@ export function createDatabaseCommerceRepository(
       providerEventId: string;
       amount: number;
       currency: string;
+      providerProvenance?: SePayPaymentProvenanceV1 | null;
       matchMethod: "invoice_number" | "payment_code" | "self_claim";
       traceId: string;
       now: Date;
@@ -348,6 +350,7 @@ export function createDatabaseCommerceRepository(
       currency: input.currency,
       status: "ORDER_PAID",
       matchMethod: input.matchMethod,
+      providerProvenance: input.providerProvenance ?? null,
       createdAt: input.now,
     }).onConflictDoNothing().returning();
     if (event === undefined) throw new Error("PAYMENT_EVENT_CONFLICT");
@@ -417,6 +420,7 @@ export function createDatabaseCommerceRepository(
       .set({ claimedByOrderId: orderId, claimedAt: currentNow })
       .where(eq(commerceUnmatchedPayments.id, paymentId));
     const settled = await settleTopUpPayment(transaction, orderId, {
+      providerProvenance: payment.providerProvenance,
       providerEventId: payment.providerEventId,
       amount: payment.amount,
       currency: "VND",
@@ -1476,7 +1480,9 @@ export function createDatabaseCommerceRepository(
       amount: number;
       currency: string;
       traceId: string;
+      providerProvenance?: SePayPaymentProvenanceV1;
     }) {
+      const providerProvenance = input.providerProvenance === undefined ? null : SePayPaymentProvenanceV1Schema.parse(input.providerProvenance);
       const matchMethod = input.matchMethod ?? "invoice_number";
       let lookupPredicate: ReturnType<typeof eq>;
 
@@ -1514,6 +1520,7 @@ export function createDatabaseCommerceRepository(
             .limit(1);
           if (anyKindTarget?.kind === "wallet_topup") {
             return await settleTopUpPayment(transaction, anyKindTarget.id, {
+              providerProvenance,
               providerEventId: input.providerEventId,
               amount: input.amount,
               currency: input.currency,
@@ -1677,6 +1684,7 @@ export function createDatabaseCommerceRepository(
           amount: input.amount,
           currency: input.currency,
           status: "ORDER_PAID",
+          providerProvenance,
           matchMethod,
           createdAt: currentNow,
         }).onConflictDoNothing().returning();
@@ -1736,6 +1744,7 @@ export function createDatabaseCommerceRepository(
       amount: number;
       reason: string;
       receivedAt?: Date;
+      providerProvenance?: SePayPaymentProvenanceV1;
     }): Promise<{ ok: true; replayed: boolean } | { ok: false; code: string }> {
       if (
         typeof input.amount !== "number" ||
@@ -1776,6 +1785,7 @@ export function createDatabaseCommerceRepository(
           .insert(commerceUnmatchedPayments)
           .values({
             providerEventId: input.providerEventId,
+            providerProvenance: input.providerProvenance === undefined ? null : SePayPaymentProvenanceV1Schema.parse(input.providerProvenance),
             rawPayload: input.rawPayload,
             amount: input.amount,
             reason: input.reason,
@@ -2135,6 +2145,7 @@ export function createDatabaseCommerceRepository(
           .insert(commercePaymentEvents)
           .values({
             orderId: paidOrder.id,
+            providerProvenance: lockedPayment.providerProvenance,
             providerEventId: lockedPayment.providerEventId,
             amount: lockedPayment.amount,
             currency: "VND",

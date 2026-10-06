@@ -930,3 +930,5 @@ export { ReportNotificationCommandV1Schema, ReportNotificationViewV1Schema } fro
 export type { ReportNotificationCommandV1, ReportNotificationViewV1 } from "./report-notification-v1.js";
 
 export * from "./recovery-receipt-v1.js";
+
+export * from "./sepay-provenance-v1.js";

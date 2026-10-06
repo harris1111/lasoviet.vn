@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { SePayPaymentProvenanceV1Schema, type SePayPaymentProvenanceV1 } from "@lasoviet/contracts";
 import { extractValidPaymentCodes } from "./payment-code.js";
 
 type IpN = {
@@ -83,6 +84,7 @@ function verifyHmac(options: {
 
 export function createSePayWebhookService(dependencies: {
   secretKey: string;
+  providerEnvironment?: "sandbox" | "production";
   webhookSecret?: string;
   now?: () => Date;
   recordPaid(input: {
@@ -93,6 +95,7 @@ export function createSePayWebhookService(dependencies: {
     amount: number;
     currency: string;
     traceId: string;
+    providerProvenance?: SePayPaymentProvenanceV1;
   }): Promise<{ ok: boolean; replayed?: boolean; code?: string }>;
   recordUnmatched?(input: {
     providerEventId: string;
@@ -100,9 +103,16 @@ export function createSePayWebhookService(dependencies: {
     amount: number;
     reason: string;
     receivedAt?: Date;
+    providerProvenance?: SePayPaymentProvenanceV1;
   }): Promise<{ ok: boolean; replayed?: boolean; code?: string }>;
 }) {
   const getNow = dependencies.now ?? (() => new Date());
+
+  const provenance = (channel: "bank" | "ipn") => dependencies.providerEnvironment === undefined ? {} : {
+    providerProvenance: SePayPaymentProvenanceV1Schema.parse({ version: 1, provider: "sepay",
+      environment: dependencies.providerEnvironment, channel,
+      authentication: channel === "bank" ? "hmac" : "shared_secret", authenticatedAcceptedAt: getNow().toISOString() }),
+  };
 
   return {
     async handle(input: {
@@ -169,7 +179,9 @@ export function createSePayWebhookService(dependencies: {
           parsed.transaction.transaction_amount !== parsed.order.order_amount ||
           parsed.transaction.transaction_currency !== parsed.order.order_currency
         ) return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };
+        const accepted = provenance("ipn");
         const result = await dependencies.recordPaid({
+          ...accepted,
           invoiceNumber: parsed.order.order_invoice_number,
           matchMethod: "invoice_number",
           providerEventId: parsed.transaction.transaction_id,
@@ -185,6 +197,7 @@ export function createSePayWebhookService(dependencies: {
           throw new Error("UNMATCHED_PAYMENT_HANDLER_MISSING");
         }
         const unmatchedResult = await dependencies.recordUnmatched({
+          ...accepted,
           providerEventId: parsed.transaction.transaction_id,
           rawPayload: payload as Record<string, unknown>,
           amount: parsed.order.order_amount,
@@ -213,6 +226,7 @@ export function createSePayWebhookService(dependencies: {
         return { ok: false as const, error: { code: "SEPAY_PAYLOAD_INVALID" } };
       }
 
+      const accepted = provenance("bank");
       const idStr = String(bank.id);
       const rawCode = typeof bank.code === "string" ? bank.code : "";
       const rawContent = typeof bank.content === "string" ? bank.content : "";
@@ -226,6 +240,7 @@ export function createSePayWebhookService(dependencies: {
           throw new Error("UNMATCHED_PAYMENT_HANDLER_MISSING");
         }
         const unmatchedResult = await dependencies.recordUnmatched({
+          ...accepted,
           providerEventId: idStr,
           rawPayload: bank,
           amount: bank.transferAmount as number,
@@ -247,6 +262,7 @@ export function createSePayWebhookService(dependencies: {
 
       const paymentCode = validCodes[0];
       const result = await dependencies.recordPaid({
+        ...accepted,
         paymentCode,
         matchMethod: "payment_code",
         providerEventId: idStr,

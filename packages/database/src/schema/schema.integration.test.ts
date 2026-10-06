@@ -217,6 +217,9 @@ describe("database schema integration", () => {
       await removeOpenRouterPricingForRewind(client);
       await removeGeminiFlashPricingForRewind(client);
       // This checkpoint also predates the durable compensation receipt.
+      await client`ALTER TABLE commerce_payment_events DROP COLUMN IF EXISTS provider_provenance CASCADE`;
+      await client`ALTER TABLE commerce_unmatched_payments DROP COLUMN IF EXISTS provider_provenance CASCADE`;
+      await client`DROP FUNCTION IF EXISTS preserve_payment_provenance() CASCADE`;
       await client`DROP TABLE IF EXISTS recovery_click_receipts`;
       await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
       await client`DROP TABLE IF EXISTS report_wallet_compensations`;
@@ -569,6 +572,9 @@ describe("database schema integration", () => {
       await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       // This checkpoint also predates the durable compensation receipt.
+      await client`ALTER TABLE commerce_payment_events DROP COLUMN IF EXISTS provider_provenance CASCADE`;
+      await client`ALTER TABLE commerce_unmatched_payments DROP COLUMN IF EXISTS provider_provenance CASCADE`;
+      await client`DROP FUNCTION IF EXISTS preserve_payment_provenance() CASCADE`;
       await client`DROP TABLE IF EXISTS recovery_click_receipts`;
       await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
       await client`DROP TABLE IF EXISTS report_wallet_compensations`;
@@ -3648,7 +3654,10 @@ describe("database schema integration", () => {
       DROP TRIGGER IF EXISTS commerce_entitlements_ledger_relation_guard
       ON commerce_entitlements
     `;
-    await client`DROP TABLE IF EXISTS recovery_click_receipts`;
+    await client`ALTER TABLE commerce_payment_events DROP COLUMN IF EXISTS provider_provenance CASCADE`;
+      await client`ALTER TABLE commerce_unmatched_payments DROP COLUMN IF EXISTS provider_provenance CASCADE`;
+      await client`DROP FUNCTION IF EXISTS preserve_payment_provenance() CASCADE`;
+      await client`DROP TABLE IF EXISTS recovery_click_receipts`;
       await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
       await client`DROP TABLE IF EXISTS report_wallet_compensations`;
     await client`DROP FUNCTION IF EXISTS prevent_wallet_immutable_mutation()`;

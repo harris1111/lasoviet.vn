@@ -166,9 +166,20 @@ export const recoveryClickReceipts = pgTable("recovery_click_receipts", {
   clickedAt:timestamp("clicked_at",{withTimezone:true,mode:"date"}).notNull(),
   attributedAt:timestamp("attributed_at",{withTimezone:true,mode:"date"}),
   paidVnd:integer("paid_vnd"), chargedLa:integer("charged_la"),
+  financialCheckCount:integer("financial_check_count").notNull().default(0),
+  recognizedVnd:integer("recognized_vnd"), paymentEventId:uuid("payment_event_id"),
+  grantTransactionId:uuid("grant_transaction_id"), spendTransactionId:uuid("spend_transaction_id"),
 },table=>[
   uniqueIndex("recovery_click_delivery_unique").on(table.deliveryId),
   uniqueIndex("recovery_click_order_unique").on(table.orderId),
+  check("recovery_financial_check_count_valid", sql`${table.financialCheckCount} >= 0`),
+  index("recovery_financial_fair_scan_idx").on(table.financialCheckCount,table.clickedAt,table.id).where(sql`${table.attributedAt} IS NULL AND ${table.classification} = 'clicked'`),
+  uniqueIndex("recovery_click_payment_unique").on(table.paymentEventId).where(sql`${table.paymentEventId} IS NOT NULL`),
+  uniqueIndex("recovery_click_spend_unique").on(table.spendTransactionId).where(sql`${table.spendTransactionId} IS NOT NULL`),
   check("recovery_click_classification_check",sql`${table.classification} IN ('captured_click','clicked') AND ${table.source} = 'reminder'`),
-  check("recovery_click_money_check",sql`${table.attributedAt} IS NULL AND ${table.paidVnd} IS NULL AND ${table.chargedLa} IS NULL`),
+  check("recovery_click_money_check",sql`((${table.attributedAt} IS NULL AND ${table.paidVnd} IS NULL AND ${table.chargedLa} IS NULL AND ${table.recognizedVnd} IS NULL
+ AND ${table.paymentEventId} IS NULL AND ${table.grantTransactionId} IS NULL AND ${table.spendTransactionId} IS NULL)
+ OR (${table.classification} = 'clicked' AND ${table.attributedAt} IS NOT NULL AND ${table.paidVnd} IS NOT NULL AND ${table.chargedLa} IS NOT NULL
+ AND ${table.recognizedVnd} IS NOT NULL AND ${table.paymentEventId} IS NOT NULL AND ${table.grantTransactionId} IS NOT NULL AND ${table.spendTransactionId} IS NOT NULL
+ AND ${table.paidVnd} > 0 AND ${table.chargedLa} > 0 AND ${table.recognizedVnd} >= 0 AND ${table.recognizedVnd} <= ${table.paidVnd}))`),
 ]);

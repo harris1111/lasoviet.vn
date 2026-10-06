@@ -421,6 +421,13 @@
       "when": 1791319900000,
       "tag": "0059_recovery_click_receipts",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1791319900001,
+      "tag": "0060_trusted_recovery_revenue",
+      "breakpoints": true
     }
   ]
 }

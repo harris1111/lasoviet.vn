@@ -863,3 +863,5 @@ export { createPendingTopUpRecoveryCaptureService, RECOVERY_CAPTURE_EVENT_TYPE, 
 export { createReportNotificationService, resolveReportNotificationMode, ReportNotificationError, REPORT_NOTIFICATION_CAPTURE_EVENT } from "./notifications/report-notification.service.js";
 
 export {createRecoveryClickReceiptService,RecoveryReceiptError} from "./notifications/recovery-click-receipt.js";
+
+export * from "./notifications/recovery-financial-attribution.js";

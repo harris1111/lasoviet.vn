@@ -745,6 +745,7 @@ export class CommerceController {
     if (rawBody === undefined) throw new BadRequestException({ code: "SEPAY_RAW_BODY_MISSING" });
     const repo = this.repository();
     const result = await createSePayWebhookService({
+      providerEnvironment: this.sepayEnvironment,
       secretKey: this.sepaySecret ?? "",
       webhookSecret: this.sepayWebhookSecret ?? "",
       recordPaid: (input) => repo.recordPaid(input),
