@@ -1,0 +1,7 @@
+# LSV79 recovery click-receipt acceptance
+
+Accepted technical milestone on 2026-10-06 UTC. PR310 deployed release `731ad9bfd67bcdc09f5970680060860171b72dc9`; independent Sol deployed GO. All 27 reviewed files match approved head `93795a6b47c976e64c01d59b45f96062ea07d85c`. Master CI37535303758 verify/publish/promote passed; four exact-image containers healthy, four runtime checks passed, and 102 protected operator files unchanged. Installed-source validation passed 175 focused and four component-browser checks.
+
+Actual published HTTP/component acceptance at 390/1440 passed one verified-owner opaque captured-click receipt, immediate fragment removal, immutable replay timestamp/classification, and denial of foreign Origin and guessed delivery IDs. Clicking did not pay the pending order or spend wallet funds. Default-disabled behavior and official click/capture purge passed. The fixture used isolated synthetic sandbox configuration and aborted VietQR requests; it did not contact a real bank/provider. Two failed harness attempts (missing consent fixture ID; intentionally disabled pending-checkout provider) were retained, then corrected acceptance passed. Four QA containers, the internal network and private credentials were removed.
+
+Production recovery and payment provider remain disabled. This milestone does not establish real outbound delivery or monetary attribution; PR311 has a separate financial acceptance gate. Full LSV79 stays In Review for owner placement and held outbound requirements. Kaneo milestone comment: `sqsv557igbpfzn1fu7iyas8m`.
