@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import { routing } from "../../i18n/routing";
 import { AnalyticsCollector } from "../../features/analytics/analytics-collector";
 import { MessengerBubble } from "../../components/ui/messenger-bubble";
+import { PendingUnlockBanner } from "../../features/commerce/pending-unlock-banner";
 import { WelcomeGrantNotice } from "../../features/commerce/welcome-grant-notice";
 import { GuaranteeNoticeProvider } from "../../features/reports/guarantee-notice-provider";
 import "../../styles/global.css";
@@ -105,6 +106,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <GuaranteeNoticeProvider locale={locale as "vi" | "en"}>
           <AnalyticsCollector />
+          <PendingUnlockBanner locale={locale as "vi" | "en"} />
           {children}
           <MessengerBubble locale={locale as "vi" | "en"} />
           <WelcomeGrantNotice locale={locale as "vi" | "en"} />

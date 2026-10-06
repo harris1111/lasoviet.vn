@@ -256,6 +256,7 @@ export function WalletUnlockDialog({
         amount: data.priceLa,
         balance_after: data.balance - data.priceLa,
       });
+      window.dispatchEvent(new Event("lsv:wallet-changed"));
       onOpenChange(false);
       onUnlocked(value.reportId ?? null);
     } catch {
@@ -389,6 +390,7 @@ export function WalletUnlockDialog({
                 returnTab: (topUpParams.get("tab") ?? "topics") as "topics" | "chart" | "overview" | "palaces" | "nam-nay" | "evidence",
                 ...(topUpParams.get("open") ? { returnOpen: topUpParams.get("open")! } : {}) }}
               onCompleted={(checkout) => {
+                window.dispatchEvent(new Event("lsv:wallet-changed"));
                 onOpenChange(false); onUnlocked(checkout.order.continuation?.reportId ?? checkout.reportId);
                 router.refresh();
               }} /> : <a className="button button-primary" href={topUpHref} onClick={() => {

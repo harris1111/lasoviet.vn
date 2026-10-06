@@ -27,13 +27,13 @@ export function Guest24hDeletionBanner({
         <div className="guest-banner-content">
           <strong className="guest-banner-title">
             {isEn
-              ? "Private chart · automatically deleted after 24 hours"
-              : "Lá số riêng tư · tự động xóa sau 24 giờ"}
+              ? "Save your chart to keep reading"
+              : "Lưu lá số để đọc tiếp"}
           </strong>
           <p className="guest-banner-text">
             {isEn
-              ? "Guest charts are wiped after 24 hours to protect your privacy. Sign in to keep your chart permanently and reveal insight 2."
-              : "Dữ liệu khách tự động xóa sau 24 giờ để bảo vệ quyền riêng tư. Đăng nhập để lưu lá số vĩnh viễn và mở tiếp điều thứ hai."}
+              ? "Guest data is deleted within 24 hours. Sign in to save your chart to your account; eligible verified accounts receive 60 welcome Lá once."
+              : "Dữ liệu khách tự động xóa trong 24 giờ. Đăng nhập để lưu lá số vào tài khoản; tài khoản đủ điều kiện được xác minh nhận một lần 60 Lá chào mừng."}
           </p>
         </div>
         <div className="guest-banner-action">

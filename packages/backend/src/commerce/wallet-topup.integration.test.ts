@@ -194,6 +194,79 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     return { actor, chart, repository, intent: intent.value, continuation };
   }
 
+  describe("read-only in-app recovery hints", () => {
+    it("returns current owner terms without creating wallets, commands, payments or notifications", async () => {
+      const { actor, chart, repository, intent } = await continuationFixture();
+      const snapshot = async () => ({
+        wallets: await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, actor.userId)),
+        orders: await database.select().from(commerceOrders).where(eq(commerceOrders.ownerId, actor.userId)),
+        events: await database.select().from(outbox).where(eq(outbox.actorId, actor.userId)),
+        intents: await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.ownerId, actor.userId)),
+      });
+      const before = await snapshot();
+      const hint = { version: 1, ownerId: actor.userId, intentId: intent.id, chartId: chart.chartId, chartVersionId: chart.chartVersionId,
+        sku: "ZIWEI-NATAL-EXCERPT-P0", locale: "vi", priceLa: 240, balanceLa: 0, gapLa: 240 };
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toEqual(hint);
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toEqual(hint);
+      expect(await snapshot()).toEqual(before);
+    });
+    it("does not expose another owner or locale and requires a verified account", async () => {
+      const { actor, repository } = await continuationFixture();
+      expect(await repository.readPendingUnlockHint(await createAccount(), "vi")).toBeNull();
+      expect(await repository.readPendingUnlockHint(actor, "en")).toBeNull();
+      expect(await repository.readPendingUnlockHint({kind: "anonymous", anonymousActorId: actor.userId, sessionId: "session", requestId: "request", expiresAt: new Date(frozenNow.getTime() + 86400000).toISOString()}, "vi")).toBeNull();
+      await database.update(authUsers).set({emailVerified: false}).where(eq(authUsers.id, actor.userId));
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
+    });
+    it("hides an intent while a payment is pending and after its paid continuation unlocks", async () => {
+      const { actor, repository, continuation } = await continuationFixture();
+      const order = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
+      if (!order.ok) throw new Error(order.code);
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
+      expect(await repository.recordPaid({invoiceNumber: order.value.invoiceNumber, providerEventId: randomUUID(), amount: 29000, currency: "VND", traceId: "hint-fixture"})).toMatchObject({ok: true});
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
+    });
+    it("hides a paid order with pending fulfillment even after later wallet activity", async () => {
+      const {actor, repository, continuation} = await continuationFixture();
+      const order = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation); if (!order.ok) throw new Error(order.code);
+      await database.update(commerceOrders).set({status:"paid", paidAt:frozenNow}).where(eq(commerceOrders.id,order.value.id));
+      // A fulfillment lease must suppress a new payment ask independently of current balance.
+      expect(await repository.readPendingUnlockHint(actor,"vi")).toBeNull();
+      expect(await walletOf(actor.userId)).toBeUndefined();
+    });
+    it("allows recovery after an expired unpaid payment while reloading fresh terms", async () => {
+      const {actor, repository, continuation, intent} = await continuationFixture();
+      const order = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation); if (!order.ok) throw new Error(order.code);
+      const expiredClock=createDatabaseCommerceRepository(database,{now:()=>new Date(frozenNow.getTime()+86401000)});
+      expect(await expiredClock.readPendingUnlockHint(actor,"vi")).toMatchObject({intentId:intent.id,gapLa:240});
+    });
+    it("hides a shortfall that has already been funded", async () => {
+      const { actor, repository } = await continuationFixture();
+      const order = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi"); if (!order.ok) throw new Error(order.code);
+      expect(await repository.recordPaid({invoiceNumber: order.value.invoiceNumber, providerEventId: randomUUID(), amount: 29000, currency: "VND", traceId: "hint-funded"})).toMatchObject({ok: true});
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
+    });
+    it.each(["profile_deleted", "account_deletion", "stale_version", "cancelled", "reserved", "price_changed"] as const)("hides invalidated candidate %s", async reason => {
+      const { actor, chart, repository, intent } = await continuationFixture();
+      if (reason === "profile_deleted") {
+        const [ownedChart] = await database.select().from(ziweiCharts).where(eq(ziweiCharts.id, chart.chartId));
+        await database.update(birthProfiles).set({deletedAt: frozenNow}).where(eq(birthProfiles.id, ownedChart!.profileId));
+      }
+      if (reason === "account_deletion") await createDatabaseDeletionRepository(database).request({userId: actor.userId, requestId: randomUUID(), requestedAt: frozenNow, recoverUntil: new Date(frozenNow.getTime() + 86400000)});
+      if (reason === "stale_version") {
+        const [old] = await database.select().from(ziweiChartVersions).where(eq(ziweiChartVersions.id, chart.chartVersionId));
+        const [run] = await database.select().from(calculationRuns).where(eq(calculationRuns.id, old!.calculationRunId));
+        const newRun = randomUUID();
+        await database.insert(calculationRuns).values({...run!, id: newRun, idempotencyKey: newRun, inputHash: "d".repeat(64)});
+        await database.insert(ziweiChartVersions).values({...old!, id: `version-${randomUUID()}`, calculationRunId: newRun, createdAt: new Date(old!.createdAt.getTime() + 1000)});
+      }
+      if (reason === "cancelled") await database.update(walletPurchaseIntents).set({status: "cancelled"}).where(eq(walletPurchaseIntents.id, intent.id));
+      if (reason === "reserved") await database.update(walletPurchaseIntents).set({sku: "ZIWEI-CAREER-P0", priceLa: 480}).where(eq(walletPurchaseIntents.id, intent.id));
+      if (reason === "price_changed") await database.update(walletPurchaseIntents).set({priceLa: 192}).where(eq(walletPurchaseIntents.id, intent.id));
+      expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
+    });
+  });
+
   for (const deliveryOrder of ["before-replay", "after-replay"] as const) {
     it(`records each continuation event once with immutable receipt properties: ${deliveryOrder}`, async () => {
       const fixture = await continuationFixture();

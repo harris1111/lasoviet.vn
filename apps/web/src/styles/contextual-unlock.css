@@ -40,3 +40,8 @@
 .inline-topup-payment .vietqr-details dd { margin: 0; overflow-wrap: anywhere; display: flex; flex-wrap: wrap; gap: 8px; }
 .inline-topup-payment .vietqr-figure { margin: 0; }
 .inline-topup-payment input { max-width: 100%; }
+
+.pending-unlock-banner { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-soft); padding-block: 12px; color: var(--text-body); background: var(--surface-raised); }
+.pending-unlock-banner p { margin: 0; flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.pending-unlock-banner button { min-width: 44px; min-height: 44px; border: 0; background: transparent; color: var(--text-heading); cursor: pointer; }
+.pending-unlock-banner .button { min-height: 44px; white-space: normal; }

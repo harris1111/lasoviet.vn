@@ -1,3 +1,4 @@
+import { readPendingUnlockHint } from "./pending-unlock-hint.js";
 import { hasDurableTopUpUnlock } from "./wallet-topup-unlock-event.js";
 import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
 import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
@@ -1077,6 +1078,9 @@ export function createDatabaseCommerceRepository(
   }
 
   return {
+    readPendingUnlockHint(actor: CurrentActor, locale: "vi" | "en") {
+      return readPendingUnlockHint(database, actor, locale, { now: getNow, reportVersionResolver, orderTtlSeconds });
+    },
     readWalletBalance(actor: CurrentActor) {
       return walletService.readBalance(actor);
     },

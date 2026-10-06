@@ -12,9 +12,9 @@ import { claimLadderViewEvents } from "./offer-ladder-analytics";
 import { PalacePicker } from "./palace-picker";
 
 const FIXED_SKUS: LaSku[] = ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"];
-export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, balance, scores }: {
+export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, initialResume = false, balance, scores }: {
   chartId: string; chartVersionId: string; locale: "vi" | "en"; initialSku: LaSku;
-  initialQuotes: InitialWalletQuotes; balance: number; scores: Record<string, number>;
+  initialQuotes: InitialWalletQuotes; initialResume?: boolean; balance: number; scores: Record<string, number>;
 }) {
   const t = useTranslations("reports");
   const labels = useUnlockLabels();
@@ -39,12 +39,22 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     return () => observer.disconnect();
   }, [locale, quote.quotes, palaceSku]);
   const trigger = useRef<HTMLButtonElement>(null);
+  const resumed = useRef(false);
+  useEffect(() => {
+    if (!initialResume || resumed.current || selectedSku !== initialSku || quote.status !== "ready") return;
+    const current = quote.quotes?.find(item => item.sku === initialSku);
+    if (current?.state !== "available" || !trigger.current || trigger.current.disabled) return;
+    // Open confirmation only. The user still explicitly confirms any spend or top-up.
+    resumed.current = true;
+    trigger.current.click();
+  }, [initialResume, initialSku, selectedSku, quote.status, quote.quotes]);
   const prefix = locale === "en" ? "/en" : "";
   function select(sku: LaSku) {
     setSelectedSku(sku); setReceipt(null);
     if (isSinglePalaceSku(sku)) setPalaceSku(sku);
     const url = new URL(window.location.href);
     url.searchParams.delete("palace");
+    url.searchParams.delete("resume");
     for (const [key, value] of Object.entries(ladderSelectionQuery(sku))) url.searchParams.set(key, value);
     window.history.replaceState(window.history.state, "", url);
   }

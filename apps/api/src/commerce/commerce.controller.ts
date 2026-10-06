@@ -441,6 +441,13 @@ export class CommerceController {
     return { ok: true, value: WalletBalanceV1Schema.parse(result.value), ...(welcomeGrant ? { welcomeGrant } : {}) };
   }
 
+  @Get("wallet/pending-unlock")
+  async pendingUnlock(@Headers("authorization") authorization: string | undefined, @Query("locale") locale: unknown) {
+    if (locale !== "vi" && locale !== "en") throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
+    const actor = await this.actor(authorization);
+    return { ok: true, value: await this.repository().readPendingUnlockHint(actor, locale) };
+  }
+
   @Get("wallet/quotes")
   async walletQuotes(@Headers("authorization") authorization: string | undefined, @Query() query: unknown) {
     const parsed = WalletQuoteRequestV1Schema.safeParse(query);

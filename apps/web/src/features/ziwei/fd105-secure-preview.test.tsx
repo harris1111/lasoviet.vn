@@ -196,7 +196,9 @@ describe("FD-105 package 1.4: Web component security, accessibility, and print t
       );
 
       expect(html).toContain("24H");
-      expect(html).toContain("Lá số riêng tư · tự động xóa sau 24 giờ");
+      expect(html).toContain("Dữ liệu khách tự động xóa trong 24 giờ");
+      expect(html).toContain("tài khoản đủ điều kiện được xác minh nhận một lần 60 Lá chào mừng");
+      expect(html).not.toContain("vĩnh viễn");
       expect(html).toContain("Lưu lá số ngay");
       expect(html).toContain('href="/dang-nhap?callbackURL=/la-so/chart-guest"');
     });
