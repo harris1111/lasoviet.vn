@@ -70,9 +70,11 @@ export function createCampaignBudget({ ledgerPath = defaultLedgerPath(), totalCa
     ledgerPath: path,
     status: () => command("status"),
     reserve: (campaign, vnd) => command("reserve", { campaign, vnd }),
+    reserveAttempt: (campaign, vnd, { attemptKey, trace } = {}) => command("reserve-attempt", { campaign, vnd, attemptKey, trace }),
     markDispatched: id => command("dispatch", { id }),
     release: id => command("release", { id }),
     settle: id => command("settle", { id }),
+    settleAttempt: (id, settlement) => command("settle-attempt", { id, settlement }),
   };
 }
 // Bounds must cover ALL underlying retries/fallbacks and come from verified pricing.
