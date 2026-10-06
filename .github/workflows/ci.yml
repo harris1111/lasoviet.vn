@@ -25,6 +25,8 @@ jobs:
       - run: pnpm test
       - name: Install browser for real-network funnel QA
         run: pnpm exec playwright install --with-deps chromium
+      - name: Run inline top-up and contextual unlock component acceptance
+        run: pnpm exec playwright test tests/e2e/inline-topup.spec.ts tests/e2e/contextual-unlock.spec.ts --workers=2
       - name: Run isolated funnel paths and all eleven measurement events
         run: node scripts/run-funnel-golden-paths.mjs
 

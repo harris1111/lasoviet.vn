@@ -17,6 +17,7 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
   const t = useTranslations("reports");
   const [pack, setPack] = useState(() => findSmallestCoveringPack(priceLa - balance));
   const [checkout, setCheckout] = useState<CheckoutStatus | null>(null);
+  const [checkoutRevision, setCheckoutRevision] = useState(0);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState(false);
   const [restoreAttempt, setRestoreAttempt] = useState(0);
@@ -103,7 +104,18 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
     try {
       const response = await fetch("/api/commerce/payments/self-claim", { method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ amount: Number(form.get("amount")), transferredAtLocal: form.get("transferredAtLocal") }) });
-      if (response.ok) return { status: "idle" }; // Only authorized status polling completes the current order.
+      if (response.ok) {
+        const orderId = pending.current;
+        if (!orderId || !active.current) return { status: "idle" };
+        const refreshed = await fetch(`/api/commerce/orders/${encodeURIComponent(orderId)}/status`, { cache: "no-store" });
+        if (!refreshed.ok) throw new Error("CHECKOUT_STATUS_FAILED");
+        const status = parseCheckoutStatus(await refreshed.json());
+        if (!active.current) return { status: "idle" };
+        if (!matchesSelection(status, orderId)) throw new Error("CHECKOUT_STATUS_INVALID");
+        if (status.order.status === "paid" && status.order.continuation?.status === "completed") finish(status);
+        else { setCheckout(status); setCheckoutRevision(value => value + 1); }
+        return { status: "idle" }; // The authorized GET, not the claim receipt, determines completion.
+      }
       const result = await response.json().catch(() => ({})) as { code?: string };
       return { status: response.status === 400 ? "invalid_input" : result.code === "PAYMENT_CLAIM_NOT_FOUND" ? "payment_not_found"
         : result.code === "PAYMENT_CLAIM_RATE_LIMITED" ? "rate_limited" : "service_unavailable" };
@@ -116,7 +128,7 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
     onReconfirm(); // Reload authoritative intent and balance before another explicit purchase.
   }
   if (checkout) return <div className="inline-topup-payment" data-testid="inline-topup-payment">
-    <VietQrCheckout initialStatus={checkout} onCompleted={finish} validateStatus={status => matchesSelection(status, checkout.order.id)} labels={{
+    <VietQrCheckout key={`${checkout.order.id}:${checkoutRevision}`} initialStatus={checkout} onCompleted={finish} validateStatus={status => matchesSelection(status, checkout.order.id)} labels={{
       instructionsTitle: t("checkout.instructions_title"), bankCode: t("checkout.bank_code"), accountNumber: t("checkout.account_number"),
       accountHolder: t("checkout.account_holder"), amount: t("checkout.amount"), transferDescription: t("checkout.transfer_description"),
       remainingTime: t("checkout.remaining_time"), qrAlt: t("checkout.qr_alt"), copyAccountNumber: t("checkout.copy_account_number"),

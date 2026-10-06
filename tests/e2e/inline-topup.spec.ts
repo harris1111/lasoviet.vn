@@ -31,7 +31,7 @@ test.beforeAll(async () => {
   bundle = built.outputFiles[0].text;
 });
 async function mount(page: Page, locale = "vi") {
-  const state = { creates: [] as Array<Record<string, unknown>>, paid: false, blocked: false, statusFailed: false, claims: 0, terminal: "", wrongTarget: false, continuationPending: false, holdStatus: false, heldResponses: [] as (() => void)[], analytics: [] as string[] };
+  const state = { creates: [] as Array<Record<string, unknown>>, paid: false, blocked: false, statusFailed: false, claims: 0, terminal: "", wrongTarget: false, continuationPending: false, holdStatus: false, heldResponses: [] as (() => void)[], analytics: [] as string[], claimResult: "none" };
   page.on("pageerror", error => console.error("Fixture browser error:", error.message));
   await page.clock.install({ time: new Date("2026-10-06T12:00:00Z") });
   await page.route("**/*", async route => {
@@ -39,7 +39,7 @@ async function mount(page: Page, locale = "vi") {
     if (url.pathname === "/api/commerce/wallet/purchase-intents") return route.fulfill({ json: { id: intentId, amountLa: 840, stateVersion: 1 } });
     if (url.pathname === "/api/commerce/wallet/balance") return route.fulfill({ json: { totalLa: 0, stateVersion: 1 } });
     if (url.pathname === "/api/analytics/events") { state.analytics.push(route.request().postDataJSON().event.name); return route.fulfill({ status: 202, json: { ok: true } }); }
-    if (url.pathname.endsWith("/self-claim")) { state.claims++; return route.fulfill({ json: { orderId, kind: "wallet_topup" } }); }
+    if (url.pathname.endsWith("/self-claim")) { state.claims++; if (state.claimResult !== "none") { state.paid = true; state.terminal = ""; state.continuationPending = state.claimResult === "pending"; } return route.fulfill({ json: { status: "claimed", orderId, kind: "wallet_topup", creditedLa: 1100 } }); }
     if (url.pathname === "/api/commerce/wallet/top-up-orders" || url.pathname.endsWith("/status")) {
       if (route.request().method() === "POST" && url.pathname.endsWith("/status")) return route.fulfill({ status: 204 });
       if (url.pathname.endsWith("/status") && state.holdStatus) await new Promise<void>(resolve => state.heldResponses.push(resolve));
@@ -134,4 +134,33 @@ test("explicit pack consent is measured in the same browser session", async ({ p
   const state = await mount(page); await expect.poll(() => state.analytics.includes("unlock_confirm_view")).toBe(true);
   await page.getByRole("button", { name: /Nạp 99.000đ/ }).dblclick(); await expect(page.getByTestId("inline-topup-payment")).toBeVisible();
   expect(state.creates).toHaveLength(1); await expect.poll(() => state.analytics.includes("pack_selected")).toBe(true);
+});
+
+for (const outcome of ["complete", "pending", "none", "mismatch"]) test(`late claim refreshes the exact expired order: ${outcome}`, async ({ page }) => {
+  const state = await mount(page); await page.getByRole("button", { name: /Nạp 99.000đ/ }).click(); await expect(page.getByTestId("inline-topup-payment")).toBeVisible();
+  await page.keyboard.press("Escape"); state.terminal = "expired"; await page.locator("#open").click();
+  await expect(page.getByText("Đã chuyển khoản nhưng chưa được ghi nhận?", { exact: true })).toBeVisible();
+  state.claimResult = outcome === "mismatch" ? "complete" : outcome; state.wrongTarget = outcome === "mismatch";
+  await page.locator('input[name="transferredAtLocal"]').fill("2026-10-06T19:00");
+  await page.getByRole("button", { name: "Kiểm tra và nhận báo cáo", exact: true }).click();
+  await expect.poll(() => state.claims).toBe(1);
+  if (outcome === "pending") {
+    await expect(page.getByTestId("inline-topup-payment")).toContainText("Đã cộng Lá"); await expect(page.locator("#receipt")).toHaveText("Locked");
+    state.continuationPending = false; await page.clock.runFor(3000);
+  }
+  await expect(page.locator("#receipt")).toHaveText(outcome === "complete" || outcome === "pending" ? "Completed" : "Locked");
+  expect(state.creates).toHaveLength(1);
+});
+
+test("a late-claim status response after unmount cannot complete the abandoned sheet", async ({ page }) => {
+  const state = await mount(page); await page.getByRole("button", { name: /Nạp 99.000đ/ }).click(); await expect(page.getByTestId("inline-topup-payment")).toBeVisible();
+  await page.keyboard.press("Escape"); state.terminal = "expired"; await page.locator("#open").click();
+  await expect(page.getByText("Đã chuyển khoản nhưng chưa được ghi nhận?", { exact: true })).toBeVisible();
+  state.claimResult = "complete"; state.holdStatus = true;
+  await page.locator('input[name="transferredAtLocal"]').fill("2026-10-06T19:00");
+  await page.getByRole("button", { name: "Kiểm tra và nhận báo cáo", exact: true }).click();
+  await expect.poll(() => state.heldResponses.length).toBe(1); await page.keyboard.press("Escape");
+  const response = page.waitForResponse(response => response.url().endsWith("/status") && response.request().method() === "GET");
+  state.holdStatus = false; state.heldResponses[0](); await response;
+  await expect(page.locator("#receipt")).toHaveText("Locked"); await expect(page.locator("dialog[open]")).toHaveCount(0);
 });
