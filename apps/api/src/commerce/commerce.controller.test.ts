@@ -494,6 +494,12 @@ describe("SePay controller HTTP contract", () => {
             },
           });
         }
+        if (req.sku === "ZIWEI-TODAY-P0") {
+          return Promise.resolve({ ok: true, value: {
+            id: "intent-daily", sku: req.sku, chartVersionId: "chart-v1", locale: "vi", amountLa: 60,
+            status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+          } });
+        }
         return Promise.resolve({
           ok: true,
           value: {
@@ -530,8 +536,19 @@ describe("SePay controller HTTP contract", () => {
         },
       });
 
+      // The active daily product projects only its current-day VI purchase terms.
+      expect(await controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-TODAY-P0", locale: "vi",
+      })).toEqual({ ok: true, value: {
+        id: "intent-daily", sku: "ZIWEI-TODAY-P0", productTitle: "Hôm nay của bạn", locale: "vi", amountLa: 60,
+        status: "pending", stateVersion: 1, createdAt: "2026-09-17T00:00:00.000Z",
+      } });
+      await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
+        chartId: "chart-1", chartVersionId: "version-1", sku: "ZIWEI-TODAY-P0", locale: "en",
+      })).rejects.toBeInstanceOf(BadRequestException);
+
       // 3. Reserved SKUs are rejected with BadRequestException
-      for (const reservedSku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-TODAY-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
+      for (const reservedSku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
         await expect(controller().createWalletPurchaseIntent("Bearer valid-token", {
           chartId: "chart-1", chartVersionId: "version-1", sku: reservedSku, locale: "vi",
         })).rejects.toBeInstanceOf(BadRequestException);
