@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
+import { nativeApiReferencePricing } from "./native-campaign-api-pricing.mjs";
 
 // Source-pinned 9router 0.5.95 mapping. This is not a live campaign entry point.
 export const NATIVE_CAMPAIGN_ALIAS = "ag/gemini-3.8-flash";
 export const NATIVE_CAMPAIGN_MODEL = "gemini-3.8-flash-medium";
 export const NATIVE_CAMPAIGN_ENDPOINT = "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent";
-export const NATIVE_PRICING_SOURCE_HASH = "e844579f53d16e8765c6e740fccef351ad5abca76b34f6de5db945b86babc1e8";
 const builtPreflights = new WeakSet();
 export const isNativeCampaignPreflight = value => builtPreflights.has(value);
 const counter = value => Number.isSafeInteger(value) && value >= 0;
@@ -19,6 +19,8 @@ export function buildNativeCampaignPreflight({ system, user, maxOutputTokens, cr
   if (!record(credential) || typeof credential.accessToken !== "string" || !credential.accessToken || credential.accessToken.length > 16_384 || /\s/.test(credential.accessToken) || typeof credential.projectId !== "string" || !/^[a-z][a-z0-9-]{4,127}$/.test(credential.projectId)) fail("NATIVE_CREDENTIAL_UNVERIFIED");
   const expiresAtMs = Date.parse(credential.expiresAt);
   if (!Number.isFinite(expiresAtMs) || expiresAtMs <= at.getTime() + deadlineMs) fail("NATIVE_CREDENTIAL_EXPIRED");
+  const pricing = nativeApiReferencePricing(at);
+  nativeApiReferencePricing(new Date(at.getTime() + deadlineMs));
   const effectiveMaxOutputTokens = Math.max(16_384, maxOutputTokens);
   const requestId = `agent/${randomUUID()}/${at.getTime()}/${randomUUID()}/1`;
   const payload = {
@@ -34,11 +36,11 @@ export function buildNativeCampaignPreflight({ system, user, maxOutputTokens, cr
   if (Buffer.byteLength(body) > 2_000_000) fail("NATIVE_REQUEST_TOO_LARGE");
   // Secret-bearing headers/body are transient; only trace may be persisted as audit.
   const preflight = Object.freeze({
-    endpoint: NATIVE_CAMPAIGN_ENDPOINT, body, deadlineMs, expiresAtMs,
+    endpoint: NATIVE_CAMPAIGN_ENDPOINT, body, deadlineMs, expiresAtMs, pricing,
     headers: Object.freeze({ "Content-Type": "application/json", Authorization: `Bearer ${credential.accessToken}`, "User-Agent": "antigravity/ide/2.11.0 darwin/arm64" }),
-    trace: Object.freeze({ requestedAlias: NATIVE_CAMPAIGN_ALIAS, wireModel: NATIVE_CAMPAIGN_MODEL, requestId, effectiveMaxOutputTokens, requestSha256: createHash("sha256").update(body).digest("hex") }),
+    trace: Object.freeze({ pricingVersion: pricing.version, pricingSnapshotSha256: pricing.snapshotSha256, requestedAlias: NATIVE_CAMPAIGN_ALIAS, wireModel: NATIVE_CAMPAIGN_MODEL, requestId, effectiveMaxOutputTokens, requestSha256: createHash("sha256").update(body).digest("hex") }),
     executionReady: false,
-    blockers: Object.freeze(["applicable_billing_basis_unverified", "private_route_thinking_output_bound_unverified"]),
+    blockers: Object.freeze(["private_route_thinking_output_bound_unverified"]),
   });
   builtPreflights.add(preflight);
   return preflight;
@@ -65,13 +67,4 @@ export function inspectNativeReceipt(payload) {
   }
   // Preserve absent counters as absent; this intentionally rejects omitted zeros.
   return { rawCountersComplete: true, accountingStatus: "unverified", modelVersion: native.modelVersion, inputTokens: input, outputTokens: output, cachedTokens: cached, reasoningTokens: reasoning, totalTokens: total };
-}
-
-export function conservativeNativeEstimate(receipt) {
-  if (!receipt?.rawCountersComplete || ![receipt.inputTokens, receipt.outputTokens, receipt.cachedTokens, receipt.reasoningTokens, receipt.totalTokens].every(counter) || receipt.cachedTokens > receipt.inputTokens || !Number.isSafeInteger(receipt.inputTokens + receipt.outputTokens + receipt.reasoningTokens) || receipt.totalTokens !== receipt.inputTokens + receipt.outputTokens + receipt.reasoningTokens) fail("NATIVE_ESTIMATE_USAGE_UNVERIFIED");
-  // Twice the VND/million rate, using the existing frozen FX26110 reference.
-  // This estimate is neither an invoice nor a permission/settlement proof.
-  const twiceMicroVnd = BigInt(receipt.inputTokens - receipt.cachedTokens) * 78_330n + BigInt(receipt.outputTokens) * 391_650n + BigInt(receipt.cachedTokens) * 7_833n + BigInt(receipt.reasoningTokens) * 587_475n;
-  const microVnd = (twiceMicroVnd + 1n) / 2n;
-  return { quoteKind: "conservative_estimate", accountingStatus: "unverified", sourceHash: NATIVE_PRICING_SOURCE_HASH, fxReferenceVndPerUsd: 26_110, quoteMicroVnd: String(microVnd), quoteVnd: String((microVnd + 999_999n) / 1_000_000n), executionReady: false };
 }
