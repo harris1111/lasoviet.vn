@@ -1,6 +1,7 @@
 import { CANONICAL_PALACE_SKU_MAP, PalaceIdSchema, type LaSku } from "@lasoviet/contracts";
 
 const OFFERS: Record<string, LaSku> = {
+  "ziwei-today": "ZIWEI-TODAY-P0",
   "ziwei-comprehensive": "ZIWEI-IDENTITY-P0",
   "ziwei-natal-excerpt": "ZIWEI-NATAL-EXCERPT-P0",
   "ziwei-relationship": "ZIWEI-RELATIONSHIP-P0",

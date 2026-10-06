@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import {useRouter} from "next/navigation";
 import { useTranslations } from "next-intl";
 import { findLaProduct, isSinglePalaceSku, type LaSku } from "@lasoviet/contracts";
 import { UnlockSheet } from "../commerce/unlock-sheet";
@@ -11,12 +12,13 @@ import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { claimLadderViewEvents } from "./offer-ladder-analytics";
 import { PalacePicker } from "./palace-picker";
 
-const FIXED_SKUS: LaSku[] = ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"];
+const FIXED_SKUS: LaSku[] = ["ZIWEI-TODAY-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"];
 export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, initialResume = false, balance, scores }: {
   chartId: string; chartVersionId: string; locale: "vi" | "en"; initialSku: LaSku;
   initialQuotes: InitialWalletQuotes; initialResume?: boolean; balance: number; scores: Record<string, number>;
 }) {
   const t = useTranslations("reports");
+  const router = useRouter();
   const labels = useUnlockLabels();
   const quote = useWalletQuotes(chartId, chartVersionId, locale, initialQuotes);
   const [selectedSku, setSelectedSku] = useState(initialSku);
@@ -71,7 +73,7 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     <h2>{t("selection.ladderHeading")}</h2><p>{t("selection.ladderDescription")}</p>
     {quote.status === "loading" && <p role="status">{t("selection.ladderLoading")}</p>}
     {quote.status === "error" && <div role="alert"><p>{t("selection.ladderQuoteError")}</p><button type="button" className="button" onClick={quote.retry}>{t("selection.retry")}</button></div>}
-    <div className="offer-ladder-cards">{[palaceSku, ...FIXED_SKUS].map(sku => {
+    <div className="offer-ladder-cards">{[palaceSku, ...FIXED_SKUS.filter(sku => findLaProduct(sku)?.locales.includes(locale))].map(sku => {
       const item = terms(sku);
       const lifetime = sku === "ZIWEI-IDENTITY-P0";
       return <article key={isSinglePalaceSku(sku) ? "palace" : sku} className={lifetime ? "offer-ladder-best" : undefined} data-sku={sku}>
@@ -91,12 +93,12 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     <div className="offer-ladder-summary" aria-label={t("selection.ladderHeading")}>
       <p><strong>{selected.product.name[locale]}</strong> · {t("selection.ladderPrice", { price: selected.price })}</p>
       <p>{t("selection.ladderBalance", { balance })}{canBuy && shortfall > 0 ? ` · ${t("selection.insufficientBalance", { gap: shortfall })}` : ""}</p>
-      {receipt ? <div role="status"><p>{t("selection.contextualUnlocked")}</p><Link className="button" href={receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t("selection.viewProgress")}</Link></div> :
-        selected.state === "owned" ? <Link className="button" href={selected.quote?.reportId ? `${prefix}/bao-cao/${encodeURIComponent(selected.quote.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t(selected.quote?.reportState === "ready" ? "selection.readAgain" : selected.quote?.reportId ? "selection.viewProgress" : "selection.viewLibrary")}</Link> :
+      {receipt ? <div role="status"><p>{t("selection.contextualUnlocked")}</p><Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t("selection.viewProgress")}</Link></div> :
+        selected.state === "owned" ? <Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : selected.quote?.reportId ? `${prefix}/bao-cao/${encodeURIComponent(selected.quote.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t(selectedSku === "ZIWEI-TODAY-P0" || selected.quote?.reportState === "ready" ? "selection.readAgain" : selected.quote?.reportId ? "selection.viewProgress" : "selection.viewLibrary")}</Link> :
           <button ref={trigger} type="button" className="button button-primary" disabled={!canBuy} onClick={() => setOpen(true)}>{canBuy ? t("selection.ladderOpen", { price: selected.price }) : t(selected.product.availability === "active" ? "selection.ladderUnavailable" : "selection.ladderComingSoon")}</button>}
       <Link href={`${prefix}/bao-cao-mau/tu-vi`}>{t("selection.viewSample")}</Link>
     </div>
     <UnlockSheet open={open} chartId={chartId} chartVersionId={chartVersionId} sku={selectedSku} locale={locale} itemName={selected.product.name[locale]} labels={labels}
-      onOpenChange={setOpen} onUnlocked={reportId => { setReceipt({ reportId }); quote.retry(); }} />
+      onOpenChange={setOpen} onUnlocked={reportId => { setReceipt({ reportId }); quote.retry(); if (selectedSku === "ZIWEI-TODAY-P0") router.refresh(); }} />
   </div>;
 }

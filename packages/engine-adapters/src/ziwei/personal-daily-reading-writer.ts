@@ -1,4 +1,5 @@
 import { astro } from "iztro";
+import { DAILY_MUTAGEN_RULES, DAILY_STAR_RULES } from "./daily-reading-grounding.js";
 
 import type {
   NormalizedBirthProfileV1,
@@ -113,7 +114,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
   "ziwei.palace.siblings": {
     theme: "tương tác đồng nghiệp và các mối quan hệ hỗ trợ",
     workFocus:
-      "Thuận lợi cho các buổi thảo luận nhóm, phân chia nhiệm vụ và phối hợp ăn ý giữa các cộng sự.",
+      "Bạn có thể chuẩn bị cho thảo luận nhóm bằng cách ghi rõ nhiệm vụ và phần cần phối hợp.",
     financeFocus:
       "Rõ ràng trong việc chia sẻ chi phí chung hoặc các thỏa thuận hùn hạp tài chính nhỏ.",
     relationshipFocus:
@@ -126,7 +127,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
   "ziwei.palace.spouse": {
     theme: "hợp tác đôi bên và giữ hòa khí trong gia đình",
     workFocus:
-      "Thích hợp để rà soát các hợp đồng hợp tác song phương hoặc đàm phán thỏa thuận đối tác.",
+      "Bạn có thể rà soát điều khoản hợp tác và chuẩn bị câu hỏi về thỏa thuận đôi bên.",
     financeFocus:
       "Minh bạch trong các khoản chi chung của gia đình hoặc kế hoạch tài chính cùng người đồng hành.",
     relationshipFocus:
@@ -165,7 +166,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
   "ziwei.palace.health": {
     theme: "chăm sóc thân thể, phục hồi thể lực và nhịp sinh hoạt",
     workFocus:
-      "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức vào buổi chiều.",
+      "Sắp xếp công việc theo thứ tự ưu tiên, tránh làm việc dồn dập quá sức.",
     financeFocus:
       "Ưu tiên ngân sách cho thực phẩm dinh dưỡng lành mạnh và các nhu cầu chăm sóc sức khỏe định kỳ.",
     relationshipFocus:
@@ -178,7 +179,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
   "ziwei.palace.travel": {
     theme: "gặp gỡ bên ngoài, đi lại và mở rộng không gian sống",
     workFocus:
-      "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
+      "Nếu có việc cần gặp gỡ bên ngoài, bạn có thể chuẩn bị nội dung trao đổi và kiểm tra lịch hẹn.",
     financeFocus:
       "Chuẩn bị kỹ chi phí phát sinh khi di chuyển hoặc tham gia các sự kiện giao lưu bên ngoài.",
     relationshipFocus:
@@ -217,7 +218,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
   "ziwei.palace.property": {
     theme: "không gian sống, tích lũy tài sản và sự ổn định của gia đình",
     workFocus:
-      "Thích hợp để sắp xếp lại không gian làm việc gọn gàng, tạo cảm hứng sáng tạo và tập trung.",
+      "Bạn có thể sắp xếp lại không gian làm việc để dễ tập trung vào nhiệm vụ đã chọn.",
     financeFocus:
       "Xem xét các kế hoạch tích lũy dài hạn, bảo dưỡng tài sản vật chất và nhà ở.",
     relationshipFocus:
@@ -278,6 +279,7 @@ export type PersonalDailyReadingWriterOptions = {
 export function validatePersonalDailyReadingQuality(
   reading: PersonalDailyReadingV1,
   engineHoroscope: ZiweiHoroscopeResultV1,
+  expectedGrounding?: PersonalDailyReadingV1["chartGrounding"],
 ): { ok: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -308,6 +310,21 @@ export function validatePersonalDailyReadingQuality(
     errors.push(
       "FD-089 Violation: Content contains forbidden lottery or gambling suggestions",
     );
+  }
+
+  // Daily scope does not compute hourly predictions or guaranteed outcomes.
+  if (/buổi (sáng|chiều|tối|trưa)|lúc \d|\d{1,2}\s*(?:giờ|h)(?![a-z])|chắc chắn|đảm bảo thành công|sẽ (trúng|kiếm được|mất tiền|gặp tai nạn)/iu.test(textToScan)) {
+    errors.push("FD-089 Violation: Unsupported time or guaranteed event claim");
+  }
+  if (expectedGrounding && JSON.stringify(reading.chartGrounding) !== JSON.stringify(expectedGrounding)) {
+    errors.push("FD-089 Evidence Mismatch: Computed star configuration changed");
+  }
+  for (const star of reading.chartGrounding.majorStars) {
+    const rule = DAILY_STAR_RULES[star];
+    if (!reading.reading.overview.includes(star) || !reading.evidenceKeys.includes(`daily.star.${star}`) ||
+      (rule && !reading.evidenceKeys.includes(`knowledge.${rule.passageId}`))) {
+      errors.push("FD-089 Evidence Missing: Rendered star explanation lacks computed grounding or reviewed source");
+    }
   }
 
   // Rule 4: Grounded evidence consistency
@@ -430,7 +447,7 @@ export function writePersonalDailyReading(
     for (let i = 0; i < dailyScope.mutagen.length; i++) {
       const rawStar = dailyScope.mutagen[i];
       if (typeof rawStar === "string" && rawStar) {
-        const starName = MAJOR_STAR_NAMES_VI[rawStar] || rawStar;
+        const starName = MAJOR_STAR_NAMES_VI[rawStar] || MINOR_STAR_NAMES_VI[rawStar] || rawStar;
         const mutagen = mutagenTypes[i];
         if (mutagen) {
           dailyMutagens.push({ mutagen, starName });
@@ -446,9 +463,26 @@ export function writePersonalDailyReading(
 
   const headline = `Ngày ${dailyEngine.dayStemBranch}: ${palaceConfig.theme}`;
 
+  const starRules = majorStars.flatMap(star => DAILY_STAR_RULES[star] ? [{star, rule: DAILY_STAR_RULES[star]!}] : []);
+  // A daily transformation belongs to this palace only when its actual natal star is here.
+  const localMutagens = dailyMutagens.filter(item => majorStars.includes(item.starName) || minorStars.includes(item.starName));
+  const groundingEvidence = [
+    ...majorStars.map(star => `daily.star.${star}`),
+    ...starRules.map(({rule}) => `knowledge.${rule.passageId}`),
+    ...localMutagens.flatMap(item => [`daily.mutagen.${item.mutagen}.${item.starName}`, `knowledge.${DAILY_MUTAGEN_RULES[item.mutagen].passageId}`]),
+  ];
+  const configuration = majorStars.length ?
+    `Cung ${touchedPalaceName} trên lá số này có ${majorStars.join(" và ")}. ` +
+      starRules.map(({star, rule}) => `${star} gợi chủ đề ${rule.focus}.`).join(" ") :
+    `Cung ${touchedPalaceName} không có chính tinh trong dữ liệu đã tính. Phần đọc không gán thêm một chính tinh hoặc tự mượn ý nghĩa sao ở cung khác để kết luận. Vì vậy, lời hướng dẫn ưu tiên chủ đề của cung và các dấu hiệu ngày thực sự có dữ liệu.`;
+  const transformation = localMutagens.length ? localMutagens.map(item => {
+    const rule = DAILY_MUTAGEN_RULES[item.mutagen];
+    return `Trong Tứ Hóa của ngày, ${item.starName} tại cung này nhận ${rule.label}; đây là gợi ý quan sát ${rule.focus}. ${rule.action}`;
+  }).join(" ") : "Bộ tính không ghi nhận một sao nhận Tứ Hóa ngày nằm ngay tại cung này. Phần đọc không coi Tứ Hóa của toàn ngày là tác động trực tiếp lên cung đang xem.";
   const overview =
     `Ngày ${dailyEngine.dayStemBranch} trên lá số của bạn ứng với cung ${touchedPalaceName}, phần nói về ${palaceConfig.theme}. ` +
-    `Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.`;
+    `Vì sao hôm nay là chủ đề này trên lá số của bạn: ${configuration} ${transformation} ` +
+    `Đây là cách đọc các dấu hiệu đã tính để chuẩn bị việc trong ngày; các gợi ý không xác định sự kiện hoặc khung giờ thuận lợi trong ngày.`;
 
   const aspects: PersonalDailyReadingAspect[] = [
     {
@@ -493,16 +527,17 @@ export function writePersonalDailyReading(
   const actionPlan = {
     recommendations: [
       palaceConfig.recommendation,
-      "Ghi nhận diễn biến các việc trong ngày để tự đối chiếu với cấu trúc lá số.",
+      ...(starRules.length ? starRules.map(({rule}) => rule.action) : ["Chọn một tình huống thực tế thuộc chủ đề của cung này và ghi rõ điều bạn có thể kiểm tra trước khi hành động."]),
     ],
     cautions: [
       palaceConfig.caution,
-      "Tránh nóng vội đưa ra kết luận khi chưa nắm đầy đủ thông tin thực tế.",
+      ...(localMutagens.some(item => item.mutagen === "ky") ? [DAILY_MUTAGEN_RULES.ky.action] : ["Đối chiếu gợi ý với nguồn lực và thỏa thuận thực tế trước khi tăng mức cam kết."]),
     ],
     evidenceKeys: [
       `daily.palace.${touchedPalaceId}`,
       "daily.action.recommendations",
       "daily.action.cautions",
+      ...groundingEvidence,
     ],
   };
 
@@ -512,6 +547,7 @@ export function writePersonalDailyReading(
     `daily.palace.${touchedPalaceId}`,
     ...aspects.flatMap((a) => a.evidenceKeys),
     ...actionPlan.evidenceKeys,
+    ...groundingEvidence,
   ];
 
   const uniqueEvidenceKeys = Array.from(new Set(topEvidenceKeys));

@@ -1,3 +1,4 @@
+import { PersonalDailyReadingPanel } from "../../../../../features/ziwei/personal-daily-reading-panel";
 import { loadWalletQuotes } from "../../../../../features/commerce/load-wallet-quotes";
 import { resolveLadderSelection } from "../../../../../features/commerce/offer-selection";
 import { OfferLadder } from "../../../../../features/reports/offer-ladder";
@@ -99,9 +100,11 @@ export default async function PaidTopicSelectionPage({
     <main className="topic-page" data-light-ready>
       <div className="container">
         <PaidTopicSelector
-          readingContent={<OfferLadder chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale}
+          readingContent={<><OfferLadder chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale}
             initialSku={resolveLadderSelection(query?.offer, query?.palace)} initialResume={query?.resume === "1"} balance={userBalance} scores={scores}
-            initialQuotes={!actor ? { status: "guest" } : initialQuotes ? { status: "ready", value: initialQuotes } : { status: "error" }} />}
+            initialQuotes={!actor ? { status: "guest" } : initialQuotes ? { status: "ready", value: initialQuotes } : { status: "error" }} />
+            {actor && locale === "vi" && <PersonalDailyReadingPanel key={`${chartId}:${chartResult.value.chartVersionId}:${locale}`} chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale} />}
+          </>}
           birthSummary={chartResult.value.birthSummary}
           locale={locale}
           ownershipByOfferKey={ownershipByOfferKey}

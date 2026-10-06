@@ -7,7 +7,7 @@ const root = process.cwd();
 const require = createRequire(resolve(root, "package.json"));
 const { build } = createRequire(require.resolve("vite"))("esbuild");
 // Real deterministic engine output for a synthetic profile; no paid provider calls.
-const reading = JSON.parse(readFileSync(resolve(root, "plan/evidence/2026-10-05-personal-daily-editorial-qa.json"), "utf8")).samples[0].reading;
+const reading = JSON.parse(readFileSync(resolve(root, "plan/evidence/2026-10-06-personal-daily-paid-qa.json"), "utf8")).samples[0].reading;
 const stylesRoot = resolve(root, "apps/web/src/styles");
 const stylesheet = readFileSync(resolve(stylesRoot, "global.css"), "utf8")
   .replace(/@import "\.\/([^"]+)";/g, (_, filename: string) => readFileSync(resolve(stylesRoot, filename), "utf8"));
@@ -40,7 +40,7 @@ test.beforeAll(async () => {
 });
 
 async function mount(page: Page, locale = "vi") {
-  await page.clock.install({time: new Date("2026-09-30T00:00:00Z")});
+  await page.clock.install({time: new Date(`${reading.asOfDate}T00:00:00Z`)});
   await page.route("https://daily.test/", route => route.fulfill({contentType: "text/html", body: '<html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><main id="fixture"></main><nav class="report-chart-mobile-bar"><button>Xem lá số</button><button>Mục lục</button><span>9/12</span></nav></body></html>'}));
   await page.route("**/images/**", route => route.fulfill({status: 204}));
   await page.goto("https://daily.test/");

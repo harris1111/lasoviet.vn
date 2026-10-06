@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { DAILY_MUTAGEN_RULES, DAILY_STAR_RULES } from "./daily-reading-grounding.js";
 import { describe, expect, it } from "vitest";
 
 import type { NormalizedBirthProfileV1 } from "@lasoviet/contracts";
@@ -12,10 +14,9 @@ describe("personal-daily-reading-writer", () => {
   const testProfile: NormalizedBirthProfileV1 = {
     version: 1,
     originalInput: {
-      name: "Nguyễn Văn A",
-      gender: "Nam",
-      birthDate: "1992-06-15",
-      birthTime: "08:30",
+      version: 1, displayName: "Nguyễn Văn A", gender: "Nam",
+      calendar: {kind: "solar", date: "1992-06-15"}, time: {precision: "exact_minute", localTime: "08:30"},
+      timezone: {ianaZone: "Asia/Ho_Chi_Minh"}, consentVersion: "synthetic-qa-v1",
     },
     normalizedCalendar: {
       kind: "solar",
@@ -105,6 +106,43 @@ describe("personal-daily-reading-writer", () => {
     expect(palaces.size).toBe(12);
     expect(emptyMajorStars).toBeGreaterThan(0);
   }, 30_000);
+
+  it("pins all interpretation rules to approved V4 passages", () => {
+    const source = JSON.parse(readFileSync("content/knowledge/vi/ziwei/comprehensive-report.v4.json", "utf8"));
+    expect(source.approval).toMatchObject({status: "approved", approver: "founder"});
+    for (const rule of [...Object.values(DAILY_STAR_RULES), ...Object.values(DAILY_MUTAGEN_RULES)]) {
+      expect(source.chunks.find((item: {passageId: string}) => item.passageId === rule.passageId)).toMatchObject({contentHash: rule.contentHash});
+    }
+  });
+  it("explains different computed configurations in both prose and actions for the same palace", () => {
+    const fixture = JSON.parse(readFileSync("plan/evidence/2026-10-05-personal-daily-editorial-qa.json", "utf8"));
+    const examples: Array<ReturnType<typeof writePersonalDailyReading>> = fixture.samples.map((sample: {sample: number; syntheticInput: {birthDate: string; localTime: string; gender: string}}) => {
+      const profile: NormalizedBirthProfileV1 = {...testProfile, originalInput: {...testProfile.originalInput, gender: sample.syntheticInput.gender, calendar: {kind: "solar", date: sample.syntheticInput.birthDate}, time: {precision: "exact_minute", localTime: sample.syntheticInput.localTime}},
+        normalizedCalendar: {kind: "solar", date: sample.syntheticInput.birthDate}, normalizedTime: {precision: "exact_minute", localTime: sample.syntheticInput.localTime}};
+      return writePersonalDailyReading(profile, {asOfDate: "2026-09-30", chartId: `synthetic-daily-${sample.sample}`, chartVersionId: `synthetic-version-${sample.sample}`, now: () => new Date("2026-09-30T03:00:00Z")});
+    });
+    const pair = examples.flatMap(first => examples.filter(second => first.chartGrounding.touchedPalaceId === second.chartGrounding.touchedPalaceId &&
+      JSON.stringify(first.chartGrounding.majorStars) !== JSON.stringify(second.chartGrounding.majorStars)).map(second => [first, second] as const))[0];
+    expect(pair).toBeDefined(); expect(pair![0].reading.overview).not.toBe(pair![1].reading.overview);
+    expect(pair![0].reading.actionPlan.recommendations).not.toEqual(pair![1].reading.actionPlan.recommendations);
+    for (const reading of examples) {
+      expect(reading.reading.overview).toContain("Vì sao hôm nay là chủ đề này");
+      for (const star of reading.chartGrounding.majorStars) expect(reading.evidenceKeys).toContain(`daily.star.${star}`);
+      expect(reading.reading.overview).not.toMatch(/buổi (chiều|sáng|tối)|Thuận lợi cho|Thích hợp để/iu);
+      for (const key of reading.reading.actionPlan.evidenceKeys) expect(reading.evidenceKeys).toContain(key);
+    }
+  }, 30_000);
+  it.each(["buổi chiều thuận lợi để ký hợp đồng", "lúc 14 giờ bạn sẽ nhận tiền", "bạn chắc chắn thành công", "bạn sẽ gặp tai nạn"])("rejects an unsupported daily event/time: %s", text => {
+    const now = () => new Date("2026-09-30T03:00:00Z");
+    const reading = writePersonalDailyReading(testProfile, {asOfDate: "2026-09-30", now});
+    const corrupted = {...reading, reading: {...reading.reading, overview: text}};
+    expect(validatePersonalDailyReadingQuality(corrupted, calculateZiweiHoroscope(testProfile, {asOfDate: "2026-09-30"})).ok).toBe(false);
+  });
+  it("rejects changed star facts against independently computed grounding", () => {
+    const reading = writePersonalDailyReading(testProfile, {asOfDate: "2026-09-30", now: () => new Date("2026-09-30T03:00:00Z")});
+    const corrupted = {...reading, chartGrounding: {...reading.chartGrounding, majorStars: ["Invented star"]}};
+    expect(validatePersonalDailyReadingQuality(corrupted, calculateZiweiHoroscope(testProfile, {asOfDate: "2026-09-30"}), reading.chartGrounding).ok).toBe(false);
+  });
 
   describe("FD-089 quality gates", () => {
     it("rejects content containing death / lifespan terms", () => {

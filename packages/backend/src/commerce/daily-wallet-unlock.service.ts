@@ -2,7 +2,7 @@ import { createDatabaseDailyReadingAccess } from "./personal-daily-reading.servi
 import { and, desc, eq, gt, isNull, notExists, sql } from "drizzle-orm";
 import {
   findLaProduct, NormalizedBirthProfileV1Schema, PersonalDailyReadingV1Schema, WalletPurchaseIntentV1Schema,
-  type CurrentActor, type NormalizedBirthProfileV1, type PersonalDailyReadingV1,
+  type CurrentActor, type NormalizedBirthProfileV1, type PersonalDailyReadingV1, type WalletQuoteV1,
 } from "@lasoviet/contracts";
 import {
   authUsers, commerceEntitlements, dailyReadingUnlocks, walletAccounts, walletPurchaseIntents,
@@ -72,6 +72,19 @@ export function createDailyWalletUnlockService(database: Database, wallet: Walle
     return account?.emailVerified === true && account.isAnonymous === false;
   }
   return {
+    /** Daily authority is date-scoped content, not a natal report reservation. */
+    async readQuote(actor: CurrentActor, request: WalletPurchaseIntentRequest, current: Date): Promise<Pick<WalletQuoteV1, "state" | "priceLa" | "reportState">> {
+      const unavailable = {state: "unavailable" as const, priceLa: null, reportState: null};
+      if (request.locale !== "vi" || request.sku !== DAILY_SKU || !available() || !await verified(actor) || actor.kind !== "account") return unavailable;
+      const chart = await createDatabaseZiweiQueryRepository(database).readAuthorizedChart(actor, request.chartId, current);
+      if (!chart || chart.chartVersionId !== request.chartVersionId ||
+        !NormalizedBirthProfileV1Schema.safeParse({...chart.normalizedInput, originalInput: chart.originalInput}).success) return unavailable;
+      const grant = await createDatabaseDailyReadingAccess(database)(actor.userId, request.chartId, current);
+      if (grant && grant.chartVersionId === chart.chartVersionId && grant.grantedAt <= current && current < grant.expiresAt) {
+        return {state: "owned", priceLa: null, reportState: "unavailable"};
+      }
+      return {state: "available", priceLa: 60, reportState: null};
+    },
     async createPurchaseIntent(actor: CurrentActor, request: WalletPurchaseIntentRequest): Promise<WalletResult<ReturnType<typeof projectIntent>>> {
       if (actor.kind !== "account" || !await verified(actor)) return failure("WALLET_ACCOUNT_INELIGIBLE");
       // The writer currently provides reviewed Vietnamese output only. English stays unavailable.

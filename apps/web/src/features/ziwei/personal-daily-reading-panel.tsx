@@ -21,6 +21,8 @@ export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale, inc
     if (locale !== "vi") return;
     let active = true;
     let controller: AbortController | undefined;
+    let midnightTimer: ReturnType<typeof setTimeout> | undefined;
+    const vietnamDate = () => new Intl.DateTimeFormat("en-CA", {timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit"}).format(new Date());
     async function load() {
       controller?.abort();
       const request = new AbortController();
@@ -30,20 +32,27 @@ export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale, inc
         const parsed = response.ok ? PersonalDailyReadingV1Schema.safeParse(await response.json()) : null;
         const reading = parsed?.success && parsed.data.qualityGate.passed
           && parsed.data.chartId === chartId && parsed.data.chartVersionId === chartVersionId
-          && parsed.data.calendar.solarDate === parsed.data.asOfDate ? parsed.data : null;
+          && parsed.data.calendar.solarDate === parsed.data.asOfDate && parsed.data.asOfDate === vietnamDate() ? parsed.data : null;
         if (active && controller === request) setResult({key: requestKey, reading, purchased: !!reading && response.headers.get("x-daily-purchased") === "true"});
       } catch {
         if (active && controller === request && !request.signal.aborted) setResult({key: requestKey, reading: null, purchased: false});
       }
     }
     function onVisibilityChange() { if (document.visibilityState === "visible") { setResult(null); void load(); } }
+    function scheduleMidnight() {
+      const next = new Date(`${vietnamDate()}T00:00:00+07:00`).getTime() + 86_400_000;
+      midnightTimer = setTimeout(() => {setResult(null); void load(); scheduleMidnight();}, Math.max(1, next - Date.now()));
+    }
+    function onWalletChange() {setResult(null); void load();}
     void load();
+    scheduleMidnight();
+    window.addEventListener("lsv:wallet-changed", onWalletChange);
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => { active = false; controller?.abort(); document.removeEventListener("visibilitychange", onVisibilityChange); };
+    return () => { active = false; controller?.abort(); if (midnightTimer) clearTimeout(midnightTimer); window.removeEventListener("lsv:wallet-changed", onWalletChange); document.removeEventListener("visibilitychange", onVisibilityChange); };
   }, [chartId, chartVersionId, locale, requestKey]);
   if (includedOnly && (!reading || locale !== "vi")) return null;
   const purchasable = !includedOnly && locale === "vi" && findLaProduct("ZIWEI-TODAY-P0")?.availability === "active";
-  return <section data-testid="personal-daily-reading" className="container result-paid-report-cta personal-daily-reading-panel" aria-labelledby="personal-daily-title">
+  return <section id="personal-daily-reading" data-testid="personal-daily-reading" className="container result-paid-report-cta personal-daily-reading-panel" aria-labelledby="personal-daily-title">
     <h2 id="personal-daily-title">{t("title")}</h2>
     {reading ? <>
       <p>{reading.calendar.solarDateFormatted} · {reading.calendar.dayStemBranch}</p>
@@ -55,10 +64,11 @@ export function PersonalDailyReadingPanel({ chartId, chartVersionId, locale, inc
       <PartFeedback chartId={chartId} partId={`daily:${reading.asOfDate}`} paid={purchased} locale={locale} onClaimed={() => { setResult(null); setRevision((value) => value + 1); }} />
     </> : <>
       <p>{t("bonus")}</p>
+      {purchasable && <p>{t("terms")}</p>}
       <p role="status">{loading && locale === "vi" ? t("loading") : t("locked")}</p>
       {purchasable && !loading && <button type="button" className="button" onClick={() => setOpen(true)}>{t("unlock")}</button>}
     </>}
-    {open && <WalletUnlockDialog open chartId={chartId} chartVersionId={chartVersionId} sku="ZIWEI-TODAY-P0" locale={locale}
+    {open && <WalletUnlockDialog key={`${chartId}:${chartVersionId}:${locale}`} open chartId={chartId} chartVersionId={chartVersionId} sku="ZIWEI-TODAY-P0" locale={locale}
       itemName={t("title")} onOpenChange={setOpen} onUnlocked={() => setRevision((value) => value + 1)}
       labels={{
         title: reports("selection.unlockDialogTitle"), itemLabel: reports("selection.unlockDialogItemLabel"),
