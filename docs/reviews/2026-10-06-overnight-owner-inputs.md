@@ -1,8 +1,10 @@
 # Các mục cần bạn chốt — overnight 06/10/2026
 
-Trả lời theo số là được. Không gửi token, mật khẩu hay dữ liệu khách hàng. Không cần duyệt lại API, model hoặc giá API.
+Ưu tiên trả lời **1 và 2** theo số là được. Các mục 3–5 chỉ cần trả lời nếu muốn đổi những lựa chọn đang giữ. Không gửi token, mật khẩu hay dữ liệu khách hàng. Không cần duyệt lại API, model hoặc giá API.
 
-**Đã chốt:** LSV68/71 Done theo nghiệm thu của bạn; SePay sandbox để sau; thông báo chỉ kiểm thử cô lập, chưa gửi khách thật; hội viên/Combo/Hợp đôi và PR197/231 tiếp tục giữ. LSV62 “Hôm nay” 60 Lá có yêu cầu triển khai đã duyệt: mình đang hoàn tất nghiệm thu mua/đọc/hoàn Lá, không cần bạn chọn lại giữa phần tặng và mở bán.
+**Kaneo hiện tại:** 0 To Do; 9 In Review (50, 58, 60, 63, 64, 65, 66, 77, 79); 75 In Progress chờ bạn xem bản mẫu. Phần còn chờ của từng nhóm nằm ở các mục dưới.
+
+**Đã chốt:** LSV68/71 Done theo nghiệm thu của bạn; SePay sandbox để sau; thông báo chỉ kiểm thử cô lập, chưa gửi khách thật; hội viên/Combo/Hợp đôi và PR197/231 tiếp tục giữ. LSV62 “Hôm nay” 60 Lá và bonus bảy ngày đã deploy/nghiệm thu, kéo Done: [bằng chứng ngắn](../../plan/evidence/lsv62-daily/published-acceptance.md). Không cần bạn chọn lại giữa phần tặng và mở bán.
 
 ## 1. LSV75 — xem bản mẫu tổng quan dài
 
@@ -18,7 +20,7 @@ Trả lời theo số là được. Không gửi token, mật khẩu hay dữ li
 
 **Bối cảnh:** bản đã làm chỉ nhắc trên tài khoản, chọn luận giải và báo cáo đã mua. Kế hoạch cũ ghi “mọi trang”, còn quyết định đã duyệt giữ trang chủ/thân bài miễn phí không có giá.
 
-**Giải pháp:** A) giữ phạm vi hiện tại; B) thêm một lời nhắc không có giá sau mốc đọc xong hoặc khi người dùng mở preview khóa. Đo doanh thu thu hồi còn cần nối nguồn click với đơn; bản ghi thử chưa được tính là gửi thật hoặc doanh thu.
+**Giải pháp:** A) giữ phạm vi hiện tại; B) thêm một lời nhắc không có giá sau mốc đọc xong hoặc khi người dùng mở preview khóa. [Ghi nhận click](../../plan/evidence/lsv79-click/published-acceptance.md) đã deploy/nghiệm thu: đúng người dùng, đúng đơn, không tự trả tiền hoặc trừ Lá. [Đối soát click → đơn nạp → Lá đã dùng](../../plan/evidence/lsv79-financial/published-acceptance.md) cũng đã deploy/nghiệm thu bằng dữ liệu giả, giữ riêng tiền nạp và giá trị phân bổ từ đúng đơn. Chưa gửi nhắc khách thật hoặc tính các số thử thành doanh thu thật.
 
 **Đề xuất:** A trước.
 
@@ -26,13 +28,15 @@ Trả lời theo số là được. Không gửi token, mật khẩu hay dữ li
 
 ## 3. LSV60/79 — có gửi thông báo cho khách thật không?
 
-**Bối cảnh:** đợt này chỉ dùng dữ liệu thử cô lập. Việc gửi ra ngoài và nhóm người nhận chưa được duyệt; nhắc hạn tháng còn phụ thuộc gói năm đang giữ. Riêng nút “Báo tôi khi xong” vẫn cần nối đúng quyền đăng ký với báo cáo.
+**Bối cảnh:** [nghiệm thu email thử](../../plan/evidence/lsv60-capture/published-services-acceptance.md) đã pass: biên 5 phút/48 giờ, không gửi trùng, chặn khi hủy đăng ký/xóa dữ liệu/thu hồi quyền. Thư chỉ vào hộp Mailpit cô lập, chưa gửi khách thật. Nhắc hạn tháng còn phụ thuộc gói năm đang giữ.
 
 **Giải pháp/đề xuất:** giữ chưa gửi thật. Nếu muốn mở thử, chọn loại thông báo và nhóm tài khoản thử được phép nhận; vẫn kiểm tra đồng ý nhận và hủy đăng ký. Chưa cần đưa danh sách email lên Git.
 
 **Trả lời:** giữ chưa gửi / cho gửi thử loại … tới nhóm …
 
-## 4. LSV77 — kiểm tra QR trên điện thoại thật
+**Nút “Báo tôi khi xong”:** đã triển khai, deploy và [nghiệm thu đăng ký/hủy/capture](../../plan/evidence/lsv60-subscription/published-acceptance.md); không cần bạn duyệt lại yêu cầu GĐ7. Đăng ký gắn với đúng báo cáo, dùng chung chống gửi trùng; hủy chỉ hủy yêu cầu nhắc riêng, không hủy email tự động của đơn mua. Chỉ cần bạn nói thêm nếu muốn đổi toàn bộ email hoàn tất thành bắt buộc bấm nút mới gửi.
+
+## 4. LSV50/77 — kiểm tra thanh toán và QR trên điện thoại thật
 
 **Bối cảnh:** nạp tại chỗ đã có kiểm thử trình duyệt và luồng máy chủ. Chuyển sang app ngân hàng/lưu QR trên điện thoại thật chưa được chứng minh; sandbox vẫn để sau theo bạn.
 
