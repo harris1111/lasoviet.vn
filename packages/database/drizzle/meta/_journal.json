@@ -414,6 +414,13 @@
       "when": 1791317757965,
       "tag": "0058_report_notification_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1791319900000,
+      "tag": "0059_recovery_click_receipts",
+      "breakpoints": true
     }
   ]
 }

@@ -96,11 +96,12 @@ export function createPendingTopUpRecoveryCaptureService(options: {
               sql`${notificationDeliveries.requestPayload}->>'chartId' = ${intent.chartId}`));
           if ((count?.count ?? 0) >= 2) continue;
           const idempotencyKey = `recovery-pending-topup:${order.id}`;
-          const actionUrl = `https://lasoviet.net${intent.locale === "en" ? "/en" : ""}/thanh-toan/${order.id}?utm_source=reminder`;
+          const deliveryId = randomUUID();
+          const actionUrl = `https://lasoviet.net${intent.locale === "en" ? "/en" : ""}/thanh-toan/${order.id}?utm_source=reminder#recovery=${deliveryId}`;
           const topUpAmount = new Intl.NumberFormat(intent.locale === "vi" ? "vi-VN" : "en-US").format(order.amount);
           const unsubscribeUrl = `https://lasoviet.net/thong-bao/huy-dang-ky#token=${generateUnsubscribeToken({ userId: user.id, email: user.email }, options.tokenSecret, now)}`;
           const [delivery] = await transaction.insert(notificationDeliveries).values({
-            id: randomUUID(), idempotencyKey, kind: "recovery_pending_topup", status: "captured",
+            id: deliveryId, idempotencyKey, kind: "recovery_pending_topup", status: "captured",
             recipientFingerprint, attemptCount: 0, lastErrorCode: "RECOVERY_CAPTURE_ONLY",
             requestPayload: { version: 1, userId: user.id, chartId: intent.chartId, chartVersionId: intent.chartVersionId,
               orderId: order.id, intentId: intent.id, intentStateVersion: intent.stateVersion,

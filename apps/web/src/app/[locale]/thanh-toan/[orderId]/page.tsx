@@ -1,3 +1,4 @@
+import {RecoveryClickReceipt} from "../../../../features/commerce/recovery-click-receipt";
 import { customerContactConfig } from "@lasoviet/config";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
@@ -61,6 +62,7 @@ export default async function CheckoutPage({
 
   return (
     <main className="topic-page vietqr-checkout-page" data-light-ready>
+      <RecoveryClickReceipt orderId={order.id} />
       <section className="container">
         <p className="eyebrow">{t("checkout.eyebrow")}</p>
         <h1>{order.creditApplied > 0 ? t("checkout.upgrade_title") : `${t("checkout.eyebrow")} · ${order.productTitle}`}</h1>

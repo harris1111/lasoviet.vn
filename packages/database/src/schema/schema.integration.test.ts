@@ -217,6 +217,7 @@ describe("database schema integration", () => {
       await removeOpenRouterPricingForRewind(client);
       await removeGeminiFlashPricingForRewind(client);
       // This checkpoint also predates the durable compensation receipt.
+      await client`DROP TABLE IF EXISTS recovery_click_receipts`;
       await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
       await client`DROP TABLE IF EXISTS report_wallet_compensations`;
       // 0055 (free_ai): this boundary predates the free-AI gift tables too.
@@ -568,6 +569,7 @@ describe("database schema integration", () => {
       await client`DROP TABLE IF EXISTS knowledge_chunk_provenance_edges`;
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       // This checkpoint also predates the durable compensation receipt.
+      await client`DROP TABLE IF EXISTS recovery_click_receipts`;
       await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
       await client`DROP TABLE IF EXISTS report_wallet_compensations`;
       // 0055 (free_ai): this boundary predates the free-AI gift tables too.
@@ -3646,7 +3648,8 @@ describe("database schema integration", () => {
       DROP TRIGGER IF EXISTS commerce_entitlements_ledger_relation_guard
       ON commerce_entitlements
     `;
-    await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
+    await client`DROP TABLE IF EXISTS recovery_click_receipts`;
+      await client`DROP TABLE IF EXISTS report_notification_subscriptions`;
       await client`DROP TABLE IF EXISTS report_wallet_compensations`;
     await client`DROP FUNCTION IF EXISTS prevent_wallet_immutable_mutation()`;
     await client`DROP FUNCTION IF EXISTS prevent_wallet_credit_lot_source_mutation()`;

@@ -152,3 +152,23 @@ export const reportNotificationSubscriptions = pgTable("report_notification_subs
   check("report_notice_state_version_check", sql`${table.stateVersion} > 0`),
   check("report_notice_capture_check_count_check", sql`${table.captureCheckCount} >= 0`),
 ]);
+
+// An opaque reminder receipt is account business attribution, never browser-supplied revenue.
+export const recoveryClickReceipts = pgTable("recovery_click_receipts", {
+  id:uuid("id").defaultRandom().primaryKey(),
+  ownerId:text("owner_id").notNull().references(()=>authUsers.id,{onDelete:"cascade"}),
+  deliveryId:uuid("delivery_id").notNull().references(()=>notificationDeliveries.id,{onDelete:"cascade"}),
+  orderId:uuid("order_id").notNull(),
+  intentId:uuid("intent_id").notNull(),
+  chartId:text("chart_id").notNull(), chartVersionId:text("chart_version_id").notNull(),
+  source:text("source").notNull().default("reminder"),
+  classification:text("classification").notNull(),
+  clickedAt:timestamp("clicked_at",{withTimezone:true,mode:"date"}).notNull(),
+  attributedAt:timestamp("attributed_at",{withTimezone:true,mode:"date"}),
+  paidVnd:integer("paid_vnd"), chargedLa:integer("charged_la"),
+},table=>[
+  uniqueIndex("recovery_click_delivery_unique").on(table.deliveryId),
+  uniqueIndex("recovery_click_order_unique").on(table.orderId),
+  check("recovery_click_classification_check",sql`${table.classification} IN ('captured_click','clicked') AND ${table.source} = 'reminder'`),
+  check("recovery_click_money_check",sql`${table.attributedAt} IS NULL AND ${table.paidVnd} IS NULL AND ${table.chargedLa} IS NULL`),
+]);
