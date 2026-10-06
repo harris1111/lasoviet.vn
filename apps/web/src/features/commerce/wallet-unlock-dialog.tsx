@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
+import { InlineTopUp } from "./inline-topup";
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
 import {
   trackUnlockConfirmView,
@@ -383,14 +384,21 @@ export function WalletUnlockDialog({
             <h3>{labels.shortBalanceTitle}</h3>
             <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>
             <p>{membership ? t("membership.confirmAfterTopup") : t("selection.unlockAfterTopupConsent", { item: itemName, price: shortBalance.priceLa })}</p>
-            <a className="button button-primary" href={topUpHref} onClick={() => {
+            {!membership ? <InlineTopUp key={`${shortBalance.intentId}:${shortBalance.intentVersion}:${chartVersionId}:${sku}`} chartId={chartId} chartVersionId={chartVersionId} sku={sku} onReconfirm={retry} locale={locale} itemName={itemName} balance={shortBalance.balance} priceLa={shortBalance.priceLa}
+              continuation={{ purchaseIntentId: shortBalance.intentId, expectedIntentVersion: shortBalance.intentVersion, confirmedPriceLa: shortBalance.priceLa,
+                returnTab: (topUpParams.get("tab") ?? "topics") as "topics" | "chart" | "overview" | "palaces" | "nam-nay" | "evidence",
+                ...(topUpParams.get("open") ? { returnOpen: topUpParams.get("open")! } : {}) }}
+              onCompleted={(checkout) => {
+                onOpenChange(false); onUnlocked(checkout.order.continuation?.reportId ?? checkout.reportId);
+                router.refresh();
+              }} /> : <a className="button button-primary" href={topUpHref} onClick={() => {
               void trackPackSelected({ pack_id: coveringPack.id, price_vnd: coveringPack.vndAmount, la_amount: coveringPack.totalLa });
             }}>
               {embedded ? t("selection.unlockSheetTopup") : t("selection.unlockDialogTopupAction", {
                 pack: coveringPack.name[locale],
                 vnd: coveringPack.vndFormatted[locale],
               })}
-            </a>
+            </a>}
             <p className="wallet-unlock-dialog-topup-note">{labels.topUpNote}</p>
             <button className="button button-secondary" onClick={() => onOpenChange(false)} type="button">
               {labels.cancel}

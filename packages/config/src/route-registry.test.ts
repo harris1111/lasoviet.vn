@@ -281,3 +281,10 @@ it("keeps membership status and commands private, unlocalized, noindex and outsi
     }
   }
 });
+
+it("keeps inline payment commands private and outside SEO surfaces", () => {
+  for (const id of ["api.web.wallet.top-up-orders", "api.web.payments.self-claim"]) {
+    expect(routeRegistry.find(route => route.id === id)).toMatchObject({ status: "live_noindex", private: true,
+      localeBehavior: "unlocalized", localeOwners: ["vi"], robots: "noindex,nofollow", sitemap: false, purchasable: false });
+  }
+});

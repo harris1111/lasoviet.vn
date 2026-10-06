@@ -132,7 +132,16 @@
     "ladderDescription": "Mua một cung hoặc đọc trọn lá số. Các phần mua lẻ đủ điều kiện được khấu trừ khi nâng cấp trong 7 ngày.",
     "ladderScore": "Độ mạnh cấu trúc: {score}/100",
     "ladderSelect": "Chọn phần này",
-    "ladderBalance": "Số dư: {balance} Lá"
+    "ladderBalance": "Số dư: {balance} Lá",
+    "inlinePackLabel": "Chọn gói nạp Lá",
+    "inlinePackBonus": "Tiết kiệm hơn · +{bonus} Lá tặng",
+    "inlineRemaining": "Sau khi nạp, {item} mở ngay và bạn còn {balance} Lá.",
+    "inlineConfirm": "Nạp {amount} và mở {item}",
+    "inlineProcessing": "Khi thanh toán được xác nhận, {item} sẽ tự mở.",
+    "inlineSaveQr": "Mở ảnh QR để lưu",
+    "inlineOrderLink": "Mở lại đơn thanh toán này",
+    "inlineError": "Chưa kiểm tra được đơn thanh toán. Thử lại để tiếp tục với cùng đơn.",
+    "inlineReconfirm": "Chưa chuyển tiền — chọn lại gói"
   },
   "checkout": {
     "eyebrow": "Thanh toán",

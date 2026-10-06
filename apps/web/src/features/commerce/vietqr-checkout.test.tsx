@@ -1127,3 +1127,17 @@ describe("VietQR checkout polling error notice and recovery", () => {
     cleanup();
   });
 });
+
+it("continues polling a credited top-up until the server continuation finishes", async () => {
+  vi.useFakeTimers();
+  const initial: CheckoutStatus = { ...checkoutStatus("paid", null), order: { ...checkoutStatus("paid", null).order,
+    kind: "wallet_topup", continuation: { status: "pending", returnPath: "/la-so/chart-one?tab=palaces", reportId: null, remainingLa: null, errorCode: null } } };
+  const done: CheckoutStatus = { ...initial, order: { ...initial.order, continuation: { ...initial.order.continuation!, status: "completed", reportId: "report-one", remainingLa: 60 } } };
+  const navigate = vi.fn();
+  const fetchStatus = vi.fn().mockResolvedValue(done);
+  const cleanup = startVietQrCheckoutPolling({ initialStatus: initial, fetchStatus, deliverStatus: vi.fn(), navigate, visibility: visibilityHarness() });
+  await vi.advanceTimersByTimeAsync(2_500);
+  expect(navigate).toHaveBeenCalledExactlyOnceWith("/la-so/chart-one?tab=palaces");
+  await vi.advanceTimersByTimeAsync(10_000); expect(fetchStatus).toHaveBeenCalledOnce();
+  cleanup(); vi.useRealTimers();
+});

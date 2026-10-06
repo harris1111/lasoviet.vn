@@ -26,3 +26,17 @@
 .report-waiting-palaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
 .report-waiting-palaces article { min-width: 0; padding: 1rem; border: 1px solid var(--border-soft); border-radius: var(--radius-card); }
 .report-waiting-palaces ul { padding-left: 1.25rem; }
+
+.inline-topup-packs { display: grid; gap: 8px; border: 0; padding: 0; margin: 16px 0; min-width: 0; }
+.inline-topup-packs label { display: flex; gap: 12px; align-items: center; border: 1px solid var(--border-soft); border-radius: var(--radius-control); padding: 12px; min-width: 0; min-height: 44px; }
+.inline-topup-packs label[data-selected="true"] { border-color: var(--gold-500); }
+.inline-topup-packs label:has(input:disabled) { opacity: .5; }
+.inline-topup-packs label > span { display: grid; gap: 4px; overflow-wrap: anywhere; }
+.inline-topup-payment { display: grid; gap: 16px; min-width: 0; }
+.inline-topup-payment .vietqr-checkout { grid-template-columns: minmax(0, 1fr); padding: 0; }
+.inline-topup-payment .vietqr-image { max-width: 100%; height: auto; }
+.inline-topup-payment .vietqr-image-frame { max-width: 100%; }
+.inline-topup-payment .vietqr-details > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.inline-topup-payment .vietqr-details dd { margin: 0; overflow-wrap: anywhere; display: flex; flex-wrap: wrap; gap: 8px; }
+.inline-topup-payment .vietqr-figure { margin: 0; }
+.inline-topup-payment input { max-width: 100%; }

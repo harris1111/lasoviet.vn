@@ -41,7 +41,7 @@ export type VietQrCheckoutPollingOptions = {
 
 function needsPolling(status: CheckoutStatus): boolean {
   if (status.order.kind === "wallet_topup") {
-    return status.order.status === "pending";
+    return status.order.status === "pending" || (status.order.status === "paid" && status.order.continuation?.status === "pending");
   }
   return (
     status.order.status === "pending"
@@ -283,15 +283,24 @@ export type VietQrCheckoutProps = {
   labels: VietQrCheckoutLabels;
   selfClaim?: React.ReactNode;
   supportEmail?: string;
+  onCompleted?: (status: CheckoutStatus) => void;
+  validateStatus?: (status: CheckoutStatus) => boolean;
 };
 
 export function VietQrCheckout({
   initialStatus,
   labels,
   selfClaim,
+  onCompleted,
+  validateStatus,
   supportEmail = customerContactConfig.email.value,
 }: VietQrCheckoutProps) {
   const [status, setStatus] = useState(initialStatus);
+  const latestStatus = useRef(initialStatus);
+  const completion = useRef(onCompleted);
+  useEffect(() => { completion.current = onCompleted; }, [onCompleted]);
+  const validate = useRef(validateStatus);
+  useEffect(() => { validate.current = validateStatus; }, [validateStatus]);
   const [hasPollingError, setHasPollingError] = useState(false);
   const [copiedField, setCopiedField] = useState<CheckoutCopyField | null>(null);
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -324,13 +333,19 @@ export function VietQrCheckout({
           { cache: "no-store" },
         );
         if (!response.ok) throw new Error("CHECKOUT_STATUS_FAILED");
-        return response.json();
+        const parsed = parseCheckoutStatus(await response.json());
+        if (parsed.order.id !== initialStatus.order.id || (validate.current && !validate.current(parsed))) throw new Error("CHECKOUT_STATUS_INVALID");
+        return parsed;
       },
       deliverStatus: (newStatus) => {
+        latestStatus.current = newStatus;
         setStatus(newStatus);
         setHasPollingError(false);
       },
-      navigate: (path) => window.location.assign(path),
+      navigate: (path) => {
+        if (completion.current) completion.current(latestStatus.current);
+        else window.location.assign(path);
+      },
       visibility,
       onError: () => setHasPollingError(true),
       onSuccess: () => setHasPollingError(false),
@@ -346,11 +361,14 @@ export function VietQrCheckout({
       if (!response.ok) throw new Error("CHECKOUT_STATUS_FAILED");
       const data = await response.json();
       const parsed = parseCheckoutStatus(data);
+      if (parsed.order.id !== initialStatus.order.id || (validate.current && !validate.current(parsed))) throw new Error("CHECKOUT_STATUS_INVALID");
+      latestStatus.current = parsed;
       setStatus(parsed);
       setHasPollingError(false);
       const path = reportPath(parsed);
       if (path) {
-        window.location.assign(path);
+        if (completion.current) completion.current(parsed);
+        else window.location.assign(path);
       }
     } catch {
       setHasPollingError(true);
@@ -551,6 +569,7 @@ export function VietQrCheckout({
     return (
       <>
         {orderSummaryBlock}
+        {pollingErrorBlock}
         <section
           className="vietqr-checkout-recovery vietqr-checkout-topup-credited"
           data-checkout-status="paid"
@@ -560,6 +579,7 @@ export function VietQrCheckout({
             <p className="vietqr-status">{labels.status.paid}</p>
             <h2>{creditedTitle}</h2>
             <p className="vietqr-recovery-description">{creditedDesc}</p>
+            {status.order.continuation?.status === "pending" && <p role="status">{labels.summaryAutoFulfill ?? (isVi ? "Đã nhận tiền, đang mở phần đã chọn…" : "Payment received, unlocking your selection…")}</p>}
             {status.order.continuation?.status === "blocked" && <p role="alert">{isVi
               ? "Lá đã vào ví. Lựa chọn trước đó đã thay đổi; hãy xem lại giá trước khi mở."
               : "Your Lá is in your wallet. The previous selection has changed; review the price before unlocking."}</p>}
