@@ -1079,7 +1079,7 @@ export function createDatabaseCommerceRepository(
 
   return {
     readPendingUnlockHint(actor: CurrentActor, locale: "vi" | "en") {
-      return readPendingUnlockHint(database, actor, locale, { now: getNow, reportVersionResolver, orderTtlSeconds });
+      return readPendingUnlockHint(database, actor, locale, { now: getNow, reportVersionResolver, orderTtlSeconds, dailyReadingWriter: options.dailyReadingWriter });
     },
     readWalletBalance(actor: CurrentActor) {
       return walletService.readBalance(actor);

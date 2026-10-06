@@ -265,8 +265,8 @@ export function DailyHoroscopePreview({ locale, className }: DailyHoroscopePrevi
 
               <p style={{ fontSize: "15px", lineHeight: 1.7, color: "var(--text-body, #DCD4C3)", margin: "0 0 20px" }}>
                 {isVi
-                  ? `Ngày ${todayMeta.dayCanChi}, đối chiếu với tuổi ${selectedZodiac}: thời điểm cần lưu ý giữ nhịp độ ổn định. Buổi sáng thuận lợi cho các trao đổi rõ ràng bằng văn bản; buổi chiều nên rà soát lại các khoản chi hoặc giấy tờ trước khi ký duyệt.`
-                  : `In the day of ${todayMeta.dayCanChi}, aligning with ${selectedZodiac}: maintain a steady, disciplined rhythm. The morning favors clear written alignments; review financial details before afternoon commitments.`}
+                  ? `Ngày ${todayMeta.dayCanChi}, bạn đang xem nhóm tuổi ${selectedZodiac}. Những gợi ý bên dưới là cách chuẩn bị chung; trang này chưa tính cung và sao của lá số cá nhân hay khung giờ thuận lợi.`
+                  : `Today is ${todayMeta.dayCanChi}; you selected ${selectedZodiac}. The suggestions below are general preparation ideas. This page has not calculated your personal palaces, stars, or favorable hours.`}
               </p>
 
               {/* 3 Aspects */}
@@ -344,8 +344,8 @@ export function DailyHoroscopePreview({ locale, className }: DailyHoroscopePrevi
             </h2>
             <p style={{ margin: "0 0 16px", fontSize: "14px", lineHeight: 1.6, color: "var(--text-body, #DCD4C3)" }}>
               {isVi
-                ? "Hôm nay với lá số riêng của bạn có thể khác hẳn. Một lá số đầy đủ ngày giờ sinh cho biết chính xác cung nào đang bị lưu nhật động tới: Tài Bạch, Quan Lộc hay Phu Thê."
-                : "Your personal day can differ completely. A full chart with birth hour reveals which exact palace is activated by daily movements."}
+                ? "Sau khi lập lá số, Hôm nay của bạn dùng cung và sao thực đã tính từ thông tin sinh để viết bài đọc cá nhân. Bạn có thể chọn bài đọc riêng bằng Lá; không cần mua hội viên. Bài đọc hiện hỗ trợ tiếng Việt."
+                : "After chart creation, a personal daily reading can use your calculated palaces and stars. The individual reading is currently available in Vietnamese; membership is not required."}
             </p>
 
             {/* Locked Preview Card */}
@@ -354,19 +354,19 @@ export function DailyHoroscopePreview({ locale, className }: DailyHoroscopePrevi
                 position: "relative",
                 border: "1px dashed var(--border-hairline, #3A3227)",
                 borderRadius: "var(--radius-md, 8px)",
-                padding: "16px",
+                padding: "16px 16px 64px",
                 marginBottom: "20px",
                 background: "var(--surface-deep, #0F0D0A)",
                 overflow: "hidden",
               }}
             >
-              <div style={{ filter: "blur(5px)", userSelect: "none", color: "var(--text-faint, #6E6656)", fontSize: "13.5px" }}>
-                Hôm nay cung Tài Bạch của bạn gặp sao lưu nhật, khoản chi buổi chiều cần xem lại kỹ lưỡng trước khi xác nhận chuyển tiền.
+              <div style={{ userSelect: "none", color: "var(--text-faint, #6E6656)", fontSize: "13.5px" }}>
+                {isVi ? "Bài đọc gồm cung hôm nay, các sao liên quan và gợi ý chuẩn bị. Chỉ hiện nhận định cá nhân khi đã có lá số của bạn." : "Your reading covers the current palace, relevant stars, and preparation ideas. Personal interpretations require your calculated chart."}
               </div>
               <div
                 style={{
                   position: "absolute",
-                  inset: 0,
+                  left: 0, right: 0, bottom: 12,
                   display: "grid",
                   placeItems: "center",
                   background: "rgba(15,13,10,0.65)",
@@ -385,7 +385,7 @@ export function DailyHoroscopePreview({ locale, className }: DailyHoroscopePrevi
                     color: "var(--gold-400, #D4AF37)",
                   }}
                 >
-                  🔒 {isVi ? "Hôm nay của bạn · Hội viên" : "Your Day · Member"}
+                  🔒 {isVi ? "Hôm nay của bạn · Bài đọc riêng" : "Your Day · Personal reading"}
                 </span>
               </div>
             </div>

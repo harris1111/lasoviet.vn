@@ -1,3 +1,4 @@
+import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
 import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
 import { findLaProduct, PendingUnlockHintV1Schema, type CurrentActor, type PendingUnlockHintV1 } from "@lasoviet/contracts";
 import { authUsers, birthProfiles, commerceOrders, deletionRequests, lockFreeAiCoordination,
@@ -9,7 +10,7 @@ import { currentReportVersions, type ReportVersionResolver } from "../reports/id
 
 /** Read-only recovery: never creates an intent, order, wallet grant or notification. */
 export async function readPendingUnlockHint(database: Database, actor: CurrentActor, locale: "vi" | "en", options: {
-  now?: () => Date; reportVersionResolver?: ReportVersionResolver; orderTtlSeconds?: number;
+  now?: () => Date; dailyReadingWriter?: DailyReadingWriter; reportVersionResolver?: ReportVersionResolver; orderTtlSeconds?: number;
 } = {}): Promise<PendingUnlockHintV1 | null> {
   if (actor.kind !== "account") return null;
   const now = options.now ?? (() => new Date());
@@ -29,7 +30,7 @@ export async function readPendingUnlockHint(database: Database, actor: CurrentAc
     const wallet = createWalletService(createDatabaseWalletRepository(transaction, { now }));
     const balance = await wallet.readBalance(actor);
     if (!balance.ok) return null;
-    const unlock = createWalletUnlockService(transaction, wallet, { now, reportVersionResolver: options.reportVersionResolver ?? currentReportVersions });
+    const unlock = createWalletUnlockService(transaction, wallet, { now, dailyReadingWriter: options.dailyReadingWriter, reportVersionResolver: options.reportVersionResolver ?? currentReportVersions });
     for (const { intent } of candidates) {
       const product = findLaProduct(intent.sku);
       if (!product || product.availability !== "active" || !product.locales.includes(locale)) continue;

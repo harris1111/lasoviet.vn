@@ -1,0 +1,13 @@
+# LSV62: standalone Vietnamese personal daily reading
+
+## Authorization and bounded brief
+
+Owner's 2026-09-27 22:16 UTC instruction explicitly requests connecting daily 60-La purchase to catalog and unlock confirmation. The 2026-10-06 overnight instruction authorizes completing feasible backlog. Independent Sol audit found no separate owner hold on deterministic daily activation; FD112's deferred writer campaigns are not invoked. Included-bonus evidence is retained as its original scope, never relabeled as paid acceptance.
+
+Paid-content review NO GO requires a bounded deterministic writer correction: use actual natal stars and only local daily transformation overlaps, cite approved V4 general rules, remove unsupported hourly/guaranteed-event suggestions, regenerate twenty outputs and obtain separate paid GO. Knowledge sources are read-only; no unreviewed effects are introduced.
+
+Allowed scope: daily writer/grounding rules/quality tests and synthetic evidence; daily-specific eligibility/quote and catalog VI-only activation after review; owned-chart/offer-selection entry using existing private routes; daily panel purchase, immediate reader and guarantee flow; truthful generic-tool bridge; focused contracts/backend/actual-UI tests; paid-content review of twenty current deterministic outputs; isolated exact-published-image acceptance and evidence/owner worksheet updates. No membership, held year/month/topic/combo/compatibility activation, model/API work, real SePay transfers, outbound notifications or operator configuration changes. No new route or schema is anticipated; update canonical registry/tests if needed.
+
+Keep homepage and uninterrupted free-result body price-free. Offer-selection or a deliberately opened locked confirmation may show 60-La terms. Valid lifetime bonus access renders free with no spend; expired bonus offers standalone purchase. VI is the only supported daily language; EN quote/purchase is unavailable. Read-only daily quote must use current Vietnam date, latest owned frozen chart and eligible engine facts, not the natal quote shortcut. Atomic debit/content/date-scoped entitlement and once-per-account restoration are reused, with no LLM calls.
+
+Review 20 current engine/template outputs independently for paid-product quality and computed grounding before activation. Verify real PG: 60 debit, replay/double-submit, bonus no-charge, quality failure rollback, privacy/VI-only, restoration relock, Vietnam midnight/next-day using injected clocks. Verify actual component/CSS mobile390/desktop1440 and published image through real HTTP/isolated synthetic funding, including cleanup. Required i18n/lint/typecheck, exact independent GO and CI precede merge/deploy; Done requires recorded deployed acceptance.

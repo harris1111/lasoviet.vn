@@ -94,7 +94,10 @@ describe("DailyHoroscopePreview", () => {
     expect(html).toContain("Tử Vi Hôm Nay 12 Con Giáp");
     expect(html).toContain("Sắp ra mắt");
     expect(html).toContain("Chọn con giáp của bạn");
-    expect(html).toContain("Hôm nay của bạn · Hội viên");
+    expect(html).toContain("Hôm nay của bạn · Bài đọc riêng");
+    expect(html).not.toContain("khoản chi buổi chiều");
+    expect(html).not.toContain("Buổi sáng thuận lợi");
+    expect(html).not.toContain("60 Lá");
     expect(html).toContain("Lập lá số Tử Vi của bạn");
     expect(html).toContain('href="/tao-la-so/tu-vi?from=tu-vi-hom-nay');
   });

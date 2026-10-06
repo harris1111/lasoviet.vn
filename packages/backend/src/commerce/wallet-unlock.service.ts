@@ -561,7 +561,7 @@ export function createWalletUnlockService(
       if (!parsed.success) return failed("WALLET_INTENT_INVALID");
       const input = parsed.data;
       if (!await ownedChart(database, actor.userId, input.chartId, input.chartVersionId)) return failed("WALLET_CHART_NOT_FOUND");
-      if (!await evidenceFor(database, input.chartVersionId)) return failed("WALLET_EVIDENCE_MISSING");
+      const hasNatalEvidence = !!await evidenceFor(database, input.chartVersionId);
       const quoteNow = now();
       const quotes: WalletQuoteV1[] = [];
       for (const catalogProduct of LA_PRODUCT_CATALOG) {
@@ -571,11 +571,16 @@ export function createWalletUnlockService(
         if (!product.locales.includes(input.locale)) { quotes.push(row); continue; }
         if (product.availability !== "active") { quotes.push({ ...row, state: "coming_soon" }); continue; }
         const sku = product.sku;
+        if (sku === DAILY_SKU) {
+          quotes.push({...row, ...await daily.readQuote(actor, {...input, sku}, quoteNow)});
+          continue;
+        }
         if ((isSinglePalaceSku(sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(input.locale).family)) ||
           ((topicIdForSku(sku) !== null || periodKindForSku(sku) !== null || sku === COMBO_SKU) && input.locale !== "vi") ||
           (sku === "ZIWEI-MONTHLY-P0" && !options.resolveMonthlyPeriodKey) ||
           ((sku === "ZIWEI-YEAR-2026-P0" || sku === COMBO_SKU) && deriveReportTimingLineage(quoteNow).targetYear !== 2026) ||
-          sku === DAILY_SKU || sku.startsWith("MEMBERSHIP-")) { quotes.push(row); continue; }
+          sku.startsWith("MEMBERSHIP-")) { quotes.push(row); continue; }
+        if (!hasNatalEvidence) {quotes.push(row); continue;}
         const periodKey = purchasePeriodKey(sku, quoteNow);
         const selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
         if (!selectedPrice.ok) {

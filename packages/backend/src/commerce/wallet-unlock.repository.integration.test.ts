@@ -1995,17 +1995,37 @@ describe("wallet unlock repository integration", () => {
     const funded = await ports.repository.grant({ targetOwnerId: owner.userId, grant: grant(owner.userId, "daily-credit", 180), topUpOrderId: null, trustedGrantToken: ports.authority.token });
     if (!funded.ok) throw new Error("DAILY_TEST_CREDIT_FAILED");
     const writer = vi.fn(writePersonalDailyReading);
-    const daily = createDailyWalletUnlockService(database, createWalletService(ports.repository), {
-      writer, now: () => current,
-      catalog: (sku) => { const item = findLaProduct(sku); return item ? { ...item, availability: "active" } : undefined; },
-    });
+    const daily = createDailyWalletUnlockService(database, createWalletService(ports.repository), {writer, now: () => current});
     const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-TODAY-P0", locale: "vi" };
-    const reserved = createDailyWalletUnlockService(database, createWalletService(ports.repository), { writer, now: () => current });
+    const publishedService = createWalletUnlockService(database, createWalletService(ports.repository), {now: () => current, dailyReadingWriter: writer});
+    async function dailyQuote(locale: "vi" | "en" = "vi") {
+      const result = await publishedService.readQuotes(owner.actor, {chartId: request.chartId, chartVersionId: request.chartVersionId, locale});
+      if (!result.ok) throw new Error(result.code);
+      return result.value.quotes.find(item => item.sku === "ZIWEI-TODAY-P0");
+    }
+    const quoteBefore = await quoteSnapshot();
+    expect(await dailyQuote()).toMatchObject({state: "available", priceLa: 60, reportId: null, reportState: null});
+    expect(await dailyQuote("en")).toMatchObject({state: "unavailable", priceLa: null});
+    expect(await quoteSnapshot()).toEqual(quoteBefore);
+    expect(writer).not.toHaveBeenCalled();
+    await database.delete(evidenceSets).where(eq(evidenceSets.id, owner.evidenceId));
+    const noEvidenceBefore = await quoteSnapshot();
+    const noEvidence = await publishedService.readQuotes(owner.actor, {chartId: request.chartId, chartVersionId: request.chartVersionId, locale: "vi"});
+    expect(noEvidence).toMatchObject({ok: true, value: {quotes: expect.arrayContaining([
+      expect.objectContaining({sku: "ZIWEI-TODAY-P0", state: "available", priceLa: 60}),
+      expect.objectContaining({sku: "ZIWEI-IDENTITY-P0", state: "unavailable", priceLa: null}),
+    ])}});
+    expect(await quoteSnapshot()).toEqual(noEvidenceBefore);
+    expect(await publishedService.readQuotes(actor("foreign-daily-owner"), {chartId: request.chartId, chartVersionId: request.chartVersionId, locale: "vi"})).toMatchObject({ok: false});
+    expect(await publishedService.createPurchaseIntent(owner.actor, {...request, locale: "en"})).toEqual({ok: false, code: "WALLET_INTENT_INVALID"});
+    const reserved = createDailyWalletUnlockService(database, createWalletService(ports.repository), { writer, now: () => current, catalog: sku => {const item = findLaProduct(sku); return item ? {...item, availability: "reserved"} : undefined;} });
     expect(await reserved.createPurchaseIntent(owner.actor, request)).toEqual({ ok: false, code: "WALLET_INTENT_INVALID" });
     const intent = await daily.createPurchaseIntent(owner.actor, request);
     if (!intent.ok) throw new Error(intent.code);
     const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: "daily-buy-1" };
-    const unlocked = await daily.unlock(owner.actor, command);
+    const [unlocked, concurrent] = await Promise.all([publishedService.unlock(owner.actor, command), publishedService.unlock(owner.actor, command)]);
+    expect(concurrent).toEqual(unlocked);
+    expect(await dailyQuote()).toMatchObject({state: "owned", priceLa: null, reportId: null, reportState: "unavailable"});
     expect(unlocked).toMatchObject({ ok: true, value: { balance: { totalLa: 120 } } });
     expect(await daily.unlock(owner.actor, command)).toEqual(unlocked);
     expect(await daily.unlock(owner.actor, { ...command, expectedIntentVersion: command.expectedIntentVersion + 1 }))
@@ -2016,6 +2036,7 @@ describe("wallet unlock repository integration", () => {
     expect(await readPurchasedDailyReading(database, "another-owner", owner.chartId, "2026-09-20", current)).toBeNull();
     expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId))).toHaveLength(0);
     current = new Date("2026-09-20T17:00:00Z");
+    expect(await dailyQuote()).toMatchObject({state: "available", priceLa: 60});
     expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-20", current)).toBeNull();
     const nextIntent = await daily.createPurchaseIntent(owner.actor, request);
     if (!nextIntent.ok || !unlocked.ok) throw new Error("DAILY_NEXT_INTENT_FAILED");
@@ -2044,6 +2065,7 @@ describe("wallet unlock repository integration", () => {
     const [revoked] = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.id, latest.id));
     expect(revoked?.revokedAt).toEqual(current);
     expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-21", current)).toBeNull();
+    expect(await dailyQuote()).toMatchObject({state: "available", priceLa: 60});
   });
 
 });

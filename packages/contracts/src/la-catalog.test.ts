@@ -30,6 +30,9 @@ import {
 import { ZIWEI_PALACE_IDS } from "./ziwei-comprehensive-report-v1.js";
 
 describe("Lá product catalog contracts", () => {
+  it("offers daily reading at 60 La in Vietnamese only without rollover credit", () => {
+    expect(findLaProduct("ZIWEI-TODAY-P0")).toMatchObject({availability: "active", priceLa: 60, locales: ["vi"], qualifiesForRollover: false});
+  });
   it("enforces canonical prices for all items in the catalog", () => {
     expect(SINGLE_PALACE_BASE_PRICE_LA).toBe(120);
     expect(NATAL_EXCERPT_PRICE_LA).toBe(240);

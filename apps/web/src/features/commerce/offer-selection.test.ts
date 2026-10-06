@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveLadderSelection, ladderSelectionQuery } from "./offer-selection.js";
 describe("closed ladder selection", () => {
   it("round trips active and reserved choices without granting availability", () => {
-    for (const sku of ["ZIWEI-PALACE-SPOUSE-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-COMBO-2026-P0"] as const) {
+    for (const sku of ["ZIWEI-TODAY-P0", "ZIWEI-PALACE-SPOUSE-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-COMBO-2026-P0"] as const) {
       const query = ladderSelectionQuery(sku);
       expect(resolveLadderSelection(query.offer, query.palace)).toBe(sku);
     }

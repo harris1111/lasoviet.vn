@@ -217,10 +217,10 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     sku: "ZIWEI-TODAY-P0",
     priceLa: TODAY_READING_PRICE_LA,
     name: { vi: "Hôm nay của bạn", en: "Today's reading" },
-    locales: ["vi", "en"],
+    locales: ["vi"],
     category: "forecast",
     qualifiesForRollover: false,
-    availability: "reserved",
+    availability: "active",
   },
   {
     sku: "ZIWEI-MONTHLY-P0",
