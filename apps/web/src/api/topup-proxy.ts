@@ -4,13 +4,16 @@ import { privateApiClient, PrivateApiClientError } from "./private-api-client";
 import { VerifiedAccountResolutionError, resolveVerifiedAccountActor } from "../auth/resolve-current-actor";
 import { safeParseCheckoutStatus } from "../features/commerce/checkout-status";
 import { sendServerAnalyticsEvent } from "../analytics/server-analytics";
+import { CANONICAL_ORIGIN } from "../routing/canonical-origin";
 
 const headers = { "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
 
 /** Both commands reuse the private commerce boundary; neither browser reply confirms payment. */
 export async function topupProxy(request: Request, command: "create" | "self-claim" = "create") {
   const origin = request.headers.get("origin");
-  if ((origin && origin !== new URL(request.url).origin) || request.headers.get("sec-fetch-site") === "cross-site") {
+  const devLocal = process.env.NODE_ENV === "development" && origin === new URL(request.url).origin;
+  // HTTPS terminates at the host proxy; Next's request URL may be an internal HTTP origin.
+  if ((origin && origin !== CANONICAL_ORIGIN && !devLocal) || request.headers.get("sec-fetch-site") === "cross-site") {
     return new NextResponse(null, { status: 403, headers });
   }
   try {

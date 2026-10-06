@@ -203,15 +203,17 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
     test("short balance → selected pack → simulated paid → immutable automatic unlock", async ({page}) => {
       const owner = await account(page.context()); const chart = await createChart(page);
       const dialog = await preview(page, chart.chartId); await dialog.getByTestId("contextual-palace-unlock").click();
-      const topup = dialog.locator('a[href*="/nap-la?pack="]'); await expect(topup).toBeVisible();
-      const terms = new URL(await topup.getAttribute("href") as string, canonical).searchParams;
-      expect(terms.get("price")).toBe("120"); expect(terms.get("open")).toBe("wealth");
-      await topup.click(); await expect(page.locator('[data-pack-id="LA-ENTRY-300"]')).toHaveAttribute("aria-checked", "true");
-      await page.locator('.paybar button[type="submit"]').click();
-      await page.waitForURL(new RegExp(`/la-so/${chart.chartId}\\?tab=palaces&topupOrder=`));
+      const inline = dialog.getByTestId("inline-topup"); await expect(inline).toBeVisible();
+      await expect(inline.locator('input[value="LA-ENTRY-300"]')).toBeChecked();
+      expect(database(`select count(*) from commerce_orders where owner_id='${owner.ownerId}'`)).toBe("0");
+      const created = page.waitForRequest(request => request.method() === "POST" && new URL(request.url()).pathname === "/api/commerce/wallet/top-up-orders");
+      await inline.getByRole("button", {name: /Nạp 29.000đ/}).click();
+      const terms = (await created).postDataJSON().continuation;
+      expect(terms.confirmedPriceLa).toBe(120); expect(terms.returnOpen).toBe("wealth");
+      await expect.poll(() => database(`select count(*) from wallet_topup_continuations where owner_id='${owner.ownerId}' and status='completed' and purchase_intent_id='${terms.purchaseIntentId}'`)).toBe("1");
       await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
-      expect(new URL(page.url()).searchParams.get("open")).toBe("wealth");
-      expect(database(`select count(*) from wallet_topup_continuations where owner_id='${owner.ownerId}' and status='completed' and purchase_intent_id='${terms.get("intent")}'`)).toBe("1");
+      expect(new URL(page.url()).pathname).toBe(`/la-so/${chart.chartId}`);
+      expect(database(`select count(*) from commerce_orders where owner_id='${owner.ownerId}'`)).toBe("1");
       fixture("dispatch_business", owner.ownerId); fixture("dispatch_business", owner.ownerId);
       for (const name of ["la_spent", "unlock_confirmed"]) {
         expect(database(`select count(*) from analytics_events where user_id='${owner.ownerId}' and name='${name}' and properties->>'amount'='120'`)).toBe("1");
@@ -260,7 +262,11 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
         await expect(ladder.locator(`article[data-sku="${sku}"]`).getByRole("button")).toHaveCount(0);
       }
       await page.locator('.offer-ladder-summary .button-primary').click();
-      await page.locator('dialog.unlock-sheet a[href*="/nap-la"]').click();
+      const sheet = page.locator("dialog.unlock-sheet"); await expect(sheet.getByTestId("inline-topup")).toBeVisible();
+      for (const id of ["LA-ENTRY-300", "LA-START-1100", "LA-DISCOVER-3000", "LA-LIBRARY-8000"]) {
+        await sheet.locator(`input[value="${id}"]`).check(); await expect(sheet.locator(`input[value="${id}"]`)).toBeChecked();
+      }
+      await page.keyboard.press("Escape");
       for (const name of ["Hội viên", "Luận giải", "Nạp Lá"]) await page.getByRole("tab", {name, exact: true}).click();
       for (const id of ["LA-ENTRY-300", "LA-START-1100", "LA-DISCOVER-3000", "LA-LIBRARY-8000"]) {
         await page.locator(`[data-pack-id="${id}"]`).click(); await expect(page.locator(`[data-pack-id="${id}"]`)).toHaveAttribute("aria-checked", "true");

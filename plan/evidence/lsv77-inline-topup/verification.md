@@ -9,3 +9,9 @@ Base: master `1e49c1e055bd92e018221e9b103fb40c10487243`.
 - No production feature flag, operator configuration, real bank transfer, AI call or outbound notification is part of this implementation.
 
 Required local gates, exact-head review, CI, deployment and smoke receipts are recorded separately after each succeeds. Full LSV77 retains the explicitly deferred SePay/banking-app acceptance; task closure is not claimed solely from mocked-browser results.
+
+## Real-network CI correction
+
+The initial exact-head topic run passed unit/component checks but the golden-path harness still expected the superseded external top-up link. The harness now exercises actual in-place pack selection, explicit order creation, immutable authorized continuation and readable same-chart completion; standalone pack controls are still tested after closing confirmation. All eleven event checks remain required. No production code or threshold was weakened to accept the old harness.
+
+The local real-network run then exposed a production transport issue: Next reconstructs an internal HTTP request URL behind HTTPS termination, so comparing browser Origin against request.url rejected canonical callers. The BFF now checks the closed canonical origin (matching the established feedback boundary); only development may accept exact local origin. Dedicated regression checks reject reserve/internal origins in production. Real-network acceptance is rerun against rebuilt source.

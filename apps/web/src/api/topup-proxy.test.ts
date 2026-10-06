@@ -15,9 +15,22 @@ const checkout = { order: { id: "order", kind: "wallet_topup", status: "pending"
     qrUrl: "https://vietqr.app/fixture.png", expiresAt: "2026-10-06T12:15:00Z" }, reportId: null };
 function request(body: unknown = input, origin = "https://lasoviet.net") { return new Request("https://lasoviet.net/api/commerce/wallet/top-up-orders", { method: "POST", headers: { origin, "content-type": "application/json" }, body: JSON.stringify(body) }); }
 describe("verified inline payment commands", () => {
-  beforeEach(() => { vi.resetAllMocks(); vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor); });
+  beforeEach(() => { vi.resetAllMocks(); vi.unstubAllEnvs(); vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor); });
   it("rejects cross-site before resolving an actor", async () => {
     expect((await topupProxy(request(input, "https://attacker.test"))).status).toBe(403);
+    expect(resolveVerifiedAccountActor).not.toHaveBeenCalled();
+  });
+  it("accepts canonical browser Origin behind an internal HTTP reverse proxy", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const forward=vi.fn().mockResolvedValue({ok:true,value:checkout}); vi.mocked(privateApiClient).mockReturnValue({request:forward});
+    const result=await topupProxy(new Request("http://localhost:3000/api/commerce/wallet/top-up-orders",{method:"POST",headers:{origin:"https://lasoviet.net","content-type":"application/json"},body:JSON.stringify(input)}));
+    expect(result.status).toBe(200); expect(forward).toHaveBeenCalledOnce();
+  });
+  it("rejects reserve and internal browser origins in production", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    for(const origin of ["https://lasoviet.vn","http://localhost:3000"]){
+      expect((await topupProxy(new Request("http://localhost:3000/api/commerce/wallet/top-up-orders",{method:"POST",headers:{origin,"content-type":"application/json"},body:JSON.stringify(input)}))).status).toBe(403);
+    }
     expect(resolveVerifiedAccountActor).not.toHaveBeenCalled();
   });
   it("requires verified account and never forwards anonymous commands", async () => {
