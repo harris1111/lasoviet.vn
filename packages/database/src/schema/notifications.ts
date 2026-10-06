@@ -1,5 +1,8 @@
+import { sql } from "drizzle-orm";
+import { reportReservations } from "./reports.js";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -127,3 +130,25 @@ export const notificationVerifiedSignins = pgTable("notification_verified_signin
   signedInAt: timestamp("signed_in_at", { withTimezone: true, mode: "date" }).notNull(),
   lastCheckedAt: timestamp("last_checked_at", { withTimezone: true, mode: "date" }),
 });
+
+/** Additional owned-report subscriptions; automatic transaction notices stay independent. */
+export const reportNotificationSubscriptions = pgTable("report_notification_subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  ownerId: text("owner_id").notNull().references(() => authUsers.id, {onDelete: "cascade"}),
+  reservationId: uuid("reservation_id").notNull().references(() => reportReservations.id, {onDelete: "cascade"}),
+  reportId: uuid("report_id").notNull(),
+  reportVersionId: uuid("report_version_id").notNull(),
+  locale: text("locale").notNull(),
+  status: text("status").notNull().default("subscribed"),
+  stateVersion: integer("state_version").notNull().default(1),
+  captureCheckCount: integer("capture_check_count").notNull().default(0),
+  createdAt: timestamp("created_at", {withTimezone: true, mode: "date"}).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", {withTimezone: true, mode: "date"}).notNull().defaultNow(),
+}, table => [
+  uniqueIndex("report_notice_owner_version_unique").on(table.ownerId, table.reportVersionId),
+  index("report_notice_status_idx").on(table.status, table.captureCheckCount, table.createdAt),
+  check("report_notice_status_check", sql`${table.status} IN ('subscribed', 'cancelled', 'captured', 'already_notified', 'suppressed')`),
+  check("report_notice_locale_check", sql`${table.locale} IN ('vi', 'en')`),
+  check("report_notice_state_version_check", sql`${table.stateVersion} > 0`),
+  check("report_notice_capture_check_count_check", sql`${table.captureCheckCount} >= 0`),
+]);

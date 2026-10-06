@@ -926,3 +926,5 @@ export { WalletUnlockRequestV1Schema, WalletUnlockResultV1Schema, WalletUpgradeP
 export type { WalletUpgradePurchaseV1 } from "./wallet-unlock-result-v1.js";
 export { PendingUnlockHintV1Schema } from "./pending-unlock-v1.js";
 export type { PendingUnlockHintV1 } from "./pending-unlock-v1.js";
+export { ReportNotificationCommandV1Schema, ReportNotificationViewV1Schema } from "./report-notification-v1.js";
+export type { ReportNotificationCommandV1, ReportNotificationViewV1 } from "./report-notification-v1.js";

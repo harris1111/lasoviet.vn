@@ -11,6 +11,8 @@ import {
   createAnonymousRetentionService,
   createAuthEmailDeliveryService,
   createDelayedUnlockCompletionService,
+  createReportNotificationService,
+  resolveReportNotificationMode,
   createVerifiedSignInNurtureService,
   createPendingTopUpRecoveryCaptureService,
   createHanMonthReminderService,
@@ -103,6 +105,7 @@ export function createMaintenanceRunner() {
   const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
   const hanReminder = createHanMonthReminderService(database, { preferenceStore, tokenSecret: environment.value.internalActorSecret, resolveLunarDay: lunarReminderDay });
   const delayedUnlock = createDelayedUnlockCompletionService(database);
+  const reportNotices = createReportNotificationService(database, {mode: resolveReportNotificationMode(process.env.REPORT_READY_SUBSCRIPTION_MODE)});
   const email = createAuthEmailDeliveryService({
     store: createDatabaseAuthEmailDeliveryStore(database),
     provider,
@@ -136,6 +139,7 @@ export function createMaintenanceRunner() {
     },
     retryAuthEmail: async (limit) => {
       await recoveryCapture.scanAndCapture(limit);
+      await reportNotices.captureReady(limit);
       await nurture.scanAndEnqueue(limit);
       await hanReminder.scanAndEnqueue(limit);
       await delayedUnlock.scan((request) => email.send(request), limit);

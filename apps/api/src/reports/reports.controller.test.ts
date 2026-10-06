@@ -241,4 +241,19 @@ describe("ReportsController HTTP boundary", () => {
     });
     expect(res2.statusCode).toBe(401);
   });
+  it("keeps notification read private and disabled by default", async () => {
+    const reportId = "11111111-1111-4111-8111-111111111111";
+    const server = app.getHttpAdapter().getInstance();
+    expect((await server.inject({method:"GET",url:`/reports/${reportId}/notification`})).statusCode).toBe(401);
+    const token = await actorToken();
+    const response = await server.inject({method:"GET",url:`/reports/${reportId}/notification`,headers:{authorization:`Bearer ${token}`}});
+    expect(response.statusCode).toBe(503);expect(response.json()).toMatchObject({code:"REPORT_NOTICE_DISABLED"});
+  });
+  it("rejects notification owner injection and unknown query before calling any report service", async () => {
+    const reportId="11111111-1111-4111-8111-111111111111";
+    const server=app.getHttpAdapter().getInstance();
+    expect((await server.inject({method:"POST",url:`/reports/${reportId}/notification`,payload:{version:1,reportVersionId:reportId,action:"subscribe",ownerId:"foreign"}})).statusCode).toBe(400);
+    expect((await server.inject({method:"GET",url:`/reports/${reportId}/notification?ownerId=foreign`})).statusCode).toBe(400);
+  });
+
 });

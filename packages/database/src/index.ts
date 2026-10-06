@@ -26,6 +26,7 @@ export {
   notificationDeliveryKind,
   notificationDeliveryStatus,
   notificationPreferences,
+  reportNotificationSubscriptions,
 } from "./schema/notifications.js";
 export {
   birthProfileReadingContextMutationReceipts,

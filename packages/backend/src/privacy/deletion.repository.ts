@@ -16,6 +16,7 @@ import {
   lockRecoveryCaptureCoordination,
   outbox,
   notificationDeliveries,
+  reportNotificationSubscriptions,
   type Database,
 } from "@lasoviet/database";
 import { WALLET_UPGRADE_EVENT_TYPE } from "../commerce/wallet-upgrade-event.js";
@@ -210,6 +211,8 @@ export function createDatabaseDeletionRepository(
           await transaction.delete(outbox).where(and(
             inArray(outbox.eventType, [WALLET_UPGRADE_EVENT_TYPE, WALLET_TOPUP_UNLOCK_EVENT_TYPE]), eq(outbox.actorId, updated.userId),
           ));
+          await transaction.delete(reportNotificationSubscriptions).where(eq(reportNotificationSubscriptions.ownerId, updated.userId));
+          await transaction.delete(outbox).where(and(eq(outbox.eventType, "notification.report-ready.subscription.captured.v1"), eq(outbox.actorId, updated.userId)));
           await transaction.delete(notificationDeliveries).where(and(
             eq(notificationDeliveries.kind, "recovery_pending_topup"),
             sql`${notificationDeliveries.requestPayload}->>'userId' = ${updated.userId}`,
