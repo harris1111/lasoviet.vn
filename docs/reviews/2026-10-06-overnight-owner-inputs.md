@@ -1,59 +1,49 @@
-# Các quyết định còn cần bạn — lượt chạy overnight 06/10/2026
+# Các mục cần bạn chốt — overnight 06/10/2026
 
-Trả lời theo số là được. Không cần gửi API key, token, mật khẩu hay dữ liệu khách hàng. Các mục đã duyệt không cần duyệt lại.
+Trả lời theo số là được. Không gửi token, mật khẩu hay dữ liệu khách hàng. Không cần duyệt lại API, model hoặc giá API.
 
-## Đã chốt
+**Đã chốt:** LSV68/71 Done theo nghiệm thu của bạn; SePay sandbox để sau; thông báo chỉ kiểm thử cô lập, chưa gửi khách thật; hội viên/Combo/Hợp đôi và PR197/231 tiếp tục giữ. LSV62 “Hôm nay” 60 Lá có yêu cầu triển khai đã duyệt: mình đang hoàn tất nghiệm thu mua/đọc/hoàn Lá, không cần bạn chọn lại giữa phần tặng và mở bán.
 
-- **LSV68 và LSV71: Done.** Bạn chấp nhận bản đã triển khai và miễn phần nghiệm thu AI/API còn lại. Không hỏi lại API hay cấu hình model. Quyết định được ghi ở FD115; các giới hạn chi phí vẫn giữ.
-- **SePay sandbox để sau.** Không chạy chuyển khoản thật trong đợt này; kiểm thử thanh toán dùng dữ liệu cô lập.
-- **Thông báo chỉ ghi nhận trong môi trường thử**, chưa gửi cho khách thật. Hội viên, Combo, Hợp đôi và PR197/231 tiếp tục giữ như đã chốt.
+## 1. LSV75 — xem bản mẫu tổng quan dài
 
-## 1. LSV62 — đóng theo phần tặng 7 ngày, hay làm trọn sản phẩm 60 Lá?
+**Bối cảnh:** ticket và kế hoạch GĐ4 yêu cầu bạn xem bố cục một lần trước khi sửa giao diện chính. Bản mẫu mới có tổng quan nháp 1.228 chữ, một cung đọc trọn, đoạn năm/đại vận cắt giữa câu, phần mờ chỉ là hình khối và tấm mở tại chỗ. Điện thoại cuộn một trang; desktop có sáu tab và lá số ở cột trái. Chữ nháp dùng để đánh giá độ dài/bố cục, chưa phải bài đọc đã nghiệm thu.
 
-**Bối cảnh:** phần “Hôm nay của bạn” tặng kèm Tử Vi trọn đời đã triển khai, kiểm tra nội dung từ bộ tính, quyền riêng tư và hết hạn ngày thứ 8 đã đạt. Gói mua riêng 60 Lá vẫn chưa mở bán.
+**Xem:** [bản mẫu HTML](../../prototype/revamp-2026-09/la-so-ket-qua-v2-phase4-proposal.html), [điện thoại: tổng quan](../../plan/evidence/lsv75-prototype/proposal-390-overview.png), [điện thoại: đoạn khóa](../../plan/evidence/lsv75-prototype/proposal-390-cliffhanger.png), [desktop: tổng quan](../../plan/evidence/lsv75-prototype/proposal-1440-overview.png), [desktop: đoạn khóa](../../plan/evidence/lsv75-prototype/proposal-1440-cliffhanger.png). Tải/mở HTML cùng hai file CSS/JS cạnh nó để thử nút.
 
-**Giải pháp:** A) chấp nhận đóng phần tặng 7 ngày, tách mua riêng thành ticket tiếp; B) giữ ticket hiện tại để nghiệm thu và hoàn tất mua riêng 60 Lá.
+**Giải pháp/đề xuất:** duyệt bố cục này để mình triển khai tiếp và kiểm tra chất lượng/caching/ngân sách. Giữ giá trong tấm do người dùng chủ động mở; khi gói năm còn giữ, dùng Tử Vi trọn đời đang có. Không hứa “mở thêm insight” sau đăng nhập; giữ quà 60 Lá một lần và thời hạn dữ liệu khách 24 giờ. Mình chưa bật sinh nội dung miễn phí mới trong lúc chờ bước xem này.
 
-**Đề xuất:** B, để giữ đầy đủ phạm vi sản phẩm; không cần thêm API vì nội dung lấy từ bộ tính hiện có.
+**Trả lời:** duyệt bố cục / sửa ở …
 
-**Trả lời:** …
+## 2. LSV79 — lời nhắc trên trang đọc miễn phí
 
-## 2. LSV75 — phạm vi trang miễn phí khi bật phần đã làm
+**Bối cảnh:** bản đã làm chỉ nhắc trên tài khoản, chọn luận giải và báo cáo đã mua. Kế hoạch cũ ghi “mọi trang”, còn quyết định đã duyệt giữ trang chủ/thân bài miễn phí không có giá.
 
-**Bối cảnh:** trang hiện vẫn có bản đọc cấu trúc. Ticket LSV75 đòi một cung đọc đầy đủ, ít nhất 900 từ; chuyển LSV71 Done không tự bật cờ tạo bài miễn phí trên môi trường đang chạy.
+**Giải pháp:** A) giữ phạm vi hiện tại; B) thêm một lời nhắc không có giá sau mốc đọc xong hoặc khi người dùng mở preview khóa. Đo doanh thu thu hồi còn cần nối nguồn click với đơn; bản ghi thử chưa được tính là gửi thật hoặc doanh thu.
 
-**Giải pháp:** tiếp tục giao diện/preview an toàn độc lập; chỉ bật phần tạo bài miễn phí khi bạn chọn nghiệm thu luồng đầy đủ trên môi trường thử. Giữ các trần 3.000 VND/lá số, 50.000 VND/ngày và một lần thử như đã duyệt.
+**Đề xuất:** A trước.
 
-**Đề xuất:** nghiệm thu trước trên môi trường thử, sau đó mới bật cho khách. Đây là lựa chọn bật/tắt sản phẩm, không cần bạn nghiên cứu hay cung cấp API.
+**Trả lời:** A / B, vị trí …
 
-**Trả lời:** bật thử / tiếp tục giữ tắt …
+## 3. LSV60/79 — có gửi thông báo cho khách thật không?
 
-## 3. LSV60/79 — nếu muốn bật gửi thông báo thật
+**Bối cảnh:** đợt này chỉ dùng dữ liệu thử cô lập. Việc gửi ra ngoài và nhóm người nhận chưa được duyệt; nhắc hạn tháng còn phụ thuộc gói năm đang giữ. Riêng nút “Báo tôi khi xong” vẫn cần nối đúng quyền đăng ký với báo cáo.
 
-**Bối cảnh:** nhắc đơn nạp đã có bản ghi nhận chống trùng; phần nhắc lá số, tiếp tục mua và “báo tôi khi xong” còn được hoàn thiện. Quyết định hiện tại chỉ cho ghi nhận thông báo thử. Nhắc hạn tháng còn phụ thuộc gói năm chưa mở.
+**Giải pháp/đề xuất:** giữ chưa gửi thật. Nếu muốn mở thử, chọn loại thông báo và nhóm tài khoản thử được phép nhận; vẫn kiểm tra đồng ý nhận và hủy đăng ký. Chưa cần đưa danh sách email lên Git.
 
-**Giải pháp:** hoàn tất kiểm thử ghi nhận, đồng ý nhận, huỷ đăng ký và liên kết tới đúng món; sau đó chọn một nhóm nhỏ để nghiệm thu gửi/nhận.
+**Trả lời:** giữ chưa gửi / cho gửi thử loại … tới nhóm …
 
-**Đề xuất:** tiếp tục chế độ ghi nhận trong lượt overnight này. Khi bạn muốn gửi thật, chỉ định nhóm chủ sở hữu/tài khoản thử đã đồng ý và loại thông báo được gửi. Không cần cung cấp danh sách khách hàng ở Git.
+## 4. LSV77 — kiểm tra QR trên điện thoại thật
 
-**Trả lời:** giữ như hiện tại / cho gửi thử tới nhóm …, loại …
+**Bối cảnh:** nạp tại chỗ đã có kiểm thử trình duyệt và luồng máy chủ. Chuyển sang app ngân hàng/lưu QR trên điện thoại thật chưa được chứng minh; sandbox vẫn để sau theo bạn.
 
-## 4. LSV77 — nghiệm thu điện thoại sau phần QR trong tấm
+**Giải pháp/đề xuất:** giữ quét/copy QR hiện có; thử trên thiết bị thật khi bạn sẵn sàng. Liên kết mở app chỉ dùng danh sách ngân hàng được xác minh.
 
-**Bối cảnh:** phần nạp ngay trong tấm mở khóa dùng lại đơn, QR và cơ chế thanh toán cũ. Kiểm thử trình duyệt mô phỏng đạt ở 390/1440px; việc mở app ngân hàng và lưu QR trên điện thoại thật chưa được chứng minh.
+**Trả lời:** để sau / thiết bị …, app ngân hàng …
 
-**Giải pháp:** giữ đường quét/copy QR đang có; thử trên máy thật khi sandbox được mở. Chỉ thêm liên kết mở app ngân hàng từ danh sách được xác minh.
+## 5. Các sản phẩm đang giữ — chỉ trả lời nếu muốn mở lại
 
-**Đề xuất:** khi sẵn sàng, cho biết Android/Chrome hay iPhone/Safari và app ngân hàng bạn muốn thử. SePay vẫn để sau theo quyết định hiện tại.
+**Bối cảnh:** hội viên, Combo, Hợp đôi và đợt nghiệm thu writer tháng/năm/chủ đề chưa được tự mở lại. Hội viên còn thiếu công cụ đã hứa.
 
-**Trả lời:** thiết bị …; app ngân hàng …; hoặc để sau.
+**Đề xuất:** tiếp tục giữ. Nếu chọn làm hội viên tiếp, bắt đầu bằng một công cụ chọn ngày: cần chọn phương pháp/nguồn, dữ liệu nhập và đầu ra trước khi code; không giảm quyền lợi đã duyệt.
 
-## 5. LSV64 — công cụ đầu tiên của hội viên
-
-**Bối cảnh:** hội viên đang giữ; chỉ có luận giải ngày/tháng chưa đủ các quyền lợi đã hứa.
-
-**Giải pháp:** chọn một công cụ rồi chốt dữ liệu nhập, phương pháp từ bộ tính và đầu ra trước khi triển khai.
-
-**Đề xuất:** bắt đầu với lịch/chọn ngày, sau khi bạn duyệt phương pháp và nguồn; chưa tự mở bán hội viên hoặc giảm quyền lợi.
-
-**Trả lời:** tiếp tục giữ / chọn công cụ …, phương pháp hoặc nguồn …
+**Trả lời tùy chọn:** tiếp tục giữ / mở lại ticket …; công cụ hoặc nguồn …

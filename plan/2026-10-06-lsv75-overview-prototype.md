@@ -1,0 +1,7 @@
+# LSV75 phase-four visual proposal
+
+Bounded brief: prepare an additive v2 phase-four proposal and owner decision worksheet, leaving approved prototypes and production code untouched. Scope: three static HTML/CSS/JS proposal files; concise English verification, screenshots and browser receipt; README discovery entry; Vietnamese owner-requested worksheet. No public route, model request, commerce mutation or production generation activation.
+
+Authority: owner overnight instruction authorizes preparing feasible work and pushing pending decisions. LSV75 and phase-04 plan explicitly require one owner look at the prototype before production UI. Owner approval remains pending; preparing/pushing this reviewable artifact does not claim that approval. The approved source's known palace/major-star/Menh/Than/decadal data and free palace content are reused; illustrative minor-star weights and annual-month counts are not promoted to engine facts. Draft overview copy is for density/layout review, not editorial acceptance. Production must use reviewed sources, grounded output and authoritative server-clipped projections.
+
+Validation: actual browser at mobile390/desktop1440 in dark/light, >=900 draft overview words, no visible price before deliberate preview, safe filler-only cliffhanger, focus return/Escape, no mutations; syntax check. Retain desktop six tabs and mobile scrolling. Evidence is prototype-only, never production smoke.
