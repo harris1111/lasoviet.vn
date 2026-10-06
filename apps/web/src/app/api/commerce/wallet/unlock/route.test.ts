@@ -45,7 +45,7 @@ const actor = {
 function jsonRequest(body: unknown): Request {
   return new Request("https://lasoviet.net/api/commerce/wallet/unlock", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", origin: "https://lasoviet.net" },
     body: JSON.stringify(body),
   });
 }
@@ -54,6 +54,24 @@ describe("POST /api/commerce/wallet/unlock", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(sendServerAnalyticsEvent).mockResolvedValue({ok: true, replayed: false});
+  });
+
+  it.each([
+    {}, {origin: "https://evil.example"}, {origin: "https://lasoviet.vn"}, {origin: "http://lasoviet.net"}, {origin: "null"},
+    {origin: "https://lasoviet.net", "sec-fetch-site": "cross-site"},
+    {origin: "https://evil.example", host: "lasoviet.net", "x-forwarded-host": "lasoviet.net", "x-forwarded-proto": "https"},
+  ])("rejects untrusted origins before authentication, spend or analytics: %j", async headers => {
+    const {POST} = await import("./route.js");
+    const response = await POST(new Request("http://web:3000/api/commerce/wallet/unlock", {method: "POST", headers: headers as Record<string,string>, body: "{}"}));
+    expect(response.status).toBe(403);expect(await response.json()).toEqual({code: "REQUEST_ORIGIN_INVALID"});
+    expect(response.headers.get("cache-control")).toBe("no-store");expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(resolveVerifiedAccountActor).not.toHaveBeenCalled();expect(privateApiClient).not.toHaveBeenCalled();expect(sendServerAnalyticsEvent).not.toHaveBeenCalled();
+  });
+  it("accepts canonical origin behind an internal proxy URL", async () => {
+    vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
+    const {POST} = await import("./route.js");
+    expect((await POST(new Request("http://web:3000/api/commerce/wallet/unlock", {method:"POST",headers:{origin:"https://lasoviet.net"},body:"{}"}))).status).toBe(401);
+    expect(resolveVerifiedAccountActor).toHaveBeenCalledOnce();
   });
 
   it("returns 401 when not signed in", async () => {
@@ -129,7 +147,7 @@ describe("POST /api/commerce/wallet/unlock", () => {
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor);
     const { POST } = await import("./route.js");
     const response = await POST(
-      new Request("https://lasoviet.net/api/commerce/wallet/unlock", { method: "POST", body: "not json" }),
+      new Request("https://lasoviet.net/api/commerce/wallet/unlock", { method: "POST", headers: {origin: "https://lasoviet.net"}, body: "not json" }),
     );
     expect(response.status).toBe(400);
     expect(privateApiClient).not.toHaveBeenCalled();

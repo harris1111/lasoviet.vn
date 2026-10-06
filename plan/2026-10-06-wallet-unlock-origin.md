@@ -1,0 +1,7 @@
+# Wallet unlock canonical-origin repair
+
+Bounded brief: published-image LSV62 acceptance found that the browser wallet unlock BFF accepted an authenticated request with a foreign Origin. Reject untrusted, missing or cross-site origins before session resolution, private spend calls and analytics; allow the sole canonical HTTPS origin irrespective of the internal proxy request URL. Local matching origins are allowed only in development. Keep authorized same-origin confirmation, idempotency, quotes and payment authority intact. Scope: a small shared guard, the unlock BFF and focused boundary tests; no package, database, route, environment or host configuration changes.
+
+Release gate: required pre-push checks, independent exact-head review, CI, merge/deploy, published-image purchase/refund/midnight/bonus acceptance and unchanged protected operator files. LSV62 cannot close until this acceptance passes. The initial failed published run is retained privately; its QA containers, internal network and credentials were cleaned up.
+
+Validation before push: 31 focused wallet-unlock boundary tests PASS; producer build PASS; i18n parity, lint (zero errors, four existing warnings) and workspace typecheck PASS. The first typecheck failure was limited to two new test fixture annotations and was corrected; runtime guard behavior was unchanged. Independent Sol WIP review found no scope blocker; exact-head review and CI follow after commit.
