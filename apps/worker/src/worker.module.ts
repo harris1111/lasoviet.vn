@@ -1,3 +1,4 @@
+import { createRecoveryFinancialAttributionService } from "@lasoviet/backend";
 import { createMembershipExpiryReminderService, membershipReminderAllowed } from "@lasoviet/backend";
 import { calculateIztroReportSnapshot, lunarReminderDay } from "@lasoviet/engine-adapters";
 import { Module } from "@nestjs/common";
@@ -102,6 +103,8 @@ export function createMaintenanceRunner() {
     tokenSecret: environment.value.internalActorSecret,
     orderTtlSeconds: environment.value.sepay.environment !== "disabled" ? environment.value.sepay.orderTtlSeconds : 86400,
   });
+  const recoveryFinancial = createRecoveryFinancialAttributionService({ database,
+    providerEnvironment: environment.value.sepay.environment, tokenSecret: environment.value.internalActorSecret ?? "" });
   const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
   const hanReminder = createHanMonthReminderService(database, { preferenceStore, tokenSecret: environment.value.internalActorSecret, resolveLunarDay: lunarReminderDay });
   const delayedUnlock = createDelayedUnlockCompletionService(database);
@@ -139,6 +142,7 @@ export function createMaintenanceRunner() {
     },
     retryAuthEmail: async (limit) => {
       await recoveryCapture.scanAndCapture(limit);
+      await recoveryFinancial.project(limit);
       await reportNotices.captureReady(limit);
       await nurture.scanAndEnqueue(limit);
       await hanReminder.scanAndEnqueue(limit);

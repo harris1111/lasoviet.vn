@@ -574,3 +574,22 @@ describe("SePay Bank Webhook (HMAC)", () => {
     expect(result).toEqual({ ok: false, error: { code: "SEPAY_SIGNATURE_INVALID" } });
   });
 });
+
+
+describe("trusted SePay provenance at validated adapter acceptance", () => {
+  const now = new Date("2026-10-04T12:00:00.000Z");
+  const secret = "synthetic-provenance-fixture";
+  const payload = {notification_type:"ORDER_PAID",order:{order_invoice_number:"synthetic-order",order_amount:"99000",order_currency:"VND",order_status:"CAPTURED"},transaction:{transaction_id:"synthetic-event",transaction_amount:"99000",transaction_currency:"VND",transaction_status:"APPROVED",transaction_type:"PAYMENT"}};
+  it.each(["sandbox","production"] as const)("creates closed hosted provenance in %s and ignores caller provenance fields",async(environment)=>{
+    const recordPaid=vi.fn().mockResolvedValue({ok:true});
+    const service=createSePayWebhookService({secretKey:secret,providerEnvironment:environment,now:()=>now,recordPaid});
+    expect(await service.handle({rawBody:JSON.stringify({...payload,providerProvenance:{environment:"attacker",authentication:"hmac"}}),secretHeader:secret,traceId:"synthetic"})).toMatchObject({ok:true});
+    expect(recordPaid.mock.calls[0][0].providerProvenance).toEqual({version:1,provider:"sepay",environment,authentication:"shared_secret",channel:"ipn",authenticatedAcceptedAt:now.toISOString()});
+  });
+  it.each(["bad-secret","mixed-auth","invalid-payload"])("never reaches provenance persistence for %s",async(kind)=>{
+    const recordPaid=vi.fn().mockResolvedValue({ok:true});const recordUnmatched=vi.fn().mockResolvedValue({ok:true});
+    const service=createSePayWebhookService({secretKey:secret,webhookSecret:secret,providerEnvironment:"production",now:()=>now,recordPaid,recordUnmatched});
+    expect(await service.handle({rawBody:JSON.stringify(kind==="invalid-payload"?{...payload,order:{...payload.order,order_amount:"1"}}:payload),secretHeader:kind==="bad-secret"?"wrong":secret,signatureHeader:kind==="mixed-auth"?"sha256=invalid":undefined,traceId:"synthetic"})).toMatchObject({ok:false});
+    expect(recordPaid).not.toHaveBeenCalled();expect(recordUnmatched).not.toHaveBeenCalled();
+  });
+});

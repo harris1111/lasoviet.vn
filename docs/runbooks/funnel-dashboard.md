@@ -131,7 +131,7 @@ Direct commands, zero-charge rollover and the shared top-up settlement continuat
 
 The in-app pending-unlock hint is read-only and restricted to account, offer-selection and paid-reader surfaces. It opens the selected offer/palace with `resume=1`; confirmation refreshes authorized terms and still requires explicit spend/top-up consent. No notification or order is created by the hint.
 
-`notification_deliveries.status = 'captured'` is a test capture, not an outbound send or a click. A paid order within a reminder time window is not evidence of recovered revenue. The existing browser collector records the pathname without a durable UTM-to-order binding, so do not report `utm_source=reminder` revenue as attributed until a consented click receipt is persisted and matched to its authorized continuation/order. Keep captured, sent, clicked and attributed paid counts separate. Full phase08 revenue attribution and free-chart follow-up remain pending.
+`notification_deliveries.status = 'captured'` is a test capture, not an outbound send or a click. A paid order within a reminder time window is not evidence of recovered revenue. The existing browser collector records the pathname without a durable UTM-to-order binding, so do not report `utm_source=reminder` revenue as attributed until a consented click receipt is persisted and matched to its authorized continuation/order. Keep captured, sent, clicked and attributed paid counts separate. Technical financial lineage is described below; real outbound/provider acceptance and free-chart follow-up remain pending.
 
 ## Durable reminder click receipts (LSV79 capture milestone)
 
@@ -147,4 +147,23 @@ SELECT source, classification, count(*) AS eligible_receipts
 FROM recovery_click_receipts GROUP BY source, classification;
 ```
 
-Keep captured, sent and eligible-click counts separate. The current payment-event schema does not durably prove production-provider provenance, so this milestone implements **no monetary attribution**: `paid_vnd`, `charged_la` and `attributed_at` remain null. A current `SEPAY_ENV=production` setting, an `ORDER_PAID` row or a nearby paid timestamp cannot repair missing historical provenance. A future independently reviewed change must preserve authenticated provider mode/type at settlement and validate posted grant/ledger/receipt plus exact completed continuation/spend before any money projection. Top-up VND cash collection and content La charged are separate units; neither establishes incremental uplift or recognized net revenue. No historical backfill is authorized. Official purge removes click receipts before captured deliveries, with retained financial records unchanged. Customer outbound delivery and the phase04 free-chart follow-up remain held.
+Keep captured, sent and eligible-click counts separate. Capture clicks never qualify for monetary projection, even if the delivery later changes status. Official purge removes click receipts before deliveries, with retained financial records unchanged. Customer outbound delivery and the phase04 free-chart follow-up remain held.
+
+## Trusted reminder conversion accounting (LSV79 technical lineage)
+
+New authenticated SePay acceptance stores immutable versioned provenance at the validated adapter boundary: configured sandbox/production environment, bank HMAC or hosted IPN shared-secret authentication, channel and `authenticatedAcceptedAt`. Failed/mixed authentication or invalid payload never reaches persistence. Unmatched payment self-claim preserves the original provenance and acceptance time. Historical, auto-approved and metadata-free repository callers remain null; replay cannot upgrade a sandbox/null source to production. Provider body fields cannot supply provenance. No historical backfill is authorized.
+
+The bounded scheduled projector requires configured production mode **and** stored authenticated production provenance, an immutable `clicked` receipt from a sent reminder, current offers consent/preferences and no deletion marker. It validates exact owner/order/intent/chart, acceptance after click, paid amount/currency, posted grant/ledger/immutable receipt and committed continuation/spend authority. The adapter does not parse bank transfer time: this establishes click before authenticated webhook acceptance, not click before the actual bank transfer. A late self-claim never replaces the earlier acceptance time. Least-checked ordering rotates ineligible committed sources before LIMIT so they cannot indefinitely starve a valid conversion.
+
+Each exact order/payment/spend has at most one historical projection. `paid_vnd` is that top-up's accepted cash amount, `charged_la` is the converted content's entire Lá charge, and `recognized_vnd` sums only posted spend allocations from the credit lots of **that exact recovery order**. Other top-up lots in the same spend are excluded. These are three separate units/accounting meanings, not incremental uplift or net cash revenue. Subsequent refunds remain separate append-only restoration accounting and do not silently rewrite this historical conversion. Join existing restoration allocations for net accounting; never present the stored gross metric as net.
+
+```sql
+SELECT count(*) AS historically_attributed_orders,
+       sum(paid_vnd) AS accepted_topup_vnd,
+       sum(charged_la) AS converted_content_la,
+       sum(recognized_vnd) AS posted_recognition_from_exact_order_vnd
+FROM recovery_click_receipts
+WHERE classification = 'clicked' AND attributed_at IS NOT NULL;
+```
+
+This technical change does not alter production provider/capture settings, send customer reminders or establish live SePay acceptance. Published isolated fixtures are explicitly synthetic authenticated acceptance; do not include them in customer/revenue reporting. Full LSV79 remains In Review for the held free-chart and real outbound/provider acceptance.

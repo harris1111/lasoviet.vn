@@ -1281,6 +1281,7 @@ describe("SePay controller HTTP contract", () => {
 
       expect(result).toEqual({ success: true });
       expect(recordPaidSpy).toHaveBeenCalledWith({
+        providerProvenance: expect.objectContaining({version:1,provider:"sepay",environment:"sandbox",channel:"bank",authentication:"hmac",authenticatedAcceptedAt:expect.any(String)}),
         paymentCode: validCode,
         matchMethod: "payment_code",
         providerEventId: "92704",
@@ -1337,6 +1338,7 @@ describe("SePay controller HTTP contract", () => {
       expect(result).toEqual({ success: true });
       expect(recordPaidSpy).not.toHaveBeenCalled();
       expect(recordUnmatchedSpy).toHaveBeenCalledWith({
+        providerProvenance: expect.objectContaining({version:1,provider:"sepay",environment:"sandbox",channel:"bank",authentication:"hmac",authenticatedAcceptedAt:expect.any(String)}),
         providerEventId: "92704",
         rawPayload: bankTransfer,
         amount: 79000,
@@ -2063,6 +2065,7 @@ describe("SePay controller HTTP contract", () => {
       expect(result).toEqual({ success: true });
       expect(recordPaidSpy).toHaveBeenCalled();
       expect(recordUnmatchedSpy).toHaveBeenCalledWith({
+        providerProvenance: expect.objectContaining({version:1,provider:"sepay",environment:"sandbox",channel:"ipn",authentication:"shared_secret",authenticatedAcceptedAt:expect.any(String)}),
         providerEventId: "hosted-event-unknown",
         rawPayload: expect.objectContaining({ notification_type: "ORDER_PAID" }),
         amount: 79000,
