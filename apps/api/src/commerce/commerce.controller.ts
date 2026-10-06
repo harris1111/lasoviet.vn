@@ -1,3 +1,5 @@
+import {RecoveryReceiptCommandV1Schema} from "@lasoviet/contracts";
+import {createRecoveryClickReceiptService,RecoveryReceiptError} from "@lasoviet/backend";
 import { createMembershipService, createWalletService, createDatabaseWalletRepository } from "@lasoviet/backend";
 import { writePersonalDailyReading } from "@lasoviet/engine-adapters";
 import { lunarPeriodPurchaseKey } from "@lasoviet/engine-adapters";
@@ -662,6 +664,26 @@ export class CommerceController {
         reportId: projection.reportId,
       },
     };
+  }
+
+  @Post("recovery/receipt")
+  @HttpCode(HttpStatus.OK)
+  async recoveryReceipt(@Headers("authorization") authorization:string|undefined,@Body() body:unknown) {
+    const actor=await this.actor(authorization);
+    const parsed=RecoveryReceiptCommandV1Schema.safeParse(body);
+    if(!parsed.success)throw new BadRequestException({code:"RECOVERY_RECEIPT_INVALID"});
+    try {
+      const value=await createRecoveryClickReceiptService({database:this.database,
+        mode:process.env.FUNNEL_RECOVERY_MODE==="capture"?"capture":"disabled",tokenSecret:this.actorSecret,
+        orderTtlSeconds:this.orderTtlSeconds??86400}).record(actor,parsed.data);
+      return {ok:true,value};
+    } catch(error) {
+      if(error instanceof RecoveryReceiptError){
+        if(error.code==="RECOVERY_DISABLED")throw new ServiceUnavailableException({code:error.code});
+        throw new NotFoundException({code:"RECOVERY_NOT_FOUND"});
+      }
+      throw error;
+    }
   }
 
   @Post("payments/self-claim")

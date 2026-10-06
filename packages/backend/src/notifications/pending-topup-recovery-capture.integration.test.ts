@@ -82,7 +82,7 @@ describe("pending top-up recovery capture with isolated PostgreSQL", () => {
       sendingLeaseExpiresAt: null, lastErrorCode: "RECOVERY_CAPTURE_ONLY", createdAt: NOW });
     expect(record!.requestPayload).toMatchObject({ orderId: f.orderId, intentId: f.intentId, chartId: f.chartId,
       chartVersionId: f.chartVersionId, amountLa: 960, productTitle: locale === "vi" ? "Tử Vi trọn đời" : "Lifetime Zi Wei reading",
-      actionUrl: `https://lasoviet.net${locale === "en" ? "/en" : ""}/thanh-toan/${f.orderId}?utm_source=reminder` });
+      actionUrl: `https://lasoviet.net${locale === "en" ? "/en" : ""}/thanh-toan/${f.orderId}?utm_source=reminder#recovery=${record!.id}` });
     expect(record!.requestPayload.text).toContain(locale === "vi" ? "29.000 VNĐ" : "29,000 VND");
     const token = new URL(record!.requestPayload.unsubscribeUrl as string).hash.slice("#token=".length);
     expect(verifyUnsubscribeToken(token, SECRET, undefined, NOW)).toMatchObject({ ok: true, value: { userId: f.userId, email: f.email } });

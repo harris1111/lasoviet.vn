@@ -2293,3 +2293,18 @@ describe("wallet quote controller", () => {
     } finally { guard.mockRestore(); repo.mockRestore(); }
   });
 });
+
+describe("recovery click receipt HTTP boundary",()=>{
+  const body={version:1,orderId:"11111111-1111-4111-8111-111111111111",deliveryId:"22222222-2222-4222-8222-222222222222"};
+  it("requires signed actor authority before parsing a receipt",async()=>{
+    await expect(controller().recoveryReceipt(undefined,body)).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+  it("rejects injected fields and remains disabled without capture mode",async()=>{
+    const auth=vi.spyOn(internalGuard,"verifyInternalActorToken").mockResolvedValue({kind:"account",userId:"synthetic",sessionId:"synthetic",requestId:"synthetic"});
+    const prior=process.env.FUNNEL_RECOVERY_MODE;delete process.env.FUNNEL_RECOVERY_MODE;
+    try {
+      await expect(controller().recoveryReceipt("Bearer token",{...body,ownerId:"foreign"})).rejects.toBeInstanceOf(BadRequestException);
+      await expect(controller().recoveryReceipt("Bearer token",body)).rejects.toBeInstanceOf(ServiceUnavailableException);
+    } finally {auth.mockRestore();if(prior===undefined)delete process.env.FUNNEL_RECOVERY_MODE;else process.env.FUNNEL_RECOVERY_MODE=prior;}
+  });
+});

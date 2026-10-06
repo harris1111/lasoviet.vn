@@ -16,6 +16,7 @@ import {
   lockRecoveryCaptureCoordination,
   outbox,
   notificationDeliveries,
+  recoveryClickReceipts,
   reportNotificationSubscriptions,
   type Database,
 } from "@lasoviet/database";
@@ -213,6 +214,7 @@ export function createDatabaseDeletionRepository(
           ));
           await transaction.delete(reportNotificationSubscriptions).where(eq(reportNotificationSubscriptions.ownerId, updated.userId));
           await transaction.delete(outbox).where(and(eq(outbox.eventType, "notification.report-ready.subscription.captured.v1"), eq(outbox.actorId, updated.userId)));
+          await transaction.delete(recoveryClickReceipts).where(eq(recoveryClickReceipts.ownerId,updated.userId));
           await transaction.delete(notificationDeliveries).where(and(
             eq(notificationDeliveries.kind, "recovery_pending_topup"),
             sql`${notificationDeliveries.requestPayload}->>'userId' = ${updated.userId}`,

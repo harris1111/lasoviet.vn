@@ -132,3 +132,19 @@ Direct commands, zero-charge rollover and the shared top-up settlement continuat
 The in-app pending-unlock hint is read-only and restricted to account, offer-selection and paid-reader surfaces. It opens the selected offer/palace with `resume=1`; confirmation refreshes authorized terms and still requires explicit spend/top-up consent. No notification or order is created by the hint.
 
 `notification_deliveries.status = 'captured'` is a test capture, not an outbound send or a click. A paid order within a reminder time window is not evidence of recovered revenue. The existing browser collector records the pathname without a durable UTM-to-order binding, so do not report `utm_source=reminder` revenue as attributed until a consented click receipt is persisted and matched to its authorized continuation/order. Keep captured, sent, clicked and attributed paid counts separate. Full phase08 revenue attribution and free-chart follow-up remain pending.
+
+## Durable reminder click receipts (LSV79 capture milestone)
+
+New captures carry `utm_source=reminder` for readable campaign labeling and an opaque random delivery ID in the URL fragment. The browser removes that fragment and POSTs an idempotent receipt through the verified private boundary. A bare UTM parameter cannot create a receipt. Admission rechecks owner, current offers consent/preferences, exact active chart/version, unchanged pending continuation and unexpired order under deletion/settlement coordination. Each order has at most one receipt; replay preserves its original classification and time. Capture clicks remain `captured_click` even if a delivery later changes status.
+
+Read-only aggregate example (no identifiers or customer content):
+
+```sql
+SELECT d.status AS delivery_state, count(*) AS reminders
+FROM notification_deliveries d WHERE d.kind = 'recovery_pending_topup'
+GROUP BY d.status;
+SELECT source, classification, count(*) AS eligible_receipts
+FROM recovery_click_receipts GROUP BY source, classification;
+```
+
+Keep captured, sent and eligible-click counts separate. The current payment-event schema does not durably prove production-provider provenance, so this milestone implements **no monetary attribution**: `paid_vnd`, `charged_la` and `attributed_at` remain null. A current `SEPAY_ENV=production` setting, an `ORDER_PAID` row or a nearby paid timestamp cannot repair missing historical provenance. A future independently reviewed change must preserve authenticated provider mode/type at settlement and validate posted grant/ledger/receipt plus exact completed continuation/spend before any money projection. Top-up VND cash collection and content La charged are separate units; neither establishes incremental uplift or recognized net revenue. No historical backfill is authorized. Official purge removes click receipts before captured deliveries, with retained financial records unchanged. Customer outbound delivery and the phase04 free-chart follow-up remain held.
