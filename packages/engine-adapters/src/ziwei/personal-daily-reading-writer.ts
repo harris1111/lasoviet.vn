@@ -124,7 +124,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
     caution: "Không nên can thiệp quá sâu vào việc riêng tư của cộng sự.",
   },
   "ziwei.palace.spouse": {
-    theme: "hợp tác đôi bên và hòa khí gia đạo",
+    theme: "hợp tác đôi bên và giữ hòa khí trong gia đình",
     workFocus:
       "Thích hợp để rà soát các hợp đồng hợp tác song phương hoặc đàm phán thỏa thuận đối tác.",
     financeFocus:
@@ -176,7 +176,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
     caution: "Tránh thức khuya hoặc sử dụng chất kích thích khi cơ thể đang báo mệt.",
   },
   "ziwei.palace.travel": {
-    theme: "giao tế bên ngoài, đi lại và mở rộng không gian sống",
+    theme: "gặp gỡ bên ngoài, đi lại và mở rộng không gian sống",
     workFocus:
       "Thuận lợi cho việc di chuyển gặp gỡ khách hàng, mở rộng mạng lưới giao thiệp bên ngoài.",
     financeFocus:
@@ -195,14 +195,14 @@ const PALACE_DESCRIPTIONS_VI: Record<
     financeFocus:
       "Cảnh giác trước những lời mời hợp tác tài chính hấp dẫn từ người chưa đủ độ tin cậy.",
     relationshipFocus:
-      "Duy trì tương tác tích cực với bạn bè chân thành; tránh các hội nhóm bàn luận thị phi.",
+      "Duy trì tương tác tích cực với bạn bè chân thành; tránh các hội nhóm bàn luận chuyện người khác.",
     wellbeingFocus:
       "Chọn lọc môi trường tiếp xúc để giữ cho tâm trí luôn nhẹ nhàng, tích cực.",
     recommendation: "Gặp gỡ hoặc trò chuyện cùng người bạn có tư duy tích cực, xây dựng.",
     caution: "Tránh chia sẻ các thông tin bảo mật công việc cho người ngoài cuộc.",
   },
   "ziwei.palace.career": {
-    theme: "tiến độ công việc, uy tín chức nghiệp và trách nhiệm",
+    theme: "tiến độ công việc, uy tín nghề nghiệp và trách nhiệm",
     workFocus:
       "Tập trung hoàn thành các mục tiêu quan trọng đúng hạn. Rà soát chất lượng hồ sơ báo cáo chuyên môn.",
     financeFocus:
@@ -215,7 +215,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
     caution: "Tránh trì hoãn các việc trọng tâm hoặc nhận thêm việc khi chưa xong việc cũ.",
   },
   "ziwei.palace.property": {
-    theme: "không gian sống, tích lũy điền sản và sự ổn định gia cư",
+    theme: "không gian sống, tích lũy tài sản và sự ổn định của gia đình",
     workFocus:
       "Thích hợp để sắp xếp lại không gian làm việc gọn gàng, tạo cảm hứng sáng tạo và tập trung.",
     financeFocus:
@@ -241,7 +241,7 @@ const PALACE_DESCRIPTIONS_VI: Record<
     caution: "Tránh suy nghĩ luẩn quẩn về những việc ngoài tầm kiểm soát của bản thân.",
   },
   "ziwei.palace.parents": {
-    theme: "kính trọng tiền nhân, thủ tục hành chính và đạo hiếu",
+    theme: "quan hệ với cha mẹ, người lớn tuổi và thủ tục giấy tờ",
     workFocus:
       "Cần rà soát kỹ văn bản pháp lý, giấy tờ hành chính và tuân thủ chặt chẽ quy định tổ chức.",
     financeFocus:
@@ -444,17 +444,11 @@ export function writePersonalDailyReading(
     PALACE_DESCRIPTIONS_VI[touchedPalaceId] ||
     PALACE_DESCRIPTIONS_VI["ziwei.palace.career"];
 
-  const headline = `Ngày ${dailyEngine.dayStemBranch} chạm cung ${touchedPalaceName} của bạn`;
-
-  const starHighlight =
-    majorStars.length > 0
-      ? `Với sự tọa thủ của ${majorStars.join(", ")}, `
-      : "";
+  const headline = `Ngày ${dailyEngine.dayStemBranch}: ${palaceConfig.theme}`;
 
   const overview =
-    `Hôm nay là ngày ${dailyEngine.dayStemBranch}, năng lượng nhật lưu hội tụ và kích hoạt trực tiếp cung ${touchedPalaceName} trên lá số của bạn. ` +
-    `${starHighlight}ngày này nhấn mạnh vào chủ đề ${palaceConfig.theme}. ` +
-    `Khác với dự báo chung theo con giáp, vận trình ngày của bạn chịu sự chi phối mạnh mẽ bởi cấu trúc cung vị và các sao hội tụ tại ${touchedPalaceName}.`;
+    `Ngày ${dailyEngine.dayStemBranch} trên lá số của bạn ứng với cung ${touchedPalaceName}, phần nói về ${palaceConfig.theme}. ` +
+    `Bạn có thể dựa vào chủ đề này để sắp xếp việc trong ngày, đồng thời đối chiếu với hoàn cảnh thực tế của mình.`;
 
   const aspects: PersonalDailyReadingAspect[] = [
     {
@@ -487,7 +481,7 @@ export function writePersonalDailyReading(
     },
     {
       key: "wellbeing",
-      title: "Thân tâm & Sinh hoạt",
+      title: "Sức khỏe & Sinh hoạt",
       guidance: palaceConfig.wellbeingFocus,
       evidenceKeys: [
         `daily.palace.${touchedPalaceId}`,

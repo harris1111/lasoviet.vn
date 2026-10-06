@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { reportLoader } from "../../../../features/reports/load-report";
 import { ReportProgress } from "../../../../features/reports/report-progress";
+import { PersonalDailyReadingPanel } from "../../../../features/ziwei/personal-daily-reading-panel";
 import { ReportReader } from "../../../../features/reports/report-reader";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +50,13 @@ export default async function ReportPage({
   }
 
   if (reportView.state === "ready") {
-    return <ReportReader locale={reportView.locale} report={reportView} />;
+    return <>
+      <ReportReader locale={reportView.locale} report={reportView} />
+      {reportView.chartId && reportView.chartVersionId && <PersonalDailyReadingPanel
+        key={`${reportView.chartId}:${reportView.chartVersionId}`}
+        chartId={reportView.chartId} chartVersionId={reportView.chartVersionId}
+        locale={reportView.locale} includedOnly />}
+    </>;
   }
 
   return <ReportProgress locale={reportView.locale} view={reportView} />;

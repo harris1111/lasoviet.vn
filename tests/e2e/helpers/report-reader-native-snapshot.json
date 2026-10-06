@@ -1,0 +1,857 @@
+{
+  "source": "IztroAdapter + calculateIztroReportSnapshot + buildReportChartSnapshot; synthetic profile; no provider calls",
+  "frozenAt": "2026-10-05T03:00:00Z",
+  "asOfDate": "2026-10-05",
+  "chartSnapshot": {
+    "version": 1,
+    "palaces": [
+      {
+        "palaceId": "ziwei.palace.life",
+        "earthlyBranchId": "ziwei.branch.tiger",
+        "heavenlyStemId": "ziwei.stem.ren",
+        "cycleStateId": "ziwei.cycle.dissipated",
+        "isLife": true,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.career",
+          "ziwei.palace.wealth"
+        ],
+        "oppositePalaceId": "ziwei.palace.travel",
+        "stars": [
+          {
+            "starId": "ziwei.star.tanlang",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.unfavorable"
+          },
+          {
+            "starId": "ziwei.star.tianma",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.lingxing",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.fengge",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.jielu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianxu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.nianjie",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.xiaohao",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.suiyi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.dahao",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.parents",
+        "earthlyBranchId": "ziwei.branch.rabbit",
+        "heavenlyStemId": "ziwei.stem.gui",
+        "cycleStateId": "ziwei.cycle.embryo",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.friends",
+          "ziwei.palace.children"
+        ],
+        "oppositePalaceId": "ziwei.palace.health",
+        "stars": [
+          {
+            "starId": "ziwei.star.tianji",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.prosperous"
+          },
+          {
+            "starId": "ziwei.star.jumen",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.tiankui",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.dijie",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.kongwang",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.jiangjun",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.xiishen",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.longde-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.fortune",
+        "earthlyBranchId": "ziwei.branch.dragon",
+        "heavenlyStemId": "ziwei.stem.jia",
+        "cycleStateId": "ziwei.cycle.molding",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.travel",
+          "ziwei.palace.spouse"
+        ],
+        "oppositePalaceId": "ziwei.palace.wealth",
+        "stars": [
+          {
+            "starId": "ziwei.star.ziwei",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.favorable",
+            "transformationId": "ziwei.transformation.power"
+          },
+          {
+            "starId": "ziwei.star.tianxiang",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.favorable"
+          },
+          {
+            "starId": "ziwei.star.bazuo",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.huagai",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.feilian",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.zhoushu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.huagai-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.baihu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.property",
+        "earthlyBranchId": "ziwei.branch.snake",
+        "heavenlyStemId": "ziwei.stem.yi",
+        "cycleStateId": "ziwei.cycle.born",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.health",
+          "ziwei.palace.siblings"
+        ],
+        "oppositePalaceId": "ziwei.palace.children",
+        "stars": [
+          {
+            "starId": "ziwei.star.tianliang",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.weak",
+            "transformationId": "ziwei.transformation.prosperity"
+          },
+          {
+            "starId": "ziwei.star.tianyue",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianyao",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianwu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tiande",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.feilian-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.jiesha-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tiande-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.career",
+        "earthlyBranchId": "ziwei.branch.horse",
+        "heavenlyStemId": "ziwei.stem.bing",
+        "cycleStateId": "ziwei.cycle.infancy",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.wealth",
+          "ziwei.palace.life"
+        ],
+        "oppositePalaceId": "ziwei.palace.spouse",
+        "stars": [
+          {
+            "starId": "ziwei.star.qisha",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.prosperous"
+          },
+          {
+            "starId": "ziwei.star.youbi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.wenchang",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.weak"
+          },
+          {
+            "starId": "ziwei.star.huoxing",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.tianshou",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.fenggao",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianfu-adj",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.yinsha",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.xishen",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.zhaisha",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.diaoke",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.friends",
+        "earthlyBranchId": "ziwei.branch.goat",
+        "heavenlyStemId": "ziwei.stem.ding",
+        "cycleStateId": "ziwei.cycle.adolescence",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.children",
+          "ziwei.palace.parents"
+        ],
+        "oppositePalaceId": "ziwei.palace.siblings",
+        "stars": [
+          {
+            "starId": "ziwei.star.dikong",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.hongluan",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.enguang",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianyue-adj",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.guasu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianshang",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.bingfu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tiansha",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.bingfu-sq",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.travel",
+        "earthlyBranchId": "ziwei.branch.monkey",
+        "heavenlyStemId": "ziwei.stem.wu",
+        "cycleStateId": "ziwei.cycle.adulthood",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.spouse",
+          "ziwei.palace.fortune"
+        ],
+        "oppositePalaceId": "ziwei.palace.life",
+        "stars": [
+          {
+            "starId": "ziwei.star.lianzhen",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.zuofu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral",
+            "transformationId": "ziwei.transformation.fame"
+          },
+          {
+            "starId": "ziwei.star.wenqu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.favorable"
+          },
+          {
+            "starId": "ziwei.star.dahao-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.zhibei",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.suijian",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.health",
+        "earthlyBranchId": "ziwei.branch.rooster",
+        "heavenlyStemId": "ziwei.stem.ji",
+        "cycleStateId": "ziwei.cycle.prime",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.siblings",
+          "ziwei.palace.property"
+        ],
+        "oppositePalaceId": "ziwei.palace.parents",
+        "stars": [
+          {
+            "starId": "ziwei.star.xianchi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tiangui",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianchu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tiankong",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.posui",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianshi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.fubing",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.xianchi-dec",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.huiqi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.wealth",
+        "earthlyBranchId": "ziwei.branch.dog",
+        "heavenlyStemId": "ziwei.stem.geng",
+        "cycleStateId": "ziwei.cycle.weak",
+        "isLife": false,
+        "isBody": true,
+        "triadPalaceIds": [
+          "ziwei.palace.life",
+          "ziwei.palace.career"
+        ],
+        "oppositePalaceId": "ziwei.palace.fortune",
+        "stars": [
+          {
+            "starId": "ziwei.star.pojun",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.prosperous"
+          },
+          {
+            "starId": "ziwei.star.tuoluo",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.santai",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tiancai",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.taifu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianguan",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.xunkong",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianku",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.guanfu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.yuesha",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.sangmen",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.children",
+        "earthlyBranchId": "ziwei.branch.pig",
+        "heavenlyStemId": "ziwei.stem.xin",
+        "cycleStateId": "ziwei.cycle.sick",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.parents",
+          "ziwei.palace.friends"
+        ],
+        "oppositePalaceId": "ziwei.palace.property",
+        "stars": [
+          {
+            "starId": "ziwei.star.tiantong",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.lucun",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.guchen",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.boshi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.wangshen",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.guansuo",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.spouse",
+        "earthlyBranchId": "ziwei.branch.rat",
+        "heavenlyStemId": "ziwei.stem.ren",
+        "cycleStateId": "ziwei.cycle.dead",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.fortune",
+          "ziwei.palace.travel"
+        ],
+        "oppositePalaceId": "ziwei.palace.career",
+        "stars": [
+          {
+            "starId": "ziwei.star.wuqu",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.prosperous",
+            "transformationId": "ziwei.transformation.obstacle"
+          },
+          {
+            "starId": "ziwei.star.tianfu",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.qingyang",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.weak"
+          },
+          {
+            "starId": "ziwei.star.jieshen",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.longchi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.lishi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.jiangxing",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.gwanfu",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      },
+      {
+        "palaceId": "ziwei.palace.siblings",
+        "earthlyBranchId": "ziwei.branch.ox",
+        "heavenlyStemId": "ziwei.stem.gui",
+        "cycleStateId": "ziwei.cycle.buried",
+        "isLife": false,
+        "isBody": false,
+        "triadPalaceIds": [
+          "ziwei.palace.property",
+          "ziwei.palace.health"
+        ],
+        "oppositePalaceId": "ziwei.palace.friends",
+        "stars": [
+          {
+            "starId": "ziwei.star.taiyang",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.weak"
+          },
+          {
+            "starId": "ziwei.star.taiyin",
+            "kind": "main",
+            "brightnessId": "ziwei.brightness.exalted"
+          },
+          {
+            "starId": "ziwei.star.tianxi",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.yuede",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.tianxing",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.qinglong",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.panan",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          },
+          {
+            "starId": "ziwei.star.xiaohao-sq",
+            "kind": "aux",
+            "brightnessId": "ziwei.brightness.neutral"
+          }
+        ]
+      }
+    ],
+    "decadal": {
+      "currentOrdinal": 3,
+      "cycles": [
+        {
+          "ordinal": 0,
+          "palaceId": "ziwei.palace.life",
+          "ageRange": [
+            4,
+            13
+          ],
+          "yearRange": [
+            1995,
+            2004
+          ]
+        },
+        {
+          "ordinal": 1,
+          "palaceId": "ziwei.palace.parents",
+          "ageRange": [
+            14,
+            23
+          ],
+          "yearRange": [
+            2005,
+            2014
+          ]
+        },
+        {
+          "ordinal": 2,
+          "palaceId": "ziwei.palace.fortune",
+          "ageRange": [
+            24,
+            33
+          ],
+          "yearRange": [
+            2015,
+            2024
+          ]
+        },
+        {
+          "ordinal": 3,
+          "palaceId": "ziwei.palace.property",
+          "ageRange": [
+            34,
+            43
+          ],
+          "yearRange": [
+            2025,
+            2034
+          ]
+        },
+        {
+          "ordinal": 4,
+          "palaceId": "ziwei.palace.career",
+          "ageRange": [
+            44,
+            53
+          ],
+          "yearRange": [
+            2035,
+            2044
+          ]
+        },
+        {
+          "ordinal": 5,
+          "palaceId": "ziwei.palace.friends",
+          "ageRange": [
+            54,
+            63
+          ],
+          "yearRange": [
+            2045,
+            2054
+          ]
+        },
+        {
+          "ordinal": 6,
+          "palaceId": "ziwei.palace.travel",
+          "ageRange": [
+            64,
+            73
+          ],
+          "yearRange": [
+            2055,
+            2064
+          ]
+        },
+        {
+          "ordinal": 7,
+          "palaceId": "ziwei.palace.health",
+          "ageRange": [
+            74,
+            83
+          ],
+          "yearRange": [
+            2065,
+            2074
+          ]
+        },
+        {
+          "ordinal": 8,
+          "palaceId": "ziwei.palace.wealth",
+          "ageRange": [
+            84,
+            93
+          ],
+          "yearRange": [
+            2075,
+            2084
+          ]
+        },
+        {
+          "ordinal": 9,
+          "palaceId": "ziwei.palace.children",
+          "ageRange": [
+            94,
+            103
+          ],
+          "yearRange": [
+            2085,
+            2094
+          ]
+        },
+        {
+          "ordinal": 10,
+          "palaceId": "ziwei.palace.spouse",
+          "ageRange": [
+            104,
+            113
+          ],
+          "yearRange": [
+            2095,
+            2104
+          ]
+        },
+        {
+          "ordinal": 11,
+          "palaceId": "ziwei.palace.siblings",
+          "ageRange": [
+            114,
+            123
+          ],
+          "yearRange": [
+            2105,
+            2114
+          ]
+        }
+      ]
+    },
+    "annual": {
+      "targetYear": 2026,
+      "palaceId": "ziwei.palace.life"
+    }
+  }
+}
