@@ -78,7 +78,7 @@ test.beforeAll(async () => {
 async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: number; intentPrice?: number; balance?: number } = {}) {
   const commands: unknown[] = [];
   const topups: unknown[] = [];
-  const progress = { settled: false, invalidCompleted: "", holdIntent: false, intentResponses: [] as (() => void)[], sku: "", state: "processing", reads: 0, quoteStatus: 200, mismatch: false, revoke: false, hold: false, responses: [] as (() => void)[] };
+  const progress = { completedResponse: false, invalidQuote: "", settled: false, invalidCompleted: "", holdIntent: false, intentResponses: [] as (() => void)[], sku: "", state: "processing", reads: 0, quoteStatus: 200, mismatch: false, revoke: false, hold: false, responses: [] as (() => void)[] };
   const analytics: Array<{ event: { name: string; properties: Record<string, unknown> } }> = [];
   page.on("pageerror", error => { console.error(error.message); });
   const quotes = [
@@ -92,13 +92,25 @@ async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: 
       progress.reads++;
       if (progress.hold) await new Promise<void>(resolve => progress.responses.push(resolve));
       const projected = quotes.map(item => (commands.length > 0 || progress.settled) && item.sku === progress.sku && !progress.revoke ? { ...item, state: "owned", priceLa: null, creditLa: 0, discountLa: 0, creditExpiresAt: null, creditSourceSkus: [], reportId: progress.mismatch ? "33333333-3333-4333-8333-333333333333" : "22222222-2222-4222-8222-222222222222", reportState: progress.state } : item);
-      await route.fulfill({ status: options.quoteStatus ?? progress.quoteStatus, json: { version: 1, chartId: "fixture-chart", chartVersionId: "fixture-version", locale, quotedAt: "2026-10-04T00:00:00Z", quotes: projected } });
+      const failure = progress.settled ? progress.invalidQuote : "";
+      if (failure === "non-json") return route.fulfill({contentType: "text/plain", body: "unavailable"});
+      await route.fulfill({ status: options.quoteStatus ?? progress.quoteStatus, json: { version: 1,
+        chartId: failure === "chart" ? "other-chart" : "fixture-chart",
+        chartVersionId: failure === "version" ? "other-version" : "fixture-version",
+        locale: failure === "locale" ? "en" : locale, quotedAt: "2026-10-04T00:00:00Z",
+        quotes: failure === "missing-sku" ? projected.filter(item => item.sku !== progress.sku) :
+          failure === "not-owned" ? quotes : projected,
+        ...(failure === "private-field" ? {privateReceipt: "untrusted"} : {}) } });
     }
     else if (path === "/api/analytics/events") { analytics.push(route.request().postDataJSON()); await route.fulfill({ json: { ok: true } }); }
     else if (path === "/api/commerce/wallet/purchase-intents") {
       const sku = route.request().postDataJSON().sku;
       progress.sku = sku;
       if (progress.holdIntent) await new Promise<void>(resolve => progress.intentResponses.push(resolve));
+      if (progress.settled && !progress.completedResponse) {
+        // Match the real repository: an existing entitlement blocks a new purchase intent.
+        return route.fulfill({status: 409, json: {code: "WALLET_ENTITLEMENT_EXISTS", reportId: "untrusted-conflict-report"}});
+      }
       const value = progress.settled ? {id: "11111111-1111-4111-8111-111111111111", sku: progress.invalidCompleted === "sku" ? "ZIWEI-CAREER-P0" : sku,
         productTitle: "Confirmed reading", locale: progress.invalidCompleted === "locale" ? "en" : locale, amountLa: options.intentPrice ?? 120,
         status: "completed", stateVersion: 2, createdAt: "2026-10-07T00:00:00Z", ...(progress.invalidCompleted === "private-field" ? {receiptId: "private"} : {})}
@@ -254,7 +266,7 @@ async function staleAfterLostReply(page: Page) {
   await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
   return state;
 }
-test("lost successful reply recovers from 409 through completed public intent and owned quote without another debit", async ({page}) => {
+test("lost successful reply recovers from 409 through real ownership conflict and verified owned quote without another debit", async ({page}) => {
   const state = await staleAfterLostReply(page);
   await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
   const receipt = page.getByTestId("contextual-unlock-success");
@@ -264,7 +276,7 @@ test("lost successful reply recovers from 409 through completed public intent an
   await expect(page.getByRole("button", {name: "Xác nhận mở", exact: true})).toHaveCount(0);
 });
 for (const failure of ["sku", "locale", "private-field"]) test(`completed refresh rejects ${failure} projection without report access`, async ({page}) => {
-  const state = await staleAfterLostReply(page); state.progress.invalidCompleted = failure;
+  const state = await staleAfterLostReply(page); state.progress.completedResponse = true; state.progress.invalidCompleted = failure;
   await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
   await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
   await expect(page.locator('a[href*="untrusted-conflict-report"]')).toHaveCount(0);
@@ -272,12 +284,39 @@ for (const failure of ["sku", "locale", "private-field"]) test(`completed refres
   expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
 });
 for (const action of ["close", "version"]) test(`late completed recovery is ignored after ${action}`, async ({page}) => {
-  const state = await staleAfterLostReply(page); state.progress.holdIntent = true;
+  const state = await staleAfterLostReply(page); state.progress.completedResponse = true; state.progress.holdIntent = true;
   await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
   await expect.poll(() => state.progress.intentResponses.length).toBe(1);
   if (action === "close") await page.keyboard.press("Escape");
   else await page.locator("#change-version").evaluate((element: HTMLButtonElement) => element.click());
   state.progress.holdIntent = false; state.progress.intentResponses.splice(0).forEach(resolve => resolve());
+  await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
+  expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
+});
+
+test("completed public intent remains compatible during rolling deployment", async ({page}) => {
+  const state = await staleAfterLostReply(page); state.progress.completedResponse = true;
+  await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
+  await expect(page.getByTestId("contextual-unlock-success").getByRole("link")).toHaveAttribute("href", "/bao-cao/22222222-2222-4222-8222-222222222222");
+  expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
+});
+for (const failure of ["chart", "version", "locale", "missing-sku", "not-owned", "private-field", "non-json"]) {
+  test(`ownership conflict rejects ${failure} quote without report access or debit`, async ({page}) => {
+    const state = await staleAfterLostReply(page); state.progress.invalidQuote = failure;
+    await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
+    await expect(page.locator(".wallet-unlock-dialog-error")).toBeVisible();
+    await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
+    await expect(page.locator('a[href*="untrusted-conflict-report"]')).toHaveCount(0);
+    expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
+  });
+}
+for (const action of ["close", "version"]) test(`late owned quote recovery is ignored after ${action}`, async ({page}) => {
+  const state = await staleAfterLostReply(page); state.progress.hold = true;
+  await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
+  await expect.poll(() => state.progress.responses.length).toBe(1);
+  if (action === "close") await page.keyboard.press("Escape");
+  else await page.locator("#change-version").evaluate((element: HTMLButtonElement) => element.click());
+  state.progress.hold = false; state.progress.responses.splice(0).forEach(resolve => resolve());
   await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
   expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
 });
