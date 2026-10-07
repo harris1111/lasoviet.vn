@@ -14,7 +14,7 @@ import {
   trackPackSelected,
   trackUnlockError,
 } from "../analytics/funnel-analytics";
-import { WalletUnlockResultV1Schema, type LaSku, type WalletTopUpModeV1 } from "@lasoviet/contracts";
+import { WalletQuotesV1Schema, WalletUnlockResultV1Schema, type LaSku, type WalletTopUpModeV1 } from "@lasoviet/contracts";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import {
   classifyWalletUnlockError,
@@ -149,6 +149,24 @@ export function WalletUnlockDialog({
             (!intentResponse.ok ? await readErrorCode(intentResponse) : undefined) ??
             (!balanceResponse.ok ? await readErrorCode(balanceResponse) : undefined);
           if (!active) return;
+          if (!membership && code === "WALLET_ENTITLEMENT_EXISTS" && balanceResponse.ok) {
+            // Ownership rejection is only a hint; verify the exact owned quote before recovery.
+            const query = new URLSearchParams({ chartId, chartVersionId, locale });
+            const response = await fetch(`/api/commerce/wallet/quotes?${query}`, { cache: "no-store" });
+            if (!active) return;
+            if (!response.ok) throw new Error("WALLET_OWNED_QUOTE_UNAVAILABLE");
+            const parsed = WalletQuotesV1Schema.safeParse(await response.json());
+            if (!active) return;
+            if (!parsed.success || parsed.data.chartId !== chartId ||
+                parsed.data.chartVersionId !== chartVersionId || parsed.data.locale !== locale) {
+              throw new Error("WALLET_OWNED_QUOTE_INVALID");
+            }
+            const owned = parsed.data.quotes.find(item => item.sku === sku && item.state === "owned");
+            if (!owned) throw new Error("WALLET_OWNED_QUOTE_MISSING");
+            onOpenChange(false);
+            onUnlocked(owned.reportId);
+            return;
+          }
           setState({ step: "error", kind: classifyWalletUnlockError(code), code });
           return;
         }
