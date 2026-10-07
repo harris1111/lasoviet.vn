@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { minimumButtonContrast } from "./helpers/button-contrast";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -99,7 +100,7 @@ async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: 
       await route.fulfill({ json: { id: "11111111-1111-4111-8111-111111111111", amountLa: options.intentPrice ?? (sku === "ZIWEI-IDENTITY-P0" ? 720 : 120), stateVersion: 1 } });
     } else if (path === "/api/commerce/wallet/balance") await route.fulfill({ json: { totalLa: 2000, stateVersion: 7 } });
     else if (path === "/api/commerce/wallet/unlock") { commands.push(route.request().postDataJSON()); await route.fulfill({ json: { reportId: "22222222-2222-4222-8222-222222222222" } }); }
-    else if (path === "/") await route.fulfill({ contentType: "text/html", body: '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture" data-light-ready></div></body></html>' });
+    else if (path === "/") await route.fulfill({ contentType: "text/html", body: '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture" class="fd109" data-light-ready></div></body></html>' });
     else await route.abort();
   });
   await page.goto(`https://contextual-unlock.test/?locale=${locale}`);
@@ -117,10 +118,13 @@ for (const width of [390, 1440]) for (const theme of ["light", "dark"]) {
     const dialog = page.locator("dialog.fd109-preview");
     const buy = page.getByTestId("contextual-palace-unlock");
     await expect(buy).toBeEnabled(); await expect(buy).toContainText("120 Lá");
+    expect(await minimumButtonContrast(buy)).toBeGreaterThanOrEqual(4.5);
     await buy.click(); await expect(dialog.getByRole("region")).toContainText("1880 Lá");
     expect(await page.locator("dialog[open]").count()).toBe(1);
     await page.keyboard.press("Tab"); expect(await dialog.evaluate(el => el.contains(document.activeElement))).toBe(true);
-    await dialog.getByRole("button", { name: "Xác nhận mở", exact: true }).click();
+    const confirm = dialog.getByRole("button", { name: "Xác nhận mở", exact: true });
+    expect(await minimumButtonContrast(confirm)).toBeGreaterThanOrEqual(4.5);
+    await confirm.click();
     await expect(page.getByTestId("contextual-unlock-success")).toBeVisible();
     expect(commands).toHaveLength(1);
     await expect(page).toHaveURL(/contextual-unlock.test/);
