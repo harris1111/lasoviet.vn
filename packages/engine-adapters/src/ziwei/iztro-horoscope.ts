@@ -183,7 +183,6 @@ export function calculateZiweiHoroscope(
 
   const hs = astrolabe.horoscope(asOfDate, selectedTimeIndex);
   const yearly = hs.yearly;
-  const monthlyList = astrolabe.monthlyList(targetYear);
 
   // 1. Annual (Lưu Niên) layer
   const annualStemVi = STEM_NAMES_VI[yearly.heavenlyStem] || yearly.heavenlyStem;
@@ -191,8 +190,10 @@ export function calculateZiweiHoroscope(
   const annualLunarYear = `${annualStemVi} ${annualBranchVi}`;
 
   const annualPalaceObj = astrolabe.palaces[yearly.index];
-  const annualPalaceId = (annualPalaceObj ? palaceIds[annualPalaceObj.name] : undefined) || "ziwei.palace.career";
-  const annualPalaceName = (annualPalaceObj ? PALACE_NAMES_VI[annualPalaceObj.name] : undefined) || "Quan Lộc";
+  const annualPalaceId = annualPalaceObj ? palaceIds[annualPalaceObj.name] : undefined;
+  const annualPalaceName = annualPalaceObj ? PALACE_NAMES_VI[annualPalaceObj.name] : undefined;
+  if (!annualPalaceId || !annualPalaceName) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
+  const monthlyList = astrolabe.monthlyList(targetYear);
 
   // Lunar age (Tuổi âm)
   const birthYear = parseInt(birthProfile.normalizedCalendar.date.slice(0, 4), 10);
@@ -401,6 +402,9 @@ export function calculateZiweiHoroscope(
     ],
   };
 
+  // Exact local iztro 2.6.0 API, shared with the established report-snapshot adapter.
+  const decadal = astrolabe.decadalList().find(item => asOfYear >= item.yearRange[0] && asOfYear <= item.yearRange[1]);
+  const decadalPalaceId = decadal ? palaceIds[decadal.palaceName] : undefined;
   return {
     version: 1,
     chartId,
@@ -409,5 +413,6 @@ export function calculateZiweiHoroscope(
     isUnlocked,
     yearly: yearlyHan,
     daily: dailyHoroscope,
+    ...(decadal && decadalPalaceId ? { decadal: { palaceId: decadalPalaceId, startAge: decadal.ageRange[0], endAge: decadal.ageRange[1], startYear: decadal.yearRange[0], endYear: decadal.yearRange[1] } } : {}),
   };
 }

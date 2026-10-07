@@ -16,6 +16,10 @@
     "./reports/structural-palace-score": {
       "types": "./dist/reports/structural-palace-score.d.ts",
       "import": "./dist/reports/structural-palace-score.js"
+    },
+    "./ziwei/free-structural-overview": {
+      "types": "./dist/ziwei/free-structural-overview.d.ts",
+      "import": "./dist/ziwei/free-structural-overview.js"
     }
   },
   "files": [

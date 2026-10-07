@@ -21,6 +21,15 @@ describe("free result engagement", () => {
     expect(tracker.door()?.properties.stage).toBe("door");
     expect(tracker.door()).toBeNull();
   });
+  it("records foreground completion depth and deliberate previews once without identity or prose", () => {
+    const tracker = createFreeResultAnalytics("vi");
+    expect(tracker.depth(false)).toBeNull();
+    expect(tracker.depth(true)).toEqual({name:"free_read_depth", properties:{percent:100, locale:"vi", source_kind:"structural"}});
+    expect(tracker.depth(true)).toBeNull();
+    expect(tracker.preview("period")).toEqual({name:"locked_preview_open", properties:{section_id:"period", locale:"vi", source_kind:"structural"}});
+    expect(tracker.preview("period")).toBeNull();
+    expect(tracker.preview("ziwei.palace.wealth")?.name).toBe("locked_preview_open");
+  });
   it("labels the source honestly: structural by default, validated_artifact only for a rendered gift", () => {
     expect(createFreeResultAnalytics("vi").visible("gift", 0, true)?.properties.source_kind).toBe("structural");
     expect(createFreeResultAnalytics("vi", "validated_artifact").visible("gift", 0, true)?.properties.source_kind).toBe("validated_artifact");

@@ -137,10 +137,10 @@
   },
   "freeResult": {
     "insights": "What your chart says about you",
-    "saveDescription": "Save your chart for free to read the second insight and revisit it.",
+    "saveDescription": "Save your chart for free to revisit it and keep your entered details.",
     "save": "Save chart for free",
-    "structuralPreview": "Structural preview",
-    "fallback": "This section shows the palace’s star pattern and structural score. A deeper reading explains its meaning and practical applications.",
+    "structuralPreview": "One complete palace · structural interpretation",
+    "fallback": "This reading interprets the calculated structure; it is not an AI artifact or paid report.",
     "scores": "The structure of twelve palaces",
     "scoreDescription": "Scores describe the structure of the star pattern, not the quality of your life or a prediction of luck.",
     "year": "This year",
@@ -176,7 +176,10 @@
     "giftOnePalace": "This is a full reading for {name} only. The other {count} palaces currently show the structural map, not a reading.",
     "giftPreparing": "The reading for {name} is being prepared. The structure below is readable now, and you can reload in a few minutes.",
     "giftBridge": "You have read one palace in full",
-    "giftBridgeDescription": "You have just read one palace of your chart in full. The remaining palaces and deeper topics are in the full reading."
+    "giftBridgeDescription": "You have just read one palace of your chart in full. The remaining palaces and deeper topics are in the full reading.",
+    "structuralOverview": "Structural overview · from the chart’s actual stars and placements",
+    "periodTitle": "Current year and age cycle",
+    "periodPreview": "Preview the deeper reading"
   },
   "dailyReading": {
     "title": "Today’s personal reading",

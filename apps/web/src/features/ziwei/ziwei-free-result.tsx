@@ -14,6 +14,7 @@ import { FreePalaceGiftBlock } from "./free-palace-gift-block";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart-visuals";
 import { PartFeedback } from "../reports/part-feedback";
+import { SecureLockedPreview } from "./secure-locked-preview";
 import { ZiweiChart } from "./ziwei-chart";
 import type { FreeResultModel } from "./ziwei-free-result-model";
 import { ziweiPresentation, type ZiweiPresentationLocale } from "./ziwei-presentation";
@@ -61,6 +62,7 @@ export function ZiweiFreeResult({
   const desktop = useSyncExternalStore(subscribeDesktop, desktopSnapshot, () => false);
   const [askEligible, setAskEligible] = useState(false);
   const [chartExpanded, setChartExpanded] = useState(false);
+  const [periodPreview, setPeriodPreview] = useState(false);
   const [selectedChartPalace, setSelectedChartPalace] = useState<string>(chart.soulPalaceId);
   const analyticsRef = useRef(createFreeResultAnalytics(locale, model.gift ? "validated_artifact" : "structural"));
   const completionRef = useRef<HTMLElement>(null);
@@ -72,8 +74,8 @@ export function ZiweiFreeResult({
   const previewTopic = initialState.tab === "topics" ? model.topics.find((topic) => topic.id === initialState.open) : undefined;
   const previewPalace = (initialState.tab === "palaces" || initialState.tab === "topics")
     ? model.palaces.find((palace) => palace.id === `ziwei.palace.${initialState.open}`) : undefined;
-  const previewId = previewTopic?.id ?? previewPalace?.id;
-  const previewSku = previewPalace ? CANONICAL_PALACE_SKU_MAP[previewPalace.id as ZiweiPalaceId] as LaSku :
+  const previewId = periodPreview ? "period" : previewTopic?.id ?? previewPalace?.id;
+  const previewSku = periodPreview ? model.periodTeaser?.sku : previewPalace ? CANONICAL_PALACE_SKU_MAP[previewPalace.id as ZiweiPalaceId] as LaSku :
     previewTopic?.id === "career_wealth" ? "ZIWEI-CAREER-P0" : previewTopic?.id === "relationship_marriage" ? "ZIWEI-RELATIONSHIP-P0" : undefined;
   // One native dialog owns focus and body overflow for both enlargement and previews.
   const modalId = previewId ? `preview:${previewId}` : chartExpanded ? "chart" : undefined;
@@ -86,7 +88,7 @@ export function ZiweiFreeResult({
     if (typeof IntersectionObserver === "undefined") return;
     const tracker = analyticsRef.current;
     const visible = new Map<string, Element>();
-    const emit = (event: ReturnType<typeof tracker.door>) => {
+    const emit = (event: ReturnType<typeof tracker.door> | ReturnType<typeof tracker.depth>) => {
       if (event) void sendBrowserAnalyticsEvent(event.name, event.properties);
     };
     const observer = new IntersectionObserver((entries) => {
@@ -96,14 +98,16 @@ export function ZiweiFreeResult({
         if (entry.isIntersecting && entry.target.getClientRects().length > 0) {
           visible.set(section, entry.target);
           emit(tracker.visible(section, performance.now(), document.visibilityState === "visible"));
+          if (section === "completion") emit(tracker.depth(document.visibilityState === "visible"));
         } else { visible.delete(section); tracker.hidden(section); }
       }
     }, { threshold: 0.2 });
-    document.querySelectorAll('[data-free-result-block="gift"], [data-free-result-block="insights"], [data-free-result-block="completion"]').forEach((node) => observer.observe(node));
+    document.querySelectorAll('[data-free-result-block="gift"], [data-free-result-block="free-palace"], [data-free-result-block="insights"], [data-free-result-block="completion"]').forEach((node) => observer.observe(node));
     const tick = () => {
       for (const [section, node] of visible) {
         if (!node.getClientRects().length || document.visibilityState !== "visible") tracker.hidden(section);
         else {
+          if (section === "completion") emit(tracker.depth(true));
           emit(tracker.visible(section, performance.now(), true));
           emit(tracker.tick(section, performance.now(), true));
         }
@@ -157,7 +161,11 @@ export function ZiweiFreeResult({
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     if (!dialog.open) dialog.showModal();
-    if (modalId.startsWith("preview:")) queueMicrotask(() => setAskEligible(true));
+    if (modalId.startsWith("preview:")) {
+      queueMicrotask(() => setAskEligible(true));
+      const event = analyticsRef.current.preview(modalId.slice("preview:".length));
+      if (event) void sendBrowserAnalyticsEvent(event.name, event.properties);
+    }
     return () => {
       dialog.close();
       document.body.style.overflow = previousOverflow;
@@ -178,11 +186,13 @@ export function ZiweiFreeResult({
   function openPreview(id: string, trigger: HTMLButtonElement, tab: "palaces" | "topics") {
     triggerRef.current = trigger;
     setChartExpanded(false);
+    setPeriodPreview(false);
     setAskEligible(true);
     navigate(tab, id);
   }
   function closeModal() {
-    if (previewId) navigate(initialState.tab);
+    if (periodPreview) setPeriodPreview(false);
+    else if (previewId) navigate(initialState.tab);
     else setChartExpanded(false);
   }
   function tabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -226,24 +236,35 @@ export function ZiweiFreeResult({
           {chartView()}
         </aside>
         <div className="fd109-main">
+          <section {...panel("chart")} className="fd109-chart-tab" data-testid="fd109-chart-tab-scores">
+            <h2 id="heading-chart">{t("freeResult.scores")}</h2><p>{t("freeResult.scoreDescription")}</p>
+            <ReportPalaceRadar snapshot={{palaces:model.palaces.map(palace => ({palaceId:palace.id}))}} scores={scoreMap} t={reportT} locale={locale} />
+            <ReportScoreExplainer t={reportT} />
+          </section>
           <section {...panel("overview")}>
             <section className="fd109-gift" data-free-result-block="insights">
               <p className="eyebrow">02</p><h2 id="heading-overview">{t("freeResult.insights")}</h2>
               {chart.provisional && <p role="status">{t("provisional.insightsDisclaimer")}</p>}
-              {model.insights.map((insight, index) => <article key={insight.id}>
-                <h3>{insight.title}</h3><p>{insight.description}</p>
-                <PartFeedback locale={locale} chartId={chartId} partId={insight.id} sku="free-result" />
-                {insight.evidenceId && CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId] &&
-                  <EvidenceDrawer chart={chart} chartId={chartId} locale={locale} evidenceId={insight.evidenceId}
-                    loadEvidence={loadEvidence} isOpen={false} onOpenChange={(open) => {
-                      if (open) navigate("evidence", CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId!]);
-                    }} />}
-                {index === 0 && model.isGuest && <div className="fd109-save">
-                  <p>{t("freeResult.saveDescription")}</p>
-                  <Link className="button button-secondary" href={signInHref}>{t("freeResult.save")}</Link>
-                </div>}
-              </article>)}
+              <p className="fd109-source-note">{t("freeResult.structuralOverview")}</p>
+              <div className="fd109-overview-prose" data-testid="fd109-long-overview">
+                {model.overview.sections.map(section => <article key={section.id} data-overview-section={section.id}>
+                  <h3>{section.title}</h3>{section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                </article>)}
+              </div>
+              <div className="fd109-overview-evidence">{model.insights.filter(insight => insight.evidenceId && CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId]).map(insight => <EvidenceDrawer key={insight.id} chart={chart} chartId={chartId} locale={locale} evidenceId={insight.evidenceId!} loadEvidence={loadEvidence} isOpen={false} onOpenChange={open => { if (open) navigate("evidence", CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId!]); }} />)}</div>
+              <PartFeedback locale={locale} chartId={chartId} partId="structural-overview" sku="free-result" />
+              {model.isGuest && <div className="fd109-save"><p>{t("freeResult.saveDescription")}</p>
+                <Link className="button button-secondary" href={signInHref}>{t("freeResult.save")}</Link></div>}
             </section>
+            <section className="fd109-block" data-free-result-block="scores">
+            <p className="eyebrow">03</p><h2 id="heading-scores">{t("freeResult.scores")}</h2>
+            <p>{t("freeResult.scoreDescription")}</p>
+            <ReportPalaceRadar snapshot={{ palaces: model.palaces.map((palace) => ({ palaceId: palace.id })) }} scores={scoreMap} t={reportT} locale={locale} />
+            <p>{t("freeResult.strongest", { name: strongest.name })} · {score(strongest)}</p>
+            <p>{t("freeResult.weakest", { name: weakest.name })} · {score(weakest)}</p>
+            <ul className="fd109-score-list">{model.palaces.map((palace) => <li key={palace.id}><span>{palace.name}</span>{score(palace)}</li>)}</ul>
+            <ReportScoreExplainer t={reportT} />
+          </section>
             {model.gift ? (
               <>
                 <FreePalaceGiftBlock gift={model.gift} chartId={chartId} locale={locale} remainingPalaces={others.length} score={score(selected)} />
@@ -252,20 +273,16 @@ export function ZiweiFreeResult({
             ) : (
               <section className="fd109-gift" data-free-result-block="free-palace" data-palace-id={selected.id}>
                 <p className="eyebrow">06 · {t("freeResult.structuralPreview")}</p><h2>{selected.name}</h2>
-                {score(selected)}<p>{selected.facts}</p><p>{t("freeResult.fallback")}</p>
+                {score(selected)}<p>{t("freeResult.fallback")}</p>
+                <p className="fd109-gift-conclusion">{model.structuralPalace.conclusion}</p>
+                <h3>{t("freeResult.giftKeyPoints")}</h3><ol className="fd109-gift-points">{model.structuralPalace.keyPoints.map((point,index) => <li key={index}>{point}</li>)}</ol>
+                <h3>{t("freeResult.giftNarrative")}</h3><div className="fd109-gift-prose">{model.structuralPalace.paragraphs.map((paragraph,index) => <p key={index}>{paragraph}</p>)}</div>
+                <div className="fd109-gift-actions"><div className="fd109-gift-do"><h3>{t("freeResult.giftDo")}</h3><ul>{model.structuralPalace.do.map(item => <li key={item}>{item}</li>)}</ul></div>
+                  <div className="fd109-gift-avoid"><h3>{t("freeResult.giftAvoid")}</h3><ul>{model.structuralPalace.avoid.map(item => <li key={item}>{item}</li>)}</ul></div></div>
                 {model.giftPreparing && <p role="status" data-testid="fd109-gift-preparing">{t("freeResult.giftPreparing", { name: selected.name })}</p>}
                 <ReportScoreExplainer t={reportT} />
               </section>
             )}
-          </section>
-          <section {...panel("chart")} className="fd109-block" data-free-result-block="scores">
-            <p className="eyebrow">03</p><h2 id="heading-chart">{t("freeResult.scores")}</h2>
-            <p>{t("freeResult.scoreDescription")}</p>
-            <ReportPalaceRadar snapshot={{ palaces: model.palaces.map((palace) => ({ palaceId: palace.id })) }} scores={scoreMap} t={reportT} locale={locale} />
-            <p>{t("freeResult.strongest", { name: strongest.name })} · {score(strongest)}</p>
-            <p>{t("freeResult.weakest", { name: weakest.name })} · {score(weakest)}</p>
-            <ul className="fd109-score-list">{model.palaces.map((palace) => <li key={palace.id}><span>{palace.name}</span>{score(palace)}</li>)}</ul>
-            <ReportScoreExplainer t={reportT} />
           </section>
           <section {...panel("nam-nay")} className="fd109-block" data-free-result-block="year">
             <p className="eyebrow">04</p><h2 id="heading-nam-nay">{t("freeResult.year")}{model.annual ? ` ${model.annual.year}` : ""}</h2>
@@ -274,6 +291,10 @@ export function ZiweiFreeResult({
               <p><strong>{model.annual.favorable}</strong>{t("freeResult.favorableMonths")}</p>
               <p><strong>{model.annual.neutral}</strong>{t("freeResult.neutralMonths")}</p>
             </div><p>{t("freeResult.monthsMasked")}</p></> : <p>{t("freeResult.yearUnavailable")}</p>}
+            {model.periodTeaser && <div data-testid="fd109-period-teaser">
+              <SecureLockedPreview title={t("freeResult.periodTitle")} locale={locale} clippedSentences={model.periodTeaser.sentences} lengthHint={5}
+                actionLabel={t("freeResult.periodPreview")} onAction={() => { triggerRef.current = document.querySelector<HTMLButtonElement>('[data-testid="fd109-period-teaser"] button'); setChartExpanded(false); setPeriodPreview(true); setAskEligible(true); }} />
+            </div>}
           </section>
           <section {...panel("palaces")} className="fd109-block" data-free-result-block="palaces">
             <p className="eyebrow">07</p><h2 id="heading-palaces">{t("freeResult.palaces", { count: others.length })}</h2>
@@ -329,8 +350,9 @@ export function ZiweiFreeResult({
         <div>
           <span className="fd109-sheet-handle" aria-hidden="true" />
           <button className="fd109-close" autoFocus type="button" onClick={closeModal}>{t("freeResult.close")}</button>
-          <h2 id="fd109-preview-title">{modalId === "chart" ? t("freeResult.enlargeChart") : previewTopic?.title ?? previewPalace?.name ?? t("freeResult.preview")}</h2>
+          <h2 id="fd109-preview-title">{modalId === "chart" ? t("freeResult.enlargeChart") : periodPreview ? t("freeResult.periodTitle") : previewTopic?.title ?? previewPalace?.name ?? t("freeResult.preview")}</h2>
           {modalId === "chart" ? <div className="fd109-chart-pan">{chartView()}</div> : <>
+            {periodPreview && model.periodTeaser && <SecureLockedPreview title={t("freeResult.periodTitle")} locale={locale} clippedSentences={model.periodTeaser.sentences} lengthHint={5} />}
             {previewPalace && <>{score(previewPalace)}<p>{previewPalace.facts}</p></>}
             {previewTopic && <><p>{previewTopic.question}</p><ul>{[...previewTopic.primaryPalaces, ...previewTopic.supportingPalaces].map((id) => {
               const palace = model.palaces.find((item) => item.id === id);

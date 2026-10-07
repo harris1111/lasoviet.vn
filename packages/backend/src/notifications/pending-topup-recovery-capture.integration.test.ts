@@ -8,7 +8,7 @@ import {
   notificationDeliveries, outbox, runMigrations, walletPurchaseIntents,
   walletTopUpContinuations, walletTransactions, ziweiCharts, ziweiChartVersions, type Database,
 } from "@lasoviet/database";
-import type { NormalizedZiweiChartV1 } from "@lasoviet/contracts";
+import { ZIWEI_PALACE_IDS, type NormalizedZiweiChartV1 } from "@lasoviet/contracts";
 import { createDatabaseZiweiCalculationRepository } from "../ziwei/ziwei.repository.js";
 import { createDatabaseDeletionRepository } from "../privacy/deletion.repository.js";
 import { createDatabaseConsentRepository } from "../consent/consent.repository.js";
@@ -200,7 +200,8 @@ describe("pending top-up recovery capture with isolated PostgreSQL", () => {
         });
       },
     });
-    const chart: NormalizedZiweiChartV1 = { version: 1, systemId: "ziwei", palaces: [], transformations: [],
+    const chart: NormalizedZiweiChartV1 = { version: 1, systemId: "ziwei", palaces: ZIWEI_PALACE_IDS.map((id,index)=>({id,
+      earthlyBranchId: ["ziwei.branch.rat","ziwei.branch.ox","ziwei.branch.tiger","ziwei.branch.rabbit","ziwei.branch.dragon","ziwei.branch.snake","ziwei.branch.horse","ziwei.branch.goat","ziwei.branch.monkey","ziwei.branch.rooster","ziwei.branch.dog","ziwei.branch.pig"][index]!,stars:[]})), transformations: [],
       soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", horoscopeCapabilities: [], warnings: [],
       provenance: { version: 1, engineId: "ziwei.iztro", engineVersion: "2.6.0", adapterId: "ziwei.iztro-adapter",
         adapterVersion: "1", schemaId: "normalized-ziwei-chart-v1", ruleSetId: "ziwei.default", inputHash: "a".repeat(64),

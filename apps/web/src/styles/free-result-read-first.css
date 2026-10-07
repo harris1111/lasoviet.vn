@@ -101,3 +101,13 @@
   .fd109-gift-actions { grid-template-columns: 1fr 1fr; gap: 16px; }
   .fd109-palace-gift .fd109-gift-conclusion { font-size: 21px; }
 }
+
+/* Approved LSV75 long reading and deliberately clipped temporal preview. */
+.fd109-overview-prose { max-width: 72ch; }
+.fd109-overview-prose article { padding: 12px 0; }
+.fd109-overview-prose h3 { color: var(--text-heading); margin: 8px 0 12px; }
+.fd109 .fd109-source-note { color: var(--text-muted); font-family: var(--font-source-sans-3), sans-serif; font-size: 14px; }
+.fd109 [data-free-result-block="free-palace"] .fd109-gift-actions ul { padding-left: 20px; font-size: 17px; line-height: 1.7; }
+.fd109 [data-testid="fd109-period-teaser"] { margin: 24px 0; }
+
+@media (max-width: 1023px) { .fd109-chart-tab { display: none; } }

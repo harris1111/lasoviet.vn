@@ -932,3 +932,8 @@ export type { ReportNotificationCommandV1, ReportNotificationViewV1 } from "./re
 export * from "./recovery-receipt-v1.js";
 
 export * from "./sepay-provenance-v1.js";
+
+export { ziweiMajorStarMeaning, ZIWEI_MAJOR_STAR_MEANING_VERSION } from "./ziwei-star-meanings-v1.js";
+export { FreeStructuralOverviewDocV1Schema, FreeStructuralPalaceDocV1Schema, type FreeStructuralOverviewDocV1, type FreeStructuralPalaceDocV1 } from "./free-structural-overview-v1.js";
+
+export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1 } from "./free-structural-overview-v1.js";

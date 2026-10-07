@@ -18,6 +18,7 @@ export type AuthorizedZiweiChartRecord = {
   chartId: string;
   chartVersionId: string;
   normalizedOutput: Record<string, unknown>;
+  freeOverviewCache?: Record<string, unknown> | null;
   originalInput: Record<string, unknown>;
   normalizedInput: Record<string, unknown> | null;
   topConcern?: TopConcernV1 | null;
@@ -66,6 +67,7 @@ export function createDatabaseZiweiQueryRepository(
           chartId: ziweiCharts.id,
           chartVersionId: ziweiChartVersions.id,
           normalizedOutput: ziweiChartVersions.normalizedOutput,
+          freeOverviewCache: ziweiChartVersions.freeOverviewCache,
           originalInput: birthProfileRevisions.originalInput,
           normalizedInput: birthProfileRevisions.normalizedInput,
           topConcern: birthProfileReadingContextRevisions.topConcern,

@@ -1,5 +1,7 @@
+import { findLaProduct } from "@lasoviet/contracts";
+import { compileFreeStructuralOverview, compileFreeStructuralPalace } from "@lasoviet/backend/ziwei/free-structural-overview";
 import type {
-  FreeIdentityPreviewV1, FreePalaceGiftViewV1, NormalizedZiweiChartV1, TopConcernV1, ZiweiHoroscopeResultV1,
+  FreeStructuralOverviewDocV1, FreeStructuralPalaceDocV1, LaSku, FreeIdentityPreviewV1, FreePalaceGiftViewV1, NormalizedZiweiChartV1, TopConcernV1, ZiweiHoroscopeResultV1,
 } from "@lasoviet/contracts";
 import { computeNormalizedPalaceScores, type PalaceScoreBandKey } from "../reports/report-palace-score";
 import { buildFreeResultTopics, type FreeResultTopic } from "./free-result-topic-catalog";
@@ -30,6 +32,9 @@ export type FreeResultGift = {
   facts: { n: number; label: string; value: string }[];
 };
 export type FreeResultModel = {
+  overview: FreeStructuralOverviewDocV1;
+  structuralPalace: FreeStructuralPalaceDocV1;
+  periodTeaser: { sentences: string[]; sku: LaSku } | null;
   insights: { id: string; title: string; description: string; evidenceId?: string }[];
   palaces: FreeResultPalace[];
   topics: FreeResultTopic[];
@@ -78,6 +83,7 @@ export function buildFreeResultModel(input: {
   isGuest: boolean;
   locale: ZiweiPresentationLocale;
   displayName?: string;
+  overview?: FreeStructuralOverviewDocV1;
   // The server-loaded gift view. Anything other than a ready artifact leaves Phase A copy untouched.
   gift?: FreePalaceGiftViewV1 | null;
 }): FreeResultModel {
@@ -129,6 +135,15 @@ export function buildFreeResultModel(input: {
   }));
   const yearly = input.horoscope?.yearly;
   return {
+    overview: input.overview ?? compileFreeStructuralOverview(chart, locale),
+    structuralPalace: compileFreeStructuralPalace(chart, selectedPalaceId, locale),
+    periodTeaser: yearly && input.horoscope?.asOfDate?.startsWith(`${yearly.targetYear}-`) && chart.palaces.some(palace => palace.id === yearly.annualPalaceId) && !chart.provisional ? {
+      sku: findLaProduct(`ZIWEI-YEAR-${yearly.targetYear}-P0`)?.availability === "active" ? `ZIWEI-YEAR-${yearly.targetYear}-P0` as LaSku : "ZIWEI-IDENTITY-P0",
+      sentences: [
+        locale === "vi" ? `Năm ${yearly.targetYear}, lưu niên đi vào ${presentation.palace(yearly.annualPalaceId)}; có ${yearly.hanMonthCount} tháng cần chú ý và ${yearly.favorableMonthCount} tháng thuận theo cấu trúc đã tính.` : `In ${yearly.targetYear}, the annual layer enters ${presentation.palace(yearly.annualPalaceId)}; the calculated structure marks ${yearly.hanMonthCount} caution months and ${yearly.favorableMonthCount} favourable months.`,
+        ...(input.horoscope?.decadal ? [locale === "vi" ? `Đại vận ${input.horoscope.decadal.startAge}–${input.horoscope.decadal.endAge} tuổi nằm tại ${presentation.palace(input.horoscope.decadal.palaceId)}. Khi đặt hai lớp cạnh nhau, điều cần xem kỹ là…` : `The ${input.horoscope.decadal.startAge}–${input.horoscope.decadal.endAge} age cycle is placed in ${presentation.palace(input.horoscope.decadal.palaceId)}. When the two layers are considered together, the point to examine is…`] : [locale === "vi" ? "Khi đối chiếu cung này với cấu trúc bản sinh, điều cần xem kỹ là…" : "When this palace is compared with the natal structure, the point to examine is…"]),
+      ],
+    } : null,
     insights, palaces, topics: buildFreeResultTopics(locale, preview.topConcern), selectedPalaceId, isGuest,
     gift, giftPreparing: !gift && (input.gift?.status === "requested" || input.gift?.status === "generating"),
     annual: yearly ? {

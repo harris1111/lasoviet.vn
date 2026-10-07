@@ -186,6 +186,14 @@ describe("Ziwei calculation repository", () => {
       ),
     ).toHaveLength(3);
     expect(evidenceSecond.value.evidence).toEqual(evidenceFirst.value.evidence);
+    const [cachedVersion] = await database.select().from(ziweiChartVersions).where(eq(ziweiChartVersions.id, first.chartVersionId));
+    expect(cachedVersion?.freeOverviewCache).toMatchObject({version:1, documents:{vi:{locale:"vi",sourceKind:"structural"},en:{locale:"en",sourceKind:"structural"}}});
+    expect(JSON.stringify(cachedVersion?.freeOverviewCache)).not.toContain("ziwei-user@example.test");
+    const beforeReplayCache = cachedVersion!.freeOverviewCache;
+    await repository.create(input);
+    const [afterReplay] = await database.select().from(ziweiChartVersions).where(eq(ziweiChartVersions.id, first.chartVersionId));
+    expect(afterReplay!.freeOverviewCache).toEqual(beforeReplayCache);
+
     const evidenceReused = await evidenceService.buildAndPersist(first.chartVersionId);
     expect(evidenceReused).toMatchObject({
       ok: true,

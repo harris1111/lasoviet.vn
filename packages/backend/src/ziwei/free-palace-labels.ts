@@ -1,4 +1,4 @@
-import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "../reports/comprehensive-report-validator-v4.js";
+import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "../reports/ziwei-canonical-labels.js";
 
 export type FreePalaceLocale = "vi" | "en";
 

@@ -428,6 +428,13 @@
       "when": 1791319900001,
       "tag": "0060_trusted_recovery_revenue",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1791319900002,
+      "tag": "0061_free_structural_overview_cache",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ directly in a browser. Static HTML, no build step.
 
 | File | What it is |
 |---|---|
+| `la-so-ket-qua-v2-phase4-proposal.html` | **LSV75 phase-four proposal, pending owner layout review.** 1,228-word draft overview, known chart facts, safe cliffhanger and simulated in-place preview; mobile scroll and desktop six tabs. Does not replace approved v2 or prove production generation/security |
 | `trang-chu.html` | **Superseded by Homepage V3 (FD-100).** Kept only as the visual reference for the free-tools row and "Hôm nay" ideas |
 | `cong-cu-mien-phi.html` | Free tools hub (FD-090, FD-094) with need filters, 12 tools, bridge to the chart, membership (FD-093) |
 | `cong-cu-tu-vi-hom-nay.html` | Template for one tool page: input → result → cinnabar "Còn tùy lá số của bạn" bridge → daily reminder |

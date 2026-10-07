@@ -24,7 +24,9 @@
     "upgrade_view",
     "upgrade_purchased",
     "return_visit",
-    "free_result_interaction"
+    "free_result_interaction",
+    "free_read_depth",
+    "locked_preview_open"
   ],
   "events": [
     {
@@ -237,6 +239,22 @@
       "name": "free_result_interaction",
       "properties": [
         "stage",
+        "section_id",
+        "locale",
+        "source_kind"
+      ]
+    },
+    {
+      "name": "free_read_depth",
+      "properties": [
+        "percent",
+        "locale",
+        "source_kind"
+      ]
+    },
+    {
+      "name": "locked_preview_open",
+      "properties": [
         "section_id",
         "locale",
         "source_kind"

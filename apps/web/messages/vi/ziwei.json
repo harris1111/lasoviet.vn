@@ -137,10 +137,10 @@
   },
   "freeResult": {
     "insights": "Điều lá số nói riêng về bạn",
-    "saveDescription": "Lưu lá số miễn phí để đọc điều thứ hai và xem lại khi cần.",
+    "saveDescription": "Lưu lá số miễn phí để xem lại khi cần và giữ các thông tin đã nhập.",
     "save": "Lưu lá số miễn phí",
-    "structuralPreview": "Xem trước cấu trúc",
-    "fallback": "Phần này cho bạn thấy cấu trúc sao và điểm mạnh yếu của cung. Bản luận giải đi sâu vào ý nghĩa và cách ứng dụng trong đời sống.",
+    "structuralPreview": "Một cung được đọc đầy đủ · diễn giải cấu trúc",
+    "fallback": "Phần này diễn giải từ cấu trúc đã tính; không phải bài AI hoặc nội dung trả phí.",
     "scores": "Mười hai cung mạnh yếu",
     "scoreDescription": "Điểm thể hiện độ mạnh cấu trúc của bộ sao, không phải điểm số cuộc đời hay lời dự đoán may rủi.",
     "year": "Năm nay",
@@ -176,7 +176,10 @@
     "giftOnePalace": "Đây là bài đọc đầy đủ cho riêng {name}. {count} cung còn lại hiện chỉ có bản đồ cấu trúc, chưa có bài đọc.",
     "giftPreparing": "Bài đọc {name} đang được chuẩn bị. Phần cấu trúc bên dưới đọc được ngay, và bạn có thể tải lại trang sau ít phút.",
     "giftBridge": "Bạn đã đọc trọn một cung",
-    "giftBridgeDescription": "Bạn vừa đọc đầy đủ một cung của lá số. Các cung còn lại và những chủ đề sâu hơn nằm trong phần luận giải đầy đủ."
+    "giftBridgeDescription": "Bạn vừa đọc đầy đủ một cung của lá số. Các cung còn lại và những chủ đề sâu hơn nằm trong phần luận giải đầy đủ.",
+    "structuralOverview": "Tổng quan cấu trúc · từ sao và vị trí thật trên lá số",
+    "periodTitle": "Năm hiện tại và đại vận",
+    "periodPreview": "Xem phần đọc sâu"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

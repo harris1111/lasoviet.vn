@@ -17,6 +17,8 @@ import {
   type NormalizedZiweiChartV1,
 } from "./normalized-ziwei-chart-v1.js";
 
+import { FreeStructuralOverviewDocV1Schema, type FreeStructuralOverviewDocV1 } from "./free-structural-overview-v1.js";
+
 const evidenceItemIdsSchema = z
   .array(EvidenceItemV1Schema.shape.id)
   .length(3)
@@ -55,6 +57,7 @@ export type ZiweiChartViewV1 = {
   chartVersionId: string;
   chart: NormalizedZiweiChartV1;
   birthSummary: ZiweiBirthSummaryV1;
+  freeOverview?: { vi: FreeStructuralOverviewDocV1; en: FreeStructuralOverviewDocV1 };
   evidenceIndex: {
     version: 1;
     evidenceSetId: string;
@@ -79,6 +82,7 @@ export const ZiweiChartViewV1Schema: z.ZodType<ZiweiChartViewV1> = z
     chartVersionId: z.string().trim().min(1),
     chart: NormalizedZiweiChartV1Schema,
     birthSummary: ZiweiBirthSummaryV1Schema,
+    freeOverview: z.object({ vi: FreeStructuralOverviewDocV1Schema, en: FreeStructuralOverviewDocV1Schema }).strict().optional(),
     evidenceIndex: z
       .object({
         version: z.literal(1),

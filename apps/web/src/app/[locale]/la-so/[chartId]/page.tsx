@@ -95,7 +95,7 @@ export default async function ZiweiChartResultPage({
     chart: chartResult.value.chart,
     preview: safePreview,
     horoscope: horoscopeResult.ok ? horoscopeResult.value : undefined,
-    isGuest, locale, displayName, gift,
+    isGuest, locale, displayName, gift, overview: chartResult.value.freeOverview?.[locale],
   });
   const heroTitle = displayName
     ? t("personalizedTitle", { name: displayName })

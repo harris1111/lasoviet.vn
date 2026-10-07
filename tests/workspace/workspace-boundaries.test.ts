@@ -9,6 +9,9 @@ const ALLOWED_BACKEND_SPECIFIER = "@lasoviet/backend/notifications/notification-
 const ALLOWED_SCORER_FILE = "apps/web/src/features/reports/report-palace-score.ts";
 const ALLOWED_SCORER_SPECIFIER = "@lasoviet/backend/reports/structural-palace-score";
 
+const ALLOWED_OVERVIEW_FILE = "apps/web/src/features/ziwei/ziwei-free-result-model.ts";
+const ALLOWED_OVERVIEW_SPECIFIER = "@lasoviet/backend/ziwei/free-structural-overview";
+
 const PRODUCTION_SOURCE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",
@@ -114,6 +117,7 @@ export function validateBackendImportAllowlist(
   const violations: Array<{ file: string; specifier: string; reason: string }> = [];
 
   for (const entry of imports) {
+    if (entry.file === ALLOWED_OVERVIEW_FILE && entry.specifier === ALLOWED_OVERVIEW_SPECIFIER) continue;
     if (entry.file === ALLOWED_SCORER_FILE && entry.specifier === ALLOWED_SCORER_SPECIFIER) continue;
     if (entry.file !== ALLOWED_BACKEND_FILE) {
       violations.push({
@@ -155,7 +159,7 @@ describe("workspace boundaries", () => {
     },
   );
 
-  it("restricts backend imports to the exact unsubscribe and pure scorer file/subpath pairs", async () => {
+  it("restricts backend imports to the exact unsubscribe, pure scorer and pure overview file/subpath pairs", async () => {
     const sourceFiles = await scanWebSourceFiles("apps/web/src");
     const detectedBackendImports: Array<{ file: string; specifier: string }> = [];
 
@@ -175,6 +179,7 @@ describe("workspace boundaries", () => {
       },
       { file: ALLOWED_SCORER_FILE, specifier: ALLOWED_SCORER_SPECIFIER },
       { file: ALLOWED_SCORER_FILE, specifier: ALLOWED_SCORER_SPECIFIER },
+      { file: ALLOWED_OVERVIEW_FILE, specifier: ALLOWED_OVERVIEW_SPECIFIER },
     ]);
 
     const audit = validateBackendImportAllowlist(detectedBackendImports);
@@ -310,5 +315,27 @@ describe("pure structural scorer import boundary", () => {
     expect(imports).toHaveLength(1);
     expect(imports.every((node) => node.importClause?.isTypeOnly === true)).toBe(true);
     expect(source).not.toMatch(/\brequire\s*\(|\bimport\s*\(/);
+  });
+});
+
+
+describe("pure structural overview import boundary", () => {
+  it("allows only the exact compiler export from its server model", () => {
+    expect(validateBackendImportAllowlist([{file:ALLOWED_OVERVIEW_FILE,specifier:ALLOWED_OVERVIEW_SPECIFIER}]).valid).toBe(true);
+    expect(validateBackendImportAllowlist([{file:ALLOWED_OVERVIEW_FILE,specifier:"@lasoviet/backend"}]).valid).toBe(false);
+    expect(validateBackendImportAllowlist([{file:ALLOWED_OVERVIEW_FILE,specifier:"@lasoviet/backend/ziwei/free-structural-overview-cache"}]).valid).toBe(false);
+    expect(validateBackendImportAllowlist([{file:"apps/web/src/other.ts",specifier:ALLOWED_OVERVIEW_SPECIFIER}]).valid).toBe(false);
+  });
+  it("keeps the compiler dependency graph confined to contracts, labels and pure scoring", async () => {
+    const source=await readFile("packages/backend/src/ziwei/free-structural-overview.ts","utf8");
+    const ast=ts.createSourceFile("overview.ts",source,ts.ScriptTarget.Latest,true);
+    expect(ast.statements.filter(ts.isImportDeclaration).map(node=>(node.moduleSpecifier as ts.StringLiteral).text)).toEqual([
+      "@lasoviet/contracts", "../reports/structural-palace-score.js", "./free-palace-labels.js",
+    ]);
+    const labels=await readFile("packages/backend/src/ziwei/free-palace-labels.ts","utf8");
+    expect(ts.createSourceFile("labels.ts",labels,ts.ScriptTarget.Latest,true).statements.filter(ts.isImportDeclaration).map(node=>(node.moduleSpecifier as ts.StringLiteral).text)).toEqual(["../reports/ziwei-canonical-labels.js"]);
+    const catalog=await readFile("packages/backend/src/reports/ziwei-canonical-labels.ts","utf8");
+    expect(ts.createSourceFile("catalog.ts",catalog,ts.ScriptTarget.Latest,true).statements.filter(ts.isImportDeclaration)).toHaveLength(0);
+    for(const content of [source,labels,catalog])expect(content).not.toMatch(/\brequire\s*\(|\bimport\s*\(/);
   });
 });

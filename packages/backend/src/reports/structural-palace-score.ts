@@ -1,6 +1,6 @@
 import type { NormalizedZiweiChartV1, ReportChartPalaceV1, ReportChartSnapshotV1 } from "@lasoviet/contracts";
 const branches = ["rat", "ox", "tiger", "rabbit", "dragon", "snake", "horse", "goat", "monkey", "rooster", "dog", "pig"];
-function getPalaceRelations(id: string, palaces: { id: string; earthlyBranchId: string }[]) {
+export function getPalaceRelations(id: string, palaces: { id: string; earthlyBranchId: string }[]) {
   const palace = palaces.find((item) => item.id === id);
   const index = palace ? branches.indexOf(palace.earthlyBranchId.replace("ziwei.branch.", "")) : -1;
   const related = (offset: number) => index < 0 ? undefined : palaces.find((item) => item.earthlyBranchId === `ziwei.branch.${branches[(index + offset) % 12]}`)?.id;

@@ -1,3 +1,4 @@
+import { readFreeOverviewDocuments } from "./free-structural-overview-cache.js";
 import type { DailyReadingService } from "../commerce/personal-daily-reading.service.js";
 import {
   EvidenceItemV1Schema,
@@ -80,6 +81,14 @@ function anonymousExpired(actor: CurrentActor, now: Date): boolean {
   return actor.kind === "anonymous" && new Date(actor.expiresAt) <= now;
 }
 
+function horoscopeDate(profile: import("@lasoviet/contracts").NormalizedBirthProfileV1, instant: Date): string {
+  const timezone = profile.timezoneProvenance;
+  if (timezone.source === "offset") return new Date(instant.getTime() + timezone.offsetMinutes * 60_000).toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {timeZone: timezone.ianaZone, year:"numeric", month:"2-digit", day:"2-digit"}).formatToParts(instant);
+  const part = (type: string) => parts.find(value => value.type === type)!.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
 function chartView(record: Awaited<ReturnType<ZiweiQueryRepository["readAuthorizedChart"]>> extends infer T ? Exclude<T, null> : never): ZiweiChartViewV1 {
   const chart = NormalizedZiweiChartV1Schema.safeParse(record.normalizedOutput);
   const items = record.items.map((item) =>
@@ -126,6 +135,7 @@ function chartView(record: Awaited<ReturnType<ZiweiQueryRepository["readAuthoriz
     chartId: record.chartId,
     chartVersionId: record.chartVersionId,
     chart: chart.data,
+    freeOverview: readFreeOverviewDocuments(chart.data, record.freeOverviewCache),
     birthSummary,
     evidenceIndex: {
       version: 1,
@@ -355,7 +365,7 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
       const result = options.calculateHoroscope(normalizedProfile.data, {
         chartId: record.chartId,
         chartVersionId: record.chartVersionId,
-        asOfDate: horoscopeOptions?.asOfDate,
+        asOfDate: horoscopeOptions?.asOfDate ?? horoscopeDate(normalizedProfile.data, now()),
         targetYear: horoscopeOptions?.targetYear,
         isUnlocked: false,
       });

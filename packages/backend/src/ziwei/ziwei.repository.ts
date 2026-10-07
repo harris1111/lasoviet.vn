@@ -1,3 +1,4 @@
+import { createFreeOverviewCache } from "./free-structural-overview-cache.js";
 import { randomUUID } from "node:crypto";
 
 import { and, eq, gt, isNull } from "drizzle-orm";
@@ -188,6 +189,7 @@ export function createDatabaseZiweiCalculationRepository(
           chartId: chart.id,
           calculationRunId: runId,
           normalizedOutput: input.chart,
+          freeOverviewCache: createFreeOverviewCache(input.chart),
           privateRawSnapshot: input.rawSnapshot,
           warnings: input.chart.warnings.map((warning) => warning.code),
           provenance: input.chart.provenance,
