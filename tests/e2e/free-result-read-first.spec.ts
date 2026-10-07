@@ -2,12 +2,12 @@ import { expect, test } from "@playwright/test";
 import { createAnonymousChart } from "./helpers/create-anonymous-chart";
 
 const blocks = [
-  "chart", "insights", "free-palace", "scores", "year",
+  "chart", "insights", "scores", "free-palace", "year",
   "palaces", "topics", "completion", "evidence",
 ];
 
 for (const locale of ["vi", "en"] as const) {
-  for (const width of [360, 390, 430, 768, 1023, 1024, 1280]) {
+  for (const width of [360, 390, 430, 768, 1023, 1024, 1280, 1440]) {
     test(`${locale} FD109 read-first result fits ${width}px without early money ask`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 844 });
       await createAnonymousChart(page, locale);

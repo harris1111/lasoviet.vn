@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CurrentActor } from "@lasoviet/contracts";
+import { NormalizedZiweiChartV1Schema, type CurrentActor } from "@lasoviet/contracts";
+import { createFreeOverviewCache } from "./free-structural-overview-cache.js";
 
 import {
   ZiweiQueryDataError,
@@ -106,6 +107,33 @@ function repository(overrides: Partial<ZiweiQueryRepository> = {}) {
 }
 
 describe("Zi Wei query service", () => {
+  it.each(["offset", "iana"])("uses the authorized profile %s timezone and injected clock for the temporal layer", async kind => {
+    const calculate = vi.fn().mockReturnValue({});
+    const stored=record({normalizedInput:{...profileNormalizedInput, timezoneProvenance:kind==="iana"?{source:"iana",ianaZone:"Asia/Ho_Chi_Minh",runtime:"Intl"}:{source:"offset",offsetMinutes:420}}});
+    const service=createZiweiQueryService({repository:repository({readAuthorizedChart:vi.fn().mockResolvedValue(stored)}),now:()=>new Date("2026-12-31T18:00:00Z"),calculateHoroscope:calculate});
+    await service.readHoroscope(account,"chart-1");
+    expect(calculate).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({asOfDate:"2027-01-01",isUnlocked:false}));
+  });
+
+  it("returns validated cache documents after authorization without exposing cache identity", async () => {
+    const normalized=NormalizedZiweiChartV1Schema.parse(chart);
+    const cache=createFreeOverviewCache(normalized);
+    const stored=record({freeOverviewCache:cache});
+    const store=repository({readAuthorizedChart:vi.fn().mockResolvedValue(stored)});
+    const service=createZiweiQueryService({repository:store,now:()=>now});
+    const first=await service.readChart(account,"chart-1"), second=await service.readChart(account,"chart-1");
+    expect(first).toEqual(second);
+    if(!first.ok) throw new Error("CHART_READ_FAILED");
+    expect(first.value.freeOverview).toEqual(cache.documents);
+    for(const key of ["rendererVersion","sourceHash","contentHash","freeOverviewCache"])expect(JSON.stringify(first.value)).not.toContain(key);
+    expect(Object.keys(store).sort()).toEqual(["readAuthorizedChart","readEvidenceItem"]);
+    for(const invalid of [null,{...cache,rendererVersion:"old"},{...cache,contentHash:"0".repeat(64)},{...cache,documents:{...cache.documents, privatePaidText:"PAID_PROSE_MUST_NOT_LEAK"}}]){
+      stored.freeOverviewCache=invalid as never;
+      const result=await service.readChart(account,"chart-1");
+      expect(result).toEqual(first);
+    }
+  });
+
   it("returns only a strict chart, minimal birth summary, and three evidence IDs to the account owner", async () => {
     const store = repository();
     const service = createZiweiQueryService({ repository: store, now: () => now });

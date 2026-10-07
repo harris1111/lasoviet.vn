@@ -1,6 +1,5 @@
-import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1, type NormalizedZiweiChartV1 } from "@lasoviet/contracts";
+import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1 } from "@lasoviet/contracts";
 import { CANONICAL_BRANCH_SEQUENCE } from "../../../../features/ziwei/ziwei-chart-relations";
-import { buildFreeInsights } from "../../../../features/ziwei/ziwei-free-insights";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -387,15 +386,11 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
-    // A02: the first insight is the chart-grounded structural text, not the
-    // preview API's "VISIBLE_FIRST" literal from this fixture; that literal
-    // must never reach the page.
-    const expectedFirstInsight = buildFreeInsights(
-      mockChartSuccess.value.chart as NormalizedZiweiChartV1,
-      "vi",
-      mockChartSuccess.value.birthSummary.displayName,
-    ).items[0]!.description;
-    expect(html).toContain(expectedFirstInsight);
+    // FD116 replaces the short insight prose with an authorized structural overview.
+    // The upstream preview's verified-only prose still must not reach this guest surface.
+    expect(html).toContain('data-testid="fd109-long-overview"');
+    expect(html).toContain('data-overview-section="life"');
+    expect(html).toContain("Tử Vi");
     expect(html).not.toContain("VISIBLE_FIRST");
     expect(html).toContain("data-free-result-block=\"insights\"");
     expect(html).not.toContain("SECOND_SECRET");

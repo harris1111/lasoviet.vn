@@ -43,6 +43,8 @@ describe("analytics event contract", () => {
       "upgrade_purchased",
       "return_visit",
       "free_result_interaction",
+      "free_read_depth",
+      "locked_preview_open",
     ];
 
     expect(canonicalFunnel).toEqual(expectedEvents);
@@ -180,6 +182,8 @@ describe("analytics event contract", () => {
       "upgrade_purchased",
       "return_visit",
       "free_result_interaction",
+      "free_read_depth",
+      "locked_preview_open",
     ];
 
     for (const eventName of testEvents) {

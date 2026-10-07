@@ -1,0 +1,29 @@
+# LSV75 approved value-first implementation
+
+## Authority and bounded outcome
+
+FD-116 accepts the exact prototype from Draft PR306 and all worksheet recommendations. Import its approved artifacts and safe evidence into a dedicated feature branch from master405cf057; supersede the draft only after the implementation PR merges. Implement phase-four free-result UI, grounded long overview/cache, matched full palace presentation, deterministic period teaser, secure filler and contextual unlock, while retaining FD109a/110/112/115 controls. Option A resolves LSV79 free-reader placement; no new recovery surface or outbound is authorized.
+
+## Delivery design
+
+The approved fallback is structural and zero-cost. Compile a versioned >=900-word overview from the normalized chart, actual major-star meanings already used by the product, Menh/Than placement and verified structural relationships. Compile one concern-matched structural palace with conclusion, full prose and do/avoid; actual validated gifts continue to take precedence and are never forged or re-granted. Unknown star facts cannot become invented favourable meanings. No full paid report or hidden locked plaintext is used.
+
+Persist both locale documents on the immutable chart-version row during its existing calculation transaction, using one additive nullable JSON column and explicit renderer/source identity. Creation/replay yields one version/cache; locale changes do not reserve AI or regenerate gift slots. Historical/missing/stale/invalid cache falls back to the same pure grounded compiler after existing chart authorization, with no provider call or read-time admission. Cache inherits chart-version ownership and existing immediate/24-hour deletion. Browser projection excludes cache hashes, private inputs, raw evidence/horoscope, operational fields and locked text. Preserve dynamic private/no-store route behavior; do not use a shared Next request cache for customer data.
+
+This deliberately implements the approved truthful fallback/cache-first path while current free-generation flags remain off. It does not claim an AI-written overview, native token-bound proof or a live writer campaign. Existing ready gift/cache remains readable and all free-AI reservations/ceilings remain unchanged. AI-generated long prose must not be silently substituted or enabled in this release.
+
+Web matches the approved proposal: mobile continuous reading; desktop six tabs/left chart; overview then structural scores and the full matched palace; a server-derived period teaser with an intentional incomplete sentence and geometric filler; price only in deliberately opened contextual unlock. Use active catalog availability to choose annual or existing lifetime SKU. Keep welcome grant unchanged and do not promise an extra insight after sign-in. Sticky eligibility follows completion or a deliberately opened locked preview, as FD109d, with visibility-aware measurement. Existing analytics must measure free_read_depth=100 and locked_preview_open without duplicate events or body-text leakage.
+
+## Independent plan GO constraints
+
+Sol approves technical implementation with nullable `freeOverviewCache` on the existing chart-version row, schema/renderer/source/content identity, VI/EN transaction-time compilation and safe DTO projection after authorization. Concern remains outside natal cache; ready gifts take precedence. Temporal teaser uses separate engine as-of/timezone facts, never current-year data in natal cache. Reuse a versioned known-star meaning catalog; unknown stars are not favourable by default. Only verified structural relations, truthful empty/provisional states, diverse output content review and lab4G LCP can support release/closure. Word count and screenshots alone are insufficient. Current free-AI flags stay off and no bank/outbound campaign is inferred.
+
+## Files and checks
+
+Bounded files: contracts overview DTO/ziwei API view and optional verified decadal facts; existing iztro horoscope adapter (verified local 2.6.0 decadalList API); backend pure compiler and calculation/query repositories; one chart-version schema column/migration/journal and required old-schema rewind fixture; web free-result model/component/styles, overview/teaser helpers, existing page integration and matched vi/en keys; focused compiler/model/source/privacy/cache/analytics tests and existing browser scenarios. No new route, package/provider integration, paid writer/pricing/gift quota, payment activation or operator/Nginx change.
+
+Verify diverse real engine chart fixtures for >=900 grounded words, no invented stars/months, repeat/source identity, locale parity and full palace. Test immutable cache replay, malformed/stale fallback, actor/expiry/deletion boundaries and zero provider/budget admission. Validate server-clipped filler source/network, annual catalog fallback, keyboard/focus/tab behavior, sticky eligibility, analytics once, 390/1440 dark/light overflow and critical purchase confirmation. Run producer rebuild and required i18n/lint/typecheck, independent exact-head review, topic/master CI, deployment, protected operator comparison and isolated actual published smoke. Move LSV75 Done only if approved deployed evidence satisfies the ticket; otherwise record the precise technical milestone and remaining gap without inventing acceptance.
+
+## Import boundary
+
+The web server model has one exact allowlisted import of the pure overview compiler. Shared canonical labels are extracted unchanged into a dependency-free module and re-exported by the existing validator, so the compiler does not import report validation/runtime implementation. Boundary tests reject the cache helper and arbitrary backend imports. Older synthetic recalculation/sentinel fixtures now include all 12 normalized palaces; privacy and race assertions stay intact.

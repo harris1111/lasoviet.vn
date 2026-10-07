@@ -167,3 +167,7 @@ WHERE classification = 'clicked' AND attributed_at IS NOT NULL;
 ```
 
 This technical change does not alter production provider/capture settings, send customer reminders or establish live SePay acceptance. Published isolated fixtures are explicitly synthetic authenticated acceptance; do not include them in customer/revenue reporting. Full LSV79 remains In Review for the held free-chart and real outbound/provider acceptance.
+
+## LSV75 reading diagnostics
+
+`free_read_depth` with `percent=100` means the visible, foreground reader reached the completion block; it is not proof of comprehension. `locked_preview_open` records one deliberately opened palace/topic/period preview per mounted result, including direct preview navigation. Both carry only locale, source kind and a closed section identifier when applicable; no chart identity or prose is included. The established `free_result_interaction` engaged/door funnel remains unchanged.

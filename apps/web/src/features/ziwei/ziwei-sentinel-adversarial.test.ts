@@ -1,3 +1,4 @@
+import { ZIWEI_PALACE_IDS } from "@lasoviet/contracts";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -187,7 +188,8 @@ vi.mock("./load-ziwei-chart", () => ({
           soulPalaceId: "ziwei.palace.life",
           bodyPalaceId: "ziwei.palace.career",
           transformations: [],
-          palaces: [{ id: "ziwei.palace.life", earthlyBranchId: "ziwei.branch.tiger", stars: [] }],
+          palaces: ZIWEI_PALACE_IDS.map((id,index)=>({id,earthlyBranchId:
+            ["ziwei.branch.rat","ziwei.branch.ox","ziwei.branch.tiger","ziwei.branch.rabbit","ziwei.branch.dragon","ziwei.branch.snake","ziwei.branch.horse","ziwei.branch.goat","ziwei.branch.monkey","ziwei.branch.rooster","ziwei.branch.dog","ziwei.branch.pig"][index]!, stars: []})),
         },
       },
     }),

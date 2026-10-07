@@ -73,6 +73,7 @@ export const ZiweiHoroscopeResultV1Schema = z
     isUnlocked: z.boolean(),
     yearly: ZiweiYearlyHanV1Schema,
     daily: ZiweiDailyHoroscopeV1Schema,
+    decadal: z.object({ palaceId: PalaceIdSchema, startAge: z.number().int().min(1), endAge: z.number().int().min(1), startYear: z.number().int(), endYear: z.number().int() }).strict().refine(value => value.endAge === value.startAge + 9 && value.endYear === value.startYear + 9).optional(),
   })
   .strict();
 

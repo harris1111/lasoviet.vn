@@ -311,6 +311,7 @@ export const ziweiChartVersions = pgTable(
     normalizedOutput: jsonb("normalized_output")
       .$type<Record<string, unknown>>()
       .notNull(),
+    freeOverviewCache: jsonb("free_overview_cache").$type<Record<string, unknown>>(),
     privateRawSnapshot: jsonb("private_raw_snapshot")
       .$type<Record<string, unknown>>()
       .notNull(),

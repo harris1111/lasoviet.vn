@@ -22,5 +22,15 @@ export function createFreeResultAnalytics(locale: "vi" | "en", sourceKind: "stru
       return start !== undefined && time - start >= 8000 ? claim(section, "engaged") : null;
     },
     door() { return claim("offer", "door"); },
+    depth(foreground: boolean) {
+      if (!foreground || emitted.has("depth:100")) return null;
+      emitted.add("depth:100");
+      return { name: "free_read_depth" as const, properties: { percent: 100, locale, source_kind: sourceKind } };
+    },
+    preview(section: string) {
+      if (emitted.has(`preview:${section}`)) return null;
+      emitted.add(`preview:${section}`);
+      return { name: "locked_preview_open" as const, properties: { section_id: section, locale, source_kind: "structural" } };
+    },
   };
 }

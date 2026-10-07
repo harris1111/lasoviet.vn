@@ -1,0 +1,16 @@
+# LSV75 value-first candidate acceptance — 2026-10-07
+
+Scope: FD116 owner-approved phase-four prototype, deterministic structural overview/cache, concern-matched full palace and source-derived annual/decadal cliffhanger. Candidate API and standalone web were built from this branch and run with migrated PostgreSQL in an internal Docker network. All chart/account/order data is synthetic; email verification goes to the isolated SMTP capture. No production database fixtures, real bank payment, customer outbound or AI generation were enabled.
+
+## Results
+
+- Required i18n/lint/typecheck pass; lint retains four existing warnings. Candidate API and production Next builds pass. The focused 16-suite run passes 149 tests; independent implementation review passes 70 tests, in addition to the prior diverse-chart content/source GO.
+- Actual HTTP/browser acceptance passes VI/EN at 390/1440 px: 1,418–1,475 displayed overview words, full structural palace, one immutable cached chart version, unchanged cache on revisit, safe source projection, empty aria-hidden blur bars, deliberate preview, focus restoration, sticky eligibility, outsider 404 and immediate deletion removing the cache. Both theme layouts fit the viewport. Browser analytics are accepted by the real API and include deduplicated `free_read_depth=100` and `locked_preview_open` without chart identity/prose.
+- A verified synthetic account receives a guest chart through the existing ownership-transfer repository. Exactly one version and the same VI/EN cache survive; the previous guest loses access. The normal preview/confirmation component charges nothing on open/cancel, charges exactly 960 La on confirmation and does not charge again on identical replay. Funding is a trusted isolated test grant, not bank or revenue acceptance.
+- Guest expiry remains within 24 hours of creation. An expired profile is denied over HTTP. Advancing the retention repository's clock beyond the actual expiry removes the chart-version cache. This is controlled-clock expiry acceptance, not a 24-hour real-time wait.
+- The isolated database records zero free-AI requests, admissions or provider dispatch. Ready gift behavior retains its existing validated precedence and is covered separately by focused model fixtures.
+- Lab 4G cached-chart reading: 1,880 ms LCP in Chrome at VI/390, 150 ms latency, 200,000 bytes/sec download, browser cache disabled and CPU slowdown 4. This measures the existing server-cached chart; it is neither first-generation latency nor a physical phone/mobile-network result. A repeat under concurrent full-suite load measured 2,856 ms; that shared-host sample is retained rather than presented as a pass. Repeat measurement on the final published images is required. Raw payloads, auth credentials, cache identities and private logs remain outside Git.
+
+## Release boundary
+
+This candidate receipt supports implementation review, not deployed closure. Exact committed-head CI, deployment, protected operator comparison and isolated published-image acceptance must pass before LSV75 moves to Done. SePay sandbox/real bank and physical device acceptance remain deferred by FD116; customer outbound stays off. Membership/combo/compatibility and other writer activation remain held.

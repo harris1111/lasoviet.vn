@@ -1,8 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { astro } from "iztro";
+import { describe, expect, it, vi } from "vitest";
 
 import type { NormalizedBirthProfileV1 } from "@lasoviet/contracts";
 
 import { calculateZiweiHoroscope } from "./iztro-horoscope.js";
+
+// Make the vendor namespace spyable while retaining the exact installed implementation.
+vi.mock("iztro", async importOriginal => {
+  const actual = await importOriginal<typeof import("iztro")>();
+  return {...actual, astro:{...actual.astro, withOptions:vi.fn(actual.astro.withOptions)}};
+});
 
 describe("calculateZiweiHoroscope", () => {
   // Test profile from la-so-ket-qua.html: 15/06/1992 08:30 (Giờ Thìn), Nam
@@ -30,6 +37,23 @@ describe("calculateZiweiHoroscope", () => {
     normalizationWarnings: [],
     limitations: [],
   };
+
+  it.each(["missing", "unmapped"])("rejects %s annual palace instead of claiming a default palace", (kind) => {
+    const original = vi.mocked(astro.withOptions).getMockImplementation()!;
+    const spy = vi.spyOn(astro, "withOptions").mockImplementation(options => {
+      const astrolabe = original(options);
+      const compute = astrolabe.horoscope.bind(astrolabe);
+      astrolabe.horoscope = (...args) => {
+        const result = compute(...args);
+        if (kind === "missing") result.yearly.index = -1;
+        else astrolabe.palaces[result.yearly.index]!.name = "unmapped-vendor-palace" as never;
+        return result;
+      };
+      return astrolabe;
+    });
+    try { expect(() => calculateZiweiHoroscope(testProfile, {asOfDate:"2026-09-22", targetYear:2026})).toThrow("HOROSCOPE_ANNUAL_MAPPING_INVALID"); }
+    finally { spy.mockRestore(); }
+  });
 
   it("calculates deterministic yearly and monthly hạn for 2026", () => {
     const result = calculateZiweiHoroscope(testProfile, {

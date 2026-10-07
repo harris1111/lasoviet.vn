@@ -1,8 +1,8 @@
-# Các mục cần bạn chốt — overnight 06/10/2026
+# Các mục đã chốt — overnight 06/10/2026
 
-Ưu tiên trả lời **1 và 2** theo số là được. Các mục 3–5 chỉ cần trả lời nếu muốn đổi những lựa chọn đang giữ. Không gửi token, mật khẩu hay dữ liệu khách hàng. Không cần duyệt lại API, model hoặc giá API.
+**Đã duyệt ngày 07/10/2026:** bạn chọn toàn bộ đề xuất (FD-116): duyệt bố cục LSV75; LSV79 chọn A; giữ chưa gửi thông báo thật; SePay/điện thoại và các sản phẩm đang giữ tiếp tục để sau. Các mục dưới lưu bối cảnh và phương án đã duyệt, không phải câu hỏi đang chờ trả lời.
 
-**Kaneo hiện tại:** 0 To Do; 9 In Review (50, 58, 60, 63, 64, 65, 66, 77, 79); 75 In Progress chờ bạn xem bản mẫu. Phần còn chờ của từng nhóm nằm ở các mục dưới.
+**Kaneo lúc chốt đề xuất (trước triển khai LSV75):** 0 To Do; 9 In Review (50, 58, 60, 63, 64, 65, 66, 77, 79); 75 In Progress, đang triển khai bản mẫu đã duyệt. Phần còn chờ của từng nhóm nằm ở các mục dưới.
 
 **Đã chốt:** LSV68/71 Done theo nghiệm thu của bạn; SePay sandbox để sau; thông báo chỉ kiểm thử cô lập, chưa gửi khách thật; hội viên/Combo/Hợp đôi và PR197/231 tiếp tục giữ. LSV62 “Hôm nay” 60 Lá và bonus bảy ngày đã deploy/nghiệm thu, kéo Done: [bằng chứng ngắn](../../plan/evidence/lsv62-daily/published-acceptance.md). Không cần bạn chọn lại giữa phần tặng và mở bán.
 
