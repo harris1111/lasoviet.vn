@@ -440,7 +440,9 @@ export class CommerceController {
     const welcomeGrant = await this.ensureWelcomeGrant(actor);
     const result = await this.repository().readWalletBalance(actor);
     if (!result.ok) walletError(result.error.code);
-    return { ok: true, value: WalletBalanceV1Schema.parse(result.value), ...(welcomeGrant ? { welcomeGrant } : {}) };
+    return { ok: true, value: WalletBalanceV1Schema.parse(result.value),
+      topUpMode: this.sepayEnvironment === "disabled" ? (this.autoApproveTopUps ? "test" : "unavailable") : "bank_transfer",
+      ...(welcomeGrant ? { welcomeGrant } : {}) };
   }
 
   @Get("wallet/pending-unlock")

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { WalletQuotesV1Schema, type WalletQuotesV1, type WalletQuoteV1 } from "@lasoviet/contracts";
 
 export type InitialWalletQuotes = { status: "guest" | "error" } | { status: "ready"; value: WalletQuotesV1 };
@@ -35,5 +35,6 @@ export function useWalletQuotes(chartId: string, chartVersionId: string, locale:
     void load();
     return () => { active = false; controller.abort(); window.clearTimeout(timeout); };
   }, [chartId, chartVersionId, locale, signature, attempt]);
-  return { ...(state.signature === signature ? state : { signature, status: "loading" as const, quotes: null }), retry: () => setAttempt((value) => value + 1) };
+  const retry = useCallback(() => setAttempt(value => value + 1), []);
+  return { ...(state.signature === signature ? state : { signature, status: "loading" as const, quotes: null }), retry };
 }

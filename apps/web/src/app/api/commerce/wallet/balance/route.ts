@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { WalletBalanceV1Schema } from "@lasoviet/contracts";
+import { WalletBalanceV1Schema, WalletTopUpModeV1Schema } from "@lasoviet/contracts";
 
 import { privateApiClient, PrivateApiClientError } from "../../../../../api/private-api-client";
 import {
@@ -51,6 +51,8 @@ export async function GET(): Promise<Response> {
   }
 
   const headers = new Headers(NO_STORE_HEADERS);
+  const mode = WalletTopUpModeV1Schema.safeParse((response as { topUpMode?: unknown }).topUpMode);
+  headers.set("x-wallet-topup-mode", mode.success ? mode.data : "unavailable");
   const grant = (response as { welcomeGrant?: { grantedAt?: unknown; promotionalLa?: unknown } }).welcomeGrant;
   if (grant?.promotionalLa === 60 && typeof grant.grantedAt === "string" && Number.isFinite(Date.parse(grant.grantedAt))) {
     headers.set("x-wallet-welcome-granted-at", new Date(grant.grantedAt).toISOString());

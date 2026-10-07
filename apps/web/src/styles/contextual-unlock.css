@@ -45,3 +45,22 @@
 .pending-unlock-banner p { margin: 0; flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
 .pending-unlock-banner button { min-width: 44px; min-height: 44px; border: 0; background: transparent; color: var(--text-heading); cursor: pointer; }
 .pending-unlock-banner .button { min-height: 44px; white-space: normal; }
+
+.inline-topup-summary { display: grid; gap: 8px; margin: 16px 0; }
+.inline-topup-summary > div { display: flex; justify-content: space-between; gap: 16px; }
+.inline-topup-summary dt { color: var(--text-body); }
+.inline-topup-summary dd { margin: 0; font-weight: 600; text-align: right; }
+.inline-topup-selected { display: grid; gap: 8px; padding: 16px; border: 1px solid var(--gold-500); border-radius: var(--radius-card); background: var(--surface-raised); }
+.inline-topup-pack-badge { width: fit-content; color: var(--text-body); font-size: 13px; }
+.inline-topup-selected strong { font-size: 18px; }
+.inline-topup-pack-price { font-size: 20px; font-weight: 600; }
+.inline-topup-other-packs summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; color: var(--text-heading); text-decoration: underline; text-underline-offset: 4px; }
+.inline-topup-other-packs summary::after { content: "+"; margin-left: auto; }
+.inline-topup-other-packs[open] summary::after { content: "−"; }
+.inline-topup-other-packs > div { display: grid; gap: 8px; }
+.inline-topup-mode { padding: 12px; border: 1px solid var(--border-soft); border-radius: var(--radius-control); }
+.inline-topup-mode p { margin-bottom: 0; font-size: 14px; line-height: 1.6; }
+.inline-topup .button-primary, .wallet-unlock-dialog-short-balance > .button { width: 100%; }
+.inline-topup-consent { font-size: 14px; line-height: 1.6; color: var(--text-body); }
+.inline-topup-after { font-weight: 600; }
+.inline-topup-other-packs summary:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 3px; }

@@ -14,7 +14,7 @@ import {
   trackPackSelected,
   trackUnlockError,
 } from "../analytics/funnel-analytics";
-import type { LaSku } from "@lasoviet/contracts";
+import type { LaSku, WalletTopUpModeV1 } from "@lasoviet/contracts";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import {
   classifyWalletUnlockError,
@@ -123,6 +123,7 @@ export function WalletUnlockDialog({
   const titleId = useId();
   const idempotencyKeyRef = useRef<string>(randomId());
   const [attempt, setAttempt] = useState(0);
+  const [topUpMode, setTopUpMode] = useState<WalletTopUpModeV1>("unavailable");
 
   useEffect(() => {
     let active = true;
@@ -158,6 +159,8 @@ export function WalletUnlockDialog({
         };
         const balance = (await balanceResponse.json()) as { totalLa: number; stateVersion: number };
         if (!active) return;
+        const mode = balanceResponse.headers.get("x-wallet-topup-mode");
+        setTopUpMode(mode === "test" || mode === "bank_transfer" ? mode : "unavailable");
         const loadedState = resolveWalletUnlockLoadedState(intent, balance, balance.stateVersion);
         setState(loadedState);
         if (loadedState.step === "confirm") {
@@ -383,9 +386,9 @@ export function WalletUnlockDialog({
         {shortBalance && (
           <div className="wallet-unlock-dialog-short-balance">
             <h3>{labels.shortBalanceTitle}</h3>
-            <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>
-            <p>{membership ? t("membership.confirmAfterTopup") : t("selection.unlockAfterTopupConsent", { item: itemName, price: shortBalance.priceLa })}</p>
-            {!membership ? <InlineTopUp key={`${shortBalance.intentId}:${shortBalance.intentVersion}:${chartVersionId}:${sku}`} chartId={chartId} chartVersionId={chartVersionId} sku={sku} onReconfirm={retry} locale={locale} itemName={itemName} balance={shortBalance.balance} priceLa={shortBalance.priceLa}
+            {membership && <p>{t("selection.unlockDialogShortBalanceBody", { gap, balance: shortBalance.balance })}</p>}
+            {membership && <p>{t("membership.confirmAfterTopup")}</p>}
+            {!membership ? <InlineTopUp key={`${shortBalance.intentId}:${shortBalance.intentVersion}:${chartVersionId}:${sku}`} chartId={chartId} chartVersionId={chartVersionId} sku={sku} onReconfirm={retry} topUpMode={topUpMode} locale={locale} itemName={itemName} balance={shortBalance.balance} priceLa={shortBalance.priceLa}
               continuation={{ purchaseIntentId: shortBalance.intentId, expectedIntentVersion: shortBalance.intentVersion, confirmedPriceLa: shortBalance.priceLa,
                 returnTab: (topUpParams.get("tab") ?? "topics") as "topics" | "chart" | "overview" | "palaces" | "nam-nay" | "evidence",
                 ...(topUpParams.get("open") ? { returnOpen: topUpParams.get("open")! } : {}) }}
@@ -401,7 +404,7 @@ export function WalletUnlockDialog({
                 vnd: coveringPack.vndFormatted[locale],
               })}
             </a>}
-            <p className="wallet-unlock-dialog-topup-note">{labels.topUpNote}</p>
+            {membership && <p className="wallet-unlock-dialog-topup-note">{labels.topUpNote}</p>}
             <button className="button button-secondary" onClick={() => onOpenChange(false)} type="button">
               {labels.cancel}
             </button>
