@@ -1,0 +1,690 @@
+<title>Kế hoạch làm lại luồng luận giải</title>
+<style>
+/* Trang duyệt vòng 2. Cùng khung với trang vòng 1: dark-first (nền sơn mài nâu, vàng bắt sáng, đỏ son cho dấu ghi nhận), một cột đọc ~760px.
+   Hình minh hoạ chỉ dựng bằng HTML/CSS, không ảnh ngoài. Lá số mẫu là dữ liệu tổng hợp, không phải người thật. */
+:root{
+  --bg:#14110d; --panel:#1d1913; --panel-2:#26211a; --line:#3a3125;
+  --fg:#efe6d4; --muted:#b3a58b; --gold:#d9b25f; --gold-ink:#1a1408; --son:#d9604a; --ok:#8fbf8a;
+  --f-display:"Source Serif 4",Georgia,serif; --f-body:"Be Vietnam Pro",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.32,.72,0,1);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --bg:#f6f0e3; --panel:#fffaf0; --panel-2:#f0e7d3; --line:#d9ccb0; --fg:#2a2218; --muted:#6b5d45; --gold:#8a6414; --gold-ink:#fff8e6; --son:#b3402c; --ok:#3f7a3b; color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f0e3; --panel:#fffaf0; --panel-2:#f0e7d3; --line:#d9ccb0; --fg:#2a2218; --muted:#6b5d45; --gold:#8a6414; --gold-ink:#fff8e6; --son:#b3402c; --ok:#3f7a3b; color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 var(--f-body);margin:0;padding-inline:16px;padding-block:0 96px;overflow-wrap:anywhere}
+.wrap{max-width:760px;margin:0 auto}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;justify-content:space-between}
+header.top b{font:600 13px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.prog{font:13px var(--f-mono);color:var(--muted)}
+h1{font:600 clamp(28px,5vw,40px)/1.2 var(--f-display);margin:32px 0 8px;text-wrap:balance}
+h2.sec{font:600 clamp(22px,4vw,28px)/1.25 var(--f-display);margin:0 0 6px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 8px;max-width:64ch}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 8px}
+.toc a{min-height:44px;display:inline-flex;align-items:center;padding:0 14px;border-radius:999px;border:1px solid var(--line);color:var(--fg);text-decoration:none;font-size:14px;transition:border-color .25s var(--ease),background .25s var(--ease)}
+.toc a:hover{border-color:var(--gold)}
+.toc a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.toc a:active{transform:scale(.98)}
+section.blk{margin:48px 0 0}
+.num{font:600 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.sub{color:var(--muted);margin:0 0 20px;max-width:64ch;font-size:15px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin:0 0 16px;display:grid;gap:12px}
+.card h3{font:600 clamp(18px,3vw,21px)/1.3 var(--f-display);margin:0;text-wrap:balance}
+.card p{margin:0;font-size:15px}
+.card .so{color:var(--muted)}
+.card .so b{color:var(--gold)}
+.tag{font:600 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ctx{margin:0;color:var(--muted);font-size:15px}
+/* Mục 1 */
+.rec{display:grid;gap:10px}
+.rec .it{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.rec .it .q{font:600 12px var(--f-mono);color:var(--gold);letter-spacing:.06em;padding-top:3px}
+.rec .it .t{font-size:15px;min-width:0}
+.rec .it .t b{display:inline-block;margin-right:6px}
+.pill{display:inline-block;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 9px;border:1px solid var(--line);color:var(--muted)}
+.pill.y{border-color:var(--gold);color:var(--gold)}
+.pill.n{border-color:var(--son);color:var(--son)}
+.pill.s{border-color:var(--muted);color:var(--fg)}
+.callout{background:var(--panel-2);border-radius:12px;padding:12px 14px;font-size:14.5px;box-shadow:inset 0 0 0 1px var(--gold);margin:14px 0 0}
+/* Mục 3: Q4 */
+.story{counter-reset:st;display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.story li{counter-increment:st;display:grid;grid-template-columns:32px 1fr;gap:10px;font-size:15px}
+.story li::before{content:counter(st);width:28px;height:28px;border-radius:50%;background:var(--panel-2);border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font:600 13px var(--f-mono)}
+.stage{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:720px){.stage{grid-template-columns:1fr}}
+.phone{position:relative;max-width:340px;width:100%;min-height:470px;margin-inline:auto;border:1px solid var(--line);border-radius:28px;background:var(--bg);overflow:hidden;padding:14px;box-shadow:0 0 0 6px var(--panel-2)}
+.pg-lab{font:600 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:2px 4px 10px}
+.mrow{width:100%;display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;min-height:64px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:inherit;text-align:left;cursor:pointer;margin-bottom:8px;transition:border-color .18s var(--ease),transform .12s var(--ease),background .18s var(--ease)}
+.mrow:hover{border-color:var(--gold);background:var(--panel-2)}
+.mrow:active{transform:scale(.99)}
+.mrow:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.mrow.dim{opacity:.55;pointer-events:none}
+.mrow .ic{width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font:600 14px var(--f-display)}
+.mrow .nm{font-size:15px;line-height:1.3}
+.mrow .nm small{display:block;color:var(--muted);font-size:13px}
+.mrow .go{font:600 13px var(--f-body);color:var(--gold);white-space:nowrap}
+.sheet{position:absolute;inset-inline:0;bottom:0;max-height:92%;overflow:auto;background:var(--panel);border-top:1px solid var(--gold);border-radius:22px 22px 0 0;padding:10px 16px 18px;transform:translateY(105%);transition:transform .24s var(--ease);box-shadow:0 -12px 30px rgba(0,0,0,.35)}
+.sheet.open{transform:translateY(0)}
+.grab{width:44px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 10px}
+.sh-top{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sh-x{min-height:44px;min-width:44px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);font:600 14px var(--f-body);cursor:pointer;padding:0 14px}
+.sh-x:hover{border-color:var(--gold)}
+.sh-x:active{transform:scale(.96)}
+.sh-x:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.sh-head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.sh-head h4{margin:0;font:600 17px/1.25 var(--f-display)}
+.sh-head small{display:block;color:var(--muted);font-size:13px}
+.sh-h{font:600 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.sheet ul{margin:0;padding-left:18px;font-size:14px}
+.sheet li{margin-bottom:4px}
+.read{font-size:14px;line-height:1.6;margin:0;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent);padding-bottom:6px}
+.ghost{display:grid;gap:6px;margin:6px 0 10px}
+.ghost i{display:block;height:9px;border-radius:5px;background:var(--panel-2)}
+.ghost i:nth-child(2){width:86%}.ghost i:nth-child(3){width:64%}
+.chip{display:inline-flex;align-items:center;min-height:32px;padding:0 12px;border-radius:999px;border:1px dashed var(--gold);color:var(--gold);font-size:13px}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+.cta .pr{font:600 14px var(--f-mono);color:var(--fg)}
+.pillbtn{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 6px 0 20px;border-radius:999px;border:0;background:var(--gold);color:var(--gold-ink);font:600 15px var(--f-body);cursor:pointer;transition:transform .12s var(--ease),filter .18s var(--ease)}
+.pillbtn .ar{width:34px;height:34px;border-radius:50%;background:var(--gold-ink);color:var(--gold);display:grid;place-items:center;font-size:16px;transition:transform .18s var(--ease)}
+.pillbtn:hover{filter:brightness(1.08)}.pillbtn:hover .ar{transform:translate(3px,-3px)}
+.pillbtn:active{transform:scale(.98)}
+.pillbtn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.linkb{display:block;text-align:center;margin-top:12px;font-size:13.5px;color:var(--muted)}
+.hint{font-size:13.5px;color:var(--muted);margin:10px 0 0;text-align:center}
+.reset{margin-top:10px;min-height:44px}
+/* Mục 4: bảng sản phẩm */
+.pt{display:grid;gap:10px}
+.pt-row{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:130px 1fr 1fr 96px 150px;gap:8px 14px;align-items:start;font-size:14.5px;min-width:0}
+.pt-row>div{min-width:0}
+.pt-head{background:transparent;border:0;padding-block:0;font:600 11px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.pt-row .lay{font:600 15px var(--f-display);color:var(--gold)}
+.pt-row .gia{font:600 14px var(--f-mono)}
+.st{display:inline-block;border-radius:999px;padding:3px 10px;font:600 12px var(--f-body);border:1px solid var(--line)}
+.st.ok{border-color:var(--ok);color:var(--ok)}
+.st.build{border-color:var(--gold);color:var(--gold)}
+.st.hold{border-color:var(--muted);color:var(--muted)}
+.pt-row small{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+@media (max-width:760px){
+  .pt-head{display:none}
+  .pt-row{grid-template-columns:1fr 1fr}
+  .pt-row .lay{grid-column:1/-1}
+  .pt-row>div[data-l]::before{content:attr(data-l);display:block;font:600 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+}
+@media (max-width:420px){.pt-row{grid-template-columns:1fr}}
+/* Mục 5: hình minh hoạ */
+.bezel{padding:6px;border:1px solid var(--line);border-radius:22px;background:color-mix(in srgb,var(--gold) 6%,transparent)}
+.bezel>.core{background:var(--panel);border-radius:16px;padding:16px;box-shadow:inset 0 1px 0 color-mix(in srgb,var(--gold) 14%,transparent);display:grid;gap:12px}
+.ph{margin:0;font:600 11px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ttl{margin:0;font:600 18px/1.3 var(--f-display)}
+.cap{margin:0;color:var(--muted);font-size:13.5px}
+.rail{display:flex;flex-wrap:wrap;gap:6px}
+.rail span{min-height:36px;display:inline-flex;align-items:center;padding:0 12px;border-radius:999px;border:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+.rail span.on{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:620px){.two{grid-template-columns:1fr}}
+.grp h5{margin:0 0 8px;font:600 12px var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.grp.up h5{color:var(--gold)}.grp.dn h5{color:var(--son)}
+.sp{display:grid;grid-template-columns:22px 56px 1fr;gap:10px;align-items:center;min-height:64px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);margin-bottom:8px;cursor:pointer;transition:border-color .18s var(--ease),transform .12s var(--ease)}
+.sp:hover{border-color:var(--gold)}.sp:active{transform:scale(.99)}
+.sp .rk{font:600 15px var(--f-display);color:var(--muted);text-align:center}
+.ring{--v:50;--c:var(--gold);width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--v)*1%),var(--line) 0);display:grid;place-items:center}
+.ring b{width:44px;height:44px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font:600 13px var(--f-mono);color:var(--fg)}
+.dn .ring{--c:var(--son)}
+.sp .nm{font-size:15px;line-height:1.3}
+.sp .nm small{display:block;color:var(--muted);font-size:13px}
+.dvt{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted)}
+.lg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+.dv{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;align-items:end;position:relative}
+.dv li{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;min-width:0}
+.dv .dv-n{order:0;font:600 13px var(--f-mono)}
+.dv .dv-bar{order:1;height:130px;width:100%;display:flex;align-items:flex-end;background:transparent}
+.dv .dv-age{order:2;font:600 12px var(--f-mono);color:var(--muted)}
+.dv .dv-pal{order:3;font-size:12.5px;text-align:center;line-height:1.2}
+.dv .dv-bar i{display:block;width:100%;height:calc(var(--v)*1%);border-radius:6px 6px 0 0;background:var(--gold)}
+.dv button{all:unset;display:contents}
+.dv .btn-c{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;cursor:pointer;padding:4px 2px;border-radius:10px;border:1px solid transparent;min-height:44px;transition:border-color .18s var(--ease),transform .12s var(--ease),background .18s var(--ease)}
+.dv .btn-c:hover{border-color:var(--gold)}
+.dv .btn-c:active{transform:scale(.98)}
+.dv .btn-c:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.dv li.past .dv-bar i{opacity:.55}
+.dv li.cur .btn-c{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 8%,transparent)}
+.dv li.sel .btn-c{border-color:var(--fg)}
+.b-manh{background:var(--gold)!important}
+.b-thuan{background:color-mix(in srgb,var(--gold) 70%,var(--bg))!important}
+.b-can{background:var(--muted)!important}
+.b-canh{background:var(--son)!important}
+.b-kho{background:repeating-linear-gradient(135deg,var(--son) 0 5px,color-mix(in srgb,var(--son) 40%,var(--bg)) 5px 10px)!important}
+.stamp{position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(-3deg);z-index:2;background:var(--son);color:#fff;font:600 10px var(--f-mono);letter-spacing:.04em;padding:3px 6px;border-radius:4px;white-space:nowrap}
+.dvd{display:grid;gap:6px;background:var(--panel-2);border-radius:12px;padding:12px 14px;font-size:14.5px}
+.dvd b.sc{font-family:var(--f-mono);color:var(--gold)}
+details.how{background:var(--panel-2);border-radius:12px;padding:10px 14px;font-size:14px}
+details.how summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;color:var(--gold)}
+details.how summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (max-width:620px){
+  .dv{grid-template-columns:1fr;gap:8px}
+  .dv li{display:block}
+  .dv .btn-c{flex-direction:row;gap:10px;padding:6px 10px}
+  .dv .dv-n{order:3;width:34px;text-align:right}
+  .dv .dv-bar{order:2;height:14px;flex:1;align-items:stretch;background:var(--line);border-radius:7px}
+  .dv .dv-bar i{width:calc(var(--v)*1%);height:100%;border-radius:7px}
+  .dv .dv-age{order:0;width:50px}
+  .dv .dv-pal{order:1;width:72px;text-align:left}
+  .stamp{top:50%;left:auto;right:-4px;transform:translateY(-50%) rotate(-3deg)}
+}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px}
+.chain span.t{padding:6px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2)}
+.chain span.t b{color:var(--gold)}
+.mgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}
+@media (max-width:620px){.mgrid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.mc{min-height:56px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);display:grid;place-items:center;align-content:center;gap:2px;font-size:13px;cursor:pointer;color:var(--fg);transition:border-color .18s var(--ease),transform .12s var(--ease);font-family:inherit}
+.mc:hover{border-color:var(--gold)}.mc:active{transform:scale(.97)}
+.mc:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.mc em{font-style:normal;font:600 15px var(--f-mono)}
+.mc.g{border-color:var(--gold)}.mc.g em{color:var(--gold)}
+.mc.w{border-color:var(--son)}.mc.w em{color:var(--son)}
+.mc small{font-size:11px;color:var(--muted)}
+.mc.w small{color:var(--son)}
+.mnote{min-height:22px;font-size:13.5px;color:var(--muted)}
+/* Mục 6: ChatGPT */
+.brief pre{margin:0;white-space:pre-wrap;word-break:break-word;background:var(--panel-2);border-radius:10px;padding:12px 14px;font:13px/1.55 var(--f-mono);color:var(--fg);user-select:text}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.meta dt{color:var(--muted)}.meta dd{margin:0;min-width:0}
+.meta code{font:13px var(--f-mono);color:var(--gold)}
+.copy{align-self:start}
+.copied{font:12px var(--f-mono);color:var(--ok);min-height:16px}
+/* Mục 7: câu hỏi */
+.group{font:600 12px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:28px 0 12px}
+.cmp{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.cmp li{background:var(--panel-2);border-radius:10px;padding:10px 14px;font-size:14.5px;display:grid;grid-template-columns:auto 1fr;gap:10px;min-width:0}
+.cmp li b{font:600 12px var(--f-mono);color:var(--gold);padding-top:3px}
+.cmp li.rc{box-shadow:inset 0 0 0 1px var(--gold)}
+.reco{margin:0;font-size:14.5px}.reco b{color:var(--gold)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);font:600 15px var(--f-body);cursor:pointer;transition:background .25s var(--ease),border-color .25s var(--ease),transform .12s var(--ease)}
+.btn:hover{border-color:var(--gold)}
+.btn:active{transform:scale(.98)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.btn.no[aria-pressed="true"]{background:var(--son);border-color:var(--son);color:#fff}
+.btn.fix[aria-pressed="true"]{background:var(--panel-2);color:var(--fg);border-color:var(--gold)}
+textarea{width:100%;min-height:72px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);padding:10px 12px;font:15px/1.5 var(--f-body);resize:vertical}
+textarea:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.saved{font:12px var(--f-mono);color:var(--ok);min-height:16px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin:16px 0 8px}
+/* Mục 8: ai làm gì */
+.ph8{display:grid;gap:10px}
+.ph8 .p{display:grid;grid-template-columns:44px 1fr;gap:6px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+.ph8 .p>.n{width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);display:grid;place-items:center;font:600 15px var(--f-mono)}
+.ph8 h3{margin:0;font:600 18px/1.3 var(--f-display)}
+.ph8 .lanes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+@media (max-width:620px){.ph8 .lanes{grid-template-columns:1fr}.ph8 .p{grid-template-columns:1fr}}
+.ph8 .lane{background:var(--panel-2);border-radius:10px;padding:10px 12px;font-size:14px;min-width:0}
+.ph8 .lane b{display:block;font:600 11px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.ph8 .lane.be b{color:var(--muted)}
+.ph8 .see{margin-top:8px;font-size:14px;color:var(--muted)}
+.ph8 .see b{color:var(--fg)}
+.foot{position:fixed;inset-inline:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:12px;align-items:center}
+.foot span{font-size:14px;color:var(--muted)}
+.note{font-size:13.5px;color:var(--muted);margin-top:32px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:wght@600&display=swap">
+
+<header class="top"><b>Lá Số Việt · Kế hoạch v2</b><span class="prog" id="prog">0 / 13 đã chọn</span></header>
+<div class="wrap">
+<h1>Kế hoạch làm lại luồng luận giải: anh duyệt vòng 2</h1>
+<p class="lead">Vòng 1 anh đã trả lời 10 câu. Từ đó ta làm nghiên cứu sâu về dải sản phẩm, chữ AI viết, tab, hình ảnh và nút bấm. Trang này nhắc lại điều anh đã chốt, nói điều mới tìm ra, giải thích lại câu Q4, cho xem dải sản phẩm và hình sẽ có, đưa sẵn lời nhờ ChatGPT vẽ, rồi hỏi 13 câu còn mở. Chưa có dòng code sản phẩm nào được viết.</p>
+<nav class="toc" aria-label="Các mục">
+  <a href="#da-chot">1 Đã chốt</a><a href="#da-tim">2 Đã tìm ra</a><a href="#q4">3 Giải thích Q4</a><a href="#dai-san-pham">4 Dải sản phẩm</a><a href="#hinh">5 Hình minh hoạ</a><a href="#chatgpt">6 Nhờ ChatGPT vẽ</a><a href="#vong2">7 Quyết định</a><a href="#ai-lam-gi">8 Ai làm gì</a>
+</nav>
+
+<!-- 1 -->
+<section class="blk" id="da-chot">
+  <span class="num">Mục 1</span>
+  <h2 class="sec">Anh đã chốt gì</h2>
+  <p class="sub">Chỉ để đọc lại, không phải trả lời. Các câu này đã ghi thành quyết định FD-117.</p>
+  <div class="rec">
+    <div class="it"><span class="q">Q1</span><div class="t"><span class="pill s">Sửa</span> Không chỉ ẩn “Sắp mở”. Rà cả dải sản phẩm theo cách người ta đọc Tử Vi, tìm vì sao mỗi món chưa bán, món nào phần tính toán đã sẵn sàng thì xây. Món chưa qua kiểm tra chất lượng thì ẩn; qua rồi tự hiện.</div></div>
+    <div class="it"><span class="q">Q2</span><div class="t"><span class="pill y">Đồng ý</span> Bỏ tab “Căn cứ”. Căn cứ nằm cạnh từng nhận định, AI viết như người có nghề, riêng cho lá số.</div></div>
+    <div class="it"><span class="q">Q3</span><div class="t"><span class="pill y">Đồng ý</span> Năm tab theo thời gian: Tổng quan (có lá số) → Năm nay → Đại vận → 12 cung → Chủ đề.</div></div>
+    <div class="it"><span class="q">Q4</span><div class="t"><span class="pill y">Đồng ý</span> Hàng “Chưa mở” mở ra tấm đọc thử của chính lá số. Anh chưa rõ, nên mục 3 giải thích lại.</div></div>
+    <div class="it"><span class="q">Q5</span><div class="t"><span class="pill s">Sửa</span> Logic năm tính theo từng người và theo vòng thời gian: năm nay, năm sau, cụm vài năm.</div></div>
+    <div class="it"><span class="q">Q6</span><div class="t"><span class="pill n">Không</span> Giá chỉ bằng Lá. Tiền đồng chỉ hiện ở bước cuối ngay trước khi thanh toán.</div></div>
+    <div class="it"><span class="q">Q7</span><div class="t"><span class="pill y">Đồng ý</span> Thay mạng nhện bằng “3 cung nâng đỡ nhất / 3 cung cần lưu tâm”, hình đẹp đúng thương hiệu.</div></div>
+    <div class="it"><span class="q">Q8</span><div class="t"><span class="pill y">Đồng ý</span> “Đường đời 10 năm” có điểm, kèm hộp “Điểm này tính thế nào”.</div></div>
+    <div class="it"><span class="q">Q9</span><div class="t"><span class="pill y">Đồng ý</span> AI viết chữ miễn phí: rất chặt, tiếng Việt tự nhiên, riêng cho từng người, để khách tin Lá Số Việt luận đúng.</div></div>
+    <div class="it"><span class="q">Q10</span><div class="t"><span class="pill y">Đồng ý</span> Hai lớp viền, nút viên có mũi tên; mọi nút phải có phản hồi nhìn thấy được.</div></div>
+  </div>
+  <p class="callout"><b>Cách tính điểm Đường đời 10 năm (đã chốt, không hỏi lại):</b> điểm của một chặng 10 năm là điểm đã công bố của cung mà chặng đó đi qua. Không có công thức mới. Ghi rõ trong hộp giải thích: đây là sức nâng đỡ của bộ sao ở cung ấy, không phải điểm may rủi.</p>
+</section>
+
+<!-- 2 -->
+<section class="blk" id="da-tim">
+  <span class="num">Mục 2</span>
+  <h2 class="sec">Đã tìm ra gì</h2>
+  <p class="sub">Tám phát hiện sau khi đọc kỹ cách làm hiện tại. Phần “Hệ quả” cho biết việc đó đã được xếp vào đâu.</p>
+
+  <div class="card"><span class="tag">1 · Vì sao các món “Sắp mở” chưa bán</span>
+    <h3>Không phải do giao diện</h3>
+    <p>Tình duyên, Công việc, Tháng này, Vận hạn năm và Combo đều đã có phần máy chủ viết xong và đã đưa lên. Chúng chưa bán vì luật “20 bài viết thật đạt liên tiếp” và vì chưa duyệt tiền cho các đợt thử. Hội viên thiếu công cụ trả phí đã hứa. Hợp đôi, Bát Tự, Tây phương chưa có phần tính toán riêng.</p>
+    <p class="so"><b>Hệ quả:</b> làm xong giao diện cũng chưa bán được. Có một giai đoạn riêng đưa từng món qua kiểm tra chất lượng rồi mới bật.</p></div>
+
+  <div class="card"><span class="tag">2 · Phần tính toán Tử Vi</span>
+    <h3>Đủ cho mọi tầng thời gian, thiếu hai món</h3>
+    <p>Máy tính được chặng 10 năm, từng năm, từng tháng, từng ngày, cho bất kỳ năm nào. Còn thiếu: món “Chặng 10 năm” chưa có để bán, và danh sách đủ các chặng chưa đưa ra trang miễn phí.</p>
+    <p class="so"><b>Hệ quả:</b> phần này An làm. Đó cũng là điều kiện để vẽ “Đường đời 10 năm”.</p></div>
+
+  <div class="card"><span class="tag">3 · Chu kỳ của từng người</span>
+    <h3>Mỗi người một chặng khác nhau (đã chạy thử 7 lá số mẫu)</h3>
+    <p>Cùng là năm 2026 nhưng mỗi lá số rơi vào chặng khác, cung khác. Có người đang ở năm thứ 2 của chặng, có người đã ở năm thứ 8 và chỉ còn 2 năm là sang chặng mới. Nam và nữ cùng ngày sinh còn ra chặng khác nhau.</p>
+    <p class="so"><b>Hệ quả:</b> không thể nói chung “năm 2026 nằm trong đại vận”. Trang phải tính cho từng người, và chọn món bán theo tình huống của người đó (xem mục 4).</p></div>
+
+  <div class="card"><span class="tag">4 · Tháng “cần chú ý” giả</span>
+    <h3>Hệ thống đang tự đặt tháng 7 là tháng cần chú ý</h3>
+    <p>Khi lá số không có tháng nào đáng chú ý, hệ thống vẫn đặt tháng 7 thành tháng cần chú ý. Khách so hai lá số sẽ thấy cùng một tháng, và con số đó không do sao tính ra. Ngoài ra, trang miễn phí và bản trả phí đang hiểu “tháng hạn” theo hai cách khác nhau.</p>
+    <p class="so"><b>Hệ quả:</b> đề xuất bỏ và nói thật. Anh chốt ở câu R4. An sửa phần hai cách hiểu ngay, không cần anh quyết.</p></div>
+
+  <div class="card"><span class="tag">5 · Chữ “2026” viết cứng</span>
+    <h3>Sau Tết 06/02/2027 món “Vận hạn năm 2026” không bán được nữa</h3>
+    <p>Năm 2026 nằm cứng ở tên món, ở phần máy chủ (4 chỗ), ở một bộ kích hoạt trong cơ sở dữ liệu và ở thẻ trên trang chọn. Hôm nay còn khoảng 4 tháng. Ngoài ra từ 01/01 đến 05/02/2027 hệ thống đang tính “năm” theo lịch dương nên sẽ nói sai năm.</p>
+    <p class="so"><b>Hệ quả:</b> An đổi thành “Vận hạn năm [Y]” và sửa cách tính năm ngay (ưu tiên cao nhất). Đây là chỗ duy nhất đụng đường tiền, nên có kiểm tra riêng.</p></div>
+
+  <div class="card"><span class="tag">6 · Nút bấm “không phản hồi”</span>
+    <h3>Có hai nguyên nhân thật, không phải một</h3>
+    <p>Trang chọn luận giải: cái thẻ không phải nút; chỉ nút nhỏ “Chọn phần này” mới bấm được và nút xác nhận nằm tít cuối trang. Trang lá số: mỗi lần bấm hàng hoặc tab phải đi hỏi máy chủ lại cả trang, không có dấu hiệu đang tải. Thêm nữa: nút bị khoá (như “Sắp ra mắt”) trông y như nút bấm được, và 22 nhóm nút ở trang lá số không nhóm nào có trạng thái “đang nhấn”.</p>
+    <p class="so"><b>Hệ quả:</b> sửa một lần cho cả site, rồi kiểm từng nút trong bảng đạt/chưa ở giai đoạn nghiệm thu.</p></div>
+
+  <div class="card"><span class="tag">7 · Chữ AI</span>
+    <h3>Làm được, nhưng chưa chạy ngay được</h3>
+    <p>Chữ miễn phí hiện khô vì ghép từ câu mẫu. AI viết riêng cho mỗi lá số tốn khoảng 1.000 đến 2.000đ; với trần 50.000đ mỗi ngày, chỉ khoảng 25 đến 50 lá số mỗi ngày được AI viết, còn lại đọc bản chữ quy tắc đã cải tiến. Có hai chỗ kỹ thuật An phải gỡ trước (chứng minh giới hạn chi phí và cách đếm chi phí).</p>
+    <p class="so"><b>Hệ quả:</b> bản chữ quy tắc cải tiến ra trước, AI ra sau. Anh chốt tiền ở câu R2.</p></div>
+
+  <div class="card"><span class="tag">8 · Trọn đời nói gì về năm và chặng</span>
+    <h3>Chỉ có một đoạn về chặng hiện tại và một đoạn về năm</h3>
+    <p>Câu “phần năm 2026 nằm trong Trọn đời” đúng nhưng mỏng: không có mười hai tháng, không có năm sau, không có chặng kế đầy đủ. Một lỗi nhỏ khác: phần “Hôm nay” còn nhắc gói Hội viên trong khi Hội viên đang ẩn.</p>
+    <p class="so"><b>Hệ quả:</b> khi bán Trọn đời cho người tò mò về năm, ta nói thật nó có gì; món “Vận hạn năm” mới có đủ 12 tháng. Câu nhắc Hội viên được bỏ.</p></div>
+</section>
+
+<!-- 3 -->
+<section class="blk" id="q4">
+  <span class="num">Mục 3</span>
+  <h2 class="sec">Q4 giải thích lại bằng một câu chuyện</h2>
+  <p class="sub"><b>Hàng bị khoá</b> là một dòng trên trang miễn phí nói về phần anh chưa đọc, ví dụ “Cung Phu Thê”. <b>Tấm xem thử</b> là một tờ giấy trượt lên từ dưới (điện thoại) hoặc trượt từ phải sang (máy tính), nằm đè lên trang. Đóng lại là về đúng chỗ đang đọc.</p>
+  <div class="card">
+    <span class="tag">Hiện nay</span>
+    <p>Bấm vào dòng đó, tấm mở ra nhưng không có gì mới: chỉ có tên cung, điểm, vài ngôi sao, một câu chung chung, rồi nút mua. Khách thấy như bị chặn lại. Đây là ngõ cụt.</p>
+  </div>
+  <div class="stage">
+    <div>
+      <div class="card">
+        <span class="tag">Chuyện một khách 29 tuổi</span>
+        <ol class="story">
+          <li><span>Khách đọc xong phần tổng quan, thấy dòng <b>Cung Phu Thê · Bộ sao thiên về hỗ trợ · 67 · Xem thử ›</b>.</span></li>
+          <li><span>Khách chạm vào dòng. <b>Ngay lập tức</b>, không chờ tải, tấm xem thử trượt lên.</span></li>
+          <li><span>Trong tấm có: tên cung và điểm; ba gạch đầu dòng “bài đọc đầy đủ sẽ cho bạn biết” (có tên sao thật của lá số); <b>hai câu đầu bài đọc của đúng cung Phu Thê</b>, câu thứ hai bị cắt giữa chừng rồi mờ dần; một nút “Căn cứ”; vài thanh xám thay cho phần bị khoá (không có chữ thật); giá và nút mở.</span></li>
+          <li><span>Khách có ba lựa chọn: bấm Mở (rồi mới thấy bước xác nhận và tiền đồng), bấm Đóng quay lại đọc tiếp, hoặc xem tất cả gói.</span></li>
+          <li><span>Nếu khách không bấm gì, <b>trang miễn phí không bao giờ hiện giá</b> trên thân trang.</span></li>
+        </ol>
+      </div>
+      <p class="callout"><b>Vì sao hợp lý:</b> hàng nào cũng bấm được nhưng không có giá trên hàng, nên khách đang đọc không bị cảm giác bị bán hàng. Hai câu đọc thử là của chính lá số, khác với các trang chỉ đọc thử một câu chung cho mọi người. Phần mờ chỉ là hình khối nên không lộ chữ trả phí.</p>
+    </div>
+    <div>
+      <div class="phone" id="phone" aria-label="Mô phỏng trang lá số trên điện thoại">
+        <p class="pg-lab">12 cung · ví dụ lá số mẫu</p>
+        <div class="mrow dim" aria-hidden="true"><span class="ic">T</span><span class="nm">Cung Tài Bạch<small>Tử Vi · Tý</small></span><span class="go">53 ›</span></div>
+        <button class="mrow" id="rowPT" type="button" aria-haspopup="dialog"><span class="ic">P</span><span class="nm">Cung Phu Thê<small>Phá Quân · Dần · bộ sao thiên về hỗ trợ</small></span><span class="go">67 · Xem thử ›</span></button>
+        <div class="mrow dim" aria-hidden="true"><span class="ic">S</span><span class="nm">Cung Tử Tức<small>Sửu · không có chính tinh</small></span><span class="go">32 ›</span></div>
+        <p class="hint" id="hintPT">Thử chạm vào hàng “Cung Phu Thê”.</p>
+        <div class="sheet" id="sheetPT" role="dialog" aria-modal="false" aria-label="Xem thử Cung Phu Thê">
+          <div class="grab"></div>
+          <div class="sh-top"><span class="tag">Tấm xem thử</span><button class="sh-x" id="xPT" type="button">Đóng</button></div>
+          <div class="sh-head"><div class="ring" style="--v:67"><b>67</b></div><div><h4>Cung Phu Thê</h4><small>Bộ sao thiên về hỗ trợ</small></div></div>
+          <div class="sh-h">Bài đọc đầy đủ sẽ cho bạn biết</div>
+          <ul><li>Vì sao chuyện tình cảm của bạn đi theo nhịp riêng.</li><li>Điều cần chuẩn bị trước khi bước vào chặng mới.</li><li>Việc nên làm và nên tránh theo bộ sao của cung này.</li></ul>
+          <div class="sh-h">Đọc thử</div>
+          <p class="read">Phá Quân ở cung Phu Thê gợi một đời tình cảm không đi theo lối mòn. Điều đáng nói là sự thay đổi ấy cần được hiểu trong</p>
+          <div class="ghost" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="chip">Căn cứ · Phá Quân (Đắc) ở Phu Thê</span>
+          <div class="cta"><span class="pr">120 Lá</span><button class="pillbtn" type="button">Mở <span class="ar" aria-hidden="true">→</span></button></div>
+          <span class="linkb">Xem tất cả gói luận giải</span>
+        </div>
+      </div>
+      <p class="hint">Chỉ có giá bằng Lá. Tiền đồng chỉ hiện ở bước xác nhận sau khi bấm Mở.</p>
+      <div style="text-align:center"><button class="btn reset" id="rstPT" type="button">Chơi lại</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="blk" id="dai-san-pham">
+  <span class="num">Mục 4</span>
+  <h2 class="sec">Dải sản phẩm đề xuất, theo tầng thời gian</h2>
+  <p class="sub">Xếp theo cách khách tò mò: hôm nay, tháng, năm, chặng 10 năm, cung, chủ đề, trọn đời. Giá bằng Lá. “Bán ngay” là đang bán; “cần xây” là phải làm thêm; “giữ” là đã viết xong nhưng chờ kiểm tra chất lượng hoặc chờ điều kiện, và sẽ <b>ẩn</b> trên trang chọn cho đến khi qua.</p>
+  <div class="pt" role="table" aria-label="Dải sản phẩm">
+    <div class="pt-row pt-head" role="row"><div>Tầng</div><div>Miễn phí</div><div>Trả phí</div><div>Giá (Lá)</div><div>Tình trạng</div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Hôm nay</div><div data-l="Miễn phí" role="cell">Một dòng ngày hôm nay và cung bị chạm</div><div data-l="Trả phí" role="cell">Hôm nay của bạn</div><div class="gia" data-l="Giá" role="cell">60</div><div data-l="Tình trạng" role="cell"><span class="st ok">Bán ngay</span></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Tháng</div><div data-l="Miễn phí" role="cell">12 ô tháng: thuận, bình thường, cần chú ý</div><div data-l="Trả phí" role="cell">Tháng này của bạn</div><div class="gia" data-l="Giá" role="cell">300</div><div data-l="Tình trạng" role="cell"><span class="st hold">Giữ</span><small>Viết xong, chờ 20 bài thử đạt</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Năm</div><div data-l="Miễn phí" role="cell">Cung của năm với riêng bạn, tuổi, tóm tắt năm</div><div data-l="Trả phí" role="cell">Vận hạn năm [Y]: năm nay, hoặc năm sau khi năm nay gần hết</div><div class="gia" data-l="Giá" role="cell">480</div><div data-l="Tình trạng" role="cell"><span class="st build">Cần xây</span><small>Bỏ chữ “2026” cứng, rồi chờ 20 bài thử</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Chặng 10 năm</div><div data-l="Miễn phí" role="cell">Đường đời 10 năm có điểm; chặng hiện tại có đọc thử</div><div data-l="Trả phí" role="cell">Chặng [25–34] tuổi của bạn: chặng hiện tại, hoặc chặng kế khi chặng này còn 2 năm</div><div class="gia" data-l="Giá" role="cell">360 (đề xuất)</div><div data-l="Tình trạng" role="cell"><span class="st build">Cần xây</span><small>Chưa có món, chưa có người viết</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Cung</div><div data-l="Miễn phí" role="cell">12 điểm cung và một cung đọc trọn</div><div data-l="Trả phí" role="cell">Một cung · Bản mệnh</div><div class="gia" data-l="Giá" role="cell">120 · 240</div><div data-l="Tình trạng" role="cell"><span class="st ok">Bán ngay</span></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Chủ đề</div><div data-l="Miễn phí" role="cell">Câu hỏi và cung liên quan</div><div data-l="Trả phí" role="cell">Tình duyên · Công việc</div><div class="gia" data-l="Giá" role="cell">480 mỗi đề</div><div data-l="Tình trạng" role="cell"><span class="st hold">Giữ</span><small>Viết xong, chờ 20 bài thử mỗi đề</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Trọn đời</div><div data-l="Miễn phí" role="cell">Tổng quan, một cung đọc trọn</div><div data-l="Trả phí" role="cell">Tử Vi trọn đời</div><div class="gia" data-l="Giá" role="cell">960</div><div data-l="Tình trạng" role="cell"><span class="st ok">Bán ngay</span><small>Nói thật: có một đoạn chặng, một đoạn năm</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Gói gộp</div><div data-l="Miễn phí" role="cell">—</div><div data-l="Trả phí" role="cell">Combo Trọn đời + Năm [Y] · gói cặp Năm nay + Năm sau</div><div class="gia" data-l="Giá" role="cell">1.300 · 780 (đề xuất)</div><div data-l="Tình trạng" role="cell"><span class="st build">Cần xây</span><small>Combo sửa chữ “2026”; gói cặp làm sau</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Hội viên</div><div data-l="Miễn phí" role="cell">—</div><div data-l="Trả phí" role="cell">Mở “Hôm nay” mỗi sáng, giảm giá, công cụ riêng</div><div class="gia" data-l="Giá" role="cell">1.500 · 8.000</div><div data-l="Tình trạng" role="cell"><span class="st hold">Giữ</span><small>Chưa có công cụ đã hứa</small></div></div>
+    <div class="pt-row" role="row"><div class="lay" role="cell">Hợp đôi, Bát Tự, Tây phương</div><div data-l="Miễn phí" role="cell">—</div><div data-l="Trả phí" role="cell">Xem hai lá số; luận Bát Tự; bản đồ sao Tây phương</div><div class="gia" data-l="Giá" role="cell">600 (Hợp đôi)</div><div data-l="Tình trạng" role="cell"><span class="st hold">Giữ</span><small>Chưa có phần tính toán</small></div></div>
+  </div>
+  <div class="card" style="margin-top:16px"><span class="tag">Thẻ đầu chọn theo từng người</span>
+    <p>Khi khách bấm “Năm nay”, trang không bán cố định một món mà nhìn vào lá số của người đó:</p>
+    <ul style="margin:0;padding-left:20px;font-size:15px;display:grid;gap:6px">
+      <li>Năm còn nhiều tháng: thẻ đầu là <b>Vận hạn năm này</b>, thẻ hai là <b>Chặng hiện tại</b>.</li>
+      <li>Năm chỉ còn vài tháng trước Tết: thẻ đầu chuyển sang <b>năm sau</b> (hoặc gói cặp). Ta nói sự thật về thời gian, không đếm ngược giả.</li>
+      <li>Chặng còn 2 năm là hết: thêm thẻ <b>Chặng kế tiếp</b>. Vừa vào chặng: làm nổi <b>Chặng hiện tại</b>.</li>
+      <li>Giờ sinh chưa chắc: ghi nhãn “tạm tính”. Chưa đến tuổi của chặng đầu: ẩn món Chặng.</li>
+      <li>Khi món Năm chưa qua kiểm tra, vẫn dẫn về Trọn đời nhưng nói thật Trọn đời có gì về năm.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="blk" id="hinh">
+  <span class="num">Mục 5</span>
+  <h2 class="sec">Hình minh hoạ sẽ có</h2>
+  <p class="sub">Ba bản phác bằng HTML để anh hình dung. Lá số mẫu tổng hợp, không phải người thật. Bản mẫu bấm được, đẹp hơn, sẽ làm ở giai đoạn 4 sau khi anh duyệt hướng này.</p>
+
+  <div class="card"><span class="tag">Năm tab theo thời gian</span>
+    <div class="rail" aria-label="Năm tab"><span class="on">Tổng quan</span><span>Năm nay</span><span>Đại vận</span><span>12 cung</span><span>Chủ đề</span></div>
+    <p class="cap">Trên điện thoại vẫn là một trang cuộn, nhưng có thanh năm nút này dính ở đầu trang (câu R6).</p>
+  </div>
+
+  <div class="bezel" style="margin-bottom:16px"><div class="core">
+    <p class="ph">3 cung nâng đỡ nhất · 3 cung cần lưu tâm hơn cả</p>
+    <div class="two">
+      <div class="grp up"><h5>Nâng đỡ nhất</h5>
+        <div class="sp" tabindex="0" role="button"><span class="rk">1</span><div class="ring" style="--v:71"><b>71</b></div><span class="nm">Mệnh<small>Bộ sao hỗ trợ mạnh</small></span></div>
+        <div class="sp" tabindex="0" role="button"><span class="rk">2</span><div class="ring" style="--v:70"><b>70</b></div><span class="nm">Quan Lộc<small>Bộ sao hỗ trợ mạnh</small></span></div>
+        <div class="sp" tabindex="0" role="button"><span class="rk">3</span><div class="ring" style="--v:68"><b>68</b></div><span class="nm">Thiên Di<small>Bộ sao thiên về hỗ trợ</small></span></div>
+      </div>
+      <div class="grp dn"><h5>Cần lưu tâm hơn cả</h5>
+        <div class="sp" tabindex="0" role="button"><span class="rk">1</span><div class="ring" style="--v:32"><b>32</b></div><span class="nm">Tử Tức<small>Không có chính tinh</small></span></div>
+        <div class="sp" tabindex="0" role="button"><span class="rk">2</span><div class="ring" style="--v:39"><b>39</b></div><span class="nm">Điền Trạch<small>Bộ sao cần lưu tâm</small></span></div>
+        <div class="sp" tabindex="0" role="button"><span class="rk">3</span><div class="ring" style="--v:40"><b>40</b></div><span class="nm">Tật Ách<small>Bộ sao cần lưu tâm</small></span></div>
+      </div>
+    </div>
+    <p class="cap">Bấm một cung: lá số làm nổi cung đó và mở tấm xem thử. Vòng tròn là điểm đã công bố, kèm nhãn chữ để không chỉ dựa vào màu. Bên dưới có nút “Xem cả 12 cung” gồm 12 thanh ngang có vạch mốc 50. Huy hiệu sẽ dùng biểu tượng cung vẽ sẵn và vòng viền ChatGPT vẽ (mục 6).</p>
+  </div></div>
+
+  <div class="bezel" style="margin-bottom:16px"><div class="core">
+    <div class="dvt"><p class="ph">Đường đời 10 năm</p>
+      <div class="lg" aria-label="Chú giải"><span><i class="b-manh"></i>Mạnh</span><span><i class="b-thuan"></i>Thuận</span><span><i class="b-can"></i>Cân</span><span><i class="b-canh"></i>Cạnh</span><span><i class="b-kho"></i>Khó</span></div></div>
+    <p class="ttl">Độ mạnh cấu trúc của cung ở mỗi chặng <span style="color:var(--muted);font-weight:400;font-size:14px">(không phải điểm may rủi)</span></p>
+    <ol class="dv" id="dv" aria-label="Các chặng 10 năm, bấm để xem chi tiết"></ol>
+    <div class="dvd" id="dvd" aria-live="polite"></div>
+    <details class="how"><summary>Điểm này tính thế nào?</summary>
+      <p style="margin:0 0 6px">Mỗi cung bắt đầu ở 50. Cộng phần của các sao nằm trong cung, rồi cộng thêm phần đóng góp từ cung đối và hai cung tam hợp. Điểm của một chặng là điểm của cung mà chặng đó đi qua.</p>
+      <p style="margin:0">Đây là sức nâng đỡ của bộ sao, không phải điểm may rủi của 10 năm. Mỗi chặng là một cột riêng, không có đường dự đoán từng năm. Ví dụ ở trên: 50 + sao trong cung 8 + cung chiếu 9 ≈ 67.</p></details>
+    <p class="cap">Bấm vào một cột để xem. Chặng hiện tại có dấu triện đỏ và được chọn sẵn; chặng đã qua mờ đi nhưng vẫn bấm được.</p>
+  </div></div>
+
+  <div class="bezel"><div class="core">
+    <p class="ph">Năm nay · 12 tháng</p>
+    <div class="chain"><span class="t">Chặng <b>25–34 tuổi</b> · cung Phúc Đức</span><span aria-hidden="true">→</span><span class="t">Năm Bính Ngọ vào cung <b>Thiên Di</b></span></div>
+    <p style="margin:0;font-size:15px">Năm nay có 1 tháng cần chú ý và 1 tháng thuận.</p>
+    <div class="mgrid" id="mgrid" role="list"></div>
+    <div class="lg"><span>◆ thuận</span><span>○ trung tính</span><span>▲ cần chú ý (khoá)</span></div>
+    <div class="mnote" id="mnote" aria-live="polite">Chạm vào một ô tháng.</div>
+    <p class="read" style="font-size:15px">Năm nay lưu niên của bạn đi vào cung Thiên Di, cung nói về việc ra ngoài và gặp người. Trong mười hai tháng có một tháng cần để ý hơn, và điều đáng nói là tháng ấy không rơi vào chuyện chi tiêu mà là</p>
+    <p class="cap">Đoạn trên cắt giữa câu và mờ dần; phần còn lại chỉ nằm trong bài trả phí. Cách đánh dấu tháng “cần chú ý” phụ thuộc câu R4 và R5: nếu anh chọn bỏ tháng ép hoặc không đánh dấu vị trí thì ô tháng 7 ở đây sẽ khác.</p>
+  </div></div>
+</section>
+
+<!-- 6 -->
+<section class="blk" id="chatgpt">
+  <span class="num">Mục 6</span>
+  <h2 class="sec">Nhờ ChatGPT vẽ</h2>
+  <p class="sub">Chỉ cần 2 ảnh bắt buộc và 1 ảnh tuỳ chọn. Còn lại dùng ảnh đã có: 12 biểu tượng cung, dấu triện đỏ, hoa văn la kinh, nền sơn mài. Bấm “Sao chép prompt”, dán vào ChatGPT, nhờ tạo 3 bản rồi chọn bản đơn giản nhất. Nhận ảnh về xong, đổi đúng tên file bên dưới (chữ thường, gạch ngang) rồi gửi lại cho Claude để tách nền.</p>
+
+  <div class="card brief"><span class="tag">Bắt buộc 1</span><h3>Hoa văn góc khung</h3>
+    <dl class="meta"><dt>Dùng để</dt><dd>Bốn góc khung Đường đời 10 năm, khung phóng to lá số, tấm xem thử, khối “đã đọc xong”. Một ảnh xoay ra bốn hướng.</dd><dt>Tên file</dt><dd><code>goc-trang-tri-hoa-van-khung-vang-lasoviet.webp</code></dd><dt>Kích thước</dt><dd>1024 × 1024, hoa văn sát góc trên trái</dd><dt>Nền</dt><dd>Đen tuyền #000000, nét trắng tinh #FFFFFF, không xám, không bóng. Claude sẽ đổi sáng thành trong suốt rồi tô vàng.</dd></dl>
+    <pre id="p1">A single corner ornament for a luxury lacquer frame, drawn in the top-left corner of a square canvas. Thin, even-weight line art as if engraved into black lacquer: a restrained scroll of two interlocking curves ending in small spiral hooks, one short parallel inner line following the corner, a tiny lozenge at the tip. Elegant, minimal, symmetrical along the diagonal, inspired by Vietnamese lacquer and Dong Son bronze-drum linework. Pure white lines (#FFFFFF) on a pure flat black background (#000000). No gradients, no shading, no glow, no texture, no shadow, no text, no letters, no characters, no faces, no animals, no flowers, no Western zodiac. Must stay readable when scaled down to 48 pixels. Square 1:1, 1024 x 1024.</pre>
+    <div class="row"><button class="btn copy" type="button" data-target="p1">Sao chép prompt</button></div><div class="copied" aria-live="polite"></div>
+    <p class="cap">Ghi chú: nếu ảnh có chữ hay đốm xám thì bắt tạo lại. Tránh rồng phượng, hoa sen to, nét rườm rà (phải nhận ra khi thu nhỏ 48px).</p></div>
+
+  <div class="card brief"><span class="tag">Bắt buộc 2</span><h3>Vòng huy hiệu “cung nâng đỡ / cần lưu tâm”</h3>
+    <dl class="meta"><dt>Dùng để</dt><dd>Khung tròn quanh biểu tượng cung trong 6 huy hiệu; dùng lại làm khung số điểm ở bản đồ 12 cung. Một ảnh, tô vàng cho “nâng đỡ” và son cho “cần lưu tâm”.</dd><dt>Tên file</dt><dd><code>vong-huy-hieu-cung-nang-do-lasoviet.webp</code></dd><dt>Kích thước</dt><dd>1024 × 1024, vòng nằm giữa, chừa trống tròn đường kính khoảng 62%</dd><dt>Nền</dt><dd>Đen tuyền, nét trắng tinh (như ảnh 1)</dd></dl>
+    <pre id="p2">A circular medallion ring, centered on a square canvas, drawn as thin even-weight engraved line art. Two concentric thin circles with a narrow band between them; in the band, twelve small evenly spaced dots, and four small lozenge shapes at the cardinal points. The inner area is completely empty (about 62% of the diameter). Restrained, elegant, inspired by Vietnamese lacquer and bronze-drum linework. Pure white lines (#FFFFFF) on a pure flat black background (#000000). No gradients, no shading, no glow, no shadow, no texture, no text, no letters, no numbers, no laurel, no wings, no crown, no stars, no Western zodiac. Must stay crisp when scaled down to 56 pixels. Square 1:1, 1024 x 1024.</pre>
+    <div class="row"><button class="btn copy" type="button" data-target="p2">Sao chép prompt</button></div><div class="copied" aria-live="polite"></div>
+    <p class="cap">Ghi chú: không vòng nguyệt quế, cánh, vương miện, sao 5 cánh, chữ số, tia sáng.</p></div>
+
+  <div class="card brief"><span class="tag">Tuỳ chọn</span><h3>Biểu tượng “Đại vận · chặng 10 năm”</h3>
+    <dl class="meta"><dt>Dùng để</dt><dd>Đầu khối Đường đời 10 năm và đầu tab Đại vận; đi cặp với biểu tượng “Năm nay” đã có cho đồng bộ.</dd><dt>Tên file</dt><dd><code>chang-duong-10-nam-dai-van-lasoviet.webp</code></dd><dt>Kích thước</dt><dd>512 × 512</dd><dt>Nền</dt><dd>Trong suốt, nét vàng #C9A44D. Nếu ChatGPT không xuất được nền trong suốt thì dùng nền trắng tinh, Claude tách nền.</dd></dl>
+    <pre id="p3">A single minimalist icon in thin, even-weight golden line art (#C9A44D) on a transparent background: a winding path rising gently over three stepped stone markers, a small low sun at the far end. Same hand-drawn linework language as a set of Vietnamese-inspired travel icons (terraced hills with a crescent moon). No text, no letters, no people, no arrows, no chart or graph shapes, no gradients, no shadow, no glow. Square 1:1, 512 x 512, generous empty margin around the drawing.</pre>
+    <div class="row"><button class="btn copy" type="button" data-target="p3">Sao chép prompt</button></div><div class="copied" aria-live="polite"></div>
+    <p class="cap">Ghi chú: tránh đường cong giống biểu đồ chứng khoán, mũi tên đi lên, bất cứ thứ gì gợi dự báo tăng giảm.</p></div>
+</section>
+
+<!-- 7 -->
+<section class="blk" id="vong2">
+  <span class="num">Mục 7</span>
+  <h2 class="sec">Quyết định vòng 2</h2>
+  <p class="sub">13 câu còn mở, đã bỏ mọi điều anh chốt ở vòng 1. Mỗi câu có bối cảnh ngắn, các phương án và đề xuất. Anh bấm một trong ba nút, ghi chú nếu muốn. Lựa chọn được lưu ngay và Claude đọc được.</p>
+  <div class="legend"><span><b>Đồng ý</b> làm theo đề xuất</span><span><b>Không</b> giữ như hiện tại</span><span><b>Sửa</b> làm khác, ghi rõ ở ô ghi chú</span></div>
+  <div id="list"></div>
+</section>
+
+<!-- 8 -->
+<section class="blk" id="ai-lam-gi">
+  <span class="num">Mục 8</span>
+  <h2 class="sec">Ai làm gì, theo thứ tự</h2>
+  <p class="sub">Phần giao diện do anh làm cùng Claude (Sonnet viết, Opus chỉ xem lại). Phần máy chủ và phần tính toán do An làm qua ticket Kaneo. Mọi giao diện làm cho điện thoại trước, và Claude báo anh trước khi viết giao diện thật.</p>
+  <div class="ph8">
+    <div class="p"><span class="n">1</span><div><h3>Quyết định vòng 2</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>Trang này; anh trả lời 13 câu.</div><div class="lane be"><b>Máy chủ · An</b>Bắt đầu ngay các việc không chờ quyết định: sửa chữ “2026” cứng, sửa tính năm, chữ quy tắc cải tiến.</div></div>
+      <p class="see"><b>Anh thấy:</b> chính trang này.</p></div></div>
+    <div class="p"><span class="n">2</span><div><h3>Sửa chỗ lệch, nút bấm, độ trung thực dữ kiện</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>Lá số đúng thiết kế đã duyệt, bố cục máy tính, tấm phóng to, mọi nút có phản hồi, bấm là mở tức thì.</div><div class="lane be"><b>Máy chủ · An</b>Bỏ tháng cần chú ý giả; tính đúng năm tương lai; đổi năm theo Tết; bỏ câu nhắc Hội viên.</div></div>
+      <p class="see"><b>Anh thấy:</b> trang “trước – sau” có ảnh máy tính 1440 và điện thoại 390 và bảng nút bấm.</p></div></div>
+    <div class="p"><span class="n">3</span><div><h3>Hệ thống AI viết chữ và căn cứ</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>Nút “Căn cứ” cạnh nhận định, trạng thái “đang viết riêng cho bạn”, nhãn AI. Anh duyệt từng thẻ nghĩa sao.</div><div class="lane be"><b>Máy chủ · An</b>Thư viện nghĩa sao; chữ quy tắc cải tiến ra trước; gỡ hai chỗ chặn; AI viết một lần; bộ kiểm tra; chạy thử 30 lá số.</div></div>
+      <p class="see"><b>Anh thấy:</b> trang chữ cũ cạnh chữ mới của 3 lá số mẫu; anh chấm điểm 1–5 và sửa trực tiếp.</p></div></div>
+    <div class="p"><span class="n">4</span><div><h3>Bố cục trang lá số và hình ảnh</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>5 tab; 3 cung nâng đỡ / 3 cung cần lưu tâm; Đường đời 10 năm; 12 ô tháng; tấm đọc thử; ảnh mới.</div><div class="lane be"><b>Máy chủ · An</b>Danh sách đủ các chặng; căn cứ theo từng mục; dòng đọc thử cho 13 mục.</div></div>
+      <p class="see"><b>Anh thấy:</b> bản mẫu bấm được của trang lá số mới, xem trên máy tính và điện thoại, sáng và tối.</p></div></div>
+    <div class="p"><span class="n">5</span><div><h3>Trang chọn luận giải và dải sản phẩm</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>Thẻ một nút, dải sản phẩm theo tầng thời gian, so sánh gói, tấm mở khoá, tiền đồng ở bước cuối, hai bộ câu mời mua A và B.</div><div class="lane be"><b>Máy chủ · An</b>“Vận hạn năm [Y]” có tham số (hạn chót thực tế: trước Tết 06/02/2027); dữ kiện theo từng người để chọn thẻ đầu.</div></div>
+      <p class="see"><b>Anh thấy:</b> bản mẫu bấm được trang chọn luận giải với các trường hợp khách khác nhau; anh chọn bộ câu A hoặc B.</p></div></div>
+    <div class="p"><span class="n">6</span><div><h3>Hoàn thiện sản phẩm còn khuyết</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>Thẻ của món mới tự hiện khi qua kiểm tra, không phải sửa giao diện.</div><div class="lane be"><b>Máy chủ · An</b>Xây món Chặng 10 năm; chạy đợt 20 bài thử cho Năm, Chặng, Tình duyên, Công việc, Tháng; Combo theo năm; gói cặp.</div></div>
+      <p class="see"><b>Anh thấy:</b> mỗi món một trang 5 bài mẫu thật và bảng kết quả 20 bài; anh duyệt món nào thì món đó mới mở bán.</p></div></div>
+    <div class="p"><span class="n">7</span><div><h3>Nghiệm thu và phát hành</h3>
+      <div class="lanes"><div class="lane"><b>Giao diện · Lãm + Claude</b>Kiểm toàn luồng, từng nút, ảnh trang thật, số liệu trước – sau.</div><div class="lane be"><b>Máy chủ · An</b>Sửa lỗi phát sinh; kiểm 7 lá số mẫu qua nhiều năm.</div></div>
+      <p class="see"><b>Anh thấy:</b> trang nghiệm thu có ảnh trang thật, bảng đạt hay chưa đạt, số đo tốc độ, phễu trước và sau; anh duyệt thì ticket mới được kéo sang Done.</p></div></div>
+  </div>
+  <p class="note">Không đổi trong kế hoạch này: SePay và email thật vẫn tắt; header và footer dùng chung giữ nguyên; luồng tiền giữ nguyên, trừ việc bỏ chữ “2026” cứng.</p>
+</section>
+</div>
+<div class="foot"><span id="status">Chưa lưu gì</span></div>
+
+<script>
+/* Mục 7: 13 câu. id = mã câu, lưu ở bộ nhớ chung collection "answers2". */
+const Q=[
+{id:"R1",g:"Tiền và chất lượng",t:"Ngân sách thử chất lượng cho các món sắp bán",
+ ctx:"Mỗi món mới phải được viết thử 20 bài thật liên tiếp, bài nào cũng đạt kiểm tra thì mới mở bán. Việc này tốn tiền AI. Hiện mới duyệt ngân sách cho Tử Vi trọn đời (đợt trước trần 200.000đ). Còn chờ: Vận hạn năm, Chặng 10 năm, Tình duyên, Công việc, Tháng này.",
+ opts:["Duyệt từng món theo thứ tự Năm → Chặng → Tình duyên và Công việc → Tháng. Mỗi món một trần riêng, anh ghi con số ở ô ghi chú (đề xuất lấy mức đợt trước, 200.000đ mỗi món). Dừng ngay ở lần lỗi đầu.","Duyệt một lần cho tất cả, một trần chung."],
+ r:"Phương án A. Món bán được nhiều nhất đi trước, và nếu lỗi thì dừng sớm, đỡ tốn."},
+{id:"R2",g:"Tiền và chất lượng",t:"Tiền cho AI viết chữ miễn phí",
+ ctx:"AI viết riêng cho mỗi lá số tốn khoảng 1.000 đến 2.000đ. Trần hiện có là 3.000đ mỗi lá số và 50.000đ mỗi ngày, nghĩa là mỗi ngày chỉ khoảng 25 đến 50 lá số được AI viết; lá số còn lại đọc bản chữ quy tắc đã cải tiến. Bảng giá trong hệ thống đang đắt gấp đôi mức giá anh đã duyệt hôm 06/10, và từ 01/2027 giá thật của nhà cung cấp cũng tăng gấp đôi. Đây là phạm vi mới (AI viết cả bài miễn phí), không phải hỏi lại việc cấu hình cũ.",
+ opts:["Giữ 3.000đ mỗi lá số và 50.000đ mỗi ngày; tính tiền theo mức giá đã duyệt 06/10; dự trù tối đa 180.000đ cho 3 vòng thử trên 30 lá số mẫu.","Nâng trần ngày lên con số anh ghi ở ô ghi chú.","Chưa dùng AI, chỉ dùng chữ quy tắc đã cải tiến."],
+ r:"Phương án A. Đo số lá số thật mỗi ngày rồi mới nâng trần. Nếu giá thật tăng gấp đôi, An báo anh để đổi."},
+{id:"R3",g:"Tiền và chất lượng",t:"Bốn nguyên tắc cho chữ AI",
+ ctx:"Để khách tin và để giữ riêng tư: (1) AI chỉ viết bản tiếng Việt, bản tiếng Anh dùng chữ quy tắc; (2) tên khách không gửi cho AI, trang tự chèn câu chào; (3) AI được xưng “tôi” tối đa 2 lần mỗi bài, cấm “chúng tôi”, “đội ngũ”, “chuyên gia”; (4) có danh sách từ cấm riêng cho bản miễn phí, trong đó cho phép từ “tài lộc” vì người mới hiểu.",
+ opts:["Đồng ý cả bốn.","Đồng ý một phần, anh ghi mục nào khác ở ô ghi chú."],
+ r:"Phương án A. Cả bốn đều giảm rủi ro mà không làm chữ kém đi."},
+{id:"R4",g:"Dữ kiện trung thực",t:"Tháng “cần chú ý” đang bị ép",
+ ctx:"Khi lá số không có tháng nào đáng chú ý, hệ thống tự đặt tháng 7 thành tháng cần chú ý (chuyện tiền bạc). Khách so hai lá số sẽ thấy cùng tháng 7, và con số này không do sao tính ra.",
+ opts:["Bỏ. Không có tháng nào thì nói thật “0 tháng cần chú ý”, ít mồi nhử hơn nhưng sạch hơn.","Giữ. Vẫn đúng luật nhưng khách dễ bắt bẻ khi xem hai lá số."],
+ r:"Phương án A. Mục tiêu của anh là khách tin Lá Số Việt luận đúng; một tháng ép là chỗ dễ bị bắt bẻ nhất."},
+{id:"R5",g:"Dữ kiện trung thực",t:"Dải 12 ô tháng có chỉ ra tháng nào cần chú ý không?",
+ ctx:"Dải 12 ô tháng cho khách thấy cả năm của mình. Ô cần chú ý có thể hiện dấu khoá nhưng nằm đúng thứ tự, nên khách đoán được là tháng mấy. Điều ta bán là “chuyện gì và nên chuẩn bị gì”, không phải “tháng nào”.",
+ opts:["Hiện 12 ô theo thứ tự, ô cần chú ý có dấu khoá.","Chỉ hiện con số tổng như bây giờ (ít hấp dẫn hơn)."],
+ r:"Phương án A. Hình ảnh mạnh hơn nhiều và không lộ nội dung trả phí."},
+{id:"R6",g:"Giao diện",t:"Điện thoại: một trang cuộn hay tab thật?",
+ ctx:"Trên điện thoại hiện là một trang cuộn dài, không có tab (quyết định cũ FD-108). Đề xuất giữ nguyên nhưng thêm thanh 5 nút dính ở đầu trang: bấm nút thì cuộn tới mục, nút mục đang đọc sáng lên. Tab thật (mỗi lần một mục) làm khách phải bấm nhiều và phải đo lại mức đọc.",
+ opts:["Giữ một trang cuộn, thêm thanh 5 nút dính.","Làm tab thật như trên máy tính."],
+ r:"Phương án A."},
+{id:"R7",g:"Sản phẩm mới",t:"Món “Chặng 10 năm của bạn”: giá và phạm vi",
+ ctx:"Khách hay hỏi về giai đoạn 10 năm của mình, mà Trọn đời chỉ có một đoạn về chặng hiện tại. Món mới đọc chặng hiện tại của chính người đó, hoặc chặng kế khi chặng này còn 2 năm là hết. Giá đề xuất 360 Lá (khoảng 27.000 đến 35.000đ), nằm giữa Tháng này (300) và Vận hạn năm (480).",
+ opts:["Giá 360 Lá.","Giá khác, anh ghi ở ô ghi chú (thử trong khoảng 240 đến 480)."],
+ r:"Phương án A. Đây là giá giả thuyết, đo sau khi bán rồi chỉnh."},
+{id:"R8",g:"Sản phẩm mới",t:"Gần Tết: thẻ đầu sang năm sau, và gói cặp",
+ ctx:"Khi chỉ còn vài tháng trước Tết, “năm nay” còn ít giá trị với khách. Đề xuất: thẻ đầu chuyển sang “năm sau”; sau khi bản Năm đạt kiểm tra, thêm gói cặp “Năm nay + Năm sau” 780 Lá (mua lẻ hai năm là 960, tiết kiệm thật 180 Lá). Tết Đinh Mùi là 06/02/2027.",
+ opts:["Đồng ý cả hai (gói cặp làm sau).","Chỉ chuyển thẻ đầu, không bán gói cặp."],
+ r:"Phương án A."},
+{id:"R9",g:"Sản phẩm mới",t:"Combo và khấu trừ 7 ngày",
+ ctx:"Combo hiện ghi cứng “Trọn đời + Vận hạn 2026” giá 1.300 Lá. Đề xuất đổi nghĩa thành “Trọn đời + Vận hạn năm [Y]”, vẫn 1.300 Lá. Trọn đời đã có một đoạn về năm nên phần cộng thêm là 12 tháng. Còn luật “mua lẻ rồi nâng lên Trọn đời trong 7 ngày thì được trừ phần đã trả”: lúc đầu chưa mở rộng cho Năm và Chặng, đo trước.",
+ opts:["Đồng ý: Combo đổi nghĩa, giữ 1.300; khấu trừ 7 ngày giữ như cũ.","Mở rộng khấu trừ 7 ngày cho cả Năm và Chặng ngay."],
+ r:"Phương án A. Tránh làm Trọn đời rẻ đi quá sớm khi chưa có số liệu."},
+{id:"R10",g:"Để sau hay làm ngay",t:"Hội viên",
+ ctx:"Hội viên đang ẩn vì quyền lợi đã hứa (công cụ trả phí theo lá số) chưa có thật. Muốn mở lại thì phải có ít nhất một công cụ thật.",
+ opts:["Giữ ẩn. Khi sẵn sàng chọn một công cụ đầu tiên (gợi ý: chọn ngày dẫn vào “Hôm nay”).","Chọn công cụ đầu tiên ngay bây giờ, anh ghi ở ô ghi chú."],
+ r:"Phương án A."},
+{id:"R11",g:"Để sau hay làm ngay",t:"Hợp đôi, Bát Tự, Tây phương",
+ ctx:"Ba thứ này cần phần tính toán riêng mà ta chưa có; Hợp đôi còn cần người thứ hai đồng ý. Khác các món trên, đây không phải chỉ viết thêm chữ mà là xây hệ mới.",
+ opts:["Hoãn. Chỉ bắt đầu khi anh muốn mở Bát Tự.","Bắt đầu làm Bát Tự trước."],
+ r:"Phương án A."},
+{id:"R12",g:"Để sau hay làm ngay",t:"Thêm chủ đề và tầng “từng tuổi”",
+ ctx:"AiTuvi có 15 chuyên đề, ta có 2 (Tình duyên, Công việc). Thêm chủ đề thì phần tính toán đã sẵn, nhưng mỗi chủ đề cũng phải qua 20 bài thử. Tầng “từng tuổi” (nhịp theo tuổi trong chặng) máy có nhưng ta chưa dùng.",
+ opts:["Để sau khi hai chủ đề đầu qua kiểm tra. Chủ đề kế tiếp gợi ý: gia đình và con cái, nhà đất, học hành. Tầng “từng tuổi” chưa làm.","Thêm ngay một nhóm chủ đề đợt này, anh ghi tên ở ô ghi chú."],
+ r:"Phương án A."},
+{id:"R13",g:"Để sau hay làm ngay",t:"Thông tin truyền thống ở giữa lá số",
+ ctx:"Giữa lá số của AiTuvi có Cục, Mệnh chủ, Thân chủ, nạp âm. Người quen xem Tử Vi hay tìm các mục này. Ta chưa có (phần tính toán cần thêm). Giữa lá số của ta đã có hoa văn la kinh.",
+ opts:["Làm ở đợt hoàn thiện, không chặn các phần khác.","Làm ngay trong đợt bố cục.","Không làm."],
+ r:"Phương án A."}
+];
+const N=Q.length;
+const state={}; let db=null;
+const $=(s,e=document)=>e.querySelector(s);
+const letters="ABCDEFG";
+function render(){
+  const list=$("#list"); let g="";
+  Q.forEach(q=>{
+    if(q.g!==g){g=q.g;const h=document.createElement("div");h.className="group";h.textContent=g;list.append(h)}
+    const c=document.createElement("section");c.className="card";c.id="c-"+q.id;
+    c.innerHTML='<span class="tag">'+q.id+'</span><h3></h3><p class="ctx"></p><ul class="cmp"></ul><p class="reco"><b>Đề xuất:</b> <span class="r"></span></p>'+
+    '<div class="row" role="group" aria-label="Lựa chọn cho '+q.id+'">'+
+      '<button class="btn yes" type="button" data-v="yes" aria-pressed="false">Đồng ý</button>'+
+      '<button class="btn no" type="button" data-v="no" aria-pressed="false">Không</button>'+
+      '<button class="btn fix" type="button" data-v="fix" aria-pressed="false">Sửa</button></div>'+
+    '<label for="n-'+q.id+'" class="tag" style="color:var(--muted)">Ghi chú</label>'+
+    '<textarea id="n-'+q.id+'" placeholder="Ví dụ: chọn phương án B, hoặc nói rõ anh muốn khác chỗ nào"></textarea>'+
+    '<div class="saved" aria-live="polite"></div>';
+    $("h3",c).textContent=q.t;$(".ctx",c).textContent=q.ctx;$(".r",c).textContent=q.r;
+    const ul=$(".cmp",c);
+    q.opts.forEach((o,i)=>{const li=document.createElement("li");if(i===0)li.className="rc";const b=document.createElement("b");b.textContent=letters[i];const s=document.createElement("span");s.textContent=o;li.append(b,s);ul.append(li)});
+    c.querySelectorAll(".btn").forEach(b=>b.addEventListener("click",()=>pick(q.id,b.dataset.v)));
+    let t;$("textarea",c).addEventListener("input",e=>{state[q.id]={...(state[q.id]||{}),note:e.target.value};clearTimeout(t);t=setTimeout(()=>save(q.id),600)});
+    list.append(c);
+  });
+}
+function paint(id){
+  const c=$("#c-"+id),s=state[id]||{};
+  c.querySelectorAll(".btn").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===s.choice)));
+  if(s.note!==undefined&&$("textarea",c).value!==s.note)$("textarea",c).value=s.note;
+  const n=Object.values(state).filter(x=>x.choice).length;$("#prog").textContent=n+" / "+N+" đã chọn";
+}
+function pick(id,v){state[id]={...(state[id]||{}),choice:v};paint(id);save(id)}
+async function save(id){
+  const s=state[id];$("#c-"+id+" .saved").textContent="";
+  try{
+    if(db){await db.doc("answers2/"+id).set({choice:s.choice||null,note:s.note||"",at:new Date().toISOString()});
+      $("#c-"+id+" .saved").textContent="Đã lưu";$("#status").textContent="Đã lưu "+id}
+    else{$("#status").textContent="Chưa nối được bộ nhớ chung. Lựa chọn chỉ có trên trang này."}
+  }catch(e){$("#status").textContent="Chưa lưu được "+id+". Thử bấm lại."}
+}
+render();
+
+/* Mục 3: mô phỏng hàng → tấm xem thử */
+(function(){
+  const row=$("#rowPT"),sh=$("#sheetPT"),x=$("#xPT"),rst=$("#rstPT"),hint=$("#hintPT");
+  function open(){sh.classList.add("open");hint.style.display="none";x.focus({preventScroll:true})}
+  function close(){sh.classList.remove("open");hint.style.display="";row.focus({preventScroll:true})}
+  row.addEventListener("click",open);
+  x.addEventListener("click",close);
+  rst.addEventListener("click",close);
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&sh.classList.contains("open"))close()});
+})();
+
+/* Mục 5: Đường đời 10 năm (lá số mẫu tổng hợp; thứ tự cung đúng chiều đi của chặng) */
+(function(){
+  const D=[["5–14","Mệnh",71,"2005–2014"],["15–24","Phụ Mẫu",45,"2015–2024"],["25–34","Phúc Đức",67,"2025–2034"],["35–44","Điền Trạch",39,"2035–2044"],["45–54","Quan Lộc",70,"2045–2054"],["55–64","Nô Bộc",55,"2055–2064"],["65–74","Thiên Di",68,"2065–2074"],["75–84","Tật Ách",40,"2075–2084"],["85–94","Tài Bạch",53,"2085–2094"]];
+  const CUR=2;
+  const band=v=>v>=70?["b-manh","Bộ sao hỗ trợ mạnh"]:v>=55?["b-thuan","Bộ sao thiên về hỗ trợ"]:v>=45?["b-can","Bộ sao cân bằng"]:v>=30?["b-canh","Bộ sao cần lưu tâm"]:["b-kho","Bộ sao cần lưu tâm nhiều"];
+  const ol=$("#dv"),det=$("#dvd");
+  function show(i){
+    const d=D[i];
+    det.textContent="";
+    const a=document.createElement("div");
+    const b=document.createElement("b");b.textContent="Chặng "+d[0]+" tuổi ("+d[3]+") · cung "+d[1];
+    a.append(b);
+    const c=document.createElement("div");
+    const s=document.createElement("b");s.className="sc";s.textContent=d[2];
+    c.append(s," điểm · "+band(d[2])[1]+(i===CUR?" · đang ở chặng này":i<CUR?" · chặng đã qua":" · chặng sắp tới"));
+    det.append(a,c);
+    ol.querySelectorAll("li").forEach((li,k)=>li.classList.toggle("sel",k===i));
+  }
+  D.forEach((d,i)=>{
+    const li=document.createElement("li");
+    li.className=(i<CUR?"past":i===CUR?"cur":"");
+    li.style.setProperty("--v",d[2]);
+    const btn=document.createElement("button");btn.type="button";btn.className="btn-c";
+    btn.setAttribute("aria-label","Chặng "+d[0]+" tuổi, cung "+d[1]+", "+d[2]+" trên 100"+(i===CUR?", đang ở chặng này":""));
+    btn.innerHTML='<span class="dv-n"></span><span class="dv-bar"><i></i></span><span class="dv-age"></span><span class="dv-pal"></span>';
+    btn.querySelector(".dv-n").textContent=d[2];
+    btn.querySelector("i").className=band(d[2])[0];
+    btn.querySelector(".dv-age").textContent=d[0];
+    btn.querySelector(".dv-pal").textContent=d[1];
+    btn.addEventListener("click",()=>show(i));
+    li.append(btn);
+    if(i===CUR){const st=document.createElement("span");st.className="stamp";st.textContent="ĐANG Ở ĐÂY";li.append(st)}
+    ol.append(li);
+  });
+  show(CUR);
+})();
+
+/* Mục 5: 12 ô tháng (minh hoạ: tháng 4 thuận, tháng 7 cần chú ý) */
+(function(){
+  const g=$("#mgrid"),note=$("#mnote");
+  for(let m=1;m<=12;m++){
+    const b=document.createElement("button");b.type="button";b.className="mc"+(m===4?" g":m===7?" w":"");
+    const kind=m===4?"thuận":m===7?"cần chú ý":"trung tính";
+    b.setAttribute("aria-label","Tháng "+m+", "+kind+", bấm để xem thử");
+    b.innerHTML="<small>T"+m+"</small><em>"+(m===4?"◆":m===7?"▲":"○")+"</em>";
+    b.addEventListener("click",()=>{
+      note.textContent=m===7?"Tháng 7: có một tháng cần để ý, nội dung chuẩn bị nằm trong bài trả phí (ô khoá).":m===4?"Tháng 4: tháng thuận. Chỉ hiện cung và can chi của tháng, phần luận nằm trong bài trả phí.":"Tháng "+m+": trung tính. Chỉ hiện cung và can chi của tháng.";
+    });
+    g.append(b);
+  }
+})();
+
+/* Mục 6: sao chép prompt. writeText nằm trong hàm xử lý bấm; lỗi thì chọn sẵn chữ để anh tự sao chép. */
+document.querySelectorAll(".copy").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const pre=document.getElementById(btn.dataset.target);
+    const out=btn.closest(".card").querySelector(".copied");
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(pre);const s=window.getSelection();s.removeAllRanges();s.addRange(r)};
+    const txt=pre.textContent.trim();
+    try{
+      navigator.clipboard.writeText(txt).then(()=>{out.textContent="Đã sao chép"}).catch(()=>{sel();out.textContent="Chưa sao chép tự động được. Chữ đã được bôi đen, anh bấm Ctrl+C (hoặc giữ ngón tay rồi chọn Sao chép)."});
+    }catch(e){sel();out.textContent="Chưa sao chép tự động được. Chữ đã được bôi đen, anh bấm Ctrl+C (hoặc giữ ngón tay rồi chọn Sao chép)."}
+  });
+});
+
+(async()=>{
+  try{ if(window.claude){ db=await claude.use("db");
+    if(db){ db.collection("answers2").onSnapshot(snap=>{ snap.docs.forEach(d=>{const v=d.data(); const id=d.id; if(v&&Q.some(q=>q.id===id)&&(!state[id]||!state[id].choice)){state[id]={choice:v.choice,note:v.note}; paint(id)} }) }) } }}catch(e){}
+  if(!db)$("#status").textContent="Chưa nối được bộ nhớ chung. Lựa chọn chỉ có trên trang này.";
+})();
+</script>
