@@ -10,7 +10,8 @@
 .fd109-gift p { font-family: var(--font-source-serif-4), Georgia, serif; font-size: 17px; line-height: 1.78; }
 .fd109-completion { margin: 32px 0; padding: 28px; border: 1px solid var(--gold-500); background: var(--surface-raised); border-radius: 4px; box-shadow: 0 8px 24px rgb(0 0 0 / 12%); }
 .fd109-block article + article { margin-top: 24px; }
-.fd109 button { min-height: 44px; cursor: pointer; color: var(--text-heading); }
+.fd109 button { min-height: 44px; cursor: pointer; }
+.fd109 button:not(.button) { color: var(--text-heading); }
 .fd109 button:focus-visible, .fd109 a:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 3px; }
 .fd109-save { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-soft); }
 .fd109-score { color: var(--gold-500); font-size: 16px; font-weight: 600; white-space: normal; }

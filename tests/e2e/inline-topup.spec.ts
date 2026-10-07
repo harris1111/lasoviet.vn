@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { minimumButtonContrast } from "./helpers/button-contrast";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
@@ -6,7 +7,7 @@ const root = process.cwd();
 const require = createRequire(resolve(root, "package.json"));
 const { build } = createRequire(require.resolve("vite"))("esbuild");
 const stylesRoot = resolve(root, "apps/web/src/styles");
-const styles = readFileSync(resolve(stylesRoot, "global.css"), "utf8").replace(/@import "\.\/([^"]+)";/g, (_, file: string) => readFileSync(resolve(stylesRoot, file), "utf8")) + readFileSync(resolve(stylesRoot, "contextual-unlock.css"), "utf8");
+const styles = readFileSync(resolve(stylesRoot, "global.css"), "utf8").replace(/@import "\.\/([^"]+)";/g, (_, file: string) => readFileSync(resolve(stylesRoot, file), "utf8")) + readFileSync(resolve(stylesRoot, "contextual-unlock.css"), "utf8") + readFileSync(resolve(stylesRoot, "free-result-read-first.css"), "utf8");
 const intentId = "11111111-1111-4111-8111-111111111111";
 const orderId = "22222222-2222-4222-8222-222222222222";
 let bundle = "";
@@ -55,7 +56,7 @@ async function mount(page: Page, locale = "vi", mode = "bank_transfer") {
           qrUrl: "https://vietqr.app/fixture.png", expiresAt: "2026-10-06T12:15:00Z" }, reportId: null } });
     }
     if (url.hostname === "vietqr.app") return route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320"><text x="20" y="160">NONPAYABLE TEST ONLY</text></svg>' });
-    if (route.request().isNavigationRequest()) return route.fulfill({ contentType: "text/html", body: '<html><body><div id="fixture" data-light-ready></div></body></html>' });
+    if (route.request().isNavigationRequest()) return route.fulfill({ contentType: "text/html", body: '<html><body><div id="fixture" class="fd109" data-light-ready></div></body></html>' });
     return route.abort();
   });
   await page.goto(`https://inline-topup.test/?locale=${locale}`);
@@ -185,6 +186,8 @@ for (const locale of ["vi", "en"]) for (const width of [390, 412, 1440]) for (co
     await expect(page.getByTestId("inline-selected-pack")).toContainText(/8[.,]000 Lá/);
     const button = inline.getByRole("button", { name: locale === "vi" ? /Nạp thử 8.000 Lá/ : /Add 8,000 test Lá/ });
     await expect(button).toBeEnabled();
+    const contrast = await minimumButtonContrast(button);
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
     expect(await page.locator("dialog[open]").count()).toBe(1);
     expect(await page.locator("dialog[open]").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
     await button.dblclick();
