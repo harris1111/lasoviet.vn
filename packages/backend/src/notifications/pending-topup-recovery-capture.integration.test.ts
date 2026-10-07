@@ -84,6 +84,11 @@ describe("pending top-up recovery capture with isolated PostgreSQL", () => {
       chartVersionId: f.chartVersionId, amountLa: 960, productTitle: locale === "vi" ? "Tử Vi trọn đời" : "Lifetime Zi Wei reading",
       actionUrl: `https://lasoviet.net${locale === "en" ? "/en" : ""}/thanh-toan/${f.orderId}?utm_source=reminder#recovery=${record!.id}` });
     expect(record!.requestPayload.text).toContain(locale === "vi" ? "29.000 VNĐ" : "29,000 VND");
+    expect(record!.requestPayload.text).toContain(record!.requestPayload.actionUrl);
+    expect(record!.requestPayload.text).toContain(record!.requestPayload.unsubscribeUrl);
+    const htmlLinks = [...(record!.requestPayload.html as string).matchAll(/href="([^"]+)"/g)]
+      .map(match => match[1]!.replaceAll("&amp;", "&"));
+    expect(htmlLinks).toEqual([record!.requestPayload.actionUrl, record!.requestPayload.unsubscribeUrl]);
     const token = new URL(record!.requestPayload.unsubscribeUrl as string).hash.slice("#token=".length);
     expect(verifyUnsubscribeToken(token, SECRET, undefined, NOW)).toMatchObject({ ok: true, value: { userId: f.userId, email: f.email } });
     const payloadWithoutToken = { ...record!.requestPayload, unsubscribeUrl: undefined };

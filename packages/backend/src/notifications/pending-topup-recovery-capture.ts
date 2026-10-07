@@ -7,7 +7,8 @@ import {
   outbox, walletPurchaseIntents, walletTopUpContinuations, ziweiCharts,
   ziweiChartVersions, type Database,
 } from "@lasoviet/database";
-import { fingerprintEmail, generateUnsubscribeToken } from "./notification-preference.js";
+import { fingerprintEmail } from "./notification-preference.js";
+import { renderPendingTopUpRecoveryEmail } from "./pending-topup-recovery-email.js";
 
 export const RECOVERY_CAPTURE_EVENT_TYPE = "notification.recovery.captured.v1";
 export const PENDING_TOPUP_RECOVERY_DELAY_MS = 30 * 60 * 1000;
@@ -97,18 +98,18 @@ export function createPendingTopUpRecoveryCaptureService(options: {
           if ((count?.count ?? 0) >= 2) continue;
           const idempotencyKey = `recovery-pending-topup:${order.id}`;
           const deliveryId = randomUUID();
-          const actionUrl = `https://lasoviet.net${intent.locale === "en" ? "/en" : ""}/thanh-toan/${order.id}?utm_source=reminder#recovery=${deliveryId}`;
-          const topUpAmount = new Intl.NumberFormat(intent.locale === "vi" ? "vi-VN" : "en-US").format(order.amount);
-          const unsubscribeUrl = `https://lasoviet.net/thong-bao/huy-dang-ky#token=${generateUnsubscribeToken({ userId: user.id, email: user.email }, options.tokenSecret, now)}`;
+          const message = renderPendingTopUpRecoveryEmail({
+            userId: user.id, email: user.email, orderId: order.id, deliveryId,
+            locale: intent.locale, productSku: intent.sku, amountLa: intent.priceLa,
+            topUpSku: order.sku, topUpVnd: order.amount, tokenSecret: options.tokenSecret, now,
+          });
           const [delivery] = await transaction.insert(notificationDeliveries).values({
             id: deliveryId, idempotencyKey, kind: "recovery_pending_topup", status: "captured",
             recipientFingerprint, attemptCount: 0, lastErrorCode: "RECOVERY_CAPTURE_ONLY",
             requestPayload: { version: 1, userId: user.id, chartId: intent.chartId, chartVersionId: intent.chartVersionId,
               orderId: order.id, intentId: intent.id, intentStateVersion: intent.stateVersion,
               locale: intent.locale, productTitle: product.name[intent.locale], amountLa: intent.priceLa,
-              topUpVnd: order.amount, actionUrl, unsubscribeUrl,
-              subject: intent.locale === "vi" ? "Đơn nạp Lá của bạn đang chờ" : "Your La top-up is pending",
-              text: intent.locale === "vi" ? `Đơn nạp ${topUpAmount} VNĐ cho ${product.name.vi} vẫn đang chờ. Bạn có thể tiếp tục đơn nạp cũ.` : `Your ${topUpAmount} VND top-up for ${product.name.en} is still pending. You can resume the existing order.`,
+              topUpVnd: order.amount, ...message,
             }, createdAt: now, updatedAt: now,
           }).onConflictDoNothing().returning({ id: notificationDeliveries.id });
           if (!delivery) continue;
