@@ -59,6 +59,27 @@ describe("verified inline payment commands", () => {
     vi.mocked(privateApiClient).mockReturnValue({ request: vi.fn().mockRejectedValue(new PrivateApiClientError("CHECKOUT_PAYMENTS_PAUSED", 409)) });
     const result = await topupProxy(request()); expect(result.status).toBe(409); expect(await result.json()).toEqual({ code: "CHECKOUT_PAYMENTS_PAUSED" });
   });
+  it.each([{ok: false, code: "TOP_UP_CONTINUATION_INVALID"}, {ok: false, error: {code: "TOP_UP_CONTINUATION_INVALID", privateReceipt: "hidden"}}])("maps legacy stale terms to 409 without a payment projection: %j", async envelope => {
+    vi.mocked(privateApiClient).mockReturnValue({request: vi.fn().mockResolvedValue(envelope)});
+    const result = await topupProxy(request());
+    expect(result.status).toBe(409); expect(await result.json()).toEqual({code: "TOP_UP_CONTINUATION_INVALID"});
+    expect(result.headers.get("cache-control")).toBe("no-store"); expect(sendServerAnalyticsEvent).not.toHaveBeenCalled();
+  });
+  it("preserves a current private 409 and never confirms a payment", async () => {
+    vi.mocked(privateApiClient).mockReturnValue({request: vi.fn().mockRejectedValue(new PrivateApiClientError("TOP_UP_CONTINUATION_INVALID", 409))});
+    const result = await topupProxy(request()); expect(result.status).toBe(409); expect(await result.json()).toEqual({code: "TOP_UP_CONTINUATION_INVALID"});
+    expect(sendServerAnalyticsEvent).not.toHaveBeenCalled();
+  });
+  it.each([undefined, "TOP_UP_AUTO_PAYMENT_FAILED", "UNKNOWN_FAILURE"])("keeps other domain/unknown failures unavailable: %s", async code => {
+    vi.mocked(privateApiClient).mockReturnValue({request: vi.fn().mockResolvedValue({ok: false, error: {code}})});
+    const result = await topupProxy(request()); expect(result.status).toBe(502); expect(sendServerAnalyticsEvent).not.toHaveBeenCalled();
+  });
+  it("does not apply top-up stale recovery to a self-claim failure", async () => {
+    vi.mocked(privateApiClient).mockReturnValue({request: vi.fn().mockResolvedValue({ok: false, code: "TOP_UP_CONTINUATION_INVALID"})});
+    expect((await topupProxy(request({amount: 99000, transferredAtLocal: "2026-10-06T19:00"}), "self-claim")).status).toBe(502);
+    expect(sendServerAnalyticsEvent).not.toHaveBeenCalled();
+  });
+
   it("self-claim reuses authenticated reconciliation and validates its receipt", async () => {
     const forward = vi.fn().mockResolvedValue({ ok: true, value: { status: "claimed", orderId: "11111111-1111-4111-8111-111111111111", kind: "wallet_topup", creditedLa: 1100 } });
     vi.mocked(privateApiClient).mockReturnValue({ request: forward });

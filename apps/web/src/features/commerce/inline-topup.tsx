@@ -20,6 +20,7 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
   const [checkoutRevision, setCheckoutRevision] = useState(0);
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState(false);
+  const [termsChanged, setTermsChanged] = useState(false);
   const [restoreAttempt, setRestoreAttempt] = useState(0);
   const [hasPending, setHasPending] = useState(false);
   const pending = useRef<string | null>(null);
@@ -71,17 +72,26 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
       balance_after: balance + pack.totalLa - priceLa, placement: "inline_topup" });
   }, [busy, checkout, error, sku, priceLa, balance, pack.totalLa]);
   useEffect(() => {
-    if (error) void trackUnlockError({ sku, error_code: "TOP_UP_UNAVAILABLE", placement: "inline_topup" });
-  }, [error, sku]);
+    if (error || termsChanged) void trackUnlockError({ sku, error_code: termsChanged ? "TOP_UP_CONTINUATION_INVALID" : "TOP_UP_UNAVAILABLE", placement: "inline_topup" });
+  }, [error, termsChanged, sku]);
 
   async function createOrder() {
-    if (operation.current || busy || pending.current || topUpMode === "unavailable") return;
+    if (operation.current || busy || pending.current || termsChanged || topUpMode === "unavailable") return;
     operation.current = true; setBusy(true); setError(false);
     try {
       void trackPackSelected({ pack_id: pack.id, price_vnd: pack.vndAmount, la_amount: pack.totalLa });
       const response = await fetch("/api/commerce/wallet/top-up-orders", { method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({ packId: pack.id, locale, continuation }) });
-      if (!response.ok) throw new Error("TOP_UP_ORDER_FAILED");
+      if (!response.ok) {
+        if (response.status === 409) {
+          const body = await response.json().catch(() => null) as { code?: string } | null;
+          if (body?.code === "TOP_UP_CONTINUATION_INVALID") {
+            if (active.current) setTermsChanged(true);
+            return;
+          }
+        }
+        throw new Error("TOP_UP_ORDER_FAILED");
+      }
       const status = parseCheckoutStatus(await response.json());
       if (!matchesSelection(status)) throw new Error("CHECKOUT_STATUS_INVALID");
       pending.current = status.order.id;
@@ -152,8 +162,10 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
     </dl>
     {topUpMode === "test" && <div className="inline-topup-mode" role="note"><strong>{t("selection.inlineTestTitle")}</strong><p>{t("selection.inlineTestBody")}</p></div>}
     {topUpMode === "unavailable" && <p role="status">{t("selection.inlineUnavailable")}</p>}
+    {termsChanged && <p role="alert">{t("selection.inlineTermsChanged")}</p>}
     {error && <p role="alert">{t("selection.inlineError")}</p>}
-    {error && hasPending ? <button className="button" type="button" onClick={() => { setError(false); setBusy(true); setRestoreAttempt(v => v + 1); }} disabled={busy}>
+    {termsChanged ? <button className="button button-primary" type="button" onClick={reconfirm} disabled={busy}>
+      {t("selection.inlineRefresh")}</button> : error && hasPending ? <button className="button" type="button" onClick={() => { setError(false); setBusy(true); setRestoreAttempt(v => v + 1); }} disabled={busy}>
       {t("selection.unlockDialogRetry")}</button> : <>
       <PackPicker selected={pack} onSelect={setPack} locale={locale} gap={priceLa - balance} />
       <p className="inline-topup-after">{t("selection.inlineRemaining", { item: itemName, balance: (balance + pack.totalLa - priceLa).toLocaleString(locale === "vi" ? "vi-VN" : "en-US") })}</p>

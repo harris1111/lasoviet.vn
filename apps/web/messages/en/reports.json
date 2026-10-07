@@ -141,6 +141,8 @@
     "inlineSaveQr": "Open QR image to save",
     "inlineOrderLink": "Reopen this payment order",
     "inlineError": "Could not check the payment order. Retry to continue with the same order.",
+    "inlineTermsChanged": "This confirmation has already been processed or its details have changed. Refresh the current status before continuing.",
+    "inlineRefresh": "Refresh current status",
     "inlineReconfirm": "Not transferred — choose a pack again",
     "pendingUnlockLabel": "Resume your selected reading",
     "pendingUnlockBody": "You were reading {item} — you need {gap} more Lá.",

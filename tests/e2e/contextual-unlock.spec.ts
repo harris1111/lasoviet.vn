@@ -60,7 +60,7 @@ test.beforeAll(async () => {
           namespace: "next-navigation-mock",
         }));
         buildContext.onLoad({ filter: /.*/, namespace: "next-navigation-mock" }, () => ({
-          contents: "export function useRouter() { return { push() {}, refresh() {} }; }",
+          contents: "const router = { push() {}, refresh() {} }; export function useRouter() { return router; }",
           loader: "js",
         }));
       },
@@ -75,9 +75,10 @@ test.beforeAll(async () => {
 });
 
 
-async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: number; intentPrice?: number } = {}) {
+async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: number; intentPrice?: number; balance?: number } = {}) {
   const commands: unknown[] = [];
-  const progress = { sku: "", state: "processing", reads: 0, quoteStatus: 200, mismatch: false, revoke: false, hold: false, responses: [] as (() => void)[] };
+  const topups: unknown[] = [];
+  const progress = { settled: false, invalidCompleted: "", holdIntent: false, intentResponses: [] as (() => void)[], sku: "", state: "processing", reads: 0, quoteStatus: 200, mismatch: false, revoke: false, hold: false, responses: [] as (() => void)[] };
   const analytics: Array<{ event: { name: string; properties: Record<string, unknown> } }> = [];
   page.on("pageerror", error => { console.error(error.message); });
   const quotes = [
@@ -90,15 +91,25 @@ async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: 
     if (path === "/api/commerce/wallet/quotes") {
       progress.reads++;
       if (progress.hold) await new Promise<void>(resolve => progress.responses.push(resolve));
-      const projected = quotes.map(item => commands.length > 0 && item.sku === progress.sku && !progress.revoke ? { ...item, state: "owned", priceLa: null, creditLa: 0, discountLa: 0, creditExpiresAt: null, creditSourceSkus: [], reportId: progress.mismatch ? "33333333-3333-4333-8333-333333333333" : "22222222-2222-4222-8222-222222222222", reportState: progress.state } : item);
+      const projected = quotes.map(item => (commands.length > 0 || progress.settled) && item.sku === progress.sku && !progress.revoke ? { ...item, state: "owned", priceLa: null, creditLa: 0, discountLa: 0, creditExpiresAt: null, creditSourceSkus: [], reportId: progress.mismatch ? "33333333-3333-4333-8333-333333333333" : "22222222-2222-4222-8222-222222222222", reportState: progress.state } : item);
       await route.fulfill({ status: options.quoteStatus ?? progress.quoteStatus, json: { version: 1, chartId: "fixture-chart", chartVersionId: "fixture-version", locale, quotedAt: "2026-10-04T00:00:00Z", quotes: projected } });
     }
     else if (path === "/api/analytics/events") { analytics.push(route.request().postDataJSON()); await route.fulfill({ json: { ok: true } }); }
     else if (path === "/api/commerce/wallet/purchase-intents") {
       const sku = route.request().postDataJSON().sku;
       progress.sku = sku;
-      await route.fulfill({ json: { id: "11111111-1111-4111-8111-111111111111", amountLa: options.intentPrice ?? (sku === "ZIWEI-IDENTITY-P0" ? 720 : 120), stateVersion: 1 } });
-    } else if (path === "/api/commerce/wallet/balance") await route.fulfill({ json: { totalLa: 2000, stateVersion: 7 } });
+      if (progress.holdIntent) await new Promise<void>(resolve => progress.intentResponses.push(resolve));
+      const value = progress.settled ? {id: "11111111-1111-4111-8111-111111111111", sku: progress.invalidCompleted === "sku" ? "ZIWEI-CAREER-P0" : sku,
+        productTitle: "Confirmed reading", locale: progress.invalidCompleted === "locale" ? "en" : locale, amountLa: options.intentPrice ?? 120,
+        status: "completed", stateVersion: 2, createdAt: "2026-10-07T00:00:00Z", ...(progress.invalidCompleted === "private-field" ? {receiptId: "private"} : {})}
+        : {id: "11111111-1111-4111-8111-111111111111", amountLa: options.intentPrice ?? (sku === "ZIWEI-IDENTITY-P0" ? 720 : 120), stateVersion: 1};
+      await route.fulfill({json: value});
+    } else if (path === "/api/commerce/wallet/balance") await route.fulfill({headers: {"x-wallet-topup-mode": "test"}, json: {totalLa: options.balance ?? 2000, stateVersion: 7}});
+    else if (path === "/api/commerce/wallet/top-up-orders") {
+      topups.push(route.request().postDataJSON());
+      if (!progress.settled) {progress.settled = true; return route.abort("connectionreset");}
+      await route.fulfill({status: 409, json: {code: "TOP_UP_CONTINUATION_INVALID", reportId: "untrusted-conflict-report"}});
+    }
     else if (path === "/api/commerce/wallet/unlock") { commands.push(route.request().postDataJSON()); await route.fulfill({ json: { reportId: "22222222-2222-4222-8222-222222222222" } }); }
     else if (path === "/") await route.fulfill({ contentType: "text/html", body: '<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture" class="fd109" data-light-ready></div></body></html>' });
     else await route.abort();
@@ -107,7 +118,7 @@ async function mountFixture(page: Page, locale = "vi", options: { quoteStatus?: 
   await page.addStyleTag({ content: stylesheet + freeStyles + sheetStyles });
   await page.addScriptTag({ content: bundle });
   await expect(page.getByTestId("offer-ladder")).toBeVisible();
-  return { commands, analytics, progress };
+  return { commands, analytics, progress, topups };
 }
 for (const width of [390, 1440]) for (const theme of ["light", "dark"]) {
   test(`palace120 purchases inside one preview at ${width}px ${theme}`, async ({ page }) => {
@@ -228,4 +239,45 @@ test("changing chart version discards receipt and ignores the old late quote res
   progress.hold = false; for (const release of progress.responses) release();
   await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
   await expect(page.locator('dialog.fd109-preview a[href^="/bao-cao/"]')).toHaveCount(0);
+});
+
+async function staleAfterLostReply(page: Page) {
+  const state = await mountFixture(page, "vi", {balance: 0});
+  await page.locator("#preview-trigger").click();
+  await page.getByTestId("contextual-palace-unlock").click();
+  const inline = page.getByTestId("inline-topup");
+  await inline.getByRole("button", {name: /Nạp thử/}).click();
+  await expect(inline.getByRole("alert")).toContainText("Chưa kiểm tra được");
+  await inline.getByRole("button", {name: /Nạp thử/}).click();
+  await expect(inline.getByRole("alert")).toContainText("đã được xử lý");
+  expect(state.topups).toHaveLength(2); expect(state.commands).toHaveLength(0);
+  await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
+  return state;
+}
+test("lost successful reply recovers from 409 through completed public intent and owned quote without another debit", async ({page}) => {
+  const state = await staleAfterLostReply(page);
+  await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
+  const receipt = page.getByTestId("contextual-unlock-success");
+  await expect(receipt).toContainText("đang được chuẩn bị");
+  await expect(receipt.getByRole("link")).toHaveAttribute("href", "/bao-cao/22222222-2222-4222-8222-222222222222");
+  expect(state.topups).toHaveLength(2); expect(state.commands).toHaveLength(0);
+  await expect(page.getByRole("button", {name: "Xác nhận mở", exact: true})).toHaveCount(0);
+});
+for (const failure of ["sku", "locale", "private-field"]) test(`completed refresh rejects ${failure} projection without report access`, async ({page}) => {
+  const state = await staleAfterLostReply(page); state.progress.invalidCompleted = failure;
+  await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
+  await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
+  await expect(page.locator('a[href*="untrusted-conflict-report"]')).toHaveCount(0);
+  await expect(page.locator(".wallet-unlock-dialog-error")).toBeVisible();
+  expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
+});
+for (const action of ["close", "version"]) test(`late completed recovery is ignored after ${action}`, async ({page}) => {
+  const state = await staleAfterLostReply(page); state.progress.holdIntent = true;
+  await page.getByRole("button", {name: "Xem lại trạng thái", exact: true}).click();
+  await expect.poll(() => state.progress.intentResponses.length).toBe(1);
+  if (action === "close") await page.keyboard.press("Escape");
+  else await page.locator("#change-version").evaluate((element: HTMLButtonElement) => element.click());
+  state.progress.holdIntent = false; state.progress.intentResponses.splice(0).forEach(resolve => resolve());
+  await expect(page.getByTestId("contextual-unlock-success")).toHaveCount(0);
+  expect(state.commands).toHaveLength(0); expect(state.topups).toHaveLength(2);
 });
