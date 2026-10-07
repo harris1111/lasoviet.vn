@@ -602,7 +602,11 @@ describe("SePay controller HTTP contract", () => {
       }),
     } as never);
     try {
-      await expect(controller().walletBalance("Bearer valid-token")).resolves.toEqual({ ok: true, value: balance });
+      await expect(controller().walletBalance("Bearer valid-token")).resolves.toEqual({ ok: true, value: balance, topUpMode: "bank_transfer" });
+      for (const [environment, autoApprove, expected] of [["disabled", true, "test"], ["disabled", false, "unavailable"], ["production", false, "bank_transfer"]] as const) {
+        await expect(controller({ sepayEnvironment: environment, autoApproveTopUps: autoApprove }).walletBalance("Bearer valid-token"))
+          .resolves.toMatchObject({ value: balance, topUpMode: expected });
+      }
       await expect(controller().walletHistory("Bearer valid-token")).resolves.toEqual({
         ok: true,
         value: {

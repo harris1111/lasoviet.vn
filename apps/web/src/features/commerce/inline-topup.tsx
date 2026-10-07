@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { WalletTopUpContinuationRequestV1 } from "@lasoviet/contracts";
+import type { WalletTopUpContinuationRequestV1, WalletTopUpModeV1 } from "@lasoviet/contracts";
 import { findSmallestCoveringPack } from "./la-packs";
 import { PackPicker } from "./pack-picker";
 import { parseCheckoutStatus, type CheckoutStatus } from "./checkout-status";
@@ -9,9 +9,9 @@ import { VietQrCheckout } from "./vietqr-checkout";
 import { PaymentSelfClaimForm, type PaymentSelfClaimState } from "./payment-self-claim-form";
 import { trackPackSelected, trackUnlockConfirmView, trackUnlockError } from "../analytics/funnel-analytics";
 
-export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, chartId, chartVersionId, sku, onCompleted, onReconfirm }: {
+export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, chartId, chartVersionId, sku, topUpMode, onCompleted, onReconfirm }: {
   locale: "vi" | "en"; itemName: string; balance: number; priceLa: number;
-  continuation: WalletTopUpContinuationRequestV1; chartId: string; chartVersionId: string; sku: string;
+  continuation: WalletTopUpContinuationRequestV1; chartId: string; chartVersionId: string; sku: string; topUpMode: WalletTopUpModeV1;
   onCompleted: (status: CheckoutStatus) => void; onReconfirm: () => void;
 }) {
   const t = useTranslations("reports");
@@ -75,7 +75,7 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
   }, [error, sku]);
 
   async function createOrder() {
-    if (operation.current || busy || pending.current) return;
+    if (operation.current || busy || pending.current || topUpMode === "unavailable") return;
     operation.current = true; setBusy(true); setError(false);
     try {
       void trackPackSelected({ pack_id: pack.id, price_vnd: pack.vndAmount, la_amount: pack.totalLa });
@@ -145,14 +145,22 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
     <a href={`${locale === "en" ? "/en" : ""}/thanh-toan/${encodeURIComponent(checkout.order.id)}`}>{t("selection.inlineOrderLink")}</a>
   </div>;
   return <div className="inline-topup" data-testid="inline-topup">
+    <dl className="inline-topup-summary">
+      <div><dt>{t("selection.inlinePrice")}</dt><dd>{priceLa.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
+      <div><dt>{t("selection.inlineBalance")}</dt><dd>{balance.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
+      <div><dt>{t("selection.inlineGap")}</dt><dd>{(priceLa - balance).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
+    </dl>
+    {topUpMode === "test" && <div className="inline-topup-mode" role="note"><strong>{t("selection.inlineTestTitle")}</strong><p>{t("selection.inlineTestBody")}</p></div>}
+    {topUpMode === "unavailable" && <p role="status">{t("selection.inlineUnavailable")}</p>}
     {error && <p role="alert">{t("selection.inlineError")}</p>}
     {error && hasPending ? <button className="button" type="button" onClick={() => { setError(false); setBusy(true); setRestoreAttempt(v => v + 1); }} disabled={busy}>
       {t("selection.unlockDialogRetry")}</button> : <>
       <PackPicker selected={pack} onSelect={setPack} locale={locale} gap={priceLa - balance} />
-      <p>{t("selection.inlineRemaining", { item: itemName, balance: balance + pack.totalLa - priceLa })}</p>
-      <button className="button button-primary" type="button" onClick={() => void createOrder()} disabled={busy}>
-        {busy ? t("selection.unlockDialogConfirming") : t("selection.inlineConfirm", { amount: pack.vndFormatted[locale], item: itemName })}
+      <p className="inline-topup-after">{t("selection.inlineRemaining", { item: itemName, balance: (balance + pack.totalLa - priceLa).toLocaleString(locale === "vi" ? "vi-VN" : "en-US") })}</p>
+      <button className="button button-primary" type="button" onClick={() => void createOrder()} disabled={busy || topUpMode === "unavailable"}>
+        {busy ? t("selection.unlockDialogConfirming") : topUpMode === "test" ? t("selection.inlineTestConfirm", { amount: pack.totalLa.toLocaleString(locale === "vi" ? "vi-VN" : "en-US") }) : t("selection.inlineConfirm", { amount: pack.vndFormatted[locale], item: itemName })}
       </button>
+      <p className="inline-topup-consent">{t("selection.inlineConsent", { price: priceLa.toLocaleString(locale === "vi" ? "vi-VN" : "en-US"), item: itemName })}</p>
     </>}
   </div>;
 }

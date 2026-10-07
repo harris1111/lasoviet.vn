@@ -11,6 +11,9 @@ const amount = z.number().int().nonnegative();
 const positiveAmount = z.number().int().positive();
 const timestamp = z.iso.datetime({ offset: true });
 
+export const WalletTopUpModeV1Schema = z.enum(["test", "bank_transfer", "unavailable"]);
+export type WalletTopUpModeV1 = z.infer<typeof WalletTopUpModeV1Schema>;
+
 export const WalletTopUpCatalogV1 = [
   { id: "LA-ENTRY-300", vndAmount: 29000, purchasedLa: 300, promotionalLa: 0 },
   { id: "LA-START-1100", vndAmount: 99000, purchasedLa: 1000, promotionalLa: 100 },

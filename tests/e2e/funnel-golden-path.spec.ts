@@ -207,7 +207,8 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       await expect(inline.locator('input[value="LA-ENTRY-300"]')).toBeChecked();
       expect(database(`select count(*) from commerce_orders where owner_id='${owner.ownerId}'`)).toBe("0");
       const created = page.waitForRequest(request => request.method() === "POST" && new URL(request.url()).pathname === "/api/commerce/wallet/top-up-orders");
-      await inline.getByRole("button", {name: /Nạp 29.000đ/}).click();
+      await expect(inline.getByRole("note")).toContainText("Đang dùng chế độ nạp thử");
+      await inline.getByRole("button", {name: "Nạp thử 300 Lá và mở", exact: true}).click();
       const terms = (await created).postDataJSON().continuation;
       expect(terms.confirmedPriceLa).toBe(120); expect(terms.returnOpen).toBe("wealth");
       await expect.poll(() => database(`select count(*) from wallet_topup_continuations where owner_id='${owner.ownerId}' and status='completed' and purchase_intent_id='${terms.purchaseIntentId}'`)).toBe("1");
@@ -263,6 +264,8 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       }
       await page.locator('.offer-ladder-summary .button-primary').click();
       const sheet = page.locator("dialog.unlock-sheet"); await expect(sheet.getByTestId("inline-topup")).toBeVisible();
+      await expect(sheet.locator(".inline-topup-other-packs")).not.toHaveAttribute("open");
+      await sheet.locator(".inline-topup-other-packs summary").click();
       for (const id of ["LA-ENTRY-300", "LA-START-1100", "LA-DISCOVER-3000", "LA-LIBRARY-8000"]) {
         await sheet.locator(`input[value="${id}"]`).check(); await expect(sheet.locator(`input[value="${id}"]`)).toBeChecked();
       }

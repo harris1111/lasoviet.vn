@@ -71,7 +71,7 @@ test.beforeAll(async () => {
     format: "iife",
     platform: "browser",
     jsx: "automatic",
-    define: { "process.env.NODE_ENV": '"production"' },
+    define: { "process.env.NODE_ENV": '"production"', "process.env": "{}" },
   });
   bundle = result.outputFiles[0].text;
 });
@@ -90,14 +90,14 @@ async function mountFixture(page: Page, balance = 2200) {
       });
       await route.fulfill({ json: { id: "11111111-1111-4111-8111-111111111111", amountLa: 960, stateVersion: 1 } });
     } else if (path === "/api/commerce/wallet/balance") {
-      await route.fulfill({ json: { totalLa: balance, stateVersion: 7 } });
+      await route.fulfill({ headers: { "x-wallet-topup-mode": "bank_transfer" }, json: { totalLa: balance, stateVersion: 7 } });
     } else if (path === "/api/commerce/wallet/unlock") {
       unlocks.push(route.request().postDataJSON());
       await route.fulfill({ json: { reportId: null } });
     } else if (path === "/") {
       await route.fulfill({
         contentType: "text/html",
-        body: '<!doctype html><html data-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture"></div></body></html>',
+        body: '<!doctype html><html data-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture" data-light-ready></div></body></html>',
       });
     } else {
       await route.abort();
@@ -185,14 +185,9 @@ test("short-balance dialog can scroll to its actions on a short viewport", async
   await page.evaluate(() => history.replaceState(null, "", "/la-so/fixture-chart?tab=palaces&open=life"));
   await page.getByRole("button", { name: "Mở luận giải đầy đủ: 960 Lá" }).click();
   const dialog = page.getByRole("dialog", { name: "Mở luận giải này" });
-  const topUp = dialog.locator('a[href^="/nap-la?pack=LA-START-1100&intent="]');
-  const destination = new URL((await topUp.getAttribute("href"))!, "http://wallet-layout.test");
-  expect(Object.fromEntries(destination.searchParams)).toEqual({
-    pack: "LA-START-1100", intent: "11111111-1111-4111-8111-111111111111",
-    intentVersion: "1", price: "960", tab: "palaces", open: "life",
-  });
-  await expect(dialog).toContainText("tự mở");
+  const topUp = dialog.getByRole("button", { name: /Tiếp tục thanh toán 99.000đ/ });
   await expect(dialog).toContainText("960 Lá");
+  await expect(dialog).toContainText("Sau khi nạp xong");
   await topUp.scrollIntoViewIfNeeded();
   await expect(topUp).toBeInViewport();
   await dialog.getByRole("button", { name: "Huỷ", exact: true }).click();

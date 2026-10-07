@@ -357,6 +357,7 @@ export {
   WalletSpendAllocationV1Schema,
   WalletSpendV1Schema,
   WalletTopUpCatalogV1,
+  WalletTopUpModeV1Schema,
   WalletTopUpOrderCreateV1Schema,
   WalletTopUpContinuationRequestV1Schema,
   WalletTopUpContinuationViewV1Schema,
@@ -378,6 +379,7 @@ export type {
   WalletTopUpContinuationRequestV1,
   WalletTopUpContinuationViewV1,
   WalletTopUpPackId,
+  WalletTopUpModeV1,
   WalletTransactionReceiptV1,
 } from "./wallet-commerce-v1.js";
 export {

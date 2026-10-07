@@ -18,7 +18,7 @@ export function useUnlockLabels() {
     genericError: t("selection.unlockDialogGenericError") };
 }
 
-export function ContextualUnlock({ chartId, chartVersionId, locale, sku, offerHref, onDoor }: {
+function ContextualUnlockForChart({ chartId, chartVersionId, locale, sku, offerHref, onDoor }: {
   chartId: string; chartVersionId: string; locale: "vi" | "en"; sku: LaSku;
   offerHref: string; onDoor?: () => void;
 }) {
@@ -27,7 +27,7 @@ export function ContextualUnlock({ chartId, chartVersionId, locale, sku, offerHr
   const router = useRouter();
   const quote = useWalletQuotes(chartId, chartVersionId, locale);
   const [selection, setSelection] = useState<LaSku | null>(null);
-  const [receipt, setReceipt] = useState<{ reportId: string | null } | null>(null);
+  const [receipt, setReceipt] = useState<{ reportId: string | null; sku: LaSku } | null>(null);
   const primaryRef = useRef<HTMLButtonElement>(null);
   const lifetimeRef = useRef<HTMLButtonElement>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -39,19 +39,34 @@ export function ContextualUnlock({ chartId, chartVersionId, locale, sku, offerHr
     }
     previousSelection.current = selection;
   }, [selection, receipt, sku]);
+  const receiptQuote = receipt ? quote.quotes?.find(item => item.sku === receipt.sku && item.state === "owned"
+    && (receipt.reportId === null || item.reportId === receipt.reportId)) : undefined;
+  const receiptReady = receiptQuote?.reportState === "ready";
+  const receiptUnavailable = receiptQuote?.reportState === "unavailable";
+  const retryQuotes = quote.retry;
+  useEffect(() => {
+    if (!receipt || receiptQuote?.reportState !== "processing" || quote.status !== "ready") return;
+    const refresh = () => { if (document.visibilityState === "visible") retryQuotes(); };
+    const timer = window.setInterval(refresh, 15000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => { window.clearInterval(timer); document.removeEventListener("visibilitychange", refresh); };
+  }, [receipt, receiptQuote?.reportState, quote.status, retryQuotes]);
   const prefix = locale === "en" ? "/en" : "";
   if (receipt) return <div ref={receiptRef} tabIndex={-1} role="status" data-testid="contextual-unlock-success">
-    <p>{t("selection.contextualUnlocked")}</p>
-    <Link className="button" href={receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>
-      {t("selection.viewProgress")}
-    </Link>
+    <p>{t(quote.status === "guest" ? "selection.contextualSignInAgain" : quote.status === "error" ? "selection.contextualCheckError"
+      : !receiptQuote ? "selection.contextualUnverified" : receiptReady ? "selection.contextualReady"
+      : receiptUnavailable ? "selection.contextualUnavailable" : "selection.contextualPreparing")}</p>
+    {quote.status === "guest" ? <Link className="button" href={`${prefix}/dang-nhap?callbackURL=${encodeURIComponent(`${prefix}/la-so/${chartId}`)}`}>
+      {t("selection.contextualSignIn")}</Link> : receiptQuote ? <Link className="button" href={receiptQuote.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receiptQuote.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>
+      {t(receiptReady ? "selection.contextualReadNow" : "selection.viewProgress")}</Link>
+      : <button className="button" type="button" onClick={retryQuotes}>{t("selection.unlockDialogRetry")}</button>}
   </div>;
   if (selection) {
     const selected = findLaProduct(selection)!;
     return <UnlockSheet embedded open chartId={chartId} chartVersionId={chartVersionId} sku={selection}
       locale={locale} labels={labels} itemName={selected.name[locale]}
       onOpenChange={(open) => { if (!open) setSelection(null); }}
-      onUnlocked={(reportId) => { setReceipt({ reportId }); quote.retry(); router.refresh(); }} />;
+      onUnlocked={(reportId) => { setReceipt({ reportId, sku: selection }); quote.retry(); router.refresh(); }} />;
   }
   function action(itemSku: LaSku, secondary = false) {
     const product = findLaProduct(itemSku);
@@ -81,4 +96,9 @@ export function ContextualUnlock({ chartId, chartVersionId, locale, sku, offerHr
     {action(sku)}{sku !== "ZIWEI-IDENTITY-P0" && action("ZIWEI-IDENTITY-P0", true)}
     <Link href={offerHref} onClick={onDoor}>{t("selection.contextualAllOffers")}</Link>
   </div>;
+}
+
+
+export function ContextualUnlock(props: Parameters<typeof ContextualUnlockForChart>[0]) {
+  return <ContextualUnlockForChart key={JSON.stringify([props.chartId, props.chartVersionId, props.locale, props.sku])} {...props} />;
 }

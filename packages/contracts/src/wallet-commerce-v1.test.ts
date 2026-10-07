@@ -9,6 +9,7 @@ import {
   WalletPurchaseIntentV1Schema,
   WalletSpendAllocationV1Schema,
   WalletTopUpCatalogV1,
+  WalletTopUpModeV1Schema,
 } from "./wallet-commerce-v1.js";
 
 describe("wallet commerce V1 contracts", () => {
@@ -192,4 +193,10 @@ it("accepts member prices without discounting membership fees or daily standalon
   }
   expect(WalletContentPriceV1Schema.safeParse({ sku: "MEMBERSHIP-MONTHLY-P0", amountLa: 1200 }).success).toBe(false);
   expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-TODAY-P0", amountLa: 48 }).success).toBe(false);
+});
+
+
+it("accepts only the three customer-safe top-up modes", () => {
+  for (const value of ["test", "bank_transfer", "unavailable"]) expect(WalletTopUpModeV1Schema.safeParse(value).success).toBe(true);
+  for (const value of ["production", "disabled", "true", {}, null]) expect(WalletTopUpModeV1Schema.safeParse(value).success).toBe(false);
 });
