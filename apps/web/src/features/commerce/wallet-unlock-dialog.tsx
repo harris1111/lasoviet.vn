@@ -14,7 +14,7 @@ import {
   trackPackSelected,
   trackUnlockError,
 } from "../analytics/funnel-analytics";
-import type { LaSku, WalletTopUpModeV1 } from "@lasoviet/contracts";
+import { WalletUnlockResultV1Schema, type LaSku, type WalletTopUpModeV1 } from "@lasoviet/contracts";
 import { customerContactConfig } from "@lasoviet/config/customer-contact";
 import {
   classifyWalletUnlockError,
@@ -156,9 +156,20 @@ export function WalletUnlockDialog({
           id: string;
           amountLa: number;
           stateVersion: number;
+          status?: string;
         };
         const balance = (await balanceResponse.json()) as { totalLa: number; stateVersion: number };
         if (!active) return;
+        if (!membership && intent.status === "completed") {
+          const completed = WalletUnlockResultV1Schema.shape.intent.safeParse(intent);
+          if (!completed.success || completed.data.sku !== sku || completed.data.locale !== locale) {
+            throw new Error("WALLET_INTENT_RESPONSE_INVALID");
+          }
+          // Reload the owned quote; this intent is not authority to display report content.
+          onOpenChange(false);
+          onUnlocked(null);
+          return;
+        }
         const mode = balanceResponse.headers.get("x-wallet-topup-mode");
         setTopUpMode(mode === "test" || mode === "bank_transfer" ? mode : "unavailable");
         const loadedState = resolveWalletUnlockLoadedState(intent, balance, balance.stateVersion);
@@ -192,7 +203,7 @@ export function WalletUnlockDialog({
     // every time the dialog opens, so a fresh intent+balance load always
     // starts from "loading" without a synchronous setState in the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartId, locale, router, attempt]);
+  }, [chartId, chartVersionId, sku, locale, router, attempt]);
 
   useEffect(() => {
     if (state.step === "error") {

@@ -26,7 +26,12 @@ export async function topupProxy(request: Request, command: "create" | "self-cla
       command === "create" ? "/commerce/wallet/top-up-orders" : "/commerce/payments/self-claim",
       { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(parsed.data) },
     );
-    if (!result?.ok || result.value === undefined) return NextResponse.json({ code: result?.code ?? result?.error?.code ?? "UPSTREAM_UNAVAILABLE" }, { status: 502, headers });
+    if (!result?.ok || result.value === undefined) {
+      const code = result?.code ?? result?.error?.code ?? "UPSTREAM_UNAVAILABLE";
+      // Older private API releases return stale terms in a successful HTTP envelope.
+      const status = command === "create" && code === "TOP_UP_CONTINUATION_INVALID" ? 409 : 502;
+      return NextResponse.json({ code }, { status, headers });
+    }
     if (command === "self-claim") {
       const receipt = PaymentSelfClaimSuccessV1Schema.safeParse(result.value);
       if (!receipt.success) return NextResponse.json({ code: "UPSTREAM_UNAVAILABLE" }, { status: 502, headers });

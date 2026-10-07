@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { createHmac } from "node:crypto";
 import * as backend from "@lasoviet/backend";
 
+import { WalletUnlockResultV1Schema } from "@lasoviet/contracts";
+
 import { CommerceController } from "./commerce.controller.js";
 
 function controller(options: {
@@ -70,6 +72,20 @@ describe("SePay controller HTTP contract", () => {
     } finally {
       authSpy.mockRestore();
     }
+  });
+
+  it.each(["disabled", "sandbox", "production"] as const)("returns stale continuation as 409 without settling payment in %s", async sepayEnvironment => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({kind: "account", userId: "owner", sessionId: "session", requestId: "request"});
+    const recordPaid = vi.fn();
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({
+      createTopUpOrder: vi.fn().mockResolvedValue({ok: false, code: "TOP_UP_CONTINUATION_INVALID"}), recordPaid,
+    } as never);
+    try {
+      await expect(controller({sepayEnvironment, autoApproveTopUps: true}).createTopUpOrder("Bearer valid-token", {
+        packId: "LA-START-1100", locale: "vi", continuation: {purchaseIntentId: "11111111-1111-4111-8111-111111111111", expectedIntentVersion: 1, confirmedPriceLa: 960, returnTab: "topics"},
+      })).rejects.toMatchObject({status: 409, response: {code: "TOP_UP_CONTINUATION_INVALID"}});
+      expect(recordPaid).not.toHaveBeenCalled();
+    } finally {authSpy.mockRestore(); repoSpy.mockRestore();}
   });
 
   it("auto-approves a top-up and returns the credited order when explicitly enabled", async () => {
@@ -441,6 +457,19 @@ describe("SePay controller HTTP contract", () => {
     } finally {
       repoSpy.mockRestore();
     }
+  });
+
+  it("projects a completed refresh using the actual public intent contract without private chart fields", async () => {
+    const authSpy = vi.spyOn(internalGuard, "verifyInternalActorToken").mockResolvedValue({kind: "account", userId: "owner", sessionId: "session", requestId: "request"});
+    const repoSpy = vi.spyOn(backend, "createDatabaseCommerceRepository").mockReturnValue({createWalletPurchaseIntent: vi.fn().mockResolvedValue({ok: true,
+      value: {id: "intent", sku: "ZIWEI-IDENTITY-P0", chartVersionId: "private-version", locale: "vi", amountLa: 720, status: "completed", stateVersion: 2, createdAt: "2026-10-07T00:00:00Z"},
+    })} as never);
+    try {
+      const result = await controller().createWalletPurchaseIntent("Bearer valid-token", {chartId: "chart", chartVersionId: "private-version", sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+      expect(WalletUnlockResultV1Schema.shape.intent.parse(result.value)).toEqual(result.value);
+      expect(result.value).toMatchObject({status: "completed", sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+      expect(JSON.stringify(result)).not.toContain("private-version");
+    } finally {authSpy.mockRestore(); repoSpy.mockRestore();}
   });
 
   it("returns a redacted wallet intent projection", async () => {

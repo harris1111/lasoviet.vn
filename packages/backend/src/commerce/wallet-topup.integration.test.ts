@@ -593,6 +593,9 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
     const projection = await repository.readTopUpOrderProjection(actor, created.value.id);
     expect(projection?.continuation).toMatchObject({ status: "completed", remainingLa: 60 });
     expect(projection?.continuation?.returnPath).toBe(`/la-so/${chart.chartId}?tab=palaces&topupOrder=${created.value.id}&open=life`);
+    const staleCreates = await Promise.all(Array.from({length: 3}, () => repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation)));
+    expect(staleCreates).toEqual(Array.from({length: 3}, () => ({ok: false, code: "TOP_UP_CONTINUATION_INVALID"})));
+    expect(await database.select().from(commerceOrders).where(and(eq(commerceOrders.ownerId, actor.userId), eq(commerceOrders.kind, "wallet_topup")))).toHaveLength(1);
     const wallet = await walletOf(actor.userId);
     expect(wallet?.purchasedBalance).toBe(60);
     expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(1);

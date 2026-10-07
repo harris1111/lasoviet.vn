@@ -32,20 +32,25 @@ test.beforeAll(async () => {
   bundle = built.outputFiles[0].text;
 });
 async function mount(page: Page, locale = "vi", mode = "bank_transfer") {
-  const state = { creates: [] as Array<Record<string, unknown>>, paid: false, blocked: false, statusFailed: false, claims: 0, terminal: "", wrongTarget: false, continuationPending: false, holdStatus: false, heldResponses: [] as (() => void)[], analytics: [] as string[], claimResult: "none" };
+  const state = { createFailure: "", intentReads: 0, balanceReads: 0, creates: [] as Array<Record<string, unknown>>, paid: false, blocked: false, statusFailed: false, claims: 0, terminal: "", wrongTarget: false, continuationPending: false, holdStatus: false, heldResponses: [] as (() => void)[], analytics: [] as string[], claimResult: "none" };
   page.on("pageerror", error => console.error("Fixture browser error:", error.message));
   await page.clock.install({ time: new Date("2026-10-06T12:00:00Z") });
   await page.route("**/*", async route => {
     const url = new URL(route.request().url());
-    if (url.pathname === "/api/commerce/wallet/purchase-intents") return route.fulfill({ json: { id: intentId, amountLa: 840, stateVersion: 1 } });
-    if (url.pathname === "/api/commerce/wallet/balance") return route.fulfill({ headers: { "x-wallet-topup-mode": mode }, json: { totalLa: 0, stateVersion: 1 } });
+    if (url.pathname === "/api/commerce/wallet/purchase-intents") {state.intentReads++; return route.fulfill({ json: { id: intentId, amountLa: 840, stateVersion: 1 } });}
+    if (url.pathname === "/api/commerce/wallet/balance") {state.balanceReads++; return route.fulfill({ headers: { "x-wallet-topup-mode": mode }, json: { totalLa: 0, stateVersion: 1 } });}
     if (url.pathname === "/api/analytics/events") { state.analytics.push(route.request().postDataJSON().event.name); return route.fulfill({ status: 202, json: { ok: true } }); }
     if (url.pathname.endsWith("/self-claim")) { state.claims++; if (state.claimResult !== "none") { state.paid = true; state.terminal = ""; state.continuationPending = state.claimResult === "pending"; } return route.fulfill({ json: { status: "claimed", orderId, kind: "wallet_topup", creditedLa: 1100 } }); }
     if (url.pathname === "/api/commerce/wallet/top-up-orders" || url.pathname.endsWith("/status")) {
       if (route.request().method() === "POST" && url.pathname.endsWith("/status")) return route.fulfill({ status: 204 });
       if (url.pathname.endsWith("/status") && state.holdStatus) await new Promise<void>(resolve => state.heldResponses.push(resolve));
       if (url.pathname.endsWith("/status") && state.statusFailed) return route.fulfill({ status: 503, json: {} });
-      if (url.pathname === "/api/commerce/wallet/top-up-orders") { state.creates.push(route.request().postDataJSON()); if (mode === "test") state.paid = true; }
+      if (url.pathname === "/api/commerce/wallet/top-up-orders") {
+        state.creates.push(route.request().postDataJSON());
+        if (state.createFailure === "non-json") return route.fulfill({status: 409, contentType: "text/plain", body: "Unavailable"});
+        if (state.createFailure) return route.fulfill({status: 409, json: {code: state.createFailure}});
+        if (mode === "test") state.paid = true;
+      }
       const selected = state.creates[0]?.packId === "LA-DISCOVER-3000" ? { amount: 249000, credited: 3000 } : { amount: 99000, credited: 1100 };
       return route.fulfill({ json: { order: { id: orderId, kind: "wallet_topup", status: state.terminal || (state.paid ? "paid" : "pending"), amount: selected.amount, currency: "VND", locale,
         productTitle: "TEST ONLY PACK", paymentCode: "NOT-PAYABLE-TEST", chartId: null, createdAt: "2026-10-06T12:00:00Z", creditApplied: 0, creditExpiresAt: null,
@@ -202,4 +207,27 @@ test("unavailable top-up mode cannot create an order", async ({ page }) => {
   await expect(page.getByTestId("inline-topup")).toContainText("Nạp Lá đang tạm dừng");
   await expect(page.getByRole("button", { name: /Tiếp tục thanh toán/ })).toBeDisabled();
   expect(state.creates).toHaveLength(0);
+});
+
+for (const locale of ["vi", "en"]) test(`stale continuation blocks blind top-up retry and refreshes terms explicitly in ${locale}`, async ({page}) => {
+  const state = await mount(page, locale, "test");
+  state.createFailure = "TOP_UP_CONTINUATION_INVALID";
+  await page.getByRole("button", {name: locale === "vi" ? /Nạp thử/ : /test Lá and unlock/}).click();
+  await expect(page.getByRole("alert")).toContainText(locale === "vi" ? "đã được xử lý" : "already been processed");
+  await expect(page.getByRole("button", {name: locale === "vi" ? /Nạp thử/ : /test Lá and unlock/})).toHaveCount(0);
+  const reads = state.intentReads;
+  await page.clock.runFor(15000);
+  expect(state.creates).toHaveLength(1); expect(state.intentReads).toBe(reads);
+  await page.getByRole("button", {name: locale === "vi" ? "Xem lại trạng thái" : "Refresh current status", exact: true}).click();
+  await expect.poll(() => state.intentReads).toBeGreaterThan(reads);
+  await expect(page.getByTestId("inline-topup")).toBeVisible();
+  expect(state.creates).toHaveLength(1); await expect(page.locator("#receipt")).toHaveText("Locked");
+});
+for (const failure of ["UNRELATED_CONFLICT", "non-json"]) test(`unrecognized ${failure} never becomes a successful or stale payment`, async ({page}) => {
+  const state = await mount(page, "vi", "test"); state.createFailure = failure;
+  await page.getByRole("button", {name: /Nạp thử/}).click();
+  await expect(page.getByRole("alert")).toContainText("Chưa kiểm tra được");
+  await expect(page.getByRole("button", {name: "Xem lại trạng thái", exact: true})).toHaveCount(0);
+  await expect(page.locator("#receipt")).toHaveText("Locked");
+  await page.clock.runFor(15000); expect(state.creates).toHaveLength(1);
 });
