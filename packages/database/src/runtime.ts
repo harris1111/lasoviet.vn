@@ -112,3 +112,5 @@ export async function recordVerifiedNotificationSignIn(database: import("./clien
     .onConflictDoUpdate({ target: notificationVerifiedSignins.userId, set: { signedInAt: sql`greatest(${notificationVerifiedSignins.signedInAt}, ${session.createdAt.toISOString()}::timestamptz)` } });
   return true;
 }
+
+export { recoveryOutboundControl, recoveryOutboundDailyAttempts } from "./schema/notifications.js";

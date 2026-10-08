@@ -134,3 +134,5 @@ export {reportWalletCompensations} from "./schema/report-compensation.js";
 export { lockRecoveryCaptureCoordination, RECOVERY_CAPTURE_COORDINATION_LOCK } from "./recovery-capture-lock.js";
 
 export {recoveryClickReceipts} from "./schema/notifications.js";
+
+export { recoveryOutboundControl, recoveryOutboundDailyAttempts } from "./schema/notifications.js";

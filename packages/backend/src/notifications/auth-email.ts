@@ -4,6 +4,7 @@ import {
   and,
   eq,
   lt,
+  ne,
   or,
   sql,
 } from "drizzle-orm";
@@ -576,6 +577,7 @@ export function createDatabaseAuthEmailDeliveryStore(
         .where(
           and(
             eq(notificationDeliveries.idempotencyKey, idempotencyKey),
+            ne(notificationDeliveries.kind, "recovery_pending_topup"),
             or(
               eq(notificationDeliveries.status, "pending"),
               and(
