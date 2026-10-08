@@ -27,7 +27,8 @@ continues full compensation and cannot race a ready-only half guarantee.
 Allowed scope: contracts catalog/price/upgrade/guarantee compatibility, backend
 purchase terms/quote/settlement/upgrade/guarantee/wallet authority and focused
 financial tests, new database migration/schema and historical rewind fixtures,
-this brief, existing frontend quote-contract tests and concise release evidence.
+this brief, existing frontend quote-contract and isolated funnel golden-path
+tests, and concise release evidence.
 Frozen-price recovery eligibility/template validation is included in the compatibility scope.
 No visual frontend, new routes, provider
 calls, operator/Nginx edits, SePay/customer outbound or membership sale activation.
@@ -68,3 +69,14 @@ mixed-bucket half guarantees, all Combo components, fresh locked 24-hour expiry,
 ready-version replacement and full terminal compensation. No live provider call,
 customer outbound, production refund or new policy activation was performed.
 Fresh CI and final independent exact-head review remain required after committing.
+
+## Isolated real-network acceptance correction
+
+Updated golden-path independent expected prices to released1200/upgrade960 and
+asserted version2/fd119 frozen base1200 in the settled intent. The upgrade cohort
+uses two existing synthetic1100-La grants plus the actual welcome60 to cover the
+new total; cumulative spend is independently asserted1200. The separate short-
+balance path, replay/preview privacy and all eleven durable events remain intact.
+Final isolated run:14/14 mobile/desktop paths passed; zero AI calls. Owned QA
+containers/network/credentials were removed. Required i18n/lint/typecheck passed
+after this test-only correction. New exact-head review and fresh CI remain gates.
