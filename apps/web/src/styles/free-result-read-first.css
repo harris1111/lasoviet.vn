@@ -55,9 +55,21 @@
   .fd109-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
   .fd109-tabs button { background: transparent; border: 1px solid var(--border-soft); border-radius: 24px; padding: 10px 18px; font-size: 16px; }
   .fd109-tabs button[aria-selected="true"] { border-color: var(--gold-500); color: var(--gold-500); }
-  /* U2: compact chart column (340-380px) beside a wide reading column, as in the approved 1440 reference. */
-  .fd109-layout { grid-template-columns: minmax(340px, 380px) minmax(0, 1fr); gap: 48px; align-items: start; }
-  .fd109-chart { position: sticky; top: 92px; max-height: calc(100dvh - 108px); overflow: auto; padding: 4px; }
+  /* Desktop: the full board gets a real column (cells >= 115px), the reading column keeps >= 640px from 1280. */
+  .fd109-layout { grid-template-columns: minmax(460px, 500px) minmax(0, 1fr); gap: 32px; align-items: start; }
+  /* No sticky/overflow on the column: the palace inspector flows under the board and is never clipped. */
+  .fd109-chart { position: static; max-height: none; overflow: visible; padding: 4px; }
+  .fd109 .ziwei-chart-container { gap: 24px; }
+  .fd109 .ziwei-palace { padding: 10px 10px; min-height: 120px; }
+  .fd109 .ziwei-traditional-board { grid-template-rows: repeat(4, minmax(120px, auto)); }
+  .fd109 .palace-stem-branch, .fd109 .star-brightness, .fd109 .palace-role-tag, .fd109 .palace-relation-tag,
+  .fd109 .star-mutagen, .fd109 .palace-stars-section.minor-stars, .fd109 .palace-empty-major, .fd109 .ziwei-palace-footer,
+  .fd109 .transformations-label, .fd109 .center-tag, .fd109 .center-instruction { font-size: 12px; }
+  .fd109 .palace-star-row { font-size: 14px; }
+  .fd109 .palace-title { font-size: 15px; }
+  .fd109 .ziwei-board-center { padding: 16px; gap: 10px; }
+  .fd109 .center-title { font-size: 20px; }
+  .fd109 .center-birth-data, .fd109 .center-axes { font-size: 13px; }
   .fd109-main { max-width: 760px; }
   .fd109-main p, .fd109-main li, .fd109 .fd109-gift p { font-size: 18px; line-height: 1.7; }
   .fd109-main p, .fd109-overview-prose p { max-width: 70ch; }
@@ -76,6 +88,12 @@
   .fd109[data-active-tab="topics"] .fd109-completion { display: block; }
   .fd109-preview { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; border-radius: 0; }
   .fd109-sheet-handle { display: none; }
+}
+@media (min-width: 1280px) {
+  .fd109.container { width: min(1280px, calc(100% - 64px)); }
+  .fd109-layout { grid-template-columns: minmax(520px, 580px) minmax(640px, 1fr); gap: 40px; }
+  .fd109 .ziwei-palace { padding: 12px 12px; min-height: 135px; }
+  .fd109 .ziwei-traditional-board { grid-template-rows: repeat(4, minmax(135px, auto)); }
 }
 
 /* Free palace gift — mobile-first (360–430px single column), enhanced from 768px. */
