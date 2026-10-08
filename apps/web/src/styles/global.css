@@ -56,7 +56,7 @@ button { cursor: pointer; }
 .desktop-nav a, .locale-link { color: var(--pearl-200); }
 .header-actions { display: flex; align-items: center; gap: 18px; }
 .button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 10px; padding: 0 25px; border: 0; border-radius: 4px; background: var(--gold-gradient); color: var(--lacquer-900); font-weight: 600; }
-.button { touch-action: manipulation; cursor: pointer; transition: filter var(--motion-feedback) ease, transform var(--motion-feedback) ease, border-color var(--motion-feedback) ease, color var(--motion-feedback) ease; }
+.button { touch-action: manipulation; cursor: pointer; transition: filter var(--motion-feedback) ease, transform var(--motion-feedback) ease, border-color var(--motion-feedback) ease; }
 .button:hover { color: var(--lacquer-900); text-decoration: none; }
 @media (hover: hover) { .button:hover { filter: brightness(1.08); } }
 .button:active { transform: scale(.98); filter: brightness(.96); }
