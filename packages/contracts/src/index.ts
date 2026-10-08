@@ -812,6 +812,7 @@ export {
   ZiweiYearlyHanV1Schema,
   ZiweiDailyHoroscopeV1Schema,
   ZiweiHoroscopeResultV1Schema,
+  ZiweiDecadalCycleV1Schema,
 } from "./ziwei-horoscope-v1.js";
 export type {
   ZiweiMonthMarker,
@@ -819,6 +820,7 @@ export type {
   ZiweiYearlyHanV1,
   ZiweiDailyHoroscopeV1,
   ZiweiHoroscopeResultV1,
+  ZiweiDecadalCycleV1,
 } from "./ziwei-horoscope-v1.js";
 
 

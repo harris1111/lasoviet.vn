@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { NormalizedZiweiChartV1Schema, type CurrentActor } from "@lasoviet/contracts";
+import { calculateZiweiHoroscope } from "../../../engine-adapters/src/ziwei/iztro-horoscope.js";
+import { computeNormalizedPalaceScores } from "../reports/structural-palace-score.js";
 import { createFreeOverviewCache } from "./free-structural-overview-cache.js";
 
 import {
@@ -113,6 +115,23 @@ describe("Zi Wei query service", () => {
     const service=createZiweiQueryService({repository:repository({readAuthorizedChart:vi.fn().mockResolvedValue(stored)}),now:()=>new Date("2026-12-31T18:00:00Z"),calculateHoroscope:calculate});
     await service.readHoroscope(account,"chart-1");
     expect(calculate).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({asOfDate:"2027-01-01",isUnlocked:false}));
+  });
+
+  it("projects the published structural palace score onto each authorized decadal cycle", async () => {
+    const service = createZiweiQueryService({
+      repository: repository({ readAuthorizedChart: vi.fn().mockResolvedValue(record()) }),
+      now: () => now, calculateHoroscope: calculateZiweiHoroscope,
+    });
+    const result = await service.readHoroscope(account, "chart-1", { asOfDate: "2026-09-22" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const scores = computeNormalizedPalaceScores(NormalizedZiweiChartV1Schema.parse(record().normalizedOutput));
+    expect(result.value.decadalCycles).toHaveLength(12);
+    for (const cycle of result.value.decadalCycles!) {
+      const score = scores.get(cycle.palaceId)!;
+      expect(cycle.structuralScore).toEqual({ value: score.score, band: score.band,
+        parts: score.parts, formulaVersion: "fd107-fd111-v1" });
+    }
   });
 
   it("returns validated cache documents after authorization without exposing cache identity", async () => {

@@ -64,6 +64,31 @@ export const ZiweiDailyHoroscopeV1Schema = z
 
 export type ZiweiDailyHoroscopeV1 = z.infer<typeof ZiweiDailyHoroscopeV1Schema>;
 
+const TemporalTransformationSchema = z.object({
+  starId: z.string().regex(/^ziwei\.star\./),
+  transformationId: z.enum(["ziwei.transformation.prosperity", "ziwei.transformation.power", "ziwei.transformation.fame", "ziwei.transformation.obstacle"]),
+}).strict();
+export const ZiweiDecadalCycleV1Schema = z.object({
+  ordinal: z.number().int().min(0).max(11), palaceId: PalaceIdSchema,
+  startAge: z.number().int().positive(), endAge: z.number().int().positive(),
+  startYear: z.number().int(), endYear: z.number().int(),
+  state: z.enum(["past", "current", "future"]),
+  transformations: z.array(TemporalTransformationSchema).length(4),
+  annualPalaces: z.array(z.object({ year: z.number().int(), age: z.number().int().positive(),
+    palaceId: PalaceIdSchema, transformations: z.array(TemporalTransformationSchema).length(4) }).strict()).length(10),
+  structuralScore: z.object({ value: z.number().int().min(0).max(100),
+    band: z.enum(["manh", "thuan", "can", "canh", "kho"]),
+    parts: z.object({ base: z.number(), own: z.number(), chieu: z.number() }).strict(),
+    formulaVersion: z.literal("fd107-fd111-v1") }).strict().optional(),
+}).strict().superRefine((cycle, ctx) => {
+  if (cycle.endAge !== cycle.startAge + 9 || cycle.endYear !== cycle.startYear + 9 ||
+      cycle.annualPalaces.some((annual, i) => annual.year !== cycle.startYear + i || annual.age !== cycle.startAge + i)) {
+    ctx.addIssue({ code: "custom", message: "Cycle must preserve ten consecutive lunar ages and years" });
+  }
+});
+
+export type ZiweiDecadalCycleV1 = z.infer<typeof ZiweiDecadalCycleV1Schema>;
+
 export const ZiweiHoroscopeResultV1Schema = z
   .object({
     version: z.literal(1),
@@ -73,6 +98,14 @@ export const ZiweiHoroscopeResultV1Schema = z
     isUnlocked: z.boolean(),
     yearly: ZiweiYearlyHanV1Schema,
     daily: ZiweiDailyHoroscopeV1Schema,
+    decadalCycles: z.array(ZiweiDecadalCycleV1Schema).length(12).optional(),
+    currentDecadalOrdinal: z.number().int().min(0).max(11).nullable().optional(),
+    decadalDirection: z.enum(["forward", "reverse"]).optional(),
+    chartMetadata: z.object({
+      bureau: z.enum(["water2", "wood3", "metal4", "earth5", "fire6"]),
+      lifeMasterStarId: z.string().regex(/^ziwei\.star\./), bodyMasterStarId: z.string().regex(/^ziwei\.star\./),
+      naYinCycleIndex: z.number().int().min(0).max(29),
+    }).strict().optional(),
     decadal: z.object({ palaceId: PalaceIdSchema, startAge: z.number().int().min(1), endAge: z.number().int().min(1), startYear: z.number().int(), endYear: z.number().int() }).strict().refine(value => value.endAge === value.startAge + 9 && value.endYear === value.startYear + 9).optional(),
   })
   .strict();
