@@ -1,4 +1,6 @@
-import { readFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -173,7 +175,7 @@ describe("CI GHCR release publication contract", () => {
     expect(publishJob?.needs).toEqual(["verify"]);
     expect(publishJob?.rawText).toContain("packages: write");
     expect(publishJob?.concurrency).toEqual({
-      group: "production-release-${{ github.ref }}",
+      group: "production-release-${{ github.ref }}-${{ github.sha }}",
       cancelInProgress: true,
     });
 
@@ -182,8 +184,42 @@ describe("CI GHCR release publication contract", () => {
     );
     expect(promoteJob?.needs).toEqual(["publish"]);
     expect(promoteJob?.rawText).toContain("packages: write");
-    expect(promoteJob?.concurrency).toBeUndefined();
-    expect(promoteJob?.rawText).not.toContain("cancel-in-progress");
+    expect(promoteJob?.concurrency).toEqual({
+      group: "production-promotion-${{ github.ref }}",
+      cancelInProgress: false,
+    });
+  });
+
+  it("prevents late stale promotion and fails closed on invalid remote state", async () => {
+    const content = await readFile(workflowPath, "utf8");
+    const finalStep = parseWorkflowJobs(content).get("promote-production")!.steps.at(-1)!;
+    const block = finalStep.rawText.split(/run:\s*\|\s*\n/)[1];
+    expect(block).toBeDefined();
+    const script = block!.split("\n").map(line => line.replace(/^          /, "")).join("\n");
+    const directory = await mkdtemp(join(tmpdir(), "lasoviet-promotion-order-"));
+    const log = join(directory, "promotions.log");
+    const older = "a".repeat(40), newer = "b".repeat(40);
+    try {
+      await writeFile(join(directory, "git"), '#!/bin/sh\n[ "$MOCK_GIT_FAILURE" != "true" ] || exit 1\nprintf "%s\\trefs/heads/master\\n" "$MOCK_MASTER_SHA"\n', { mode: 0o700 });
+      await writeFile(join(directory, "docker"), '#!/bin/sh\nprintf "%s\\n" "$*" >> "$MOCK_PROMOTION_LOG"\n', { mode: 0o700 });
+      await writeFile(log, "");
+      const run = (candidate: string, master: string, failure = false) => execFileSync("bash", ["-euo", "pipefail", "-c", script.replaceAll("${{ github.sha }}", candidate)], {
+        cwd: directory,
+        env: { ...process.env, PATH: `${directory}:${process.env.PATH ?? ""}`, MOCK_MASTER_SHA: master,
+          MOCK_GIT_FAILURE: String(failure), MOCK_PROMOTION_LOG: log },
+        stdio: "pipe",
+      });
+      run(newer, newer);
+      run(older, newer);
+      expect(() => run(older, "invalid")).toThrow();
+      expect(() => run(older, newer, true)).toThrow();
+      const promotions = (await readFile(log, "utf8")).trim().split("\n");
+      expect(promotions).toHaveLength(1);
+      expect(promotions[0]).toContain(`lasoviet-release:sha-${newer}`);
+      expect(promotions[0]).toContain("--tag ghcr.io/harris1111/lasoviet-release:production");
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it("publishes immutable sha-tagged images in publish job and keeps production marker mutation strictly in promote-production", async () => {
