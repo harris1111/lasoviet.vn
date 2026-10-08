@@ -827,7 +827,6 @@ export function createWalletUnlockService(
       // Zero-cost audit path for complete rollover credit or included monthly membership access.
       if (intent.priceLa === 0) {
         const zeroResult = await database.transaction<WalletResult<WalletUnlockOutcome>>(async (transaction) => {
-          const currentNow = now();
           // Match paid wallet commands: account, wallet, intent, then chart locks.
           if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
           const [walletAccount] = await transaction.select().from(walletAccounts)
@@ -863,6 +862,8 @@ export function createWalletUnlockService(
           ) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
+          // Sample after authority locks; a queued command must not extend expired benefits.
+          const currentNow = now();
           const product = findLaProduct(lockedIntent.sku);
           if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || isComboSku(lockedIntent.sku)) && lockedIntent.locale !== "vi")) {
             return failed("WALLET_INTENT_INVALID");
@@ -1032,7 +1033,6 @@ export function createWalletUnlockService(
         continuationOperation: `wallet.report.unlock.v1.intent-v${request.expectedIntentVersion}`,
         continuationResultCodec: continuationCodec,
         continuation: async (transaction, metadata) => {
-          const currentNow = now();
           const [initialIntent] = await transaction.select().from(walletPurchaseIntents)
             .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
             .limit(1)
@@ -1051,6 +1051,8 @@ export function createWalletUnlockService(
             lockedIntent.priceLa !== metadata.intent.amountLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
+          // Sample after authority locks; a queued command must not extend expired benefits.
+          const currentNow = now();
           const product = findLaProduct(lockedIntent.sku);
           if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || isComboSku(lockedIntent.sku)) && lockedIntent.locale !== "vi")) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");

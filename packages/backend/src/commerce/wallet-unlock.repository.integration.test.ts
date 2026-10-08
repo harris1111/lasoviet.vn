@@ -321,6 +321,51 @@ describe("wallet unlock repository integration", () => {
     expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(1);
   });
 
+  it("rechecks membership expiry after a real chart-lock wait without posting another debit", async () => {
+    const owner = await ownerFixture("Queued membership expiry");
+    let current = frozenNow;
+    const ports = walletPorts(owner.userId, {now: () => current});
+    const funded = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()),
+      topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!funded.ok) throw new Error("fund");
+    const member = createMembershipService(database, createWalletService(ports.repository), {now: () => current,
+      catalog: sku => {const product = findLaProduct(sku); return product ? {...product, availability: "active"} : undefined;}});
+    const memberIntent = await member.createIntent(owner.actor, {sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi"});
+    if (!memberIntent.ok) throw new Error(memberIntent.code);
+    expect(await member.purchase(owner.actor, {purchaseIntentId: memberIntent.value.id, expectedIntentVersion: 1,
+      expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()})).toMatchObject({ok: true});
+    const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+    if (!intent.ok) throw new Error(intent.code);
+    await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID(), 300),
+      topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    let acquired!: () => void, release!: () => void;
+    const acquiredSignal = new Promise<void>(resolve => {acquired = resolve;});
+    const releaseSignal = new Promise<void>(resolve => {release = resolve;});
+    const holding = database.transaction(async tx => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`commerce:chart:${owner.chartId}`}))`);
+      acquired(); await releaseSignal;
+    });
+    await acquiredSignal;
+    const pending = ports.service.unlock(owner.actor, {purchaseIntentId: intent.value.id, expectedIntentVersion: 1,
+      expectedWalletVersion: wallet!.stateVersion, idempotencyKey: randomUUID()});
+    try {
+      let blocked = false;
+      for (let attempt = 0; attempt < 2000; attempt++) {
+        const rows = await database.execute(sql`SELECT 1 FROM pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid
+          WHERE l.locktype = 'advisory' AND NOT l.granted AND a.datname = current_database() LIMIT 1`);
+        if (rows.length > 0) {blocked = true; break;}
+      }
+      expect(blocked).toBe(true);
+      current = new Date(frozenNow.getTime() + 30 * 86400000);
+    } finally {release(); await holding;}
+    expect(await pending).toMatchObject({ok: false});
+    expect((await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId)))[0]).toEqual(wallet);
+    expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id),
+      eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+  }, 20000);
+
   it("durably delivers a posted upgrade once across concurrent command and worker retries without browser metadata", async () => {
     const fixture = await committedUpgradeFixture();
     const replies = await Promise.all([fixture.ports.service.unlock(fixture.owner.actor, fixture.command), fixture.ports.service.unlock(fixture.owner.actor, fixture.command)]);
