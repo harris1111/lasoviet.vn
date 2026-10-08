@@ -118,3 +118,19 @@ test("FD109 URL history and direct preview links restore modal and keyboard stat
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
   await expect(page.locator("#tab-chart")).toBeFocused();
 });
+
+test("FD109 Back from an offer link restores the open preview and keeps the URL", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await createAnonymousChart(page, "vi");
+  const trigger = page.getByTestId("fd109-palace-preview").first();
+  await trigger.scrollIntoViewIfNeeded();
+  await trigger.click();
+  const dialog = page.getByTestId("fd109-preview-dialog");
+  await expect(dialog).toBeVisible();
+  const openUrl = page.url();
+  await dialog.locator('a[href*="/chon-luan-giai"]').click();
+  await expect(page).toHaveURL(/\/chon-luan-giai/);
+  await page.goBack();
+  await expect(page).toHaveURL(openUrl);
+  await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
+});
