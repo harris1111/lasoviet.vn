@@ -199,7 +199,6 @@ export function ZiweiFreeResult({
     const real = readResultView(window.location.search, window.history.state);
     if (!sameView(viewRef.current, real)) {
       viewRef.current = real;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setView(real);
     }
     if (!real.sheet && hasSheetMarker(window.history.state)) {
