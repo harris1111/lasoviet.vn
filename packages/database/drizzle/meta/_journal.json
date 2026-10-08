@@ -463,6 +463,13 @@
       "when": 1791478800000,
       "tag": "0065_amount_aware_wallet_restoration",
       "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1791482400000,
+      "tag": "0066_fd119_commercial_policy",
+      "breakpoints": true
     }
   ]
 }

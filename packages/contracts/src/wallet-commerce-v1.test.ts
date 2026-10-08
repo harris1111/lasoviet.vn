@@ -159,12 +159,12 @@ describe("wallet commerce V1 contracts", () => {
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi", amountLa: 1500 }).success).toBe(true);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "MEMBERSHIP-YEARLY-P0", locale: "vi", amountLa: 8000 }).success).toBe(true);
 
-    // Rollover amounts for ZIWEI-IDENTITY-P0 (any valid discount from 0 to 960)
+    // Rollover amounts for ZIWEI-IDENTITY-P0 (compatible old/new discounts from0 to1200)
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 840 }).success).toBe(true);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 600 }).success).toBe(true);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 480 }).success).toBe(true);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 0 }).success).toBe(true);
-    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 961 }).success).toBe(false);
+    expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: 1201 }).success).toBe(false);
     expect(WalletPurchaseIntentV1Schema.safeParse({ ...base, sku: "ZIWEI-IDENTITY-P0", locale: "vi", amountLa: -1 }).success).toBe(false);
   });
 
@@ -179,7 +179,7 @@ describe("wallet commerce V1 contracts", () => {
     expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 840 }).success).toBe(true);
     expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 720 }).success).toBe(true);
     expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 0 }).success).toBe(true);
-    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 1000 }).success).toBe(false);
+    expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-IDENTITY-P0", amountLa: 1201 }).success).toBe(false);
 
     expect(WalletContentPriceV1Schema.safeParse({ sku: "ZIWEI-COMBO-2026-P0", amountLa: 1300 }).success).toBe(true);
     expect(WalletContentPriceV1Schema.safeParse({ sku: "MEMBERSHIP-YEARLY-P0", amountLa: 8000 }).success).toBe(true);

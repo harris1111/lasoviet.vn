@@ -4,7 +4,7 @@ import type { ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
 
 export const ROLLOVER_WINDOW_DAYS = 7;
 export const ROLLOVER_WINDOW_MS = ROLLOVER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-export const LIFETIME_BASE_PRICE_LA = 960;
+export const LIFETIME_BASE_PRICE_LA = 1200;
 
 export const SINGLE_PALACE_BASE_PRICE_LA = 120;
 export const NATAL_EXCERPT_PRICE_LA = 240;
