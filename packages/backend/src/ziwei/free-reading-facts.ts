@@ -5,12 +5,14 @@ import {
 } from "@lasoviet/contracts";
 import { freePalaceLabel } from "./free-palace-labels.js";
 import { getPalaceRelations } from "../reports/structural-palace-score.js";
+import { buildFreeReadingTemporalFacts, type BoundFreeReadingHoroscope } from "./free-reading-temporal-facts.js";
 
-export const FREE_READING_FACTS_VERSION = "free-reading-structural-facts-v2-draft-1";
+export const FREE_READING_FACTS_VERSION = "free-reading-structural-facts-v2-draft-2";
 
 /** Pure private projection from an already authorized frozen chart; no provider or database access. */
 export function buildFreeReadingFacts(input: {
   chart: NormalizedZiweiChartV1; focusPalaceId: ZiweiPalaceId; locale: "vi" | "en";
+  temporalSource?: BoundFreeReadingHoroscope;
 }): FreeReadingFactsV2 {
   const chart = NormalizedZiweiChartV1Schema.parse(input.chart);
   const focusPalaceId = PalaceIdSchema.parse(input.focusPalaceId);
@@ -46,8 +48,15 @@ export function buildFreeReadingFacts(input: {
   const provisional = chart.provisional === true || chart.timePrecision === "unknown" || chart.timePrecision === "range";
   if (provisional) facts.push({ key: "data:time-uncertain", label: vi ? "Giờ sinh" : "Birth time",
     value: vi ? "Vị trí Mệnh, Thân và đại vận đang tạm tính" : "Life, Body and decadal positions are provisional" });
-  // No timing hooks until forced-month/target-year lineage is reconciled. No fake counts or events.
+  // Uncertain birth time must not turn a provisional palace/year/decade into a certain claim.
+  if (!provisional && input.temporalSource && input.temporalSource.chartVersionInputHash !== chart.provenance.inputHash) {
+    throw new Error("FREE_READING_TIMING_SOURCE_MISMATCH");
+  }
+  const temporal = !provisional && input.temporalSource ? buildFreeReadingTemporalFacts(input.temporalSource, input.locale) : undefined;
+  if (temporal) facts.push(...temporal.facts);
   return FreeReadingFactsV2Schema.parse({ version: 2, locale: input.locale, focusPalaceId, provisional, facts,
     locked: [...PalaceIdSchema.options.filter(id => id !== focusPalaceId).map(id => `palace:${suffix(id)}`),
-      "topic:career_wealth", "topic:relationship_marriage"], allowedWithheld: [] });
+      "topic:career_wealth", "topic:relationship_marriage"],
+    allowedWithheld: temporal ? ["annual_palace_meaning"] : [],
+    ...(temporal ? { timing: temporal.timing } : {}) });
 }

@@ -3,7 +3,7 @@ import { FREE_READING_CARDS_VERSION, selectFreeReadingCards } from "./free-readi
 import { FREE_READING_QUALITY_VERSION } from "./free-reading-quality.js";
 import { FREE_READING_RULES_VERSION } from "./free-reading-fallback.js";
 
-export const FREE_READING_PROMPT_VERSION = "free-reading-prompt-v2-draft-2";
+export const FREE_READING_PROMPT_VERSION = "free-reading-prompt-v2-draft-3";
 
 /** Deterministic preparation payload; contains no adapter, dispatch or cost-bound claim. */
 export function buildFreeReadingPrompt(input: FreeReadingFactsV2) {
@@ -16,7 +16,8 @@ export function buildFreeReadingPrompt(input: FreeReadingFactsV2) {
     "Every claim needs inline basis: literal valid fact keys and two or three short steps that mention their own fixed fact labels and explain the specific claim.",
     "Keep each star in its actual palace with its actual brightness and transformations. Borrow a related star only for a proved empty palace, naming the original palace and actual relation.",
     "Do not infer a missing star category or meaning to mean an empty palace. If meaning is unavailable, decline this draft rather than inventing it.",
-    "No temporal hook is permitted for this preparation: yearHook must be null. No computed date, age, time-cycle count or invented pattern is supplied.",
+    source.timing ? "Temporal facts contain a selected lunar year, its lunar age, annual palace and twelve exact decadal spans. A selected year need not be this year. Cite the specific timing fact keys for literal year/age endpoints; do not invent events, dates, attention months, scores or an interpretation of annual/decadal interactions. A yearHook may show literal facts and withhold annual_palace_meaning only; do not reveal a paid explanation that was not supplied."
+      : "No temporal hook is permitted for this preparation: yearHook must be null. No computed date, age, time-cycle count or invented pattern is supplied.",
     "Uncertain birth time makes all hour-dependent placements estimates; disclose this once in the overview and retain provisional wording in basis steps.",
     "Overview: portrait, Life/Body axis, strengths, difficulties, work, money, relationships, three specific practical actions and a bridge. Aim for 900–1300 Vietnamese syllables; do not pad or repeat claims to reach length.",
     "Full focus palace: conclusion, three key points, three or four paragraphs, two or three actions and two things to avoid. Use the exact frozen focus palace.",

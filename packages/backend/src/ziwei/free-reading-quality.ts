@@ -3,7 +3,7 @@ import { HAN_IDEOGRAPH_PATTERN, wholeWord } from "../reports/comprehensive-repor
 import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "../reports/ziwei-canonical-labels.js";
 import { FREE_PALACE_EN_LABELS, freePalaceLabel } from "./free-palace-labels.js";
 
-export const FREE_READING_QUALITY_VERSION = "free-reading-lexical-quality-v2-draft-2";
+export const FREE_READING_QUALITY_VERSION = "free-reading-lexical-quality-v2-draft-3";
 export type FreeReadingFinding = Readonly<{ code: string; block: string; hard: boolean; detail: string }>;
 type ProseBlock = { block: string; text: string; keys: string[]; teaser?: boolean; basis?: boolean };
 const normalize = (text: string) => text.normalize("NFC").replace(/\s+/gu, " ").trim().toLowerCase();
@@ -11,12 +11,53 @@ const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 const words = (text: string) => text.trim().split(/\s+/u).filter(Boolean).length;
 const formula = /điểm cấu trúc|độ mạnh cấu trúc|phần riêng|phần chiếu|nền\s+\d+|\d+\s*\/\s*100|structural score|own component|related-palace contribution/iu;
 const numericalScore = /\d[\d.,]*\s*(?:%|\/\s*100)|(?:điểm|score|rating|xác suất|probability|chance)[^.!?\n]{0,100}\d/iu;
-const dates = /\b(?:19|20)\d{2}\b|(?<![\p{L}\p{N}])(?:ngày|tháng|tuổi|age|aged|year|month)\s+\d+|\d+\s*(?:tuổi|years? old)|\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/iu;
 const contentLine = /(?<![\p{L}\p{N}])(?:chết|tử vong|qua đời|tuổi thọ|yểu mệnh|khắc chết|lifespan|life expectancy|death|will die|ung thư|tiểu đường|đột quỵ|cancer|diabetes|stroke|chẩn đoán|diagnos(?:is|ed)|cúng sao|giải hạn|hóa giải|hoá giải|bùa|làm lễ|vật phẩm phong thủy|ritual|feng shui objects|xổ số|số đề|lottery|jackpot|fake review|giá gốc giả)(?![\p{L}\p{N}])/iu;
 const falseClaims = /chỉ còn\s+\d+|\d+\s+người (?:đã|đang) mua|\d+\s+(?:phút|giây) còn lại|tôi đã xem.{0,30}lá số|fake countdown|only\s+\d+\s+left|\d+\s+people bought/iu;
 const selfReference = /(?<![\p{L}\p{N}])(?:chúng tôi|đội ngũ|thuật toán|mô hình|AI|our team|algorithm|model|we)(?![\p{L}\p{N}])/iu;
 // Owner R3: style findings guide editing; truth/content/privacy/schema fences stay hard.
 const STYLE_FINDINGS = new Set(["formula_leak", "locale_integrity", "self_reference", "basis_anchor", "missing_anchor", "duplicate_claim", "teaser_boundary"]);
+
+type TimingExpression = { start: number; end: number; valid: boolean };
+function timingExpressions(text: string, keys: readonly string[], source: FreeReadingFactsV2): TimingExpression[] {
+  const years = new Set<number>(), ages = new Set<number>();
+  const yearRanges = new Set<string>(), ageRanges = new Set<string>();
+  if (source.timing) for (const key of keys) {
+    if (key === "timing:year") years.add(source.timing.targetYear);
+    if (key === "timing:age") ages.add(source.timing.lunarAge);
+    const match = /^timing:cycle:(\d+)$/u.exec(key);
+    const cycle = match ? source.timing.cycles.find(item => item.ordinal === Number(match[1])) : undefined;
+    if (cycle) {
+      years.add(cycle.startYear); years.add(cycle.endYear); ages.add(cycle.startAge); ages.add(cycle.endAge);
+      yearRanges.add(`${cycle.startYear}:${cycle.endYear}`); ageRanges.add(`${cycle.startAge}:${cycle.endAge}`);
+    }
+  }
+  const expressions: TimingExpression[] = [];
+  const collect = (pattern: RegExp, allowed: Set<number>, ranges: Set<string>) => {
+    for (const match of text.matchAll(pattern)) {
+      const first = Number(match[1]), second = match[2] === undefined ? undefined : Number(match[2]);
+      const valid = second === undefined ? allowed.has(first) : ranges.has(`${first}:${second}`);
+      expressions.push({ start: match.index, end: match.index + match[0].length, valid });
+    }
+  };
+  // Validate complete ranges, not just the first endpoint. A range must be one
+  // exact cited cycle; two unrelated endpoint keys cannot fabricate a new span.
+  collect(/(?<![\p{L}\p{N}])(?:tuổi(?:\s+âm)?|(?:lunar\s+|nominal\s+)?ages?|aged)(?:\s+(?:is|là))?\s*(\d+(?:[.,]\d+)?)(?:\s*(?:[-–—]|to|đến|tới)\s*(\d+(?:[.,]\d+)?))?/giu, ages, ageRanges);
+  collect(/(?<![\p{L}\p{N}])(\d+(?:[.,]\d+)?)(?:\s*(?:[-–—]|to|đến|tới)\s*(\d+(?:[.,]\d+)?))?\s*(?:tuổi|years? old)(?![\p{L}\p{N}])/giu, ages, ageRanges);
+  collect(/(?<![\p{L}\p{N}])(?:năm|years?)(?:\s+(?:is|là))?\s*(\d+(?:[.,]\d+)?)(?:\s*(?:[-–—]|to|đến|tới)\s*(\d+(?:[.,]\d+)?))?/giu, years, yearRanges);
+  collect(/\b(\d{4})(?:\s*(?:[-–—]|to|đến|tới)\s*(\d{4}))?\b/giu, years, yearRanges);
+  for (const match of text.matchAll(/(?<![\p{L}\p{N}])(?:ngày|tháng|days?|months?)(?:\s+(?:is|là))?\s*\d+(?:[.,]\d+)?|\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/giu)) {
+    expressions.push({ start: match.index, end: match.index + match[0].length, valid: false });
+  }
+  return expressions;
+}
+function uncomputedTiming(text: string, keys: readonly string[], source: FreeReadingFactsV2): boolean {
+  return timingExpressions(text, keys, source).some(expression => !expression.valid);
+}
+function onlyComputedTemporalNumbers(text: string, keys: readonly string[], source: FreeReadingFactsV2): boolean {
+  const spans = timingExpressions(text, keys, source).filter(expression => expression.valid);
+  return [...text.matchAll(/\d+(?:[.,]\d+)?/gu)].every(match =>
+    spans.some(span => match.index >= span.start && match.index + match[0].length <= span.end));
+}
 
 function prose(content: FreeReadingContentV2): ProseBlock[] {
   const blocks: ProseBlock[] = [];
@@ -67,8 +108,8 @@ export function checkFreeReadingQuality(input: { content: unknown; source: unkno
   for (const b of blocks) {
     const anchor = b.keys.map(k => facts.get(k)!.value).join(" ");
     if (formula.test(b.text)) add("formula_leak", b.block, "Structural formula in prose");
-    if (dates.test(b.text)) add("uncomputed_date", b.block, "Timing is not available in this offline structural source");
-    if (numericalScore.test(b.text) || (formula.test(b.text) && /\d/u.test(b.text))) add("uncomputed_number", b.block, "This offline source supplies no numeric score for the claim");
+    if (uncomputedTiming(b.text, b.keys, source)) add("uncomputed_date", b.block, "No cited computed temporal fact justifies this year, lunar age or date");
+    if (numericalScore.test(b.text) || (formula.test(b.text) && /\d/u.test(b.text) && !onlyComputedTemporalNumbers(b.text, b.keys, source))) add("uncomputed_number", b.block, "This private source supplies no numeric score for the claim");
     if (contentLine.test(b.text) || falseClaims.test(b.text)) add("content_line", b.block, "FD089 content boundary");
     if (HAN_IDEOGRAPH_PATTERN.test(b.text) || /ziwei\.[a-z0-9_.]+|(?:palace|card|rel):[a-z_:]+|[#*_`]|[\p{Extended_Pictographic}]/u.test(b.text)) add("locale_integrity", b.block, "Raw identifiers, markup or untranslated Han text");
     if (selfReference.test(b.text)) add("self_reference", b.block, "Writer/provider self-reference");
