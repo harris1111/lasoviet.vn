@@ -205,7 +205,13 @@
     "closingFactPair": "{palace} holds {stars} together",
     "closingFactAlone": "{palace} has only {star}",
     "closingFactMonths": "{year} has {count} caution months",
-    "closingCta": "Open the rest of your chart"
+    "closingCta": "Open the rest of your chart",
+    "cardsSortLabel": "Sort the palaces",
+    "cardsSortOrder": "By palace order",
+    "cardsSortStrength": "By strength",
+    "cardsPreview": "Preview",
+    "cardsDone": "Fully read",
+    "cardsOpen": "Preview {name}, {band}, {score} points"
   },
   "dailyReading": {
     "title": "Today’s personal reading",

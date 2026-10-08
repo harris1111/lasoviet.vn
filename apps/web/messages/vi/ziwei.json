@@ -205,7 +205,13 @@
     "closingFactPair": "{palace} có {stars} đứng chung",
     "closingFactAlone": "{palace} chỉ có {star} đứng một mình",
     "closingFactMonths": "năm {year} có {count} tháng cần chú ý",
-    "closingCta": "Mở phần còn lại của lá số"
+    "closingCta": "Mở phần còn lại của lá số",
+    "cardsSortLabel": "Sắp xếp các cung",
+    "cardsSortOrder": "Theo thứ tự cung",
+    "cardsSortStrength": "Theo độ mạnh",
+    "cardsPreview": "Xem thử",
+    "cardsDone": "Đã đọc đầy đủ",
+    "cardsOpen": "Xem thử {name}, {band}, {score} điểm"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

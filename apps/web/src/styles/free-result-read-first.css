@@ -381,3 +381,23 @@ html[data-theme="light"] .fd109-divider {
 
 .fd109-evidence-row { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
 .fd109-evidence-row li { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-panel); }
+
+/* 12 palaces: whole-card buttons with a score ring and a sort toggle */
+.fd109-sort { display: inline-flex; border: 1px solid var(--border-soft); border-radius: 999px; overflow: hidden; margin-bottom: 16px; }
+.fd109 .fd109-sort button { border: 0; background: transparent; padding: 0 16px; font-size: 14px; }
+.fd109 .fd109-sort button[aria-pressed="true"] { background: var(--gold-500); color: var(--lacquer-900); font-weight: 600; }
+.fd109-card-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: 1fr; }
+.fd109 .fd109-card { width: 100%; min-height: 72px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; text-align: left; padding: 12px 14px; border: 1px solid var(--border-soft); border-radius: 14px; background: var(--surface-panel); transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease; }
+.fd109 .fd109-card:active { transform: scale(0.995); background: var(--gold-soft); }
+.fd109-card-body { display: grid; gap: 2px; min-width: 0; }
+.fd109-card-body .fd109-band-label { font-size: 13px; overflow-wrap: anywhere; }
+.fd109-card-go { font-size: 13px; color: var(--gold-500); white-space: nowrap; }
+.fd109-card-done { font-size: 12px; border: 1px solid currentColor; border-radius: 999px; padding: 2px 10px; white-space: nowrap; opacity: 0.85; }
+.fd109-ring-small { width: 44px; height: 44px; }
+.fd109-ring-small::before { inset: 4px; }
+.fd109-ring-small b { font-size: 12px; }
+@media (min-width: 1024px) {
+  .fd109-card-grid { grid-template-columns: 1fr 1fr; }
+  .fd109 .fd109-card:hover { border-color: var(--gold-500); background: var(--surface-raised); }
+}
+@media (prefers-reduced-motion: reduce) { .fd109 .fd109-card { transition: none; } }

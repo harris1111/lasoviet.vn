@@ -10,6 +10,7 @@ import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { createFreeResultAnalytics } from "./free-result-analytics";
 import { createEngagementReporter } from "./free-palace-engagement-reporter";
 import { FreePalaceGiftBlock } from "./free-palace-gift-block";
+import { ZiweiPalaceCards, type PalaceCard } from "./ziwei-palace-cards";
 import { buildClosingHook } from "./ziwei-closing-hook";
 import { ZiweiSupportPalaces, type SupportPalace } from "./ziwei-support-palaces";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
@@ -323,6 +324,13 @@ export function ZiweiFreeResult({
     selectStagePalace(palaceId);
     if (desktop) document.getElementById("free-result-board")?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
+  const palaceCards: PalaceCard[] = supportPalaces.map((palace) => ({ ...palace, done: palace.id === model.selectedPalaceId }));
+  const cardLabels = {
+    sortLabel: t("freeResult.cardsSortLabel"), sortOrder: t("freeResult.cardsSortOrder"), sortStrength: t("freeResult.cardsSortStrength"),
+    preview: t("freeResult.cardsPreview"), done: t("freeResult.cardsDone"),
+    band: (palace: PalaceCard) => reportT(`reader.score_band_${palace.band}`),
+    open: (palace: PalaceCard) => t("freeResult.cardsOpen", { name: palace.name, band: reportT(`reader.score_band_${palace.band}`), score: palace.score }),
+  };
   const closingHook = buildClosingHook({
     chart, lockedPalaceIds: model.palaces.filter((palace) => palace.id !== model.selectedPalaceId).map((palace) => palace.id),
     annual: model.annual ? { year: model.annual.year, caution: model.annual.caution } : null,
@@ -431,11 +439,9 @@ export function ZiweiFreeResult({
           </section>
           <section {...panel("palaces")} className="fd109-block" data-free-result-block="palaces">
             <p className="eyebrow">07</p><h2 id="heading-palaces">{t("freeResult.palaces", { count: others.length })}</h2>
-            <div className="fd109-map">{others.map((palace) => <button key={palace.id} className="fd109-map-row"
-              type="button" data-testid="fd109-palace-preview" onClick={(event) => openPreview(palace.id.split(".").pop()!, event.currentTarget, "palaces")}>
-              <span className="fd109-row-heading"><strong>{palace.name}</strong>{score(palace)}</span>
-              <span>{palace.facts}</span><span className="fd109-state">{t("freeResult.locked")}</span>
-            </button>)}</div>
+            <ZiweiPalaceCards cards={palaceCards} labels={cardLabels}
+              onOpen={(palace, trigger) => openPreview(palace.id.split(".").pop()!, trigger, "palaces")}
+              onOpenDone={() => navigate("overview")} />
           </section>
           <section {...panel("topics")} className="fd109-block" data-free-result-block="topics">
             <p className="eyebrow">08</p><h2 id="heading-topics">{t("tabs.topics")}</h2><p>{t("freeResult.topicDescription")}</p>
