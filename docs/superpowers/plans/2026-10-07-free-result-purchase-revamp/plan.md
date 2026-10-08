@@ -28,7 +28,7 @@ source: skill
 2. Làm đúng độ trung thực của dữ kiện năm/tháng và bỏ chữ "2026" cứng trong sản phẩm (An, backend).
 3. Cho AI viết chữ miễn phí, có căn cứ nằm cạnh từng nhận định (Q2, Q9).
 4. Dựng lại trang lá số (tab theo thời gian, hình ảnh trực quan) và trang chọn luận giải (dải sản phẩm theo vòng thời gian từng người) (Q1, Q3, Q5, Q7, Q8).
-5. **Xây mã cho toàn bộ sản phẩm còn khuyết ngay trên engine của repo** (R1): Vận hạn năm [Y], Chặng 10 năm, Tình duyên, Công việc, Tháng này, Hôm nay (tinh chỉnh), Combo, chủ đề mới, công cụ Hội viên, Bát Tự và Hợp đôi. Luật "20 bài thật liên tiếp" bỏ; mỗi món chỉ cần 2–3 bài thử tay cộng kiểm tự động.
+5. **Xây mã cho toàn bộ sản phẩm còn khuyết ngay trên engine của repo** (R1): Vận hạn năm [Y], Chặng 10 năm, Tình duyên, Công việc, Tháng này, Hôm nay (tinh chỉnh), Combo, chủ đề mới, công cụ Hội viên, Bát Tự và Tình duyên đôi ta (tên tạm, chờ anh xác nhận). Luật "20 bài thật liên tiếp" bỏ; mỗi món chỉ cần 2–3 bài thử tay cộng kiểm tự động.
 
 ## Những gì đã quyết (FD-117, vòng 1)
 
@@ -57,17 +57,17 @@ source: skill
 | R4 **KHÔNG** | **Bỏ tháng "cần chú ý" bị ép.** Phải do engine tính, đúng những tháng thật sự cần chú ý của lá số; anh tin lá số nào cũng có tháng riêng; "đào sâu engine". Tạo quy tắc thật; lá số nào không ra thì tinh chỉnh quy tắc, không bịa | GĐ2, GĐ4, GĐ6, BE-P0-4 |
 | R5 Đồng ý | Dải 12 ô tháng hiện theo thứ tự, ô cần chú ý có dấu khoá | GĐ4 |
 | R6 Đồng ý | Điện thoại: một trang cuộn + thanh 5 chip dính | GĐ4 |
-| R7 Đồng ý + ghi chú | Món "Chặng 10 năm của bạn" **360 Lá**; **kiểm tra engine thật kỹ** để suy luận thời gian và đọc chặng đúng cho mọi lá số (đại vận, chiều thuận/nghịch, khoảng tuổi, nhận diện chặng hiện tại quanh Tết) | GĐ5, GĐ6, BE-P0-8 |
+| R7 Đồng ý + ghi chú | Món "Chặng 10 năm của bạn" ~~360~~ **480 Lá** (FD-119 nâng từ 360); **kiểm tra engine thật kỹ** để suy luận thời gian và đọc chặng đúng cho mọi lá số (đại vận, chiều thuận/nghịch, khoảng tuổi, nhận diện chặng hiện tại quanh Tết) | GĐ5, GĐ6, BE-P0-8 |
 | R8 Đồng ý | Gần Tết thẻ đầu chuyển sang năm sau; gói cặp "Năm nay + Năm sau" 780 Lá làm sau khi bản Năm đạt | GĐ5, GĐ6 |
 | R9 Đồng ý | Combo đổi nghĩa "Trọn đời + Năm [Y]" 1.300 Lá; khấu trừ 7 ngày giữ như cũ | GĐ6 |
 | R10 **KHÔNG** | Hội viên **giữ "sắp ra mắt"** như bây giờ, **và xây các công cụ Hội viên còn thiếu ngay** | GĐ5 (giữ ẩn), GĐ6, BE-P1-14 |
-| R11 **KHÔNG** | **Xây CẢ Hợp đôi và hệ thứ hai Bát Tự.** Anh nói Hợp đôi không cần người kia đồng ý, một người xem cho cả hai. **Cờ pháp lý (giữ trong plan): ngày sinh của người thứ hai là dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP; anh sẽ kiểm tra pháp lý (dữ liệu tối thiểu, không lưu ngoài lúc dựng bài đọc, chữ chính sách bảo mật); kết quả quyết định thiết kế cuối cùng (quy tắc "chỉ luật Việt Nam là ranh giới").** Bản đồ sao Tây phương không được nhắc → vẫn hoãn | GĐ6, BE-P1-15, BE-P1-16 |
+| R11 **KHÔNG** | **Xây CẢ hai người (tên tạm "Tình duyên đôi ta", trước là "Hợp đôi") và hệ thứ hai Bát Tự.** Anh nói không cần người kia đồng ý, một người xem cho cả hai. **Cờ pháp lý Nghị định 13/2023 đã BỎ ở FD-119 (08/10):** anh xác nhận chỉ thu ngày sinh của người kia, không vi phạm. Bản đồ sao Tây phương không được nhắc → vẫn hoãn | GĐ6, BE-P1-15, BE-P1-16 |
 | R12 **KHÔNG** | **Làm ngay các chủ đề kế tiếp** theo gợi ý của Claude và nghiên cứu từ khoá Google đã có trong repo (`data/lasoviet_research_master.xlsx`) | GĐ6, BE-P1-17, `05` |
 | R13 Đồng ý | Cục, Mệnh chủ, Thân chủ, nạp âm giữa lá số: làm ở đợt hoàn thiện, không chặn việc khác | GĐ6, BE-P1-13 |
 
 ## Phát hiện mới từ nghiên cứu (đã đưa vào các giai đoạn)
 
-1. **Các món "Sắp mở" không chờ giao diện.** Tình duyên, Công việc, Tháng này, Vận hạn năm, Combo đều **đã có code backend, đã triển khai**. Chúng từng bị giữ vì luật "20 bài thật đạt liên tiếp" và chưa duyệt ngân sách; **vòng 2 bỏ luật đó (R1)**, thay bằng 2–3 bài thử tay + kiểm tự động. Hợp đôi, Bát Tự, Tây phương **chưa có engine**: **vòng 2 quyết xây Bát Tự và Hợp đôi** (Tây phương vẫn hoãn). Hội viên thiếu đặc tả công cụ trả phí: **xây các công cụ ngay, Hội viên vẫn ẩn (R10)**.
+1. **Các món "Sắp mở" không chờ giao diện.** Tình duyên, Công việc, Tháng này, Vận hạn năm, Combo đều **đã có code backend, đã triển khai**. Chúng từng bị giữ vì luật "20 bài thật đạt liên tiếp" và chưa duyệt ngân sách; **vòng 2 bỏ luật đó (R1)**, thay bằng 2–3 bài thử tay + kiểm tự động. Tình duyên đôi ta (hai người), Bát Tự, Tây phương **chưa có engine**: **vòng 2 quyết xây Bát Tự và món hai người** (Tây phương vẫn hoãn). Hội viên thiếu đặc tả công cụ trả phí: **xây các công cụ ngay, Hội viên vẫn ẩn (R10)**.
 2. **Engine Tử Vi tính được mọi tầng thời gian** (chặng 10 năm, năm, tháng, ngày) cho bất kỳ năm nào. Thiếu: sản phẩm "Chặng 10 năm" (chưa có SKU và writer) và danh sách đủ các chặng ra trang miễn phí.
 3. **Mỗi người một chặng khác nhau.** Chạy thử 7 lá số tổng hợp: năm 2026 rơi vào chặng khác, cung khác, còn từ 2 đến 8 năm trong chặng; nam và nữ cùng ngày sinh ra chặng khác. Không thể nói chung "2026 nằm trong đại vận".
 4. **Tháng "cần chú ý" bị ép.** Khi không có tháng nào đạt điều kiện, code tự đặt tháng 7 thành tháng cần chú ý (và còn tự thêm "tiền bạc, giấy tờ" vào câu tóm tắt, và dùng câu chuẩn bị mẫu giống nhau). **Anh quyết (R4): bỏ, phải do engine tính thật**; An nghiên cứu quy tắc nhiều tín hiệu (Hoá Kỵ lưu nguyệt/lưu niên/đại vận, đối cung, sát tinh) và đo trên ≥200 lá số (BE-P0-4).
@@ -87,7 +87,7 @@ Mỗi giai đoạn bắt đầu bằng một trang HTML (Artifact riêng tư tr�
 | 3 | `chu-mien-phi-v2.html`: 3 lá số mẫu, chữ cũ và chữ mới cạnh nhau, căn cứ, thang chấm 1–5 | Chấm điểm, sửa chữ, chọn giọng văn |
 | 4 | `la-so-mien-phi-v3.html`: bản mẫu bấm được của trang lá số mới | Bấm thử, bình luận từng khối |
 | 5 | `chon-luan-giai-v3.html`: trang chọn luận giải + tấm mở khoá + dải sản phẩm | Chọn bộ câu mời mua A/B, sửa chữ |
-| 6 | `mau-bai-<mon>.html` cho từng món (Năm, Chặng, Tình duyên, Công việc, Tháng, chủ đề mới, Bát Tự, Hợp đôi): mẫu bài + ảnh chụp 2–3 bài thử tay + kết quả kiểm tự động | Xem mẫu, chấm, duyệt mở bán từng món; ghi kết quả kiểm tra pháp lý cho Hợp đôi |
+| 6 | `mau-bai-<mon>.html` cho từng món (Năm, Chặng, Tình duyên, Công việc, Tháng, chủ đề mới, Bát Tự, Tình duyên đôi ta): mẫu bài + ảnh chụp 2–3 bài thử tay + kết quả kiểm tự động | Xem mẫu, chấm, duyệt mở bán từng món |
 | 7 | `nghiem-thu.html`: ảnh trang thật, bảng đạt/chưa đạt, số đo, phễu trước/sau | Duyệt phát hành, kéo ticket Done |
 
 Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trước khi viết; khi trang cần lưu lựa chọn thì nạp `artifact-capabilities`; dùng lá số mẫu tổng hợp, **không dùng ngày sinh hay tên thật**; lưu bản nguồn vào `prototype/revamp-2026-10/`.
@@ -109,7 +109,7 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 - GĐ2 chạy ngay (FE và BE độc lập nhau), không cần duyệt thiết kế lại.
 - GĐ3 (chữ) song song GĐ2; chữ quy tắc v2 ra trước, AI ra sau khi An gỡ hai chỗ chặn.
 - GĐ4 và GĐ5 dựng bản mẫu HTML sau GĐ1, dùng chữ của GĐ3 khi có; viết code sau khi anh duyệt bản mẫu.
-- GĐ6 chạy theo từng món (mỗi món: kiểm tự động + 2–3 bài thử tay); Bát Tự, Hợp đôi, chủ đề mới và công cụ Hội viên là các nhánh song song, không chặn nhau; Hợp đôi chỉ bật bán sau kết quả kiểm tra pháp lý. GĐ7 chạy sau mỗi đợt phát hành.
+- GĐ6 chạy theo từng món (mỗi món: kiểm tự động + 2–3 bài thử tay); Bát Tự, Tình duyên đôi ta, chủ đề mới và công cụ Hội viên là các nhánh song song, không chặn nhau; Tình duyên đôi ta bật bán theo cổng chất lượng như mọi món khác (không còn cổng pháp lý). GĐ7 chạy sau mỗi đợt phát hành.
 
 ## Mục tiêu đo được
 
@@ -127,13 +127,20 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 - LCP 4G giả lập < 2,5 giây giữ nguyên; không lộ chữ của phần khoá.
 - Đo phễu: tỷ lệ mở tấm xem thử và tỷ lệ mua sau 7 ngày so với 7 ngày trước khi phát hành (cửa sổ sạch, loại lượt thử nghiệm).
 
+## Cập nhật giá và tên (FD-119, anh quyết 08/10)
+
+- **Giá mới (Lá):** Tử Vi trọn đời 960 → **1.200** ("bằng giá 10 cung lẻ", vì 1 cung = 120); **Bát Tự trọn đời 840** (mới; thử A/B sau 720/840/960); **gói "Trọn đời kép"** (Tử Vi trọn đời + Bát Tự trọn đời) **1.500**; món hai người 600 → **960**; Chặng 10 năm 360 → **480**. Combo "Trọn đời + Năm [Y]" giữ **1.300** (nay rẻ hơn mua lẻ 1.200 + 480 = 1.680 khoảng 23%, ghi rõ trong chữ bán). "Năm nay + năm sau" giữ **780**.
+- **Bảo đảm hoàn Lá mở rộng:** món dưới 500 Lá giữ hoàn đủ; món từ 500 Lá trở lên hoàn **một phần 50%** (mỗi tài khoản một lần như luật cũ).
+- **Cơ sở:** rà soát `hormozi-pricing-strategy` ngày 08/10 (neo giá với AiTuvi bản đọc đầy đủ 219k, app Thái Âm $19,99 trọn đời, các trang Bát Tự Việt Nam phần lớn miễn phí hoặc không niêm yết giá). Giá là **giả thuyết cần A/B**, không phải kết luận.
+- **Bỏ cổng pháp lý** của món hai người (xem trên). **Tên sản phẩm "Tình duyên đôi ta" (phụ đề "Hai lá số, hợp nhau đến đâu") là TÊN TẠM, CHỜ anh xác nhận (PENDING, FD-119):** anh bác tên "Hợp đôi" vì khó hiểu và không có sức hút; từ khoá Google (`data/lasoviet_research_master.xlsx`, sheet "Keyword Master"): "bói tình yêu" 500.000/tháng, "bói tình duyên" 50.000, "bói tình yêu theo tên" 50.000, "bói tình yêu theo ngày sinh" 5.000, "coi bói tình yêu" 5.000, "bói tuổi vợ chồng" 500, "bói tình yêu theo tuổi" 500, "tử vi tình duyên/hôn nhân/tình yêu" 500 mỗi từ, "lá số cặp đôi" 50, "hợp tuổi vợ chồng" 50; "hợp đôi" không có trong dữ liệu; "xem tuổi vợ chồng", "xem độ hợp vợ chồng", "bói tình yêu hai người", "xem tương hợp hai người" không hiện. Trang đích SEO nhắm "bói tình yêu theo ngày sinh" / "xem tuổi vợ chồng".
+
 ## Những gì KHÔNG làm trong plan này
 
 - Không bật SePay, không gửi email thật (LSV-77, 79 giữ nguyên).
 - Không đổi header/footer dùng chung (FD-100).
 - Không đổi luồng tiền, ví, đơn nạp, khấu trừ 7 ngày. **Ngoại lệ duy nhất:** tham số hoá năm 2026 trong SKU, kiểm tra mua, khoá kỳ, trigger combo (có migration mới, test mua/đọc/hoàn Lá).
 - Không viết lại báo cáo trả phí Trọn đời (writer v4.2).
-- Không **bán** Hội viên (vẫn "sắp ra mắt", không nút mua) dù công cụ Hội viên được xây (R10). Không làm Bản đồ sao Tây phương (R11 không nhắc). Không bán Hợp đôi trước khi có kết quả kiểm tra pháp lý (Nghị định 13/2023/NĐ-CP).
+- Không **bán** Hội viên (vẫn "sắp ra mắt", không nút mua) dù công cụ Hội viên được xây (R10). Không làm Bản đồ sao Tây phương (R11 không nhắc).
 - Không đếm ngược giả, không số người mua giả, không "giải mã vận mệnh"/"đổi đời"/"bí mật".
 
 ## Phân công và quy tắc thực thi
@@ -156,12 +163,12 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 | 3 | Chip "Căn cứ", trạng thái "đang viết riêng cho bạn", nhãn AI | Thẻ nghĩa; chữ quy tắc v2; gỡ chặn AI; writer một lần gọi; cổng kiểm tra; bộ chạy thử | `chu-mien-phi-v2.html` |
 | 4 | 5 tab, 3+3 cung, Đường đời 10 năm, 12 ô tháng, lớp phủ đại vận/lưu niên, 12 cung có biểu tượng, tấm đọc thử, lá số lớn; 2–3 ảnh mới | Danh sách đủ chặng; căn cứ theo từng mục; dòng đọc thử cho 13 mục | `la-so-mien-phi-v3.html` |
 | 5 | Thẻ một bước, dải sản phẩm theo vòng thời gian, tấm mở khoá, so sánh gói, bộ câu mời mua | **Năm tham số** (SKU, mua, hoàn Lá, migration); API "dữ kiện theo người" | `chon-luan-giai-v3.html` |
-| 6 | Thẻ/đọc thử của mọi món mới tự hiện khi qua cổng; trang Bát Tự và Hợp đôi; màn công cụ Hội viên (ẩn); điền Cục/Mệnh chủ giữa lá số | Writer + SKU + cổng cho Chặng 10 năm; kích hoạt Năm, Tình duyên, Công việc, Tháng; Combo tham số; chủ đề mới; công cụ Hội viên; engine Bát Tự; Hợp đôi (chờ pháp lý để bán) | `mau-bai-<mon>.html` |
+| 6 | Thẻ/đọc thử của mọi món mới tự hiện khi qua cổng; trang Bát Tự và Tình duyên đôi ta; màn công cụ Hội viên (ẩn); điền Cục/Mệnh chủ giữa lá số | Writer + SKU + cổng cho Chặng 10 năm; kích hoạt Năm, Tình duyên, Công việc, Tháng; Combo tham số; chủ đề mới; công cụ Hội viên; engine Bát Tự; Tình duyên đôi ta (bán theo cổng chất lượng) | `mau-bai-<mon>.html` |
 | 7 | Báo cáo nghiệm thu, 3+ luồng e2e mới | Sửa lỗi phát sinh | `nghiem-thu.html` |
 
 ## Dependencies
 
-- Dựa trên: `docs/superpowers/plans/2026-10-03-ux-funnel-overhaul/` (đã giao gần hết), FD-063, FD-065, FD-105, FD-107, FD-109, FD-110, FD-111, FD-112 (luật 20 bài đã được FD-118 thay cho đợt này), FD-114, FD-116, FD-117, **FD-118**.
+- Dựa trên: `docs/superpowers/plans/2026-10-03-ux-funnel-overhaul/` (đã giao gần hết), FD-063, FD-065, FD-105, FD-107, FD-109, FD-110, FD-111, FD-112 (luật 20 bài đã được FD-118 thay cho đợt này), FD-114, FD-116, FD-117, **FD-118**, **FD-119** (giá, tên, bỏ cổng pháp lý).
 - Nghiên cứu: `research/01-dai-san-pham-va-vong-thoi-gian.md`, `research/02-he-thong-ai-viet-chu.md`, `research/03-tab-hinh-anh-nut-bam.md`; **backlog backend cho An (chính thức): `research/04-ticket-be-cho-an.md`**; **chủ đề mới từ từ khoá Google: `research/05-chu-de-moi-tu-seo.md`**.
 - Bản mẫu nguồn: `prototype/revamp-2026-09/la-so-ket-qua-v2*`, `la-so-ket-qua-v2-phase4-proposal.*`, `chon-luan-giai.html`, `contextual-unlock-proposal-2026-10-03.html`; trang duyệt vòng 2: `prototype/revamp-2026-10/ke-hoach-v2-duyet.html`.
 - Định hướng hình ảnh: `docs/22-art-direction.md`, `docs/24-light-theme-color-spec.md`. Giọng văn: `docs/13-brand-experience-guideline.md`, `docs/20-deep-research-ta-social-listening-handoff.md`.
@@ -177,7 +184,8 @@ Ba ảnh ChatGPT **đã duyệt và đã xử lý** (nền trong suốt, có PNG
 
 Ở giai đoạn FE (GĐ4) sao chép vào `apps/web/public/images/lasoviet/` (WebP trước, PNG dự phòng), giữ tên SEO lowercase-hyphen. Không đưa tệp `xem-thu-nho.png` (ảnh xem thử) vào web. Không thêm ảnh ngoài ba ảnh này.
 
-## Cờ pháp lý còn mở (việc của anh)
+## Việc còn mở của anh
 
-1. **Hợp đôi:** dữ liệu ngày sinh của người thứ hai là dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP; anh kiểm tra pháp lý (dữ liệu tối thiểu, không lưu ngoài lúc dựng bài đọc, chữ chính sách bảo mật); kết quả quyết định thiết kế đồng ý/thông báo cuối cùng và việc bật bán (FD-118, OD-005).
-2. **Nội dung:** liệt kê điều luật Việt Nam thực sự cấm để cổng chất lượng chỉ chặn cứng đúng điều đó (R3); cho tới lúc đó các chủ đề FD-075 giữ nguyên.
+1. ~~Tình duyên đôi ta / Nghị định 13/2023~~ **Đã bỏ (FD-119, 08/10):** anh xác nhận chỉ thu ngày sinh của người kia, không vi phạm; không còn kiểm tra pháp lý riêng cho món hai người.
+2. **Xác nhận tên** món hai người (tên tạm "Tình duyên đôi ta", PENDING).
+3. **Nội dung:** liệt kê điều luật Việt Nam thực sự cấm để cổng chất lượng chỉ chặn cứng đúng điều đó (R3); cho tới lúc đó các chủ đề FD-075 giữ nguyên.

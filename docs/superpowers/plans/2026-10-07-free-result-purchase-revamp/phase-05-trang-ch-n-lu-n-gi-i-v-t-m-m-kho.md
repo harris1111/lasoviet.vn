@@ -24,13 +24,16 @@ Trang chọn luận giải bày thẻ theo **tầng thời gian**, mỗi tầng 
 | Hôm nay | một dòng ngày + cung bị chạm | Hôm nay của bạn | 60 | bán ngay |
 | Tháng | 12 ô tháng, đánh dấu (chỉ tháng engine tính thật, R4/R5) | Tháng này của bạn | 300 | qua cổng (GĐ6: kiểm tự động + 2–3 bài thử tay) |
 | Năm | cung lưu niên, tóm tắt năm | **Vận hạn năm [Y]** (năm nay hoặc năm sau) | 480 | tham số năm xong + qua cổng |
-| Chặng 10 năm | Đường đời 10 năm, điểm | **Chặng [a–b] tuổi của bạn** | **360 (R7 đã chốt)** | xây xong + engine đại vận đã kiểm chứng (BE-P0-8) + qua cổng |
+| Chặng 10 năm | Đường đời 10 năm, điểm | **Chặng [a–b] tuổi của bạn** | **480 (R7 + FD-119, nâng từ 360)** | xây xong + engine đại vận đã kiểm chứng (BE-P0-8) + qua cổng |
 | Cung | 12 điểm, 1 cung quà | Một cung (120), Bản mệnh (240) | 120 / 240 | bán ngay |
 | Chủ đề | câu hỏi + cung liên quan | Tình duyên, Công việc, và chủ đề mới khi Active (`research/05`) | 480 | qua cổng (GĐ6) |
-| Hai người | — | Hợp đôi (Tử Vi + Bát Tự) | 600 | mã xong + kết quả kiểm tra pháp lý Nghị định 13/2023 (GĐ6) |
-| Hệ thứ hai | — | Bát Tự toàn diện | giá theo SKU Bát Tự (anh chốt khi có mẫu) | engine + qua cổng (GĐ6) |
-| Trọn đời | — | Tử Vi trọn đời | 960 | bán ngay |
+| Hai người | — | Tình duyên đôi ta (Tử Vi + Bát Tự; tên tạm, PENDING) | 960 | mã xong + qua cổng chất lượng (GĐ6); không còn cổng pháp lý (FD-119) |
+| Hệ thứ hai | — | Bát Tự trọn đời | 840 (A/B sau 720/840/960) | engine + qua cổng (GĐ6) |
+| Trọn đời | — | Tử Vi trọn đời | 1.200 (= 10 cung lẻ × 120) | bán ngay |
 | Gói gộp | — | Combo "Trọn đời + Năm [Y]" (1.300); gói cặp Năm nay + Năm sau (780, R8 đã chốt) | 1.300 / 780 | qua cổng (gói cặp sau khi Năm đạt) |
+| Gói gộp | — | "Trọn đời kép" (Tử Vi trọn đời + Bát Tự trọn đời) | 1.500 | Bát Tự qua cổng (GĐ6) |
+
+Ghi chú giá (FD-119): Combo 1.300 nay rẻ hơn mua lẻ Trọn đời 1.200 + Chặng 480 = 1.680 khoảng 23%; nói thật điều này trong chữ bán. Giá chỉ là giả thuyết, A/B sau.
 
 **Ẩn có điều kiện (Q1, đã chốt):** mỗi món chỉ ẩn **đến khi qua cổng chất lượng**; bật món trong danh mục thì thẻ tự hiện (giao diện chỉ đọc trạng thái từ danh mục, không viết cứng); có test "món đang giữ không hiện". Tab Hội viên **ẩn** khi còn giữ (R10 đã chốt: giữ "sắp ra mắt", công cụ Hội viên được xây ở GĐ6 nhưng chưa mở bán, không nút mua). Không còn "Sắp mở/Sắp có/Sắp ra mắt"; không còn thẻ mang hai nhãn.
 
@@ -49,7 +52,7 @@ API "dữ kiện theo người" (BE, chỉ đọc) trả: năm âm lịch hiện
 - **Làm nổi gói khớp ý định** qua `?offer=&palace=`: nhãn "Hợp với câu bạn vừa hỏi", hai lớp viền vàng.
 - **Thuật ngữ:** "Độ mạnh cấu trúc: 71/100" → nhãn dễ hiểu ("Bộ sao hỗ trợ mạnh") + số nhỏ.
 - **Giá tiền đồng (Q6 = Không):** không ghi trên thẻ, không ghi trong tấm xem thử. Chỉ ở **bước xác nhận cuối** ngay trước thanh toán/nạp (số dư, còn lại bao nhiêu, quy đổi tiền đồng từ gói nạp phổ biến trong `la-packs.ts`, ghi rõ gói dùng để quy đổi). Hàm quy đổi chỉ để hiển thị; có test.
-- **Câu mời mua:** hai bộ cho anh chọn: (A) gọn, điềm tĩnh; (B) ấm, nhấn vào điều khách muốn biết. Bốn đòn bẩy giá trị: điều khách muốn, căn cứ, đọc ngay, một chạm. **Giảm rủi ro đúng như điều kiện thật:** hoàn Lá khi đánh dấu "Không đúng" trong 24 giờ cho món dưới 500 Lá (mỗi tài khoản một lần, FD-105); khấu trừ 7 ngày khi nâng cấp. Cấm: "giải mã vận mệnh", "đổi đời", "bí mật", đếm ngược giả, số người mua giả, nói Trọn đời "là phần năm".
+- **Câu mời mua:** hai bộ cho anh chọn: (A) gọn, điềm tĩnh; (B) ấm, nhấn vào điều khách muốn biết. Bốn đòn bẩy giá trị: điều khách muốn, căn cứ, đọc ngay, một chạm. **Giảm rủi ro đúng như điều kiện thật:** hoàn Lá khi đánh dấu "Không đúng" trong 24 giờ: món dưới 500 Lá hoàn đủ, món từ 500 Lá trở lên hoàn một phần 50% (FD-119, mở rộng từ FD-105; mỗi tài khoản một lần); khấu trừ 7 ngày khi nâng cấp. Cấm: "giải mã vận mệnh", "đổi đời", "bí mật", đếm ngược giả, số người mua giả, nói Trọn đời "là phần năm".
 - **Giao diện (Q10):** thẻ và tấm hai lớp viền; nút chính viên có mũi tên trong vòng tròn; mọi trạng thái nút theo bảng E4 (nghiên cứu 03); nút bị khoá có viền đứt + dòng lý do ("Cần X Lá nữa"), `aria-disabled`; đang tải có vòng xoay, chặn bấm đúp; xoá mã chết nhóm thẻ cũ `.offer-card`.
 - Non-functional: điện thoại trước; giữ nguyên an toàn luồng tiền (một lần bấm một lần trừ, thiếu Lá nạp trong tấm); VI/EN; sáng/tối.
 

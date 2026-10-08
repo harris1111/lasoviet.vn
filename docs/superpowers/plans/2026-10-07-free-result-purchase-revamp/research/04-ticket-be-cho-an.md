@@ -26,7 +26,7 @@ Ngày: 08/10/2026. Thay thế bản 07/10. Nguồn: `plan.md`, ba bản nghiên 
 | Mức | Mục | Ghi chú |
 |---|---|---|
 | **P0** (làm ngay; hạn chót thực tế: Tết 06/02/2027) | BE-P0-1 năm tham số · BE-P0-2 tính đúng năm khác · BE-P0-3 ranh giới năm · **BE-P0-4 tháng cần chú ý do engine tính thật (R4)** · BE-P0-5 `daily.headline` · BE-P0-6 thẻ nghĩa + chữ quy tắc v2 (VI/EN) · BE-P0-7 danh sách chặng 10 năm · **BE-P0-8 kiểm chứng engine đại vận (R7)** · BE-P0-9 dữ liệu cho giao diện | P0 không chờ quyết định nào nữa |
-| **P1** | BE-P1-1 gỡ chặn AI · BE-P1-2 writer AI + căn cứ (VI/EN) · BE-P1-3 cổng chất lượng · BE-P1-4 bộ chạy thử · BE-P1-5 bộ chặn tiền + cảnh báo tăng trưởng · BE-P1-6 API dữ kiện theo người · BE-P1-7 Chặng 10 năm · BE-P1-8 Vận hạn năm [Y] · BE-P1-9 Tình duyên + Công việc · BE-P1-10 Tháng này · BE-P1-11 Combo tham số · BE-P1-12 gói cặp Năm · BE-P1-13 Cục/Mệnh chủ/Thân chủ/nạp âm · BE-P1-14 công cụ Hội viên · BE-P1-15 engine Bát Tự · BE-P1-16 Hợp đôi · BE-P1-17 chủ đề mới | R1–R13 đã trả lời |
+| **P1** | BE-P1-1 gỡ chặn AI · BE-P1-2 writer AI + căn cứ (VI/EN) · BE-P1-3 cổng chất lượng · BE-P1-4 bộ chạy thử · BE-P1-5 bộ chặn tiền + cảnh báo tăng trưởng · BE-P1-6 API dữ kiện theo người · BE-P1-7 Chặng 10 năm · BE-P1-8 Vận hạn năm [Y] · BE-P1-9 Tình duyên + Công việc · BE-P1-10 Tháng này · BE-P1-11 Combo tham số · BE-P1-12 gói cặp Năm · BE-P1-13 Cục/Mệnh chủ/Thân chủ/nạp âm · BE-P1-14 công cụ Hội viên · BE-P1-15 engine Bát Tự · BE-P1-16 Tình duyên đôi ta · BE-P1-17 chủ đề mới · BE-P1-18 giá mới + hoàn 50% (FD-119) | R1–R13 đã trả lời |
 | **P2** | BE-P2-1 cung lưu niên từng năm trong chặng · BE-P2-2 xuất lưu Hoá · BE-P2-3 dọn hai danh mục · BE-P2-4 tầng tiểu hạn · BE-P2-5 "Tuần này của bạn" (tuỳ chọn) · BE-P2-6 Hôm nay: kiểm ranh giới ngày | |
 
 Đường găng (theo thứ tự): BE-P0-1 → BE-P0-2/3 → BE-P0-8 → BE-P1-6/BE-P1-8 (phát hành trước Tết). Song song: BE-P0-4, BE-P0-6, BE-P1-1.
@@ -135,7 +135,7 @@ Ngày: 08/10/2026. Thay thế bản 07/10. Nguồn: `plan.md`, ba bản nghiên 
 **Ưu tiên:** P0. **Phụ thuộc:** BE-P0-8 (cùng kiểm chứng).
 
 ### BE-P0-8 — Kiểm chứng engine đại vận và suy luận thời gian cho mọi lá số (R7 ghi chú)
-**Vì sao (anh dặn):** "kiểm tra engine thật kỹ để suy luận thời gian và đọc chặng 10 năm đúng cho mọi lá số". Sản phẩm Chặng (360 Lá) và dải "Đường đời 10 năm" sẽ bị bắt bẻ ngay nếu một chặng lệch.
+**Vì sao (anh dặn):** "kiểm tra engine thật kỹ để suy luận thời gian và đọc chặng 10 năm đúng cho mọi lá số". Sản phẩm Chặng (480 Lá, FD-119) và dải "Đường đời 10 năm" sẽ bị bắt bẻ ngay nếu một chặng lệch.
 **Việc (đây là việc kiểm chứng, tạo test cố định; sửa lỗi nếu thấy):**
 - **Chiều thuận/nghịch:** đối chiếu quy tắc (dương nam, âm nữ đi thuận; âm nam, dương nữ đi nghịch, theo quy ước phổ biến) với kết quả `decadalList()` cho 4 tổ hợp can năm sinh × giới tính. Ghi rõ nếu iztro dùng quy ước khác.
 - **Tuổi bắt đầu = số Cục (2–6)**, mỗi chặng 10 năm, tính theo **tuổi âm**; chặng đầu ở cung Mệnh; 12 chặng liền kề nhau không trùng không hở. Kiểm cho tuổi tới ~95.
@@ -225,10 +225,10 @@ Ngày: 08/10/2026. Thay thế bản 07/10. Nguồn: `plan.md`, ba bản nghiên 
 **Nghiệm thu:** [ ] test 7 lá số mục 4.2 nghiên cứu 01; [ ] không đổi luồng tiền; [ ] giờ sinh chưa chắc → cờ tạm tính.
 **Ưu tiên:** P1. **Phụ thuộc:** BE-P0-2, BE-P0-3, BE-P0-7, BE-P0-8.
 
-### BE-P1-7 — Sản phẩm "Chặng [a–b] tuổi của bạn" (R7: 360 Lá)
+### BE-P1-7 — Sản phẩm "Chặng [a–b] tuổi của bạn" (R7; 480 Lá theo FD-119)
 **Vì sao:** khách hay hỏi giai đoạn 10 năm của mình mà Trọn đời chỉ có một đoạn; chưa có SKU và writer. **Xây ngay trên engine của repo** (R1).
 **Việc:**
-- SKU mới (ví dụ `ZIWEI-DECADE-P0`, `period_key` = chặng hiện tại hoặc kế tiếp khi chặng còn ≤2 năm); contract `ziwei-decadal-reading-v1` (tái dùng `ZiweiTopicDecadalTiming*` và đoạn `currentDecadal` nếu hợp); giá 360 Lá.
+- SKU mới (ví dụ `ZIWEI-DECADE-P0`, `period_key` = chặng hiện tại hoặc kế tiếp khi chặng còn ≤2 năm); contract `ziwei-decadal-reading-v1` (tái dùng `ZiweiTopicDecadalTiming*` và đoạn `currentDecadal` nếu hợp); giá 480 Lá (FD-119, nâng từ 360).
 - Writer + cổng theo mẫu `period-reading-writer.ts` và `topic-deep-dive-quality-v4.ts`; facts từ `decadalList()` (đã kiểm ở BE-P0-8); chặng `not_started` không bán; cổng thêm "không bịa năm/tuổi ngoài khoảng chặng" (giống `UNCOMPUTED_YEAR` ở `period-reading-writer.ts:27`).
 - Mua/đọc/hoàn Lá theo khuôn các món khác; có nhãn "tạm tính" khi giờ sinh chưa chắc.
 **File:** mới `packages/backend/src/reports/decadal-reading-writer.ts`, `decadal-report-config.ts`, `packages/contracts/src/ziwei-decadal-reading-v1.ts`; sửa `la-catalog.ts`, `wallet-unlock.service.ts`, migration mới.
@@ -256,7 +256,7 @@ Ngày: 08/10/2026. Thay thế bản 07/10. Nguồn: `plan.md`, ba bản nghiên 
 **Ưu tiên:** P1. **Phụ thuộc:** BE-P0-1, BE-P1-8.
 
 ### BE-P1-12 — Gói cặp "Năm nay + Năm sau" 780 Lá (R8)
-**Việc:** một SKU gộp hai kỳ năm (mua lẻ 960, tiết kiệm 180); làm sau khi bản Năm đạt.
+**Việc:** một SKU gộp hai kỳ năm (mua lẻ 960, tiết kiệm 180; giá 780 giữ nguyên, FD-119); làm sau khi bản Năm đạt.
 **Nghiệm thu:** [ ] mua một lần ra hai quyền lợi; phát lại; hoàn theo luật FD-105.
 **Ưu tiên:** P1. **Phụ thuộc:** BE-P1-8.
 
@@ -280,26 +280,30 @@ Ngày: 08/10/2026. Thay thế bản 07/10. Nguồn: `plan.md`, ba bản nghiên 
 **Ưu tiên:** P1. **Phụ thuộc:** BE-P0-4, BE-P0-5, BE-P2-6.
 
 ### BE-P1-15 — Engine Bát Tự / Tứ Trụ (R11: xây)
-**Vì sao:** anh chọn xây cả Hợp đôi và hệ thứ hai (Bát Tự); OD-005 phương án C (Tử Vi + Bát Tự cùng lúc). Hiện `packages/engine-adapters/src` chỉ có `ziwei/`. Từ khoá "lá số bát tự" 50.000/tháng (+900%) là nhu cầu mạnh nhất sau Tử Vi (`05-chu-de-moi-tu-seo.md`).
-**Việc:** (i) chọn thư viện/engine (xem `Product Scope`: `mingyu` + fixtures độc lập; giấy phép MIT ưu tiên) và ghi quyết định; (ii) chuẩn hoá hợp đồng `normalized-bazi-chart-v1` (4 trụ, tàng can, thập thần, ngũ hành, Nhật chủ, đại vận Bát Tự); (iii) adapter + fixtures đối chiếu độc lập; (iv) lưu lá số (bảng/migration mới), bằng chứng (evidence keys), quy tắc khoá phiên bản như Tử Vi; (v) lá số Bát Tự miễn phí (dữ kiện) và báo cáo trả phí (writer theo khuôn, chạy cổng nhẹ + 2–3 bài thử tay); (vi) SKU Bát Tự toàn diện; (vii) múi giờ/tiết khí đúng (ranh giới tiết khí quyết định trụ tháng).
+**Vì sao:** anh chọn xây cả Tình duyên đôi ta và hệ thứ hai (Bát Tự); OD-005 phương án C (Tử Vi + Bát Tự cùng lúc). Hiện `packages/engine-adapters/src` chỉ có `ziwei/`. Từ khoá "lá số bát tự" 50.000/tháng (+900%) là nhu cầu mạnh nhất sau Tử Vi (`05-chu-de-moi-tu-seo.md`).
+**Việc:** (i) chọn thư viện/engine (xem `Product Scope`: `mingyu` + fixtures độc lập; giấy phép MIT ưu tiên) và ghi quyết định; (ii) chuẩn hoá hợp đồng `normalized-bazi-chart-v1` (4 trụ, tàng can, thập thần, ngũ hành, Nhật chủ, đại vận Bát Tự); (iii) adapter + fixtures đối chiếu độc lập; (iv) lưu lá số (bảng/migration mới), bằng chứng (evidence keys), quy tắc khoá phiên bản như Tử Vi; (v) lá số Bát Tự miễn phí (dữ kiện) và báo cáo trả phí (writer theo khuôn, chạy cổng nhẹ + 2–3 bài thử tay); (vi) SKU Bát Tự trọn đời **840 Lá** (FD-119; A/B sau 720/840/960) và SKU gói "Trọn đời kép" (Tử Vi trọn đời + Bát Tự trọn đời) **1.500 Lá**; đồng thời Tử Vi trọn đời nâng 960 → **1.200 Lá** (SKU/migration giá mới); (vii) múi giờ/tiết khí đúng (ranh giới tiết khí quyết định trụ tháng).
 **Nghiệm thu:** [ ] fixtures ≥30 lá số đối chiếu độc lập (lệch = 0 hoặc giải thích); [ ] kiểm biên tiết khí và giờ Tý; [ ] test mua/đọc/hoàn Lá; [ ] 2–3 bài thử tay.
-**Ưu tiên:** P1. **Phụ thuộc:** — (độc lập với Tử Vi; Hợp đôi cần nó).
+**Ưu tiên:** P1. **Phụ thuộc:** — (độc lập với Tử Vi; Tình duyên đôi ta cần nó).
 
-### BE-P1-16 — Hợp đôi (hai người) trên Tử Vi + Bát Tự, kèm kiểm tra pháp lý dữ liệu người thứ hai
-**Vì sao:** anh quyết: làm cả Hợp đôi; **người thứ hai không cần đồng ý, một người xem cho cả hai** (R11). Đây là thay đổi so với giả định cũ (OD-005 "luật đồng ý của người thứ hai"). **Cờ pháp lý (không bỏ):** ngày sinh/giờ sinh của người thứ hai là dữ liệu cá nhân theo **Nghị định 13/2023/NĐ-CP**; theo nguyên tắc của anh "chỉ luật Việt Nam là ranh giới", kiểm tra pháp lý sẽ quyết định thiết kế cuối cùng. An **không tự giả định** mà thiết kế để chịu được kết quả kiểm tra.
+### BE-P1-16 — Tình duyên đôi ta (hai người) trên Tử Vi + Bát Tự
+**Vì sao:** anh quyết: làm cả món hai người; một người nhập cả hai hồ sơ sinh và đọc, như mọi món khác (R11). **Cổng pháp lý đã BỎ (FD-119, 08/10): anh xác nhận chỉ thu ngày sinh của người kia nên không vi phạm; một người nhập cả hai hồ sơ sinh và đọc, như mọi món khác; không còn việc kiểm tra Nghị định 13/2023, không còn cờ `compat.counterpartyConsent`, không còn ràng buộc riêng tư thêm riêng cho món này.** **Tên sản phẩm "Tình duyên đôi ta" (phụ đề "Hai lá số, hợp nhau đến đâu") là TÊN TẠM, CHỜ anh xác nhận (PENDING, FD-119):** anh bác tên "Tình duyên đôi ta" vì khó hiểu và không có sức hút; từ khoá Google (`data/lasoviet_research_master.xlsx`, sheet "Keyword Master"): "bói tình yêu" 500.000/tháng, "bói tình duyên" 50.000, "bói tình yêu theo tên" 50.000, "bói tình yêu theo ngày sinh" 5.000, "coi bói tình yêu" 5.000, "bói tuổi vợ chồng" 500, "bói tình yêu theo tuổi" 500, "tử vi tình duyên/hôn nhân/tình yêu" 500 mỗi từ, "lá số cặp đôi" 50, "hợp tuổi vợ chồng" 50; "hợp đôi" không có trong dữ liệu; "xem tuổi vợ chồng", "xem độ hợp vợ chồng", "bói tình yêu hai người", "xem tương hợp hai người" không hiện. Trang đích SEO nhắm "bói tình yêu theo ngày sinh" / "xem tuổi vợ chồng".
 **Việc:**
-- Hợp đồng `compatibility-v1`: đầu vào hai hồ sơ sinh (hồ sơ thứ hai **tối thiểu**: ngày/giờ/giới tính và một nhãn gọi tên tự đặt, không họ tên thật, không số điện thoại/email/địa chỉ); đầu ra: tương hợp theo Tử Vi (so cung Mệnh, Phu Thê, Phúc Đức… giữa hai lá số) cộng Bát Tự (ngũ hành, thập thần, hợp/xung/hình giữa hai trụ).
-- Lưu trữ tối thiểu: **không lưu hồ sơ người thứ hai ngoài thời gian cần để dựng bài đọc** (hoặc lưu đúng thời hạn ngắn đã duyệt), xoá khi xoá dữ liệu của chủ tài khoản, không dùng cho mục đích khác; không đưa vào AI những trường nhận dạng (chỉ nhãn tự đặt).
-- Chữ chính sách bảo mật và câu thông báo ở bước nhập người thứ hai (soạn cùng Claude, **chờ kết quả kiểm tra pháp lý**).
-- SKU Hợp đôi 600 Lá (FD-105; chưa có trong `la-catalog.ts`), writer + cổng nhẹ, mua/đọc/hoàn Lá.
-- Cờ cấu hình `compat.counterpartyConsent` (`none | notice | confirm`) để đổi thiết kế theo kết quả pháp lý mà không viết lại.
-**Nghiệm thu:** [ ] test hợp đồng + dữ liệu tối thiểu (không có trường dư); [ ] test xoá; [ ] 2–3 bài thử tay; [ ] **không bật bán** cho tới khi anh ghi kết quả kiểm tra pháp lý vào tracker.
-**Ưu tiên:** P1. **Phụ thuộc:** BE-P1-15; kết quả kiểm tra pháp lý (việc của anh) để bật bán.
+- Hợp đồng `compatibility-v1`: đầu vào hai hồ sơ sinh (hồ sơ thứ hai gồm ngày/giờ/giới tính và một nhãn gọi tên tự đặt); đầu ra: tương hợp theo Tử Vi (so cung Mệnh, Phu Thê, Phúc Đức… giữa hai lá số) cộng Bát Tự (ngũ hành, thập thần, hợp/xung/hình giữa hai trụ).
+- SKU hai người **960 Lá** (FD-119, nâng từ 600; chưa có trong `la-catalog.ts`), writer + cổng nhẹ, mua/đọc/hoàn Lá. Món từ 500 Lá trở lên dùng bảo đảm **hoàn một phần 50%** (xem BE-P1-18).
+- Tên hiển thị lấy từ một khoá cấu hình/i18n duy nhất vì tên đang chờ anh xác nhận.
+**Nghiệm thu:** [ ] test hợp đồng; [ ] 2–3 bài thử tay; [ ] bật bán bằng danh mục sau khi qua cổng chất lượng (không còn cổng pháp lý).
+**Ưu tiên:** P1. **Phụ thuộc:** BE-P1-15.
 
 ### BE-P1-17 — Chủ đề mới (R12: làm ngay, xếp hạng theo từ khoá Google trong repo)
 **Việc:** thêm chủ đề theo khuôn `TOPIC_PALACE_SCOPES` (`ziwei-topic-deep-dive-v1.ts:28-62`): ID chủ đề, cung chính/phụ, tiêu đề VI/EN, SKU, prompt, cổng, 2–3 bài thử tay mỗi chủ đề. **6 chủ đề đầu theo `05-chu-de-moi-tu-seo.md` mục 4:** (1) Kinh doanh và làm ăn, (2) Đổi việc và bước ngoặt sự nghiệp, (3) Gia đạo và con cái, (4) Duyên số theo năm (chỉ khi khác biệt rõ với Tình duyên), (5) Học hành và con đường nghề, (6) Nhà đất và an cư. Mỗi chủ đề một ticket con khi bắt đầu; giá tạm 480 Lá.
 **Nghiệm thu:** [ ] mỗi chủ đề có test cấu hình cung, cổng tự động, mua/đọc/hoàn Lá; [ ] 2–3 bài thử tay mỗi chủ đề; [ ] bật bằng danh mục, thẻ tự hiện.
 **Ưu tiên:** P1. **Phụ thuộc:** BE-P0-2, BE-P0-8.
+
+### BE-P1-18 — Giá mới và bảo đảm hoàn Lá 50% cho món từ 500 Lá (FD-119)
+**Vì sao:** anh quyết 08/10: nâng giá và mở rộng bảo đảm. Giá là giả thuyết cần A/B.
+**Việc:** (i) Tử Vi trọn đời 960 → 1.200 Lá; Chặng 10 năm 360 → 480 (BE-P1-7); món hai người 600 → 960 (BE-P1-16); SKU mới Bát Tự trọn đời 840 (BE-P1-15; cấu hình giá để A/B 720/840/960) và gói "Trọn đời kép" 1.500; Combo "Trọn đời + Năm [Y]" giữ 1.300 và "Năm nay + năm sau" giữ 780. Giá nằm trong `la-catalog.ts`/`commerce.ts` và migration mới (không sửa migration đã chạy); đối chiếu mọi chỗ ghi 960/360/600 cũ. (ii) Bảo đảm: món dưới 500 Lá giữ hoàn đủ khi khách đánh dấu "Không đúng" trong 24 giờ; món từ 500 Lá trở lên hoàn **một phần 50%** (làm tròn xuống theo đơn vị Lá, mỗi tài khoản một lần như luật hiện có). Chữ giao diện nói đúng điều kiện này. (iii) Ghi chú: Combo 1.300 rẻ hơn mua lẻ Trọn đời 1.200 + Chặng 480 = 1.680 khoảng 23%.
+**Nghiệm thu:** [ ] test báo giá, mua, đọc, hoàn đủ (<500) và hoàn 50% (>=500) cho từng SKU; [ ] không còn giá cũ trong mã, chữ và test; [ ] đã ghi lại cho khấu trừ nâng cấp 7 ngày (không mở rộng).
+**Ưu tiên:** P1. **Phụ thuộc:** BE-P1-7, BE-P1-15, BE-P1-16.
 
 ---
 
@@ -324,13 +328,13 @@ Từ khoá "tử vi tuần mới" 50.000/tháng (nhu cầu chung, `05`). An ki�
 Món đang bán; kiểm lưu nhật quanh nửa đêm (múi giờ Việt Nam), tháng nhuận, ranh giới Tết; chuẩn bị điểm nối cho công cụ "Chọn ngày theo lá số" của BE-P1-14. **Nghiệm thu:** [ ] test ngày 2027-02-05/06 và cuối tháng nhuận; [ ] 2–3 lần thử tay. **Phụ thuộc:** BE-P0-3.
 
 ### Ghi chú về Tây phương
-Anh trả lời R11 chỉ cho Hợp đôi và Bát Tự. **Bản đồ sao Tây phương không có trong câu trả lời → vẫn hoãn** (giấy phép engine cần duyệt; `Product Scope` ghi "License gate").
+Anh trả lời R11 chỉ cho Tình duyên đôi ta và Bát Tự. **Bản đồ sao Tây phương không có trong câu trả lời → vẫn hoãn** (giấy phép engine cần duyệt; `Product Scope` ghi "License gate").
 
 ---
 
 ## Việc của anh (không phải ticket backend)
 
-1. **Kiểm tra pháp lý dữ liệu người thứ hai (Hợp đôi):** Nghị định 13/2023/NĐ-CP — dữ liệu tối thiểu, thời hạn lưu, chữ chính sách bảo mật, có cần thông báo/đồng ý hay không. Kết quả ghi vào tracker (cập nhật OD-005) rồi An đặt `compat.counterpartyConsent`.
+1. ~~Kiểm tra pháp lý dữ liệu người thứ hai (Nghị định 13/2023)~~ **Đã bỏ (FD-119, 08/10).** Còn lại: anh xác nhận tên sản phẩm hai người (tên tạm "Tình duyên đôi ta").
 2. **Kiểm tra pháp lý nội dung:** liệt kê điều luật Việt Nam cấm thực sự áp dụng cho luận giải (ví dụ các chủ đề FD-075) để cổng cứng chỉ chặn đúng những điều đó (quy tắc chung số 5).
 3. Duyệt thẻ nghĩa và giọng văn (GĐ3); duyệt quy tắc tháng cần chú ý sau báo cáo phân bố (BE-P0-4).
 4. Thử tay 2–3 bài mỗi món cùng đồng nghiệp; gửi ảnh chụp cho Claude.
