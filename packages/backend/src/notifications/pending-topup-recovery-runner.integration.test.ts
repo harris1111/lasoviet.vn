@@ -12,6 +12,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { eq, sql } from "drizzle-orm";
 import { adminAuditLogs, adminCapabilityPolicies, adminRoleAssignments, authSessions, authUsers, birthProfiles, birthProfileRevisions, calculationRuns, commerceOrders, consents,
   createDatabase, notificationDeliveries, recoveryOutboundControl, recoveryOutboundDailyAttempts, runMigrations,
+  lockFreeAiCoordination, lockRecoveryCaptureCoordination,
   walletPurchaseIntents, walletTopUpContinuations, walletTransactions, ziweiCharts, ziweiChartVersions, type Database } from "@lasoviet/database";
 import { createDatabaseAuthEmailDeliveryStore } from "./auth-email.js";
 import { createDatabaseNotificationPreferenceStore } from "./notification-preference.js";
@@ -245,6 +246,28 @@ describe("durable recovery runner with isolated PostgreSQL and injected provider
     expect(await tool.update(a.actor, command)).toMatchObject({ok: false, code: "RECOVERY_CONTROL_FORBIDDEN"});
     await expect(runRecoveryOutboundControlTool(database, SECRET, a.token, command, NOW)).rejects.toThrow();
     expect(send).not.toHaveBeenCalled();
+  });
+  it("rejects a session that expires while its signed command waits behind a coordination fence", async () => {
+    const owner = await fixture(), a = await admin(), tool = createRecoveryOutboundControlTool(database, () => NOW);
+    const read = await tool.read(a.actor); if (!read.ok) throw new Error("missing state");
+    const command = {expectedState: read.value.stateToken, emergencyStopped: false, cohortIds: [owner.userId], dailyLimit: 5,
+      idempotencyKey: "fence-expired-session", reasonCode: "access_review"};
+    let release!: () => void, ready!: () => void, clockReads = 0;
+    const hold = new Promise<void>(resolve => {release = resolve;});
+    const locked = new Promise<void>(resolve => {ready = resolve;});
+    const blocker = database.transaction(async tx => {
+      await lockFreeAiCoordination(tx); await lockRecoveryCaptureCoordination(tx); ready(); await hold;
+    });
+    await locked;
+    try {
+      const pending = runRecoveryOutboundControlTool(database, SECRET, a.token, command, () => {clockReads++; return now;});
+      expect(clockReads).toBe(1); // Signature/session preflight uses the still-valid request time.
+      now = new Date(NOW.getTime() + 120000);
+      release(); await blocker;
+      expect(await pending).toMatchObject({ok: false, code: "RECOVERY_CONTROL_FORBIDDEN"});
+      expect(clockReads).toBeGreaterThan(1);
+      expect((await database.select().from(recoveryOutboundControl))[0]!.emergencyStopped).toBe(true);
+    } finally {release(); await blocker;}
   });
 });
 

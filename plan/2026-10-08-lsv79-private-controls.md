@@ -37,6 +37,9 @@ authenticated internal actor channel supplied in the environment. Existing
 database and actor-secret configuration are reused; no bootstrap authority or
 fabricated identity is accepted. Read returns only stopped state, cohort count,
 daily limit and an opaque state token, and appends a redacted read audit.
+The production clock is read again after acquiring coordination fences, so a
+session that expires while waiting cannot authorize a command. Tests inject a
+frozen or advancing clock; no sleep-based application timing is used.
 
 An `update` command accepts bounded JSON on stdin: the last read's `expectedState`,
 explicit `emergencyStopped`, `cohortIds` (at most five unique verified account

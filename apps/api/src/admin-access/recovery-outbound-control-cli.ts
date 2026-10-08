@@ -2,9 +2,10 @@ import { createRecoveryOutboundControlTool } from "@lasoviet/backend";
 import { createDatabase, type Database } from "@lasoviet/database";
 import { verifyInternalActorToken } from "../auth/internal-actor.guard.js";
 
-export async function runRecoveryOutboundControlTool(database: Database, secret: string, token: string, input?: unknown, now = new Date()) {
-  const actor = await verifyInternalActorToken(token, new TextEncoder().encode(secret), Math.floor(now.getTime() / 1000), database);
-  const tool = createRecoveryOutboundControlTool(database, () => now);
+export async function runRecoveryOutboundControlTool(database: Database, secret: string, token: string, input?: unknown, now?: Date | (() => Date)) {
+  const clock = typeof now === "function" ? now : () => now ?? new Date();
+  const actor = await verifyInternalActorToken(token, new TextEncoder().encode(secret), Math.floor(clock().getTime() / 1000), database);
+  const tool = createRecoveryOutboundControlTool(database, clock);
   return input === undefined ? tool.read(actor) : tool.update(actor, input);
 }
 
