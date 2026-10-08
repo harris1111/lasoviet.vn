@@ -49,6 +49,18 @@ describe("OfferCard", () => {
     expect(html).toContain("Đã chọn");
   });
 
+  it("keeps a constant, unique accessible name: sr-only label plus the card heading, visual state aria-hidden", () => {
+    const off = renderToStaticMarkup(card({ selected: false }) as never);
+    const on = renderToStaticMarkup(card({ selected: true }) as never);
+    for (const html of [off, on]) {
+      expect(html).toContain('id="offer-name-ZIWEI-CAREER-P0"');
+      expect(html).toContain('aria-labelledby="offer-select-ZIWEI-CAREER-P0 offer-name-ZIWEI-CAREER-P0"');
+      expect(html).toContain('<span class="sr-only">Chọn phần này</span>');
+    }
+    expect(on).toContain('<span aria-hidden="true">✓ Đã chọn</span>');
+    expect(off).toContain('<span aria-hidden="true">Chọn phần này</span>');
+  });
+
   it("renders locked cards as a disabled button with a visible reason and never fires onSelect", () => {
     const onSelect = vi.fn();
     const tree = card({ onSelect, locked: true, state: "coming_soon" });
