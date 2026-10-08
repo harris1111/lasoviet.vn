@@ -22,6 +22,10 @@ must skip promotion; malformed/unavailable remote state must fail closed.
 Use the documented `queue: max` with `cancel-in-progress: false` so a stale late
 arrival cannot replace the latest pending promoter. The default single pending
 slot would lose the latest candidate even though running jobs are not cancelled.
+The promotion script explicitly enables `pipefail`: a failed Git lookup that
+emits a valid matching ref before failure cannot have its status masked by `cut`.
+Its regression uses the workflow's default `bash -e` invocation, with stricter
+options supplied by the actual script rather than the test harness.
 
 GitHub documents that concurrency follows job-arrival order rather than original
 workflow-dispatch order, which explains the observed cancellation:
