@@ -29,4 +29,19 @@ describe("enlarged chart fits the sheet width", () => {
   it("tolerates an unmeasured container", () => {
     expect(fitBoard(0, 1)).toEqual({ layoutWidth: 560, scale: 1 });
   });
+  it("fits height as well so all 12 cells show at common viewports", () => {
+    // [sheet viewport width, sheet viewport height] for 1024x768, 1280x720, 1440x900 and 390x844 windows.
+    const cases: Array<[number, number]> = [[560, 560], [760, 480], [900, 740], [358, 640]];
+    for (const [width, height] of cases) {
+      const layoutWidth = Math.min(820, Math.max(560, width));
+      const boardHeight = layoutWidth * 0.95; // 4 rows of ~150px+ at the design width
+      const fitted = fitBoard(width, 1, height, boardHeight);
+      expect(boardHeight * fitted.scale).toBeLessThanOrEqual(height + 0.5);
+      expect(fitted.layoutWidth * fitted.scale).toBeLessThanOrEqual(width + 0.5);
+    }
+  });
+  it("ignores the height until the board is measured", () => {
+    expect(fitBoard(700, 1, 0, 600)).toEqual(fitBoard(700, 1));
+    expect(fitBoard(700, 1, 500, 0)).toEqual(fitBoard(700, 1));
+  });
 });

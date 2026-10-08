@@ -5,11 +5,16 @@ export const ZOOM_MIN = 0.6;
 export const ZOOM_MAX = 3;
 export const ZOOM_STEP = 0.25;
 
-export function fitBoard(containerWidth: number, zoom: number): { layoutWidth: number; scale: number } {
+export function fitBoard(
+  containerWidth: number, zoom: number, availableHeight = 0, boardHeight = 0,
+): { layoutWidth: number; scale: number } {
   const width = Math.max(0, containerWidth);
   const layoutWidth = Math.min(BOARD_MAX_LAYOUT_WIDTH, Math.max(BOARD_MIN_LAYOUT_WIDTH, width));
-  // Fit-to-width never exceeds 1.6x, and zoom multiplies the fitted size.
-  const fit = width === 0 ? 1 : Math.min(1.6, width / layoutWidth);
+  // Fit-to-frame never exceeds 1.6x and honours both axes so all 12 cells show without scrolling;
+  // zoom multiplies the fitted size. Height is ignored until the board has been measured.
+  const widthFit = width === 0 ? 1 : Math.min(1.6, width / layoutWidth);
+  const heightFit = availableHeight > 0 && boardHeight > 0 ? availableHeight / boardHeight : Infinity;
+  const fit = Math.min(widthFit, heightFit);
   return { layoutWidth, scale: Math.round(fit * zoom * 1000) / 1000 };
 }
 

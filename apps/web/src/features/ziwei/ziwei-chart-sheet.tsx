@@ -21,6 +21,7 @@ export function ZiweiChartSheet({ chart, birthSummary, locale, selectedPalaceId,
   const t = useTranslations("ziwei");
   const [zoom, setZoom] = useState(1);
   const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
   const [boardHeight, setBoardHeight] = useState(0);
   const [detailOpen, setDetailOpen] = useState(false);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,8 @@ export function ZiweiChartSheet({ chart, birthSummary, locale, selectedPalaceId,
       const style = getComputedStyle(viewport);
       const padding = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
       setWidth(Math.max(0, viewport.clientWidth - (Number.isFinite(padding) ? padding : 0)));
+      const vertical = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      setHeight(Math.max(0, viewport.clientHeight - (Number.isFinite(vertical) ? vertical : 0)));
       setBoardHeight(board.offsetHeight);
     };
     measure();
@@ -44,7 +47,7 @@ export function ZiweiChartSheet({ chart, birthSummary, locale, selectedPalaceId,
     return () => observer.disconnect();
   }, []);
 
-  const { layoutWidth, scale } = fitBoard(width, zoom);
+  const { layoutWidth, scale } = fitBoard(width, zoom, height, boardHeight);
   const percent = `${Math.round(zoom * 100)}%`;
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
