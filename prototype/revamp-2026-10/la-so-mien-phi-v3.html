@@ -1,0 +1,458 @@
+<meta charset="utf-8">
+<title>Trang lá số miễn phí v3</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:wght@500;600&display=swap">
+<style>
+/* Layout: sân khấu lá số (đã làm ở GĐ2.5) + 5 tab theo thời gian. >=1024 là tab thật, <1024 là một trang cuộn với 5 chip dính. */
+:root{--bg:#0f0d0a;--panel:#1c1813;--raised:#221d16;--line:#3a3227;--fg:#f3ecdd;--muted:#c9bea8;--subtle:#a89d88;--gold:#c9a44d;--gold-hi:#f2dca0;--gold-ink:#c9a44d;--son:#ce5b45;--ok:#8fbf8a;--on-gold:#1a1408;--shadow:0 12px 40px rgba(0,0,0,.45);--f1:"Source Serif 4",Georgia,serif;--f2:"Be Vietnam Pro",system-ui,sans-serif;--fm:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f7f1e5;--panel:#fffdf7;--raised:#ffffff;--line:#d7cdbd;--fg:#1d1812;--muted:#4f4538;--subtle:#6b604f;--gold:#a8842f;--gold-hi:#755718;--gold-ink:#755718;--son:#b3402c;--ok:#3f7a3b;--on-gold:#fffdf7;--shadow:0 12px 40px rgba(60,40,10,.18);color-scheme:light}}
+:root[data-theme="dark"]{--bg:#0f0d0a;--panel:#1c1813;--raised:#221d16;--line:#3a3227;--fg:#f3ecdd;--muted:#c9bea8;--subtle:#a89d88;--gold:#c9a44d;--gold-hi:#f2dca0;--gold-ink:#c9a44d;--son:#ce5b45;--ok:#8fbf8a;--on-gold:#1a1408;--shadow:0 12px 40px rgba(0,0,0,.45);color-scheme:dark}
+:root[data-theme="light"]{--bg:#f7f1e5;--panel:#fffdf7;--raised:#ffffff;--line:#d7cdbd;--fg:#1d1812;--muted:#4f4538;--subtle:#6b604f;--gold:#a8842f;--gold-hi:#755718;--gold-ink:#755718;--son:#b3402c;--ok:#3f7a3b;--on-gold:#fffdf7;--shadow:0 12px 40px rgba(60,40,10,.18);color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 var(--f2);padding-inline:16px;padding-block:0 96px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:var(--f1);font-weight:600;margin:0;text-wrap:balance}
+.eyebrow{font:600 11px var(--fm);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink)}
+.wrap{max-width:1180px;margin:0 auto}
+/* thanh điều khiển bản mẫu */
+.proto{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding-block:10px;border-bottom:1px dashed var(--line);font-size:13px;color:var(--subtle)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:8px 14px;min-height:40px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--gold);color:var(--on-gold);font-weight:600}
+/* tiêu đề */
+.head{padding-block:28px 18px;display:grid;gap:6px}
+.head h1{font-size:clamp(28px,5vw,40px);line-height:1.15}
+.head p{margin:0;color:var(--muted);max-width:60ch}
+/* sân khấu */
+.stage{position:relative;display:grid;gap:14px;padding:22px 0}
+.stage-board{position:relative;min-width:0}
+.corner{position:absolute;width:20px;height:20px;border:2px solid var(--gold);opacity:.7;pointer-events:none}
+.corner.tl{top:0;left:0;border-right:0;border-bottom:0}.corner.tr{top:0;right:0;border-left:0;border-bottom:0}
+.corner.bl{bottom:0;left:0;border-right:0;border-top:0}.corner.br{bottom:0;right:0;border-left:0;border-top:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.tog{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.tog:hover{border-color:var(--gold)}
+.tog[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-ink);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.tog .sw{width:14px;height:14px;border-radius:4px;border:2px dashed var(--gold)}
+.tog.ln .sw{border:2px solid var(--son)}
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.cell{position:relative;background:var(--panel);border:0;border-radius:0;text-align:left;min-height:84px;padding:7px 8px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cell:hover{background:var(--raised)}
+.cell .bc{font:500 10px var(--fm);color:var(--subtle);white-space:nowrap}
+.cell .nm{font-weight:600;font-size:13px;line-height:1.25}
+.cell .st{font-size:12px;color:var(--gold-ink);line-height:1.3;margin-top:auto}
+.cell .st i{color:var(--subtle);font-style:italic}
+.cell[aria-pressed="true"]{outline:2px solid var(--gold);outline-offset:-2px;background:var(--raised)}
+.cell.pulse{animation:pulse 1.4s ease 1}
+@keyframes pulse{0%,100%{background:var(--panel)}40%{background:color-mix(in srgb,var(--gold) 28%,var(--panel))}}
+.cell .tag{position:absolute;top:5px;right:6px;font:600 9px var(--fm);padding:1px 5px;border-radius:3px}
+.cell.dv{box-shadow:inset 0 0 0 2px var(--gold)}.cell.dv.dash{box-shadow:none}
+.ovr .cell.dv{outline:2px dashed var(--gold);outline-offset:-3px}.ovr .cell.ln{outline:2px solid var(--son);outline-offset:-3px}
+.cell .tag.d{background:var(--gold);color:var(--on-gold)}.cell .tag.l{background:var(--son);color:#fff}
+.core{grid-column:2/4;grid-row:2/4;background:var(--raised);display:grid;place-content:center;gap:4px;padding:10px;text-align:center}
+.core b{font:600 clamp(15px,2.2vw,22px) var(--f1)}.core span{font-size:12px;color:var(--muted)}
+.ovr-note{font-size:12px;color:var(--subtle);margin-top:8px;min-height:18px}
+.insp{display:none}
+.insp-in{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:12px;align-content:start}
+.insp h3{font-size:20px}.insp p{margin:0;color:var(--muted);font-size:15px}
+.rel{display:grid;gap:6px}.rel div{background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px}
+.rel small{display:block;font:500 10px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:var(--subtle)}
+.starline{display:flex;flex-wrap:wrap;gap:6px}.starline span{font-size:13px;border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.starline em{font-style:normal;color:var(--subtle);font-size:11px}
+.ghost{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:14px;font-weight:500}
+.ghost:hover{border-color:var(--gold);color:var(--gold-ink)}
+/* dải hoa văn */
+.divider{height:22px;margin:6px auto 0;max-width:min(600px,80%);background:repeating-linear-gradient(90deg,transparent 0 6px,var(--gold) 6px 7px,transparent 7px 14px);opacity:.45;-webkit-mask:linear-gradient(90deg,transparent,#000 20%,#000 80%,transparent);mask:linear-gradient(90deg,transparent,#000 20%,#000 80%,transparent)}
+/* tab / chip */
+.tabs{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:8px;overflow-x:auto;padding-block:10px;margin-inline:-16px;padding-inline:16px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:15px;white-space:nowrap}
+.tabs button:hover{border-color:var(--gold)}
+.tabs button[aria-selected="true"]{border-color:var(--gold);color:var(--gold-ink);background:color-mix(in srgb,var(--gold) 12%,transparent);font-weight:600}
+.panels{max-width:720px;margin:0 auto;padding-block:28px 0;display:grid;gap:56px}
+.panel{display:grid;gap:22px;scroll-margin-top:72px;min-width:0}
+.panel h2{font-size:clamp(24px,3.4vw,32px);line-height:1.2}
+.panel p{margin:0}
+.read p{font-size:18px;line-height:1.75;color:var(--fg)}
+.read p+p{margin-top:16px}
+.lede{color:var(--muted);font-size:16px}
+/* chip căn cứ */
+.can{display:inline-flex;align-items:center;gap:6px;min-height:32px;margin-left:6px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:transparent;font-size:12px;color:var(--gold-ink);vertical-align:middle;white-space:nowrap}
+.can:hover{border-color:var(--gold)}
+/* thẻ cung nâng đỡ / lưu tâm */
+.group{display:grid;gap:12px}
+.group h3{font-size:19px}
+.pal3{display:grid;gap:12px;grid-template-columns:1fr}
+.pcard{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;text-align:left;width:100%;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);min-height:44px;position:relative}
+.pcard:hover{border-color:var(--gold);background:var(--raised)}
+.pcard:active{transform:scale(.995)}
+.pcard .t b{display:block;font-size:16px}.pcard .t span{font-size:13px;color:var(--muted)}
+.pcard .star{grid-column:1/-1;font-size:14px;color:var(--muted)}
+.pcard .go{grid-column:1/-1;font-size:13px;color:var(--gold-ink);display:flex;justify-content:space-between;align-items:center}
+.ring{--s:50;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--s)*1%),var(--line) 0);position:relative;flex:none}
+.ring::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--panel)}
+.ring b{position:relative;font:600 14px var(--fm)}
+.ring.sm{width:44px;height:44px}.ring.sm::before{inset:4px}.ring.sm b{font-size:12px}
+.b-manh{--c:var(--gold-hi)}.b-thuan{--c:var(--gold)}.b-can{--c:var(--subtle)}.b-canh{--c:var(--son)}.b-kho{--c:var(--son)}
+.lbl{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.lbl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.bars{display:grid;gap:8px;margin-top:6px}
+.brow{display:grid;grid-template-columns:96px 1fr 34px;gap:10px;align-items:center;font-size:14px}
+.btrack{height:10px;border-radius:5px;background:var(--line);position:relative;overflow:visible}
+.btrack i{position:absolute;inset:0 auto 0 0;width:calc(var(--s)*1%);border-radius:5px;background:var(--c)}
+.b-kho .btrack i,.btrack i.kho{background:repeating-linear-gradient(135deg,var(--son) 0 4px,color-mix(in srgb,var(--son) 50%,transparent) 4px 8px)}
+.btrack::after{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:1px;background:var(--fg);opacity:.5}
+.mark50{font:500 10px var(--fm);color:var(--subtle);text-align:right;margin-top:-4px}
+details{border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+details>summary{list-style:none;min-height:48px;padding:12px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"+";color:var(--gold-ink);font-size:20px}
+details[open]>summary::after{content:"–"}
+details .in{padding:0 16px 16px;display:grid;gap:10px;color:var(--muted);font-size:15px}
+.ex{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:13px/1.6 var(--fm);color:var(--fg)}
+/* năm nay */
+.layers{display:grid;gap:8px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:15px}
+.layers b{color:var(--gold-ink)}
+.months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:0}
+.month button{width:100%;min-height:64px;padding:8px 6px;border:1px solid var(--line);border-radius:12px;background:var(--panel);display:grid;gap:2px;justify-items:center;align-content:center}
+.month button:hover{border-color:var(--gold)}
+.month .g{font-size:18px;line-height:1}
+.month small{font-size:11px;color:var(--muted)}
+.month .good .g{color:var(--gold-ink)}.month .neutral .g{color:var(--subtle)}.month .warn{border-color:color-mix(in srgb,var(--son) 70%,var(--line))}
+.month .warn .g{color:var(--son)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.cutp{position:relative;max-height:5.4em;overflow:hidden}
+.cutp::after{content:"";position:absolute;inset:auto 0 0 0;height:3em;background:linear-gradient(transparent,var(--bg))}
+.today{display:grid;gap:4px;padding:14px 16px;border:1px solid var(--gold);border-radius:14px;background:color-mix(in srgb,var(--gold) 8%,var(--panel))}
+.note{padding:12px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:15px}
+/* đại vận */
+.deca{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.deca button{width:100%;display:grid;grid-template-columns:78px 1fr 34px;gap:10px;align-items:center;min-height:48px;padding:6px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);text-align:left;position:relative}
+.deca button:hover{border-color:var(--gold)}
+.deca .age{font:600 13px var(--fm)}
+.deca .pn{font-size:13px;color:var(--muted)}
+.deca .track{height:10px;border-radius:5px;background:var(--line);position:relative}
+.deca .track i{position:absolute;inset:0 auto 0 0;width:calc(var(--s)*1%);border-radius:5px;background:var(--c)}
+.deca .sc{font:600 13px var(--fm);text-align:right}
+.deca .past{opacity:.55}
+.deca .now button{border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--panel));min-height:72px;padding-block:10px}
+.seal{position:absolute;top:-9px;right:12px;white-space:nowrap;background:var(--son);color:#fff;font:600 10px var(--fm);letter-spacing:.1em;padding:3px 8px;border-radius:4px}
+.deca .mid{display:grid;gap:4px;min-width:0}
+/* 12 cung */
+.sort{display:flex;gap:8px;flex-wrap:wrap}
+.cgrid{display:grid;gap:10px;grid-template-columns:1fr}
+.cg{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;width:100%;padding:12px 14px;min-height:72px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.cg:hover{border-color:var(--gold);background:var(--raised)}
+.cg b{display:block}.cg span{font-size:13px;color:var(--muted)}
+.cg .go{font-size:13px;color:var(--gold-ink);white-space:nowrap}
+.cg .done{font-size:12px;color:var(--ok);border:1px solid var(--ok);border-radius:999px;padding:2px 10px;white-space:nowrap}
+/* chủ đề */
+.topic{display:grid;gap:10px;padding:18px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+.topic h3{font-size:20px}.topic p{color:var(--muted);font-size:16px}
+.pill{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin:0 6px 6px 0}
+.cta{min-height:48px;padding:0 22px;border-radius:999px;border:0;background:var(--gold);color:var(--on-gold);font-weight:600;display:inline-flex;gap:12px;align-items:center;justify-content:center}
+.cta:hover{filter:brightness(1.08)}.cta:active{transform:scale(.98)}
+.cta .ar{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--on-gold) 18%,transparent);display:grid;place-items:center}
+.done-box{display:grid;gap:10px;padding:20px;border:1px solid var(--gold);border-radius:16px;background:color-mix(in srgb,var(--gold) 7%,var(--panel))}
+/* tấm trượt */
+.back{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50}
+.sheet{position:fixed;z-index:60;inset:auto 0 0 0;max-height:88dvh;overflow:auto;background:var(--panel);border:1px solid var(--gold);border-radius:20px 20px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow);display:grid;gap:14px;align-content:start;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+.sheet .grab{width:44px;height:4px;border-radius:2px;background:var(--line);justify-self:center}
+.sheet .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.sheet h3{font-size:22px}
+.sheet .x{min-height:44px;min-width:44px;border-radius:999px;border:1px solid var(--line);background:transparent}
+.sheet ul{margin:0;padding-left:20px;display:grid;gap:6px;color:var(--muted)}
+.sheet .sub{font:600 11px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink)}
+.fadeq{position:relative;color:var(--muted);font-size:16px}
+.fadeq::after{content:"";position:absolute;inset:auto 0 0 0;height:2.2em;background:linear-gradient(transparent,var(--panel))}
+.ghostbox{display:grid;gap:8px;padding:14px;border:1px dashed var(--line);border-radius:12px}
+.ghostbox i{height:9px;border-radius:5px;background:var(--line);display:block;opacity:.8}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:80;background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:12px;font-size:14px;max-width:calc(100vw - 32px)}
+/* >=1024: sân khấu hai cột, tab thật */
+@media (min-width:1024px){
+  .stage{grid-template-columns:minmax(520px,780px) minmax(280px,1fr);gap:24px;align-items:start;padding:30px 0 10px}
+  .insp{display:block;position:sticky;top:20px}
+  .cell{min-height:150px;padding:12px 14px}
+  .cell .bc{font-size:11px}.cell .nm{font-size:15px}.cell .st{font-size:14px}
+  .cell .tag{font-size:10px}
+  .tabs{justify-content:center;margin-inline:0;padding-inline:0}
+  .panel[hidden]{display:none}
+  .pal3{grid-template-columns:repeat(3,1fr)}
+  .months{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .cgrid{grid-template-columns:1fr 1fr}
+  .deca{grid-template-columns:repeat(9,minmax(0,1fr));align-items:end;gap:10px}
+  .deca li{height:100%}
+  .deca button{grid-template-columns:1fr;grid-template-rows:auto 150px auto auto;justify-items:center;text-align:center;height:100%;padding:12px 4px;min-height:0;align-content:end}
+  .deca .now button{min-height:0;padding-block:12px}
+  .deca .track{width:100%;height:150px;display:flex;align-items:flex-end;background:transparent;border-radius:0;align-self:end}
+  .deca .track i{position:relative;inset:auto;width:100%;height:calc(var(--s)*1%);border-radius:6px 6px 2px 2px;opacity:1}
+  .deca .mid{display:contents}
+  .deca .age{order:1}.deca .track{order:2}.deca .pn{order:3}.deca .sc{order:4;text-align:center}
+  .deca{margin-top:30px}
+  .seal{top:-24px;right:50%;transform:translateX(50%)}
+  .sheet{inset:0 0 0 auto;width:480px;max-height:none;border-radius:0;border-width:0 0 0 1px;padding:24px}
+  .sheet .grab{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+ <div class="proto" aria-label="Điều khiển bản mẫu">
+  <span>Điều khiển bản mẫu:</span>
+  <span class="seg" role="group" aria-label="Chọn lá số mẫu"><button id="s-many" aria-pressed="true">Lá số có nhiều tháng cần chú ý</button><button id="s-none" aria-pressed="false">Lá số không có tháng nào</button></span>
+  <span class="seg" role="group" aria-label="Giao diện"><button id="t-auto" aria-pressed="true">Theo máy</button><button id="t-dark" aria-pressed="false">Tối</button><button id="t-light" aria-pressed="false">Sáng</button></span>
+  <span>Chữ và số bên dưới là dữ liệu mẫu.</span>
+ </div>
+
+ <header class="head">
+  <span class="eyebrow">Lá số riêng tư</span>
+  <h1>Lá số Tử Vi của Lãm</h1>
+  <p>25/07/1993 · Dương lịch · 09:30 · Mệnh tại Dần, Thân cư cung Phu Thê.</p>
+ </header>
+
+ <section class="stage" id="stage" aria-label="Lá số">
+  <span class="corner tl" aria-hidden="true"></span><span class="corner tr" aria-hidden="true"></span><span class="corner bl" aria-hidden="true"></span><span class="corner br" aria-hidden="true"></span>
+  <div class="stage-board">
+   <div class="tools">
+    <button class="tog" id="o-dv" aria-pressed="true"><span class="sw"></span>Hiện đại vận</button>
+    <button class="tog ln" id="o-ln" aria-pressed="true"><span class="sw"></span>Hiện lưu niên</button>
+    <button class="ghost" id="enlarge">Xem lá số lớn hơn</button>
+   </div>
+   <div class="board ovr" id="board" role="group" aria-label="Lá số 12 cung"></div>
+   <div class="ovr-note" id="ovr-note"></div>
+  </div>
+  <aside class="insp" id="insp" aria-label="Chi tiết cung đang chọn"></aside>
+ </section>
+ <div class="divider" aria-hidden="true"></div>
+
+ <nav class="tabs" id="tabs" role="tablist" aria-label="Các phần của lá số">
+  <button role="tab" id="tab-overview" data-t="overview" aria-selected="true">Tổng quan</button>
+  <button role="tab" id="tab-year" data-t="year" aria-selected="false">Năm nay</button>
+  <button role="tab" id="tab-decade" data-t="decade" aria-selected="false">Đại vận</button>
+  <button role="tab" id="tab-palaces" data-t="palaces" aria-selected="false">12 cung</button>
+  <button role="tab" id="tab-topics" data-t="topics" aria-selected="false">Chủ đề</button>
+ </nav>
+
+ <main class="panels" id="panels">
+  <section class="panel" id="panel-overview" data-t="overview" role="tabpanel" aria-labelledby="tab-overview">
+   <div class="eyebrow">Tổng quan</div>
+   <h2>Bức chân dung từ lá số của bạn</h2>
+   <div class="read">
+    <p>Mệnh của bạn an tại cung Dần, nơi Tham Lang tọa thủ. Đó là bộ sao của người ham trải nghiệm, dễ tạo sức hút khi giao tiếp và hay muốn thử nhiều con đường trước khi chọn một. Ưu điểm của nó là sự linh hoạt. Điều cần để ý là khi quá nhiều hướng cùng hấp dẫn, sức lực dễ bị chia nhỏ.<button class="can" data-can="Mệnh|Tham Lang">Căn cứ</button></p>
+    <p>Thân của bạn cư ở cung Phu Thê, cùng Vũ Khúc và Thiên Phủ. Càng về sau, cách bạn hành động và cảm nhận mình thành hay bại càng gắn với những mối quan hệ gần gũi, và với việc giữ cho tiền bạc, cam kết trong đó được sòng phẳng.<button class="can" data-can="Phu Thê|Vũ Khúc, Thiên Phủ">Căn cứ</button></p>
+   </div>
+   <div class="group"><h3>3 cung nâng đỡ nhất</h3><div class="pal3" id="strong"></div></div>
+   <div class="group"><h3>3 cung cần lưu tâm hơn cả</h3><div class="pal3" id="weak"></div>
+    <p class="lede" id="weak-note"></p></div>
+   <details><summary>Xem cả 12 cung</summary><div class="in"><div class="bars" id="all12"></div><div class="mark50">vạch giữa là mốc 50</div></div></details>
+   <details><summary>Điểm này tính thế nào</summary><div class="in">
+    <p>Mỗi cung có một điểm cấu trúc từ 0 đến 100, tính từ các sao nằm trong cung và các cung chiếu vào nó. Đây là độ mạnh của cấu trúc, không phải điểm may rủi.</p>
+    <div class="ex">Ví dụ với cung Phúc Đức của bạn:<br>phần riêng của cung 52 + phần chiếu từ các cung đối và tam hợp 18 = 70 (Nâng đỡ mạnh)</div>
+   </div></details>
+   <div class="read">
+    <p>Phụ Mẫu, Tật Ách và Phúc Đức là ba cung có cấu trúc thuận nhất của bạn. Nói đơn giản, nền tảng gia đình, sức khỏe tinh thần và đời sống nội tâm là chỗ bạn có thể dựa vào khi mọi thứ ngoài kia chưa rõ ràng.<button class="can" data-can="Phụ Mẫu, Tật Ách, Phúc Đức|Thiên Cơ, Cự Môn, Thiên Đồng">Căn cứ</button></p>
+    <p>Thiên Di là cung thưa nhất, với Liêm Trinh đứng một mình. Môi trường mới hoặc người lạ thường đòi bạn phải chủ động nhiều hơn mức bạn tưởng. Đừng chờ cơ hội tự tìm đến, hãy chuẩn bị sẵn một lời giới thiệu ngắn về việc mình làm được.<button class="can" data-can="Thiên Di|Liêm Trinh">Căn cứ</button></p>
+    <p><b>Ba việc nên làm lúc này.</b> Chọn một hướng chính trong công việc và để các hướng còn lại ở mức thử nghiệm. Nói rõ với người thân nhất một điều bạn cần ở họ. Tập một thói quen nhỏ giúp bạn ra ngoài gặp người mỗi tuần.</p>
+    <p>Sang năm Bính Ngọ, câu chuyện chuyển sang cung Quan Lộc. <a href="#" id="go-year" style="color:var(--gold-ink)">Xem phần Năm nay</a></p>
+    <p class="lede" style="font-size:14px">Đây là cách đọc cấu trúc lá số, không phải lời hứa về kết quả.</p>
+   </div>
+   <div class="done-box"><h3>Bạn đã đọc xong phần miễn phí</h3><p class="lede">Muốn đi sâu vào một cung, một năm hay một chủ đề, bạn chọn phần mình cần.</p><div><button class="cta" data-toast="Bản mẫu: bước này đi tới trang chọn luận giải.">Chọn luận giải<span class="ar" aria-hidden="true">→</span></button></div></div>
+  </section>
+
+  <section class="panel" id="panel-year" data-t="year" role="tabpanel" aria-labelledby="tab-year" hidden>
+   <div class="eyebrow">Năm nay</div>
+   <h2>Năm Bính Ngọ 2026</h2>
+   <div class="layers"><span>Hai lớp đang chồng lên nhau</span>
+    <span><b>Chặng 25–34 tuổi</b> đi qua cung Phúc Đức, rồi <b>năm Bính Ngọ</b> rơi vào cung Quan Lộc.</span></div>
+   <div class="read"><p>Năm nay công việc và vai trò đứng trước mặt bạn. Quan Lộc có Thất Sát, một bộ sao đòi sự quyết đoán và dám chịu trách nhiệm. Trong khi đó chặng 25–34 tuổi đặt nền ở Phúc Đức, nên việc làm tốt thường đến từ một đầu óc đủ nghỉ, không phải từ việc ôm thêm.<button class="can" data-can="Quan Lộc, Phúc Đức|Thất Sát">Căn cứ</button></p></div>
+   <div class="group"><h3>12 tháng của năm</h3>
+    <ol class="months" id="months" style="list-style:none;padding:0;margin:0"></ol>
+    <div class="legend"><span>◆ Thuận</span><span>○ Bình thường</span><span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> Cần chú ý (đã khoá)</span><span>Theo tháng âm lịch</span></div>
+    <div class="note" id="month-note" hidden>Lá số này chưa thấy tháng nào bị ép đặc biệt trong năm. Bạn vẫn có thể xem từng tháng để biết tháng đó chạm cung nào.</div></div>
+   <div class="read"><div class="cutp"><p>Nếu chỉ chọn một việc để làm ở nửa cuối năm, hãy chọn việc giúp bạn có một vị trí rõ ràng hơn trong công việc đang làm, thay vì mở thêm một mặt trận mới. Thất Sát cho bạn sức bật, nhưng sức bật ấy cần một mục tiêu đủ gọn để không bị dàn trải. Điều cần xem kỹ là cách</p></div><button class="can" data-can="Quan Lộc|Thất Sát" style="margin:8px 0 0">Căn cứ</button></div>
+   <div class="today"><span class="eyebrow">Hôm nay · 08/10/2026</span><span>Ngày hôm nay chạm cung <b>Tật Ách</b>. Hợp để sắp xếp lại nhịp nghỉ và giấc ngủ hơn là quyết một việc lớn.</span></div>
+  </section>
+
+  <section class="panel" id="panel-decade" data-t="decade" role="tabpanel" aria-labelledby="tab-decade" hidden>
+   <div class="eyebrow">Đại vận</div>
+   <h2>Đường đời 10 năm</h2>
+   <p class="lede">Độ mạnh cấu trúc của cung ở mỗi chặng (không phải điểm may rủi).</p>
+   <ol class="deca" id="deca"></ol>
+   <div class="read"><p id="deca-read"></p></div>
+   <details><summary>Điểm này tính thế nào</summary><div class="in">
+    <p>Điểm mỗi chặng chính là điểm cấu trúc của cung mà chặng đó đi qua. Không có công thức riêng cho đại vận.</p>
+    <div class="ex">Chặng 25–34 tuổi đi qua cung Phúc Đức.<br>Điểm Phúc Đức: 52 + 18 = 70</div></div></details>
+  </section>
+
+  <section class="panel" id="panel-palaces" data-t="palaces" role="tabpanel" aria-labelledby="tab-palaces" hidden>
+   <div class="eyebrow">12 cung</div>
+   <h2>Từng cung trong lá số</h2>
+   <div class="sort" role="group" aria-label="Sắp xếp"><span class="seg"><button id="so-order" aria-pressed="true">Theo thứ tự cung</button><button id="so-str" aria-pressed="false">Theo độ mạnh</button></span></div>
+   <div class="cgrid" id="cgrid"></div>
+  </section>
+
+  <section class="panel" id="panel-topics" data-t="topics" role="tabpanel" aria-labelledby="tab-topics" hidden>
+   <div class="eyebrow">Chủ đề</div>
+   <h2>Những câu hỏi thường gặp</h2>
+   <div class="topic"><h3>Công việc và tiền bạc: tôi nên đặt sức vào đâu?</h3><p>Nhìn cùng lúc Quan Lộc, Tài Bạch và Điền Trạch để biết hướng nào hợp sức bền của bạn.</p><div><span class="pill">Quan Lộc</span><span class="pill">Tài Bạch</span><span class="pill">Điền Trạch</span></div><div><button class="ghost" data-sheet-topic="career">Xem thử</button></div></div>
+   <div class="topic"><h3>Tình cảm và hôn nhân: điều gì làm mối quan hệ của tôi bền?</h3><p>Phu Thê cho thấy cách bạn đứng trong quan hệ gần, Phúc Đức và Tử Tức cho thấy điều giữ bạn yên.</p><div><span class="pill">Phu Thê</span><span class="pill">Phúc Đức</span><span class="pill">Tử Tức</span></div><div><button class="ghost" data-sheet-topic="love">Xem thử</button></div></div>
+  </section>
+ </main>
+</div>
+
+<div id="layer"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const BR=["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"];
+const ORDER=["Mệnh","Phụ Mẫu","Phúc Đức","Điền Trạch","Quan Lộc","Nô Bộc","Thiên Di","Tật Ách","Tài Bạch","Tử Tức","Phu Thê","Huynh Đệ"];
+const STEM={Tý:"Giáp",Sửu:"Ất",Dần:"Giáp",Mão:"Ất",Thìn:"Bính",Tỵ:"Đinh",Ngọ:"Mậu",Mùi:"Kỷ",Thân:"Canh",Dậu:"Tân",Tuất:"Nhâm",Hợi:"Quý"};
+const POS={Tỵ:[0,0],Ngọ:[0,1],Mùi:[0,2],Thân:[0,3],Dậu:[1,3],Tuất:[2,3],Hợi:[3,3],Tý:[3,2],Sửu:[3,1],Dần:[3,0],Mão:[2,0],Thìn:[1,0]};
+const STARS={Mệnh:[["Tham Lang","Hãm","Hóa Kỵ"]],"Phụ Mẫu":[["Thiên Cơ","Đắc"],["Cự Môn","Vượng"]],"Phúc Đức":[["Tử Vi","Vượng"],["Thiên Tướng","Miếu"]],"Điền Trạch":[["Thiên Lương","Đắc"]],"Quan Lộc":[["Thất Sát","Miếu"]],"Nô Bộc":[],"Thiên Di":[["Liêm Trinh","Bình"]],"Tật Ách":[],"Tài Bạch":[["Phá Quân","Đắc"]],"Tử Tức":[["Thiên Đồng","Bình"]],"Phu Thê":[["Vũ Khúc","Miếu"],["Thiên Phủ","Miếu"]],"Huynh Đệ":[["Thái Dương","Hãm"],["Thái Âm","Miếu"]]};
+const SCORE={Mệnh:58,"Phụ Mẫu":78,"Phúc Đức":70,"Điền Trạch":62,"Quan Lộc":57,"Nô Bộc":51,"Thiên Di":38,"Tật Ách":72,"Tài Bạch":56,"Tử Tức":60,"Phu Thê":66,"Huynh Đệ":47};
+const DESC={Mệnh:"Bản mệnh, cách bạn đi vào đời và cách bạn muốn được nhìn nhận.","Phụ Mẫu":"Quan hệ với cha mẹ, người hướng dẫn và những người đi trước.","Phúc Đức":"Đời sống nội tâm, cách bạn nghỉ ngơi và cảm thấy đủ.","Điền Trạch":"Nơi ở, tài sản gắn với nhà đất và nếp nhà.","Quan Lộc":"Cách làm việc, vai trò và trách nhiệm bạn chọn.","Nô Bộc":"Bạn bè, đồng nghiệp và những người cùng đường.","Thiên Di":"Môi trường bên ngoài, cách bạn đi ra thế giới.","Tật Ách":"Thể trạng, nhịp sinh hoạt và cách cơ thể báo hiệu.","Tài Bạch":"Cách bạn kiếm, giữ và tiêu tiền.","Tử Tức":"Con cái, học trò và những gì bạn nuôi dưỡng.","Phu Thê":"Quan hệ gần gũi và cách phối hợp với bạn đời.","Huynh Đệ":"Anh chị em và những người cùng thế hệ."};
+const P=ORDER.map((n,i)=>{const b=BR[(2+i)%12];return {n,b,stem:STEM[b],pos:POS[b],stars:STARS[n],score:SCORE[n]}});
+const byName=n=>P.find(p=>p.n===n), byBr=b=>P.find(p=>p.b===b);
+const band=s=>s>=70?"manh":s>=55?"thuan":s>=45?"can":s>=30?"canh":"kho";
+const BL={manh:"Nâng đỡ mạnh",thuan:"Thuận",can:"Cân bằng",canh:"Cần lưu tâm",kho:"Nhiều thử thách"};
+const starText=p=>p.stars.length?p.stars.map(s=>s[0]).join(", "):"không có sao chính";
+const starLine=p=>p.stars.length?p.stars.map(s=>`${s[0]} (${s[1]})`).join(", "):"Không có chính tinh, cung đối chiếu sang";
+const DV="Phúc Đức", LN="Quan Lộc", GIFT="Mệnh";
+const MONTHS={many:["n","g","w","n","g","n","w","n","g","w","g","n"],none:["n","g","n","n","g","n","n","n","g","n","g","n"]};
+const WARN={3:["Tài Bạch","Phá Quân","Hóa Kỵ lưu nguyệt nhập cung Tài Bạch"],7:["Thiên Di","Liêm Trinh","Kình Dương lưu nguyệt chạm cung Thiên Di"],10:["Tật Ách","","Đà La lưu nguyệt chạm cung Tật Ách"]};
+const state={sample:"many",dv:true,ln:true,sel:"Mệnh",tab:"overview",sort:"order"};
+const LOCK='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="vertical-align:-2px"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const desktop=()=>matchMedia("(min-width:1024px)").matches;
+let lastFocus=null;
+
+function ring(p,sm){const b=band(p.score);return `<span class="ring ${sm?"sm":""} b-${b}" style="--s:${p.score}"><b>${p.score}</b></span>`}
+function renderBoard(){
+  const cells=Array(16).fill("");
+  P.forEach(p=>{const [r,c]=p.pos;
+    const ov=[];
+    if(state.dv&&p.n===DV)ov.push(["dv","d","ĐV"]);
+    if(state.ln&&p.n===LN)ov.push(["ln","l","LN"]);
+    const cls=ov.map(o=>o[0]).join(" ");
+    const tag=ov.map(o=>`<span class="tag ${o[1]}">${o[2]}</span>`).join("");
+    cells[r*4+c]=`<button class="cell ${cls}" data-p="${p.n}" aria-pressed="${p.n===state.sel}" aria-label="Cung ${p.n}, ${p.stem} ${p.b}, ${starText(p)}${ov.length?", "+(p.n===DV?"cung đại vận":"")+(p.n===LN?"cung lưu niên":""):""}">${tag}<span class="bc">${p.stem} ${p.b}</span><span class="nm">${p.n}</span><span class="st">${p.stars.length?p.stars.map(s=>s[0]).join("<br>"):"<i>Không có sao chính</i>"}</span></button>`});
+  cells[5]=`<div class="core"><b>Lá số của Lãm</b><span>Mệnh: Dần · Thân: Phu Thê</span></div>`;cells[6]="";cells[9]="";cells[10]="";
+  const html=[];for(let i=0;i<16;i++){if(i===6||i===9||i===10)continue;html.push(cells[i])}
+  $("#board").innerHTML=html.join("");
+  $("#ovr-note").textContent=[state.dv?"Vòng vàng đứt nét ĐV: cung đại vận hiện tại (Phúc Đức).":"",state.ln?"Vòng son liền LN: cung lưu niên năm 2026 (Quan Lộc).":""].filter(Boolean).join(" ");
+}
+function inspHTML(p){
+  const op=byBr(BR[(BR.indexOf(p.b)+6)%12]);const t1=byBr(BR[(BR.indexOf(p.b)+4)%12]);const t2=byBr(BR[(BR.indexOf(p.b)+8)%12]);
+  return `<div class="insp-in"><span class="eyebrow">Chi tiết cung đang chọn</span><h3>Cung ${p.n} (${p.stem} ${p.b})</h3><p>${DESC[p.n]}</p>
+  <div class="rel"><div><small>Bản cung</small>Cung ${p.n} (${p.b})</div><div><small>Đối cung (xung chiếu)</small>Cung ${op.n} (${op.b})</div><div><small>Tam hợp (hợp chiếu)</small>Cung ${t1.n} (${t1.b}), Cung ${t2.n} (${t2.b})</div></div>
+  <span class="sub eyebrow">Chính tinh tọa thủ</span><div class="starline">${p.stars.length?p.stars.map(s=>`<span>${s[0]} <em>(${s[1]})${s[2]?" · "+s[2]:""}</em></span>`).join(""):`<span>Không có chính tinh</span>`}</div>
+  <div class="lbl b-${band(p.score)}">${BL[band(p.score)]} · ${p.score}/100</div>
+  <button class="ghost" data-can="${p.n}|${starText(p)}">Xem căn cứ</button>
+  <button class="ghost" data-open="${p.n}">Xem thử bài đọc cung này</button></div>`;
+}
+function renderInsp(){$("#insp").innerHTML=inspHTML(byName(state.sel))}
+function select(n,from){state.sel=n;renderBoard();renderInsp();if(!desktop()&&from==="chart")openSheet(inspSheet(byName(n)),from)}
+function inspSheet(p){return {title:`Cung ${p.n} (${p.stem} ${p.b})`,raw:inspHTML(p).replace(/<span class="eyebrow">Chi tiết[^<]*<\/span><h3>[^<]*<\/h3>/,"")}}
+
+function renderOverview(){
+  const sorted=[...P].sort((a,b)=>b.score-a.score);
+  const strong=sorted.slice(0,3), weak=sorted.slice(-3).reverse();
+  const card=p=>`<button class="pcard b-${band(p.score)}" data-focus="${p.n}"><span>${ring(p)}</span><span class="t"><b>Cung ${p.n}</b><span class="lbl">${BL[band(p.score)]} · ${p.score}</span></span><span class="star">${starLine(p)}</span><span class="go"><span class="can" style="margin:0" data-can-stop>Căn cứ</span><span>Xem trên lá số ›</span></span></button>`;
+  $("#strong").innerHTML=strong.map(card).join("");$("#weak").innerHTML=weak.map(card).join("");
+  const low=weak[0].score;$("#weak-note").textContent=low>=55?"Cung thấp nhất vẫn ở mức thuận, chỉ thấp hơn các cung khác.":"";
+  $("#all12").innerHTML=ORDER.map(n=>byName(n)).map(p=>`<div class="brow b-${band(p.score)}"><span>${p.n}</span><span class="btrack"><i class="${band(p.score)}" style="--s:${p.score}"></i></span><b style="font:600 13px var(--fm)">${p.score}</b></div>`).join("");
+}
+function renderMonths(){
+  const set=MONTHS[state.sample];let hasWarn=false;
+  $("#months").innerHTML=set.map((k,i)=>{const m=i+1;const g=k==="g"?"◆":k==="w"?LOCK:"○";const cls=k==="g"?"good":k==="w"?"warn":"neutral";const lab=k==="g"?"Thuận":k==="w"?"Cần chú ý":"Bình thường";if(k==="w")hasWarn=true;
+    return `<li class="month"><button class="${cls}" data-m="${m}" aria-label="Tháng ${m}, ${lab}${k==="w"?", nội dung đã khoá":""}"><span class="g" aria-hidden="true">${g}</span><b>Tháng ${m}</b><small>${lab}</small></button></li>`}).join("");
+  $("#month-note").hidden=hasWarn;
+}
+const CY=[["Mệnh",5],["Phụ Mẫu",15],["Phúc Đức",25],["Điền Trạch",35],["Quan Lộc",45],["Nô Bộc",55],["Thiên Di",65],["Tật Ách",75],["Tài Bạch",85]];
+function renderDeca(){
+  $("#deca").innerHTML=CY.map(([n,a])=>{const p=byName(n);const now=n===DV,past=a<25;const b=band(p.score);
+    return `<li class="${now?"now":""}"><button class="b-${b} ${past?"past":""}" data-d="${n}" aria-label="${a}–${a+9} tuổi, cung ${n}, ${p.score} điểm, ${BL[b]}${now?", chặng hiện tại":""}">${now?'<span class="seal">ĐANG Ở ĐÂY</span>':""}<span class="age">${a}–${a+9}</span><span class="mid"><span class="pn">${n}</span><span class="track"><i style="--s:${p.score}"></i></span></span><span class="sc">${p.score}</span></button></li>`}).join("");
+  const p=byName(DV);$("#deca-read").innerHTML=`Chặng 25–34 tuổi đi qua cung Phúc Đức, nơi Tử Vi và Thiên Tướng cùng ngồi. Đây là chặng nên đầu tư vào thói quen nghỉ ngơi và vòng bạn bè tin cậy, vì chính hai thứ đó nâng đỡ phần việc phía sau.<button class="can" data-can="Phúc Đức|Tử Vi, Thiên Tướng">Căn cứ</button>`;
+}
+function renderPalaces(){
+  const list=state.sort==="order"?P:[...P].sort((a,b)=>b.score-a.score);
+  $("#cgrid").innerHTML=list.map(p=>`<button class="cg b-${band(p.score)}" data-open="${p.n}"><span>${ring(p,true)}</span><span><b>Cung ${p.n}</b><span>${BL[band(p.score)]} · ${starText(p)}</span></span>${p.n===GIFT?'<span class="done">Đã đọc đầy đủ</span>':'<span class="go">Xem thử ›</span>'}</button>`).join("");
+}
+
+/* tấm trượt */
+function closeSheet(){$("#layer").innerHTML="";document.body.style.overflow="";if(lastFocus&&lastFocus.isConnected)lastFocus.focus({preventScroll:true})}
+function openSheet(c,from){
+  lastFocus=document.activeElement;
+  $("#layer").innerHTML=`<div class="back" data-close></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><span class="grab" aria-hidden="true"></span><div class="top"><h3 id="sh-t">${c.title}</h3><button class="x" data-close aria-label="Đóng">✕</button></div>${c.raw}</div>`;
+  document.body.style.overflow="hidden";$(".sheet .x").focus();
+}
+const GHOST=`<div class="ghostbox" aria-hidden="true"><i style="width:92%"></i><i style="width:78%"></i><i style="width:86%"></i><i style="width:55%"></i></div>`;
+function lockedSheet(o){
+  return {title:o.title,raw:`<div style="display:flex;gap:12px;align-items:center">${o.ring||""}<span class="lbl" style="--c:var(--gold)">${o.badge||""}</span></div>
+  <span class="sub">Bài đọc đầy đủ sẽ cho bạn biết</span><ul>${o.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>
+  <span class="sub">Đọc thử</span><div class="fadeq"><p style="margin:0">${o.preview}</p></div>
+  <div><button class="can" style="margin:0" data-can="${o.can}">Căn cứ</button></div>${GHOST}
+  <button class="cta" data-toast="Bản mẫu: bước này mở khoá rồi xác nhận số tiền đồng ở bước cuối.">${o.cta}<span class="ar" aria-hidden="true">→</span></button>
+  <a href="#" data-toast="Bản mẫu: đi tới trang chọn luận giải." style="color:var(--gold-ink);text-align:center;font-size:14px">Xem tất cả gói</a>`};
+}
+function palaceSheet(p){
+  if(p.n===GIFT)return {title:`Cung ${p.n}`,raw:`<p style="margin:0;color:var(--muted)">Bài đọc đầy đủ của cung này đã được tặng cho bạn và nằm ở tab Tổng quan.</p><button class="cta" data-goto="overview">Về tab Tổng quan<span class="ar" aria-hidden="true">→</span></button>`};
+  const b=band(p.score);
+  return lockedSheet({title:`Cung ${p.n}`,ring:ring(p),badge:BL[b],bullets:[`Vì sao ${starText(p)} đặt cung ${p.n} ở mức ${BL[b].toLowerCase()}`,`Điều bạn nên làm và nên tránh trong lĩnh vực ${DESC[p.n].split(",")[0].toLowerCase().replace(/\.$/,"")}`,`Cung ${p.n} nhìn cùng cung đối và hai cung tam hợp thì nói thêm điều gì`],
+   preview:`Cung ${p.n} của bạn ${p.stars.length?"có "+starText(p)+" tọa thủ":"không có chính tinh nên mượn ánh sáng từ cung đối"}. Đây là lĩnh vực nói về ${DESC[p.n].replace(/\.$/,"").toLowerCase()}, và cách các sao đứng ở đây cho thấy bạn dễ`,can:`${p.n}|${starText(p)}`,cta:"Mở – 120 Lá"});
+}
+function monthSheet(m){
+  const w=WARN[m];const k=MONTHS[state.sample][m-1];
+  if(k==="w"){const pl=byName(w[0]);return lockedSheet({title:`Tháng ${m} (âm lịch)`,badge:"Cần chú ý (đã khoá)",bullets:[`Vì sao tháng ${m} chạm cung ${w[0]}`,`Điều nên chuẩn bị trước tháng ${m}`,`Việc nên chậm lại và việc vẫn làm được`],
+   preview:`Tháng ${m} âm lịch, vòng tháng đi vào cung ${w[0]}${w[1]?", nơi "+w[1]+" tọa thủ":""}. Đây là cung nói về ${DESC[w[0]].replace(/\.$/,"").toLowerCase()}, và tháng này có một dấu hiệu khiến những quyết định lớn nên được cân nhắc kỹ hơn, nhất là`,can:`${w[0]}|${w[2]}`,cta:"Mở năm nay và năm sau – 780 Lá"})}
+  return {title:`Tháng ${m} (âm lịch)`,raw:`<span class="lbl" style="--c:var(--gold)">${k==="g"?"◆ Thuận":"○ Bình thường"}</span><p style="margin:0;color:var(--muted)">${k==="g"?"Tháng này không có dấu hiệu bị ép. Hợp để bắt đầu việc cần nhịp ổn định.":"Tháng này không có điểm nổi bật. Bạn cứ giữ nhịp thường ngày."}</p>`};
+}
+function topicSheet(t){
+  const c=t==="career";
+  return lockedSheet({title:c?"Công việc và tiền bạc":"Tình cảm và hôn nhân",badge:"Chủ đề",bullets:c?["Hướng nào hợp sức bền của bạn: Quan Lộc, Tài Bạch hay Điền Trạch","Cách giữ tiền khi Phá Quân ở Tài Bạch","Một bước cụ thể cho 3 tháng tới"]:["Cách bạn đứng trong quan hệ gần, qua Phu Thê với Vũ Khúc, Thiên Phủ","Điều giúp mối quan hệ bền theo Phúc Đức","Một cuộc nói chuyện đáng có"],
+   preview:c?"Ba cung công việc và tiền bạc của bạn không cùng một nhịp. Quan Lộc có Thất Sát cho sức bật, còn Tài Bạch có Phá Quân nên bạn dễ làm mới cách kiếm tiền hơn là giữ một đường cố định. Điều đáng xem kỹ là":"Phu Thê của bạn có Vũ Khúc và Thiên Phủ, một bộ sao coi trọng sự sòng phẳng và ổn định. Bạn thường cảm thấy an tâm khi mọi thứ trong quan hệ được nói rõ, nhưng điều cần xem kỹ là",can:c?"Quan Lộc, Tài Bạch|Thất Sát, Phá Quân":"Phu Thê|Vũ Khúc, Thiên Phủ",cta:c?"Mở – 360 Lá":"Mở – 360 Lá"});
+}
+function canSheet(v){const [a,b]=v.split("|");return {title:"Căn cứ",raw:`<p style="margin:0;color:var(--muted)">Nhận định này dựa trên:</p><div class="rel"><div><small>Cung</small>${a}</div><div><small>Sao</small>${b||"—"}</div></div><p style="margin:0;color:var(--subtle);font-size:14px">Bạn có thể đối chiếu trực tiếp trên lá số phía trên.</p>`}}
+
+/* tab */
+function setTab(t,scroll){
+  state.tab=t;
+  $$("#tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.t===t)));
+  if(desktop()){$$(".panel").forEach(p=>{p.hidden=p.dataset.t!==t})}
+  else{$$(".panel").forEach(p=>p.hidden=false);if(scroll){const el=$("#panel-"+t);window.scrollTo({top:el.getBoundingClientRect().top+scrollY-70,behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth"})}}
+}
+function layout(){if(desktop()){setTab(state.tab)}else{$$(".panel").forEach(p=>p.hidden=false)}}
+addEventListener("resize",layout);
+addEventListener("scroll",()=>{if(desktop())return;let cur="overview";for(const t of ["overview","year","decade","palaces","topics"]){if($("#panel-"+t).getBoundingClientRect().top<140)cur=t}
+  $$("#tabs button").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.t===cur)))},{passive:true});
+
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
+function pulse(n){const el=$(`#board [data-p="${n}"]`);if(el){el.classList.remove("pulse");void el.offsetWidth;el.classList.add("pulse")}}
+function renderAll(){renderBoard();renderInsp();renderOverview();renderMonths();renderDeca();renderPalaces()}
+
+document.addEventListener("click",e=>{
+  const t=e.target;
+  const close=t.closest("[data-close]");if(close){closeSheet();return}
+  const can=t.closest("[data-can]");if(can){openSheet(canSheet(can.dataset.can));return}
+  const cs=t.closest("[data-can-stop]");if(cs){e.stopPropagation();const c=t.closest("[data-focus]");const p=byName(c.dataset.focus);openSheet(canSheet(`${p.n}|${starText(p)}`));return}
+  const toastEl=t.closest("[data-toast]");if(toastEl){e.preventDefault();toast(toastEl.dataset.toast);return}
+  const go=t.closest("[data-goto]");if(go){closeSheet();setTab(go.dataset.goto,true);return}
+  const cell=t.closest(".cell");if(cell){select(cell.dataset.p,"chart");return}
+  const f=t.closest("[data-focus]");if(f){const n=f.dataset.focus;state.sel=n;renderBoard();renderInsp();$("#stage").scrollIntoView({block:"start",behavior:"smooth"});setTimeout(()=>pulse(n),350);if(!desktop())setTimeout(()=>openSheet(inspSheet(byName(n))),700);return}
+  const op=t.closest("[data-open]");if(op){const p=byName(op.dataset.open);openSheet(palaceSheet(p));return}
+  const m=t.closest("[data-m]");if(m){openSheet(monthSheet(+m.dataset.m));return}
+  const d=t.closest("[data-d]");if(d){const p=byName(d.dataset.d);if(p.n===DV){openSheet({title:"Chặng 25–34 tuổi · cung Phúc Đức",raw:`<span class="lbl" style="--c:var(--gold)">Chặng hiện tại</span><p style="margin:0;color:var(--muted)">Tử Vi và Thiên Tướng cùng ngồi ở Phúc Đức. Đây là chặng nên đầu tư vào thói quen nghỉ ngơi và vòng bạn bè tin cậy. Cả hai nâng đỡ phần việc phía sau.</p><button class="can" style="margin:0" data-can="Phúc Đức|Tử Vi, Thiên Tướng">Căn cứ</button>`})}else openSheet(palaceSheet(p));return}
+  const tp=t.closest("[data-sheet-topic]");if(tp){openSheet(topicSheet(tp.dataset.sheetTopic));return}
+  const tab=t.closest("#tabs button");if(tab){setTab(tab.dataset.t,true);return}
+  if(t.id==="go-year"){e.preventDefault();setTab("year",true);return}
+  if(t.id==="enlarge"){openSheet({title:"Lá số lớn hơn",raw:`<p style="margin:0;color:var(--muted)">Ở bản thật, đây là tấm toàn màn hình có chụm hai ngón để phóng to, đã làm ở giai đoạn 2. Mỗi ô hiện đủ độ sáng, Hóa và phụ tinh.</p>`});return}
+  if(t.id==="o-dv"){state.dv=!state.dv;$("#o-dv").setAttribute("aria-pressed",state.dv);renderBoard();return}
+  if(t.id==="o-ln"){state.ln=!state.ln;$("#o-ln").setAttribute("aria-pressed",state.ln);renderBoard();return}
+  if(t.id==="s-many"||t.id==="s-none"){state.sample=t.id==="s-many"?"many":"none";$("#s-many").setAttribute("aria-pressed",state.sample==="many");$("#s-none").setAttribute("aria-pressed",state.sample==="none");renderMonths();return}
+  if(t.id==="so-order"||t.id==="so-str"){state.sort=t.id==="so-order"?"order":"str";$("#so-order").setAttribute("aria-pressed",state.sort==="order");$("#so-str").setAttribute("aria-pressed",state.sort==="str");renderPalaces();return}
+  if(t.id==="t-auto"||t.id==="t-dark"||t.id==="t-light"){const v=t.id.slice(2);if(v==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",v);["auto","dark","light"].forEach(k=>$("#t-"+k).setAttribute("aria-pressed",k===v))}
+});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#layer").firstChild)closeSheet()});
+renderAll();layout();
+</script>
