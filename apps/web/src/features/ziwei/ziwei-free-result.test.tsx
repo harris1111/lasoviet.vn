@@ -115,7 +115,7 @@ describe("free-result reader structure", () => {
 
     it("row 49: a ready gift renders every part of one palace and gates the bridge language on it", () => {
       const html = renderWith(gift);
-      for (const text of ["GIFT_TITLE", "GIFT_CONCLUSION", "KEY_ONE", "KEY_TWO", "KEY_THREE", "PROSE_ONE", "PROSE_TWO", "DO_ITEM", "AVOID_ITEM", "FACT_LABEL", "FACT_VALUE", "Nên làm", "Nên tránh", "Bạn đã đọc trọn một cung"]) expect(html).toContain(text);
+      for (const text of ["GIFT_TITLE", "GIFT_CONCLUSION", "KEY_ONE", "KEY_TWO", "KEY_THREE", "PROSE_ONE", "PROSE_TWO", "DO_ITEM", "AVOID_ITEM", "FACT_LABEL", "FACT_VALUE", "Nên làm", "Nên tránh", "cung trong lá số của bạn chưa mở"]) expect(html).toContain(text);
       expect(html).toContain('data-testid="fd109-palace-gift"');
       expect(html).toContain('data-free-result-block="gift"');
       expect(html).not.toContain('data-free-result-block="free-palace"');
@@ -130,7 +130,7 @@ describe("free-result reader structure", () => {
       for (const value of [null, { version: 1, status: "unavailable" }, { version: 1, status: "terminal_failure" }, { version: 1, status: "cost_unknown" }]) {
         const html = renderWith(value);
         expect(html).toContain('data-free-result-block="free-palace"');
-        expect(html).toContain("Đọc sâu hơn từ lá số này");
+        expect(html).toContain("cung trong lá số của bạn chưa mở");
         expect(html).not.toContain("fd109-palace-gift");
         expect(html).not.toContain("Bạn đã đọc trọn một cung");
         expect(html).not.toContain("đang được chuẩn bị");

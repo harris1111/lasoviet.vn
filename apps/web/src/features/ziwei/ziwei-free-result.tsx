@@ -10,6 +10,7 @@ import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { createFreeResultAnalytics } from "./free-result-analytics";
 import { createEngagementReporter } from "./free-palace-engagement-reporter";
 import { FreePalaceGiftBlock } from "./free-palace-gift-block";
+import { buildClosingHook } from "./ziwei-closing-hook";
 import { ZiweiSupportPalaces, type SupportPalace } from "./ziwei-support-palaces";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart-visuals";
@@ -322,6 +323,23 @@ export function ZiweiFreeResult({
     selectStagePalace(palaceId);
     if (desktop) document.getElementById("free-result-board")?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
+  const closingHook = buildClosingHook({
+    chart, lockedPalaceIds: model.palaces.filter((palace) => palace.id !== model.selectedPalaceId).map((palace) => palace.id),
+    annual: model.annual ? { year: model.annual.year, caution: model.annual.caution } : null,
+  });
+  const lowerPalace = (id: string) => { const label = presentation.palace(id); return locale === "vi" ? label.replace(/^Cung /u, "cung ") : label; };
+  const closingText = closingHook ? {
+    count: closingHook.lockedCount,
+    facts: new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(closingHook.facts.map((fact) => {
+      switch (fact.kind) {
+        case "hoa": return t("freeResult.closingFactHoa", { palace: lowerPalace(fact.palaceId), star: presentation.star(fact.starId), hoa: presentation.transformation(fact.transformationId) });
+        case "empty": return t("freeResult.closingFactEmpty", { palace: lowerPalace(fact.palaceId) });
+        case "pair": return t("freeResult.closingFactPair", { palace: lowerPalace(fact.palaceId), stars: new Intl.ListFormat(locale, { style: "long", type: "conjunction" }).format(fact.starIds.map((id) => presentation.star(id))) });
+        case "alone": return t("freeResult.closingFactAlone", { palace: lowerPalace(fact.palaceId), star: presentation.star(fact.starId) });
+        case "months": return t("freeResult.closingFactMonths", { year: fact.year, count: fact.count });
+      }
+    })),
+  } : null;
   const inspectorEvidence = selectedChartPalace === chart.soulPalaceId ? "life-palace" : selectedChartPalace === chart.bodyPalaceId ? "body-palace" : undefined;
   function inspector() {
     return <>
@@ -444,10 +462,10 @@ export function ZiweiFreeResult({
           </section>
           <section className="fd109-completion" data-free-result-block="completion" data-completion-tabs="overview topics"
             data-testid="fd109-completion" ref={completionRef}>
-            <p className="eyebrow">09 · {t("freeResult.complete")}</p>
-            <h2>{model.gift ? t("freeResult.giftBridge") : t("freeResult.bridge")}</h2>
-            <p>{model.gift ? t("freeResult.giftBridgeDescription") : t("freeResult.bridgeDescription")}</p>
-            <Link className="button" href={offerHref} onClick={trackDoor}>{t("freeResult.choose")}</Link>
+            <p className="eyebrow">{t("freeResult.complete")}</p>
+            <h2>{closingText ? t("freeResult.closingTitle", { count: closingText.count }) : model.gift ? t("freeResult.giftBridge") : t("freeResult.bridge")}</h2>
+            <p data-testid="fd109-closing-hook">{closingText ? t("freeResult.closingBody", { facts: closingText.facts }) : model.gift ? t("freeResult.giftBridgeDescription") : t("freeResult.bridgeDescription")}</p>
+            <Link className="button" href={offerHref} onClick={trackDoor}>{closingText ? t("freeResult.closingCta") : t("freeResult.choose")}</Link>
           </section>
         </div>
       </div>

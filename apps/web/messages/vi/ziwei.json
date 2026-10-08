@@ -152,7 +152,7 @@
     "palaces": "{count} cung còn lại",
     "preview": "Xem trước",
     "topicDescription": "Mỗi câu hỏi được đọc từ nhiều cung có liên hệ, để bạn nhìn rõ hơn chuyện công việc và gắn bó.",
-    "complete": "Bạn đã xem phần miễn phí",
+    "complete": "Mới là phần đầu",
     "bridge": "Đọc sâu hơn từ lá số này",
     "bridgeDescription": "Bạn vừa xem các điểm nổi bật và cấu trúc lá số. Phần luận giải đầy đủ đi sâu vào từng cung, chủ đề và những việc có thể chuẩn bị.",
     "insightCount": "điểm nổi bật miễn phí",
@@ -197,7 +197,15 @@
     "supportViewOnChart": "Xem trên lá số",
     "supportCard": "Cung {name}, {band}, {score} điểm. Bấm để xem trên lá số.",
     "supportNoMajor": "Chưa có chính tinh, cung đối chiếu sang",
-    "evidenceRowTitle": "Căn cứ của lá số"
+    "evidenceRowTitle": "Căn cứ của lá số",
+    "closingTitle": "Còn {count} cung trong lá số của bạn chưa mở",
+    "closingBody": "Trong phần còn đóng, {facts}. Vì sao những chỗ ấy đáng để ý, và nên chuẩn bị gì, nằm trong phần luận giải.",
+    "closingFactHoa": "{palace} có {star} mang {hoa}",
+    "closingFactEmpty": "{palace} không có chính tinh nào",
+    "closingFactPair": "{palace} có {stars} đứng chung",
+    "closingFactAlone": "{palace} chỉ có {star} đứng một mình",
+    "closingFactMonths": "năm {year} có {count} tháng cần chú ý",
+    "closingCta": "Mở phần còn lại của lá số"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

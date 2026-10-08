@@ -474,8 +474,8 @@ function renderYear(){
 }
 function renderDone(){
   const many=state.sample==="many";
-  const third=many?"Và năm Bính Ngọ có ba tháng cần để ý, nội dung vì sao và nên chuẩn bị gì vẫn đang khóa.":"Và chặng 25 đến 34 tuổi đang đi qua cung Phúc Đức, phần nói bạn nên làm gì với chặng này vẫn đang khóa.";
-  $("#done-box").innerHTML=`<span class="eyebrow">Mới là phần đầu</span><h3>Bạn mới mở 1 trong 12 cung của mình</h3><p class="lede" style="font-size:17px;color:var(--fg)">Cung Thiên Di cho biết vì sao bạn hay phải tự mở đường. Cung Tài Bạch cho biết vì sao tiền đến theo đợt. ${third}</p><div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><button class="cta" data-toast="Bản mẫu: bước này đi tới trang chọn luận giải.">Mở phần còn lại của lá số<span class="ar" aria-hidden="true">→</span></button><a href="#" data-toast="Bản mẫu: đi tới trang chọn luận giải." style="color:var(--gold-ink);font-size:15px">Xem các cách mở</a></div>`;
+  const tail=many?" và năm 2026 có 3 tháng cần chú ý":"";
+  $("#done-box").innerHTML=`<span class="eyebrow">Mới là phần đầu</span><h3>Còn 11 cung trong lá số của bạn chưa mở</h3><p class="lede" style="font-size:17px;color:var(--fg)">Trong phần còn đóng, cung Phụ Mẫu có Cự Môn mang Hóa Quyền, cung Tài Bạch có Phá Quân mang Hóa Lộc${tail}. Vì sao những chỗ ấy đáng để ý, và nên chuẩn bị gì, nằm trong phần luận giải.</p><div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><button class="cta" data-toast="Bản mẫu: bước này đi tới trang chọn luận giải.">Mở phần còn lại của lá số<span class="ar" aria-hidden="true">→</span></button><a href="#" data-toast="Bản mẫu: đi tới trang chọn luận giải." style="color:var(--gold-ink);font-size:15px">Xem các cách mở</a></div>`;
 }
 function renderAll(){renderDone();renderYear();renderBoard();renderInsp();renderOverview();renderMonths();renderDeca();renderPalaces()}
 

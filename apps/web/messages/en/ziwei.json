@@ -152,7 +152,7 @@
     "palaces": "{count} remaining palaces",
     "preview": "Preview",
     "topicDescription": "Each life question draws on several related palaces, bringing work and relationships into context.",
-    "complete": "You have viewed the free section",
+    "complete": "Only the first part",
     "bridge": "Read more deeply from this chart",
     "bridgeDescription": "You have explored the highlights and chart structure. Full readings go deeper into each palace, topic and practical preparation.",
     "insightCount": "free highlights",
@@ -197,7 +197,15 @@
     "supportViewOnChart": "View on the chart",
     "supportCard": "{name} palace, {band}, {score} points. Select to see it on the chart.",
     "supportNoMajor": "No principal star; read through the opposite palace",
-    "evidenceRowTitle": "What this reading rests on"
+    "evidenceRowTitle": "What this reading rests on",
+    "closingTitle": "{count} palaces of your chart are still closed",
+    "closingBody": "Among the closed parts, {facts}. Why those stand out, and how to prepare, is in the full reading.",
+    "closingFactHoa": "{palace} has {star} carrying {hoa}",
+    "closingFactEmpty": "{palace} has no principal star",
+    "closingFactPair": "{palace} holds {stars} together",
+    "closingFactAlone": "{palace} has only {star}",
+    "closingFactMonths": "{year} has {count} caution months",
+    "closingCta": "Open the rest of your chart"
   },
   "dailyReading": {
     "title": "Today’s personal reading",

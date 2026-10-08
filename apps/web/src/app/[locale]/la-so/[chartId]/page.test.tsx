@@ -287,7 +287,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Bạn đã xem phần miễn phí");
+    expect(html).toContain("Mới là phần đầu");
     expect(html).not.toContain("Bạn đã đọc xong phần miễn phí");
     expect(html).toContain("Xem các gói luận giải");
     expect(html).toContain("Bạn đang xem các sao và điểm cấu trúc của lá số");
@@ -403,7 +403,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
     expect(html).toContain('data-testid="fd109-free-result"');
-    expect(html).toContain("Bạn đã xem phần miễn phí");
+    expect(html).toContain("Mới là phần đầu");
   });
 
   it("uses structural fallback for malformed optional preview responses", async () => {
