@@ -6,6 +6,31 @@ This packet records actual progress and pending evidence; no new product has bee
 merged, deployed, activated or marked Done by this implementation batch.
 Production remains at PR318 release `496393318b3cd994f9d2d698caeb9249d7fdf5d0`.
 
+## Owner response recorded
+
+On 2026-10-08, after the four-item clarification, the owner instructed:
+“ok làm theo đề xuất nhé, ok. Còn link đặc tả thì update ticket đợi a Lãm”.
+
+- B1: the presented synthetic copy drafts are accepted. Original sample files
+  preserve their pre-review accepted=false provenance; this dated approval is
+  separate. Actual paid report generation/manual trials and the independent
+  twenty-chart engine comparison remain technical acceptance work, not inferred
+  passes or another owner request for reference evidence.
+- B2: a separate aggregate maximum 180,000 VND for ten paid trial reports is
+  approved, including bounded rewrites/unknown outcomes. Reuse FD114 and stop on
+  unknown cost, exhausted cap or quality failure. Actual bounds and durable
+  accounting remain prerequisites; no money has been spent by this approval.
+- B3: apply new commercial/guarantee terms to purchases created after release;
+  preserve existing purchases and pending same-order top-ups' frozen promises.
+- B4: LSV90 waits for the promised tool specification from Lam. Title/description
+  and a dated comment are updated; no repeat link request or substitute tool.
+
+All seven published PR heads (319–325) have both verify CI runs successful and
+independent scoped review; PR324's second browser-install delay has completed.
+Remaining source/runtime/integration/deployment/manual gates are retained.
+These decisions are recorded as FD121. The last table below is the historical
+proposal the owner answered, not a list of questions to ask again.
+
 ## Priority and closure order
 
 1. **LSV86 / LSV87 / LSV88:** correct year/month/decadal facts before reviewing paid
@@ -34,9 +59,9 @@ Production remains at PR318 release `496393318b3cd994f9d2d698caeb9249d7fdf5d0`.
 | LSV86 parameterized current/next lunar year, immutable periods and Combo | [PR322](https://github.com/harris1111/lasoviet.vn/pull/322), `f11641ade3885b786a63085784e08c0bdefae1aa` | Full build, required i18n/lint/typecheck, 4,514 tests with 3 existing skips, isolated PostgreSQL rewind/source/receipt/refund checks; independent exact-head GO; both CI passed | Manual purchase/read/export/guarantee samples, merge/deploy/smoke; annual/Combo remain reserved |
 | LSV87 computed shared monthly attention and held-membership headline | [PR320](https://github.com/harris1111/lasoviet.vn/pull/320), `077bdc2b2ba987666062f97af4a5108d298c9d3b` | 27 focused tests, independent review, required checks and both CI passed; 200 actual synthetic charts agree across free/paid, histogram 1:66 / 2:86 / 3:39 / 4:8 / 5:1 | Owner 2–3 samples; reconcile, merge/deploy/smoke. The rule permits zero warnings and never fabricates a month |
 | LSV88 all twelve decadal cycles, annual palaces/transforms and FD107/111 scores | [PR321](https://github.com/harris1111/lasoviet.vn/pull/321), `f2837627e9e8953e8cc6561449fb51157347309c` | 25 focused plus 15 query tests, independent exact-head GO, required checks; vendor parity: 20 charts, 2,400 annual rows and 9,600 transformation pairs. Both CI passed; the retained push-CI Google-font failure passed on rerun | Independent twenty-chart comparison, manual 2–3 samples, reconcile/merge/deploy/smoke |
-| LSV79 fresh durable recovery runner | [PR324](https://github.com/harris1111/lasoviet.vn/pull/324), exact reviewed head `7787835993cd08ef75203cc6095870f1d397fdd0` | 107 PostgreSQL/queue/capture/preferences/schema tests; full bounded-worker regression 4,536 passed / 3 existing skips; independent 22 final-runner tests and exact-head GO; required checks/build passed | CI, private authorized/audited operator controls and worker composition, merge/deploy/smoke. No production provider caller exists; default stopped, empty cohort. Depends on PR322/0062 before 0063 |
-| LSV82 VI/EN free reading facts/cards/prompt/rule-v2 fallback and R3 quality | [PR319](https://github.com/harris1111/lasoviet.vn/pull/319), `967e0091aa62286adc3024571a319d794a7a7262` | 23 corrected focused tests, including 200 synthetic charts; rebuilt artifact, required checks; independent exact-head GO. Latest CI pending; older head CI is not reused | Owner card/copy review, semantic/publication checks, actual adapter token/usage proof, whole-reading durable one-call/cache/cost/growth-alert integration, approved thirty-chart trial, merge/deploy/smoke |
-| LSV91 private Bazi pillar facts | [PR323](https://github.com/harris1111/lasoviet.vn/pull/323), `6414d8e314f2ac3cb53851a59af5fbe3c1969cc7` | 9 focused vendor/timezone/unknown-hour/midnight tests; producer build and required checks; independent exact-head GO; three synthetic fact samples | CI, methodology/manual accuracy review, normalized-profile/storage/provenance integration, writer and paid/two-person integration. No caller, commerce or sale activation |
+| LSV79 fresh durable recovery runner | [PR324](https://github.com/harris1111/lasoviet.vn/pull/324), exact reviewed head `7787835993cd08ef75203cc6095870f1d397fdd0` | 107 PostgreSQL/queue/capture/preferences/schema tests; full bounded-worker regression 4,536 passed / 3 existing skips; independent 22 final-runner tests and exact-head GO; required checks/build passed | Private authorized/audited operator controls and worker composition, merge/deploy/smoke. No production provider caller exists; default stopped, empty cohort. Depends on PR322/0062 before 0063 |
+| LSV82 VI/EN free reading facts/cards/prompt/rule-v2 fallback and R3 quality | [PR319](https://github.com/harris1111/lasoviet.vn/pull/319), `967e0091aa62286adc3024571a319d794a7a7262` | 23 corrected focused tests, including 200 synthetic charts; rebuilt artifact, required checks; independent exact-head GO. Both latest-head CI passed; earlier results are not substituted for the current head | Additional unreviewed meaning coverage and future generated-output semantic/publication checks, actual adapter token/usage proof, whole-reading durable one-call/cache/cost/growth-alert integration, approved thirty-chart trial, merge/deploy/smoke |
+| LSV91 private Bazi pillar facts | [PR323](https://github.com/harris1111/lasoviet.vn/pull/323), `6414d8e314f2ac3cb53851a59af5fbe3c1969cc7` | 9 focused vendor/timezone/unknown-hour/midnight tests; producer build and required checks; independent exact-head GO; three synthetic fact samples | Methodology/manual accuracy review, normalized-profile/storage/provenance integration, writer and paid/two-person integration. No caller, commerce or sale activation |
 
 Four existing lint warnings remain; no lint errors. Technical review of preparation
 is not prose, prediction, commercial or independent-methodology acceptance.
@@ -47,8 +72,9 @@ with retained live follow-ups LSV84/85; this batch does not reopen their closure
 
 **Free copy:** exact old-versus-rule-draft prose, in readable Markdown, for three
 actual synthetic engine charts and both languages. These are fallback drafts,
-not AI-generated or semantically accepted reports. Read these before accepting
-cards or text; reply with sample, locale, field and correction.
+not AI-generated or semantically accepted reports. The owner accepted these presented drafts under FD121. Original pre-review
+flags are preserved as provenance; future generated-output acceptance remains
+separate. Feedback on future output should identify sample, locale and field.
 
 | Synthetic case | Vietnamese product copy | English product copy |
 | --- | --- | --- |
@@ -116,7 +142,7 @@ is requested; latest owner instructions already removed it.
 - Complete LSV91 normalization, persistence, evidence and grounded two-person
   writing. No invented compatibility percentage or arbitrary unknown-hour chart.
 
-## Open owner inputs — reply once
+## Original owner-input proposal — answered by FD121
 
 | ID | Needed input | Concrete recommendation / reply format |
 | --- | --- | --- |
