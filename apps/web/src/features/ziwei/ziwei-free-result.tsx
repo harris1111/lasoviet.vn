@@ -47,6 +47,12 @@ function subscribeDesktop(callback: () => void) {
   media.addEventListener("change", callback);
   return () => media.removeEventListener("change", callback);
 }
+function subscribeWide(callback: () => void) {
+  const media = window.matchMedia("(min-width: 1100px)");
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+function wideSnapshot() { return window.matchMedia("(min-width: 1100px)").matches; }
 function desktopSnapshot() { return window.matchMedia("(min-width: 1024px)").matches; }
 const mobileAnchors: Record<ZiweiResultTab, string> = {
   chart: "free-result-board", overview: "panel-overview", "nam-nay": "panel-nam-nay",
@@ -60,6 +66,7 @@ export function ZiweiFreeResult({
   const reportT = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
   const desktop = useSyncExternalStore(subscribeDesktop, desktopSnapshot, () => false);
+  const wide = useSyncExternalStore(subscribeWide, wideSnapshot, () => false);
   const [askEligible, setAskEligible] = useState(false);
   // FE-3 / N7: tab, preview and sheet are local state (instant), the address bar is synced with the native
   // History API (no server round trip). popstate restores state for Back/Forward.
@@ -268,7 +275,7 @@ export function ZiweiFreeResult({
   }
   function chartView() {
     return <ZiweiChart chart={chart} birthSummary={birthSummary} locale={locale}
-      selectedPalaceId={selectedChartPalace} onSelectPalace={setSelectedChartPalace} />;
+      selectedPalaceId={selectedChartPalace} onSelectPalace={setSelectedChartPalace} hideInspector={wide} />;
   }
 
   return (
@@ -291,6 +298,8 @@ export function ZiweiFreeResult({
             <h2 id="heading-chart">{t("freeResult.scores")}</h2><p>{t("freeResult.scoreDescription")}</p>
             <ReportPalaceRadar snapshot={{palaces:model.palaces.map(palace => ({palaceId:palace.id}))}} scores={scoreMap} t={reportT} locale={locale} />
             <ReportScoreExplainer t={reportT} />
+            {wide && <div className="fd109-inspector-col"><ZiweiChart chart={chart} birthSummary={birthSummary} locale={locale}
+              selectedPalaceId={selectedChartPalace} onSelectPalace={setSelectedChartPalace} hideBoard /></div>}
           </section>
           <section {...panel("overview")}>
             <section className="fd109-gift" data-free-result-block="insights">
