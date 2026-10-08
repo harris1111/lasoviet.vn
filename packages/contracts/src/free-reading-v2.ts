@@ -39,6 +39,11 @@ export const FreeReadingContentV2Schema = z.object({
 }).strict();
 export type FreeReadingContentV2 = z.infer<typeof FreeReadingContentV2Schema>;
 
+// Keep the JSON schema generated at the package that owns the pinned Zod dependency.
+export function freeReadingDraftJsonSchema() {
+  return z.toJSONSchema(FreeReadingContentV2Schema);
+}
+
 // No identity, birth data, provider settings, lineage, hashes or paid prose are accepted.
 export const FreeReadingFactsV2Schema = z.object({
   version: z.literal(2), locale: z.enum(["vi", "en"]), focusPalaceId: PalaceIdSchema,
