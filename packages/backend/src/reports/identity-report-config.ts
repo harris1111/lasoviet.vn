@@ -1,3 +1,4 @@
+import { Solar } from "lunar-typescript";
 import type { IdentityReportSectionId, ZiweiPalaceId } from "@lasoviet/contracts";
 import { getVietnamCalendarDayBounds } from "../commerce/payment-claim-time.js";
 
@@ -42,6 +43,7 @@ export const REPORT_CONFIG_VERSION_V4_2_SECTIONED_BEGINNER = "ziwei.comprehensiv
 export const REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_4_BEGINNER = "ziwei.comprehensive.quality.v2.4-beginner" as const;
 
 export const REPORT_TIMING_RULE_VERSION_V1 = "ziwei.timing.v1" as const;
+export const REPORT_TIMING_RULE_VERSION_V2 = "ziwei.timing.lunar-year.v2" as const;
 export const REPORT_SENSITIVITY_RULE_VERSION_V1 = "ziwei.sensitivity.v1" as const;
 
 export const CURRENT_REPORT_KNOWLEDGE_VERSION = REPORT_KNOWLEDGE_VERSION_V2;
@@ -135,7 +137,7 @@ export type ReportVersionSelectionV4 = {
   reportConfigVersion: typeof REPORT_CONFIG_VERSION_V4;
   templateVersion: typeof REPORT_TEMPLATE_VERSION_V3;
   contentVersion: typeof REPORT_CONTENT_VERSION_COMPREHENSIVE_V2;
-  timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1;
+  timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1 | typeof REPORT_TIMING_RULE_VERSION_V2;
 };
 
 export type ReportVersionSelectionV4_0_1 = Omit<
@@ -163,7 +165,7 @@ export type ReportVersionSelectionV4_1Sensitivity = {
   contentVersion: typeof REPORT_CONTENT_VERSION_COMPREHENSIVE_V3;
   templateVersion: typeof REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY;
   renderVersion: typeof REPORT_RENDER_VERSION_V4_1_SENSITIVITY;
-  timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1;
+  timingRuleVersion: typeof REPORT_TIMING_RULE_VERSION_V1 | typeof REPORT_TIMING_RULE_VERSION_V2;
 };
 
 export type ReportVersionSelectionV4_1_1Sensitivity = Omit<
@@ -230,7 +232,7 @@ export function v4ReportVersions(_locale: string = "vi"): ReportVersionSelection
     reportConfigVersion: REPORT_CONFIG_VERSION_V4,
     templateVersion: REPORT_TEMPLATE_VERSION_V3,
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -242,7 +244,7 @@ export function v4_0_1ReportVersions(_locale: string = "vi"): ReportVersionSelec
     reportConfigVersion: REPORT_CONFIG_VERSION_V4,
     templateVersion: REPORT_TEMPLATE_VERSION_V3,
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -256,7 +258,7 @@ export function v4SectionedReportVersions(_locale: string = "vi"): ReportVersion
     qualityVersion: REPORT_QUALITY_VERSION_COMPREHENSIVE_V1,
     templateVersion: REPORT_TEMPLATE_VERSION_V3,
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V2,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -272,7 +274,7 @@ export function v4_1SensitivityReportVersions(
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
     templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
     renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -288,7 +290,7 @@ export function v4_1_1SensitivityReportVersions(
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
     templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
     renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -304,7 +306,7 @@ export function v4_1_1KeyConfigSensitivityReportVersions(
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
     templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
     renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -320,7 +322,7 @@ export function v4_1_2SensitivityReportVersions(
     contentVersion: REPORT_CONTENT_VERSION_COMPREHENSIVE_V3,
     templateVersion: REPORT_TEMPLATE_VERSION_V4_1_SENSITIVITY,
     renderVersion: REPORT_RENDER_VERSION_V4_1_SENSITIVITY,
-    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion: REPORT_TIMING_RULE_VERSION_V2,
   };
 }
 
@@ -371,11 +373,13 @@ export function deriveReportTimingLineage(
   },
 ): ReportTimingLineage {
   const { localDateKey } = getVietnamCalendarDayBounds(now);
-  const targetYear = parseInt(localDateKey.slice(0, 4), 10);
+  const [year, month, day] = localDateKey.split("-").map(Number) as [number, number, number];
+  const timingRuleVersion = options?.timingRuleVersion ?? REPORT_TIMING_RULE_VERSION_V2;
+  const targetYear = timingRuleVersion === REPORT_TIMING_RULE_VERSION_V1 ? year : Solar.fromYmd(year, month, day).getLunar().getYear();
   return {
     asOfDate: localDateKey,
     targetYear,
-    timingRuleVersion: options?.timingRuleVersion ?? REPORT_TIMING_RULE_VERSION_V1,
+    timingRuleVersion,
     sensitivityRuleVersion: options?.sensitivityRuleVersion ?? REPORT_SENSITIVITY_RULE_VERSION_V1,
   };
 }

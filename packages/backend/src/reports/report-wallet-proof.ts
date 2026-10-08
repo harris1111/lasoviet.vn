@@ -27,7 +27,7 @@ export async function readReportWalletSpendProof(database: Database, reservation
       row.command.idempotencyKey !== row.spend.idempotencyKey || row.command.fingerprint !== row.spend.fingerprint) return null;
   const product = findLaProduct(row.intent.sku);
   if (!product || !(["natal", "palace", "topic"].includes(product.category) ||
-      ["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(product.sku)) ||
+      ["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(product.sku)) ||
       !Number.isSafeInteger(row.intent.priceLa) || row.intent.priceLa < 0) return null;
   const stored = row.command.result as {receipt?: unknown; continuation?: {intentId?: string; intentStateVersion?: number; entitlementId?: string; reservationId?: string; reportId?: string; reportVersionId?: string; outboxId?: string}};
   const receipt = WalletTransactionReceiptV1Schema.safeParse(stored.receipt);

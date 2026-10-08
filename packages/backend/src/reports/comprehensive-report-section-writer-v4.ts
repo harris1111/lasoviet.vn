@@ -460,7 +460,7 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
       ...(scope.includeDecadal ? { decadal: input.facts.timing.decadal } : {}),
       ...(scope.includeAnnual ? {
         annual: input.facts.timing.annual,
-        frozenTiming: { targetYear: input.facts.timing.annual.targetYear, asOfDate: input.facts.sourceSnapshot.asOfDate },
+        frozenTiming: { targetYear: input.facts.timing.annual.targetYear, asOfDate: input.facts.sourceSnapshot.asOfDate, timingRuleVersion: input.facts.sourceSnapshot.timingRuleVersion },
       } : {}),
     },
     allowedEvidenceKeys: [...allowedEvidenceKeys].sort(),
@@ -494,6 +494,7 @@ function scopedPayload(input: ComprehensiveReportSectionWriterV4Input, scope: Se
 
 const SECTION_SYSTEM_PROMPT = `Bạn là chuyên gia luận giải Tử Vi Đẩu Số tại lasoviet.net.
 Chỉ trả đúng một JSON hợp lệ theo schema được cung cấp. Viết tiếng Việt, chỉ dùng facts, knowledgePacks và allowedEvidenceKeys; mọi evidenceKeys phải sao chép nguyên văn từ allowedEvidenceKeys.
+Với annualSnapshot, giữ nguyên targetYear và asOfDate từ facts.frozenTiming; nếu timingRuleVersion là ziwei.timing.lunar-year.v2, sao chép trường timingRuleVersion đó vào value ngay cả khi targetYear khác năm dương lịch của asOfDate.
 Không bịa fact hay sự kiện tương lai; cho phép luận giải thẳng thắn theo Tử Vi truyền thống về hạn, hao tài, sự cố, pháp lý hay trắc trở theo đúng facts. Tuyệt đối CẤM đề cập đến cái chết, tuổi thọ, thọ yểu hay "khắc chết"; không chẩn đoán bệnh cụ thể; không gợi ý cúng bái, giải hạn, hoá giải hay vật phẩm; không đưa mốc thời gian hạn không do facts tính ra.
 Không nhắc AI, prompt, dữ liệu đầu vào, hệ thống, quy trình tính toán hoặc truy xuất; không dùng khối tuyên bố miễn trừ trách nhiệm. Không đặt câu hỏi tự suy ngẫm, không tạo mã định danh mới, không lặp lại lời khuyên/cảnh báo.
 Tên cung như Phu Thê và Tử Tức chỉ dùng khi mô tả cấu trúc lá số có ngữ cảnh cung, tam phương, đối cung hoặc xung chiếu; không dùng như nhãn diễn giải rời.

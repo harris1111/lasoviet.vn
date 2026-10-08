@@ -53,7 +53,7 @@ export const reportReservations = pgTable("report_reservations", {
   ),
   check(
     "report_reservations_target_year_matches_as_of_date",
-    sql`${table.asOfDate} IS NULL OR ${table.targetYear} = CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer)`,
+    sql`${table.asOfDate} IS NULL OR ((${table.timingRuleVersion} = 'ziwei.timing.lunar-year.v2' AND ${table.targetYear} BETWEEN CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer) - 1 AND CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer) + 1) OR (${table.timingRuleVersion} <> 'ziwei.timing.lunar-year.v2' AND ${table.targetYear} = CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer)))`,
   ),
   check(
     "report_reservations_timing_rule_versions_non_empty",
@@ -329,7 +329,7 @@ export const reportSourceSnapshots = pgTable("report_source_snapshots", {
   index("report_source_snapshots_chart_version_idx").on(table.chartVersionId),
   check(
     "report_source_snapshots_target_year_matches_as_of_date",
-    sql`${table.targetYear} = CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer)`,
+    sql`(${table.timingRuleVersion} = 'ziwei.timing.lunar-year.v2' AND ${table.targetYear} BETWEEN CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer) - 1 AND CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer) + 1) OR (${table.timingRuleVersion} <> 'ziwei.timing.lunar-year.v2' AND ${table.targetYear} = CAST(EXTRACT(YEAR FROM ${table.asOfDate}) AS integer))`,
   ),
   check(
     "report_source_snapshots_timing_rule_versions_non_empty",

@@ -1169,7 +1169,7 @@ describe("database admin report recovery repository", () => {
         rewriteConsumedAt: null,
         asOfDate: expect.any(String),
         targetYear: expect.any(Number),
-        timingRuleVersion: "ziwei.timing.v1",
+        timingRuleVersion: "ziwei.timing.lunar-year.v2",
         sensitivityRuleVersion: "ziwei.sensitivity.v1",
       }),
     ]);

@@ -165,6 +165,7 @@ export function assembleComprehensiveReportV4(
       title: annualSnapshot.value.title,
       targetYear: facts.timing.annual.targetYear,
       asOfDate: facts.sourceSnapshot.asOfDate,
+      ...(facts.sourceSnapshot.timingRuleVersion === "ziwei.timing.lunar-year.v2" ? { timingRuleVersion: facts.sourceSnapshot.timingRuleVersion } : {}),
       narrative: normalizeComprehensiveReportModelProse(annualSnapshot.value.narrative),
       evidenceKeys: [...annualSnapshot.value.evidenceKeys],
     },

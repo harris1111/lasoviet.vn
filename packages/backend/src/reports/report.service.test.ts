@@ -306,8 +306,8 @@ describe("createReportService terminal recovery", () => {
       nextAttemptAt: null,
       rewriteConsumedAt: null,
       asOfDate: "2027-01-01",
-      targetYear: 2027,
-      timingRuleVersion: "ziwei.timing.v1",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
     });
     expect(insertedValues).toHaveLength(1);
@@ -326,8 +326,8 @@ describe("createReportService terminal recovery", () => {
         locale: "vi",
         sku: mockReservation.sku,
         asOfDate: "2027-01-01",
-        targetYear: 2027,
-        timingRuleVersion: "ziwei.timing.v1",
+        targetYear: 2026,
+        timingRuleVersion: "ziwei.timing.lunar-year.v2",
         sensitivityRuleVersion: "ziwei.sensitivity.v1",
         readingContextRevisionId: "reading-context-1",
         supersedesReportVersionId: oldReportVersionId,

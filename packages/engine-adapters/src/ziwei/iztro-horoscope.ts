@@ -150,7 +150,7 @@ export function calculateZiweiHoroscope(
   const asOfMonth = asOfDateParts[1]!;
   const asOfDay = asOfDateParts[2]!;
 
-  const targetYear = options.targetYear || asOfYear;
+  const targetYear = options.targetYear ?? Solar.fromYmd(asOfYear, asOfMonth, asOfDay).getLunar().getYear();
   const isUnlocked = Boolean(options.isUnlocked);
   const chartId = options.chartId || "transient-chart";
   const chartVersionId = options.chartVersionId || "transient-version";
@@ -182,7 +182,7 @@ export function calculateZiweiHoroscope(
   });
 
   const hs = astrolabe.horoscope(asOfDate, selectedTimeIndex);
-  const yearly = hs.yearly;
+  const yearly = astrolabe.horoscope(`${targetYear}-07-01`, selectedTimeIndex).yearly;
 
   // 1. Annual (Lưu Niên) layer
   const annualStemVi = STEM_NAMES_VI[yearly.heavenlyStem] || yearly.heavenlyStem;
@@ -196,7 +196,7 @@ export function calculateZiweiHoroscope(
   const monthlyList = astrolabe.monthlyList(targetYear);
 
   // Lunar age (Tuổi âm)
-  const birthYear = parseInt(birthProfile.normalizedCalendar.date.slice(0, 4), 10);
+  const birthYear = astrolabe.rawDates.lunarDate.lunarYear;
   const lunarAge = Math.max(1, targetYear - birthYear + 1);
 
   // 2. Monthly Hạn analysis
@@ -403,7 +403,7 @@ export function calculateZiweiHoroscope(
   };
 
   // Exact local iztro 2.6.0 API, shared with the established report-snapshot adapter.
-  const decadal = astrolabe.decadalList().find(item => asOfYear >= item.yearRange[0] && asOfYear <= item.yearRange[1]);
+  const decadal = astrolabe.decadalList().find(item => targetYear >= item.yearRange[0] && targetYear <= item.yearRange[1]);
   const decadalPalaceId = decadal ? palaceIds[decadal.palaceName] : undefined;
   return {
     version: 1,

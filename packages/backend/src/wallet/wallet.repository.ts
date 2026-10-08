@@ -663,7 +663,7 @@ export function createDatabaseWalletRepository(
         if (updated === undefined) return failure("WALLET_NOT_FOUND");
         const [purchase] = await transaction.select({sku: walletPurchaseIntents.sku}).from(walletPurchaseIntents)
           .where(eq(walletPurchaseIntents.id, original.purchaseIntentId!)).limit(1);
-        if (purchase?.sku === "ZIWEI-COMBO-2026-P0") {
+        if (purchase && ["ZIWEI-COMBO-P0", "ZIWEI-COMBO-2026-P0"].includes(purchase.sku)) {
           await transaction.update(commerceEntitlements).set({revokedAt: now(), revocationReason: "wallet_restoration"})
             .where(eq(commerceEntitlements.ledgerSpendId, original.id));
         }

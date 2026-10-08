@@ -5,6 +5,7 @@ export const WalletQuoteRequestV1Schema = z.object({
   chartId: z.string().trim().min(1).max(200),
   chartVersionId: z.string().trim().min(1).max(200),
   locale: z.enum(["vi", "en"]),
+  targetYear: z.number().int().min(1900).max(2100).optional(),
 }).strict();
 
 const amount = z.number().int().nonnegative();
