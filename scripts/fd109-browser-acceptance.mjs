@@ -127,10 +127,10 @@ async function cell(browser, engine, locale, actor, width, theme) {
     if (width >= 1024) {
       await expect(result.getByRole("tablist")).toBeVisible();
       await expect(result.getByRole("tab")).toHaveCount(6);
-      await page.locator("#tab-chart").focus(); await page.keyboard.press("End");
+      await page.locator("#tab-overview").focus(); await page.keyboard.press("End");
       await expect(page.locator("#tab-evidence")).toBeFocused();
       await expect(result).toHaveAttribute("data-active-tab", "evidence");
-      await page.keyboard.press("Home"); await expect(page.locator("#tab-chart")).toBeFocused();
+      await page.keyboard.press("Home"); await expect(page.locator("#tab-overview")).toBeFocused();
       await expect(result).toHaveAttribute("data-active-tab", "chart");
       await page.locator("#tab-palaces").click();
       await expect(result).toHaveAttribute("data-active-tab", "palaces");
