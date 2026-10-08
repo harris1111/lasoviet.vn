@@ -2,6 +2,7 @@ import { astro } from "iztro";
 import { Solar } from "lunar-typescript";
 import { ZiweiPeriodReadingFactsV1Schema, type NormalizedBirthProfileV1, type ZiweiPeriodReadingFactsV1 } from "@lasoviet/contracts";
 import { iztroGender, iztroTimeIndex } from "./iztro-adapter.js";
+import { computedMonthlyAttention } from "./monthly-attention.js";
 import { palaceIds, starIds } from "./iztro-mapping.js";
 
 /** Frozen, computed lunar periods, including both halves of a leap month. */
@@ -26,7 +27,8 @@ export function calculatePeriodReadingFacts(input: {
   const selected = input.kind === "annual" ? all : all.filter(period =>
     period.month === Math.abs(lunar.getMonth()) && period.isLeapMonth === (lunar.getMonth() < 0));
   if (!selected.length || (input.kind === "annual" && new Set(all.map(period => period.month)).size !== 12)) throw new Error("PERIOD_ENGINE_INCOMPLETE");
-  const annualIndex = chart.horoscope(`${targetYear}-07-01`, timeIndex).yearly.index;
+  const annual = chart.horoscope(`${targetYear}-07-01`, timeIndex).yearly;
+  const annualIndex = annual.index;
   const annualPalace = chart.palaces[annualIndex];
   const annualPalaceId = annualPalace && palaceIds[annualPalace.name];
   if (!annualPalaceId) throw new Error("PERIOD_ENGINE_UNMAPPED");
@@ -40,10 +42,13 @@ export function calculatePeriodReadingFacts(input: {
       if (!id) throw new Error("PERIOD_ENGINE_UNMAPPED");
       return { id, isObstacle: star.name === period.mutagen[3] };
     });
-    const obstacleStarIds = mappedStars.filter(star => star.isObstacle).map(star => star.id);
+    const attention = computedMonthlyAttention({ stars: [...palace.majorStars, ...palace.minorStars],
+      monthlyMutagen: period.mutagen, annualMutagen: annual.mutagen });
+    const obstacleStarIds = attention.obstacleStarIds;
     return { id, year: targetYear, month: period.month, isLeapMonth: period.isLeapMonth, part: period.part, dayRange: period.dayRange,
       palaceId, starIds: mappedStars.map(star => star.id), obstacleStarIds,
-      evidenceKeys: [`period.${id}.palace.${palaceId}`, ...mappedStars.map(star => `period.${id}.star.${star.id}`), ...obstacleStarIds.map(star => `period.${id}.obstacle.${star}`)] };
+      evidenceKeys: [`period.${id}.palace.${palaceId}`, ...mappedStars.map(star => `period.${id}.star.${star.id}`), ...obstacleStarIds.map(star => `period.${id}.obstacle.${star}`),
+        ...attention.reasons.map(reason => `period.${id}.obstacle.${reason.scope}.${reason.starId}`)] };
   });
   return ZiweiPeriodReadingFactsV1Schema.parse({ version: 1, chartId: input.chartId, chartVersionId: input.chartVersionId,
     kind: input.kind, targetYear, calendar: "lunar", asOfDate: input.asOfDate,

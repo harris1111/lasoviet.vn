@@ -1,0 +1,4780 @@
+{
+  "ruleVersion": "monthly-attention-v1",
+  "targetYear": 2026,
+  "sampleCount": 200,
+  "interpretation": "A real monthly or annual Hua Ji must occur in the touched monthly palace. Natal malefics are context, never a standalone warning. This synthetic distribution is not empirical prediction accuracy or owner acceptance.",
+  "deterministicReplay": true,
+  "freePaidAgreement": true,
+  "zeroWarningCharts": 0,
+  "histogram": {
+    "1": 66,
+    "2": 86,
+    "3": 39,
+    "4": 8,
+    "5": 1
+  },
+  "cases": [
+    {
+      "id": "synthetic-1",
+      "birthDate": "1960-01-01",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-2",
+      "birthDate": "1961-02-02",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        5,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-3",
+      "birthDate": "1962-03-03",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-4",
+      "birthDate": "1963-04-04",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-5",
+      "birthDate": "1964-05-05",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-6",
+      "birthDate": "1965-06-06",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-7",
+      "birthDate": "1966-07-07",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-8",
+      "birthDate": "1967-08-08",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-9",
+      "birthDate": "1968-09-09",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-10",
+      "birthDate": "1969-10-10",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-11",
+      "birthDate": "1970-11-11",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-12",
+      "birthDate": "1971-12-12",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-13",
+      "birthDate": "1972-01-13",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-14",
+      "birthDate": "1973-02-14",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-15",
+      "birthDate": "1974-03-15",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        2,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-16",
+      "birthDate": "1975-04-16",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-17",
+      "birthDate": "1976-05-17",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-18",
+      "birthDate": "1977-06-18",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-19",
+      "birthDate": "1978-07-19",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-20",
+      "birthDate": "1979-08-20",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-21",
+      "birthDate": "1980-09-21",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-22",
+      "birthDate": "1981-10-22",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-23",
+      "birthDate": "1982-11-23",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-24",
+      "birthDate": "1983-12-24",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-25",
+      "birthDate": "1984-01-25",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        4,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-26",
+      "birthDate": "1985-02-26",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-27",
+      "birthDate": "1986-03-27",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        5
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-28",
+      "birthDate": "1987-04-01",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-29",
+      "birthDate": "1988-05-02",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-30",
+      "birthDate": "1989-06-03",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        1,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-31",
+      "birthDate": "1990-07-04",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-32",
+      "birthDate": "1991-08-05",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-33",
+      "birthDate": "1992-09-06",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-34",
+      "birthDate": "1993-10-07",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        6
+      ],
+      "evidence": [
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-35",
+      "birthDate": "1994-11-08",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-36",
+      "birthDate": "1995-12-09",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        1,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-37",
+      "birthDate": "1996-01-10",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        6
+      ],
+      "evidence": [
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-38",
+      "birthDate": "1997-02-11",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-39",
+      "birthDate": "1998-03-12",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        5
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-40",
+      "birthDate": "1999-04-13",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-41",
+      "birthDate": "2000-05-14",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang",
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-42",
+      "birthDate": "2001-06-15",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-43",
+      "birthDate": "2002-07-16",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-44",
+      "birthDate": "2003-08-17",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-45",
+      "birthDate": "2004-09-18",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-46",
+      "birthDate": "2005-10-19",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-47",
+      "birthDate": "1960-11-20",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-48",
+      "birthDate": "1961-12-21",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-49",
+      "birthDate": "1962-01-22",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-50",
+      "birthDate": "1963-02-23",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-51",
+      "birthDate": "1964-03-24",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        4
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-52",
+      "birthDate": "1965-04-25",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-53",
+      "birthDate": "1966-05-26",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-54",
+      "birthDate": "1967-06-27",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-55",
+      "birthDate": "1968-07-01",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-56",
+      "birthDate": "1969-08-02",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-57",
+      "birthDate": "1970-09-03",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-58",
+      "birthDate": "1971-10-04",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        6
+      ],
+      "evidence": [
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-59",
+      "birthDate": "1972-11-05",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-60",
+      "birthDate": "1973-12-06",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-61",
+      "birthDate": "1974-01-07",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-62",
+      "birthDate": "1975-02-08",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        5,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-63",
+      "birthDate": "1976-03-09",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-64",
+      "birthDate": "1977-04-10",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-65",
+      "birthDate": "1978-05-11",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-66",
+      "birthDate": "1979-06-12",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-67",
+      "birthDate": "1980-07-13",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-68",
+      "birthDate": "1981-08-14",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-69",
+      "birthDate": "1982-09-15",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-70",
+      "birthDate": "1983-10-16",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-71",
+      "birthDate": "1984-11-17",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-72",
+      "birthDate": "1985-12-18",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-73",
+      "birthDate": "1986-01-19",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        6,
+        8,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-74",
+      "birthDate": "1987-02-20",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        4,
+        6
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-75",
+      "birthDate": "1988-03-21",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-76",
+      "birthDate": "1989-04-22",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-77",
+      "birthDate": "1990-05-23",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        6,
+        8,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-78",
+      "birthDate": "1991-06-24",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-79",
+      "birthDate": "1992-07-25",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-80",
+      "birthDate": "1993-08-26",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-81",
+      "birthDate": "1994-09-27",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-82",
+      "birthDate": "1995-10-01",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-83",
+      "birthDate": "1996-11-02",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-84",
+      "birthDate": "1997-12-03",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-85",
+      "birthDate": "1998-01-04",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-86",
+      "birthDate": "1999-02-05",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        3,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-87",
+      "birthDate": "2000-03-06",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        7
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-88",
+      "birthDate": "2001-04-07",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-89",
+      "birthDate": "2002-05-08",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        6
+      ],
+      "evidence": [
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-90",
+      "birthDate": "2003-06-09",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-91",
+      "birthDate": "2004-07-10",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-92",
+      "birthDate": "2005-08-11",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-93",
+      "birthDate": "1960-09-12",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang",
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-94",
+      "birthDate": "1961-10-13",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-95",
+      "birthDate": "1962-11-14",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-96",
+      "birthDate": "1963-12-15",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-97",
+      "birthDate": "1964-01-16",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-98",
+      "birthDate": "1965-02-17",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-99",
+      "birthDate": "1966-03-18",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang",
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-100",
+      "birthDate": "1967-04-19",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-101",
+      "birthDate": "1968-05-20",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-102",
+      "birthDate": "1969-06-21",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-103",
+      "birthDate": "1970-07-22",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-104",
+      "birthDate": "1971-08-23",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-105",
+      "birthDate": "1972-09-24",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-106",
+      "birthDate": "1973-10-25",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-107",
+      "birthDate": "1974-11-26",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-108",
+      "birthDate": "1975-12-27",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-109",
+      "birthDate": "1976-01-01",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        7,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-110",
+      "birthDate": "1977-02-02",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        1,
+        2,
+        6,
+        8,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-111",
+      "birthDate": "1978-03-03",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-112",
+      "birthDate": "1979-04-04",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-113",
+      "birthDate": "1980-05-05",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-114",
+      "birthDate": "1981-06-06",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-115",
+      "birthDate": "1982-07-07",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-116",
+      "birthDate": "1983-08-08",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-117",
+      "birthDate": "1984-09-09",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        4,
+        6
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-118",
+      "birthDate": "1985-10-10",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-119",
+      "birthDate": "1986-11-11",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-120",
+      "birthDate": "1987-12-12",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-121",
+      "birthDate": "1988-01-13",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        6
+      ],
+      "evidence": [
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-122",
+      "birthDate": "1989-02-14",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-123",
+      "birthDate": "1990-03-15",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        2,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-124",
+      "birthDate": "1991-04-16",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-125",
+      "birthDate": "1992-05-17",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        4,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-126",
+      "birthDate": "1993-06-18",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-127",
+      "birthDate": "1994-07-19",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-128",
+      "birthDate": "1995-08-20",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-129",
+      "birthDate": "1996-09-21",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-130",
+      "birthDate": "1997-10-22",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        4,
+        6
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-131",
+      "birthDate": "1998-11-23",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-132",
+      "birthDate": "1999-12-24",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-133",
+      "birthDate": "2000-01-25",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        8,
+        10,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-134",
+      "birthDate": "2001-02-26",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-135",
+      "birthDate": "2002-03-27",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-136",
+      "birthDate": "2003-04-01",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-137",
+      "birthDate": "2004-05-02",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-138",
+      "birthDate": "2005-06-03",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-139",
+      "birthDate": "1960-07-04",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-140",
+      "birthDate": "1961-08-05",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-141",
+      "birthDate": "1962-09-06",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-142",
+      "birthDate": "1963-10-07",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-143",
+      "birthDate": "1964-11-08",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-144",
+      "birthDate": "1965-12-09",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-145",
+      "birthDate": "1966-01-10",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu",
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-146",
+      "birthDate": "1967-02-11",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-147",
+      "birthDate": "1968-03-12",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        5
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-148",
+      "birthDate": "1969-04-13",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-149",
+      "birthDate": "1970-05-14",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        6,
+        8,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-150",
+      "birthDate": "1971-06-15",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        4,
+        6
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-151",
+      "birthDate": "1972-07-16",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-152",
+      "birthDate": "1973-08-17",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-153",
+      "birthDate": "1974-09-18",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-154",
+      "birthDate": "1975-10-19",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-155",
+      "birthDate": "1976-11-20",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-156",
+      "birthDate": "1977-12-21",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-157",
+      "birthDate": "1978-01-22",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        6,
+        8,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-158",
+      "birthDate": "1979-02-23",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-159",
+      "birthDate": "1980-03-24",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        5
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-160",
+      "birthDate": "1981-04-25",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-161",
+      "birthDate": "1982-05-26",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        6,
+        8,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-162",
+      "birthDate": "1983-06-27",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-163",
+      "birthDate": "1984-07-01",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-164",
+      "birthDate": "1985-08-02",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-165",
+      "birthDate": "1986-09-03",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        3
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-166",
+      "birthDate": "1987-10-04",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-167",
+      "birthDate": "1988-11-05",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-168",
+      "birthDate": "1989-12-06",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-169",
+      "birthDate": "1990-01-07",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        4,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-170",
+      "birthDate": "1991-02-08",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang",
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-171",
+      "birthDate": "1992-03-09",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        2
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-172",
+      "birthDate": "1993-04-10",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-173",
+      "birthDate": "1994-05-11",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        3,
+        11,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-174",
+      "birthDate": "1995-06-12",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-175",
+      "birthDate": "1996-07-13",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        6
+      ],
+      "evidence": [
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-176",
+      "birthDate": "1997-08-14",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-177",
+      "birthDate": "1998-09-15",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-178",
+      "birthDate": "1999-10-16",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        6,
+        8
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.monthly.ziwei.star.taiyin"
+          ]
+        },
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.monthly.ziwei.star.jumen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-179",
+      "birthDate": "2000-11-17",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        5
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-180",
+      "birthDate": "2001-12-18",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-181",
+      "birthDate": "2002-01-19",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu",
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-182",
+      "birthDate": "2003-02-20",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        4
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-183",
+      "birthDate": "2004-03-21",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        },
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-184",
+      "birthDate": "2005-04-22",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        4,
+        6
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-185",
+      "birthDate": "1960-05-23",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        4,
+        6,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 4,
+          "keys": [
+            "annual.month.4.obstacle.monthly.ziwei.star.tanlang"
+          ]
+        },
+        {
+          "month": 6,
+          "keys": [
+            "annual.month.6.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.monthly.ziwei.star.wenchang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-186",
+      "birthDate": "1961-06-24",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-187",
+      "birthDate": "1962-07-25",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        7
+      ],
+      "evidence": [
+        {
+          "month": 7,
+          "keys": [
+            "annual.month.7.obstacle.monthly.ziwei.star.lianzhen",
+            "annual.month.7.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-188",
+      "birthDate": "1963-08-26",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        1
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-189",
+      "birthDate": "1964-09-27",
+      "birthTime": "16:30",
+      "gender": "male",
+      "warnMonths": [
+        1,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 1,
+          "keys": [
+            "annual.month.1.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-190",
+      "birthDate": "1965-10-01",
+      "birthTime": "18:30",
+      "gender": "female",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-191",
+      "birthDate": "1966-11-02",
+      "birthTime": "20:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-192",
+      "birthDate": "1967-12-03",
+      "birthTime": "22:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-193",
+      "birthDate": "1968-01-04",
+      "birthTime": "00:30",
+      "gender": "male",
+      "warnMonths": [
+        5,
+        10,
+        12
+      ],
+      "evidence": [
+        {
+          "month": 5,
+          "keys": [
+            "annual.month.5.obstacle.monthly.ziwei.star.taiyang"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        },
+        {
+          "month": 12,
+          "keys": [
+            "annual.month.12.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-194",
+      "birthDate": "1969-02-05",
+      "birthTime": "02:30",
+      "gender": "female",
+      "warnMonths": [
+        2,
+        9,
+        10
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.monthly.ziwei.star.wenchang",
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        },
+        {
+          "month": 10,
+          "keys": [
+            "annual.month.10.obstacle.monthly.ziwei.star.wenqu"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-195",
+      "birthDate": "1970-03-06",
+      "birthTime": "04:30",
+      "gender": "male",
+      "warnMonths": [
+        2,
+        9
+      ],
+      "evidence": [
+        {
+          "month": 2,
+          "keys": [
+            "annual.month.2.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.monthly.ziwei.star.tianji"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-196",
+      "birthDate": "1971-04-07",
+      "birthTime": "06:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-197",
+      "birthDate": "1972-05-08",
+      "birthTime": "08:30",
+      "gender": "male",
+      "warnMonths": [
+        9
+      ],
+      "evidence": [
+        {
+          "month": 9,
+          "keys": [
+            "annual.month.9.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-198",
+      "birthDate": "1973-06-09",
+      "birthTime": "10:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-199",
+      "birthDate": "1974-07-10",
+      "birthTime": "12:30",
+      "gender": "male",
+      "warnMonths": [
+        8,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 8,
+          "keys": [
+            "annual.month.8.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.monthly.ziwei.star.tiantong"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-200",
+      "birthDate": "1975-08-11",
+      "birthTime": "14:30",
+      "gender": "female",
+      "warnMonths": [
+        3,
+        11
+      ],
+      "evidence": [
+        {
+          "month": 3,
+          "keys": [
+            "annual.month.3.obstacle.monthly.ziwei.star.wuqu"
+          ]
+        },
+        {
+          "month": 11,
+          "keys": [
+            "annual.month.11.obstacle.annual.ziwei.star.lianzhen"
+          ]
+        }
+      ]
+    }
+  ]
+}
