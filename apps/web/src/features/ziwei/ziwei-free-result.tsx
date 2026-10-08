@@ -298,6 +298,10 @@ export function ZiweiFreeResult({
   function score(palace: typeof selected) {
     return <span className="fd109-score">{palace.score} · {reportT(`reader.score_band_${palace.band}`)}</span>;
   }
+  const drawerPalace = chart.palaces.find((palace) => palace.id === selectedChartPalace);
+  const drawerTitle = drawerPalace
+    ? `${presentation.palace(drawerPalace.id)} (${drawerPalace.heavenlyStemId ? `${presentation.stem(drawerPalace.heavenlyStemId)} ` : ""}${presentation.branch(drawerPalace.earthlyBranchId)})`
+    : presentation.palace(selectedChartPalace);
   function selectStagePalace(palaceId: string) {
     setSelectedChartPalace(palaceId);
     if (desktop) return;
@@ -454,7 +458,7 @@ export function ZiweiFreeResult({
         <div>
           <span className="fd109-sheet-handle" aria-hidden="true" />
           <button className="fd109-close" autoFocus type="button" onClick={closeModal}>{modalId === "chart" || modalId === "palace" ? t("freeResult.sheetClose") : t("freeResult.close")}</button>
-          <h2 id={modalId === "palace" ? DRAWER_HINT_ID : "fd109-preview-title"}>{modalId === "palace" ? presentation.palace(selectedChartPalace) : modalId === "chart" ? t("freeResult.enlargeChart") : periodPreview ? t("freeResult.periodTitle") : previewTopic?.title ?? previewPalace?.name ?? t("freeResult.preview")}</h2>
+          <h2 id={modalId === "palace" ? DRAWER_HINT_ID : "fd109-preview-title"}>{modalId === "palace" ? drawerTitle : modalId === "chart" ? t("freeResult.enlargeChart") : periodPreview ? t("freeResult.periodTitle") : previewTopic?.title ?? previewPalace?.name ?? t("freeResult.preview")}</h2>
           {modalId === "chart" ? <ZiweiChartSheet chart={chart} birthSummary={birthSummary} locale={locale}
             selectedPalaceId={selectedChartPalace} onSelectPalace={setSelectedChartPalace} /> : modalId === "palace" ? inspector() : <>
             {periodPreview && model.periodTeaser && <SecureLockedPreview title={t("freeResult.periodTitle")} locale={locale} clippedSentences={model.periodTeaser.sentences} lengthHint={5} />}

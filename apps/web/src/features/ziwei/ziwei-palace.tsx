@@ -75,7 +75,7 @@ export function ZiweiPalace({
       <span className="ziwei-palace-header">
         <span className="palace-name-group">
           <span className="palace-stem-branch">{stemBranchLabel}</span>
-          <span className="palace-title">{presentation.palace(palace.id)}</span>
+          <span className="palace-title">{compact ? presentation.palace(palace.id).replace(/^Cung\s+/, "") : presentation.palace(palace.id)}</span>
         </span>
         {compact ? null : <span className="palace-badges">
           {relationLabel ? (
