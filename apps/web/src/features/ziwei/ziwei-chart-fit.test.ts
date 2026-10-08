@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fitBoard, stepZoom, ZOOM_MAX, ZOOM_MIN } from "./ziwei-chart-fit";
+import { fitBoard, stepZoom, zoomForKey, ZOOM_MAX, ZOOM_MIN } from "./ziwei-chart-fit";
 
 describe("enlarged chart fits the sheet width", () => {
   it("never lets the scaled board exceed the container at the fitted zoom (no cropped cells)", () => {
@@ -19,6 +19,12 @@ describe("enlarged chart fits the sheet width", () => {
     expect(stepZoom(1, 1)).toBe(1.25);
     expect(stepZoom(ZOOM_MAX, 1)).toBe(ZOOM_MAX);
     expect(stepZoom(ZOOM_MIN, -1)).toBe(ZOOM_MIN);
+  });
+  it("maps + - 0 to zoom steps and ignores other keys", () => {
+    expect(zoomForKey(1, "+")).toBe(1.25);
+    expect(zoomForKey(1, "-")).toBe(0.75);
+    expect(zoomForKey(2.5, "0")).toBe(1);
+    expect(zoomForKey(1, "a")).toBeNull();
   });
   it("tolerates an unmeasured container", () => {
     expect(fitBoard(0, 1)).toEqual({ layoutWidth: 560, scale: 1 });

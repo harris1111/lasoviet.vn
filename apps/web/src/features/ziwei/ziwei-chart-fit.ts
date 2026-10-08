@@ -13,6 +13,14 @@ export function fitBoard(containerWidth: number, zoom: number): { layoutWidth: n
   return { layoutWidth, scale: Math.round(fit * zoom * 1000) / 1000 };
 }
 
+// Keyboard on the enlarged chart: "+" "-" step, "0" returns to fit-to-frame. Anything else is ignored.
+export function zoomForKey(zoom: number, key: string): number | null {
+  if (key === "+" || key === "=") return stepZoom(zoom, 1);
+  if (key === "-" || key === "_") return stepZoom(zoom, -1);
+  if (key === "0") return 1;
+  return null;
+}
+
 export function stepZoom(zoom: number, direction: 1 | -1): number {
   const next = Math.round((zoom + direction * ZOOM_STEP) * 100) / 100;
   return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));

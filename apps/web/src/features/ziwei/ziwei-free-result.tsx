@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CANONICAL_PALACE_SKU_MAP, type LaSku, type ZiweiPalaceId } from "@lasoviet/contracts";
 import { ContextualUnlock } from "../commerce/contextual-unlock";
@@ -16,11 +15,13 @@ import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart
 import { PartFeedback } from "../reports/part-feedback";
 import { SecureLockedPreview } from "./secure-locked-preview";
 import { ZiweiChart } from "./ziwei-chart";
+import { ZiweiChartSheet } from "./ziwei-chart-sheet";
+import { readResultView, sameView, writeResultView, type ResultSheet, type ResultView } from "./ziwei-result-history";
 import type { FreeResultModel } from "./ziwei-free-result-model";
 import { ziweiPresentation, type ZiweiPresentationLocale } from "./ziwei-presentation";
 import {
   CANONICAL_RESULT_TABS, CANONICAL_ID_TO_EVIDENCE_SUFFIX,
-  EVIDENCE_SUFFIX_TO_CANONICAL_ID, buildCanonicalTabUrl,
+  EVIDENCE_SUFFIX_TO_CANONICAL_ID,
   type ParsedResultTabState, type ZiweiResultTab,
 } from "./ziwei-tabs-state";
 
@@ -58,11 +59,13 @@ export function ZiweiFreeResult({
   const t = useTranslations("ziwei");
   const reportT = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
-  const router = useRouter();
   const desktop = useSyncExternalStore(subscribeDesktop, desktopSnapshot, () => false);
   const [askEligible, setAskEligible] = useState(false);
-  const [chartExpanded, setChartExpanded] = useState(false);
-  const [periodPreview, setPeriodPreview] = useState(false);
+  // FE-3 / N7: tab, preview and sheet are local state (instant), the address bar is synced with the native
+  // History API (no server round trip). popstate restores state for Back/Forward.
+  const [view, setView] = useState<ResultView>(initialState);
+  const chartExpanded = view.sheet === "chart";
+  const periodPreview = view.sheet === "period";
   const [selectedChartPalace, setSelectedChartPalace] = useState<string>(chart.soulPalaceId);
   const analyticsRef = useRef(createFreeResultAnalytics(locale, model.gift ? "validated_artifact" : "structural"));
   const completionRef = useRef<HTMLElement>(null);
@@ -71,9 +74,9 @@ export function ZiweiFreeResult({
   const tabListRef = useRef<HTMLDivElement>(null);
   const selected = model.palaces.find((palace) => palace.id === model.selectedPalaceId)!;
   const others = model.palaces.filter((palace) => palace.id !== selected.id);
-  const previewTopic = initialState.tab === "topics" ? model.topics.find((topic) => topic.id === initialState.open) : undefined;
-  const previewPalace = (initialState.tab === "palaces" || initialState.tab === "topics")
-    ? model.palaces.find((palace) => palace.id === `ziwei.palace.${initialState.open}`) : undefined;
+  const previewTopic = view.tab === "topics" ? model.topics.find((topic) => topic.id === view.open) : undefined;
+  const previewPalace = (view.tab === "palaces" || view.tab === "topics")
+    ? model.palaces.find((palace) => palace.id === `ziwei.palace.${view.open}`) : undefined;
   const previewId = periodPreview ? "period" : previewTopic?.id ?? previewPalace?.id;
   const previewSku = periodPreview ? model.periodTeaser?.sku : previewPalace ? CANONICAL_PALACE_SKU_MAP[previewPalace.id as ZiweiPalaceId] as LaSku :
     previewTopic?.id === "career_wealth" ? "ZIWEI-CAREER-P0" : previewTopic?.id === "relationship_marriage" ? "ZIWEI-RELATIONSHIP-P0" : undefined;
@@ -137,22 +140,22 @@ export function ZiweiFreeResult({
     const focusOnResize = () => {
       const active = document.activeElement;
       if (!media.matches && active instanceof HTMLElement && active.getAttribute("role") === "tab") {
-        document.getElementById(mobileAnchors[initialState.tab])?.focus({ preventScroll: true });
+        document.getElementById(mobileAnchors[view.tab])?.focus({ preventScroll: true });
       }
     };
     media.addEventListener("change", focusOnResize);
     return () => media.removeEventListener("change", focusOnResize);
-  }, [initialState.tab]);
+  }, [view.tab]);
 
   useEffect(() => {
-    if (window.matchMedia("(min-width: 1024px)").matches || initialState.open) return;
+    if (window.matchMedia("(min-width: 1024px)").matches || view.open) return;
     const frame = requestAnimationFrame(() => {
-      document.getElementById(mobileAnchors[initialState.tab])?.scrollIntoView({ block: "start" });
+      document.getElementById(mobileAnchors[view.tab])?.scrollIntoView({ block: "start" });
     });
     return () => cancelAnimationFrame(frame);
     // Opening/closing a modal must not re-run the section anchor scroll.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialState.tab]);
+  }, [view.tab]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -172,28 +175,52 @@ export function ZiweiFreeResult({
       const trigger = triggerRef.current;
       const activeTab = tabs?.querySelector<HTMLButtonElement>('[aria-selected="true"]');
       const target = trigger?.isConnected && trigger.getClientRects().length ? trigger
-        : activeTab?.getClientRects().length ? activeTab : document.getElementById(mobileAnchors[initialState.tab]);
+        : activeTab?.getClientRects().length ? activeTab : document.getElementById(mobileAnchors[view.tab]);
       target?.focus({ preventScroll: true });
     };
-  }, [modalId, initialState.tab]);
+  }, [modalId, view.tab]);
 
   const engagementRef = useRef(createEngagementReporter(recordEngagement));
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  // The server only decides the first view; later prop changes (e.g. a refresh) must not drop an open sheet.
+  useEffect(() => {
+    setView((current) => current.tab === initialState.tab && current.open === initialState.open ? current : initialState);
+  }, [initialState]);
+  useEffect(() => {
+    // Back, Forward and shared links: rebuild the view from the address bar plus the sheet marker.
+    const onPopState = () => setView(readResultView(window.location.search, window.history.state));
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+  function go(next: ResultView, mode: "push" | "replace" = "push") {
+    if (sameView(viewRef.current, next)) return;
+    viewRef.current = next;
+    setView(next);
+    writeResultView(window.history, basePath, next, mode);
+  }
   function navigate(tab: ZiweiResultTab, open?: string) {
     // A genuine user action (tab click, preview or evidence open): report each tab once, fire-and-forget.
     engagementRef.current.report(tab);
-    router.push(buildCanonicalTabUrl(basePath, { tab, open }), { scroll: false });
+    go({ tab, open });
+  }
+  function openSheet(sheet: ResultSheet, trigger: HTMLButtonElement | null) {
+    triggerRef.current = trigger;
+    setAskEligible(true);
+    go({ tab: view.tab, open: view.open, sheet });
   }
   function openPreview(id: string, trigger: HTMLButtonElement, tab: "palaces" | "topics") {
     triggerRef.current = trigger;
-    setChartExpanded(false);
-    setPeriodPreview(false);
     setAskEligible(true);
     navigate(tab, id);
   }
   function closeModal() {
-    if (periodPreview) setPeriodPreview(false);
-    else if (previewId) navigate(initialState.tab);
-    else setChartExpanded(false);
+    if (view.sheet) {
+      // The sheet owns a history entry: closing it with Back keeps the stack tidy.
+      const marked = typeof window.history.state === "object" && window.history.state !== null && "fd109Sheet" in window.history.state;
+      if (marked) window.history.back();
+      else go({ tab: view.tab, open: view.open }, "replace");
+    } else if (previewId) navigate(view.tab);
   }
   function tabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const count = CANONICAL_RESULT_TABS.length;
@@ -209,7 +236,7 @@ export function ZiweiFreeResult({
     return {
       id: `panel-${tab}`, "data-tab": tab, role: desktop ? "tabpanel" : "region",
       "aria-labelledby": desktop ? `tab-${tab}` : `heading-${tab}`,
-      "aria-hidden": desktop && initialState.tab !== tab ? true : undefined, tabIndex: -1,
+      "aria-hidden": desktop && view.tab !== tab ? true : undefined, tabIndex: -1,
     };
   }
   function score(palace: typeof selected) {
@@ -221,18 +248,18 @@ export function ZiweiFreeResult({
   }
 
   return (
-    <div className="fd109 container" data-active-tab={initialState.tab} data-testid="fd109-free-result">
+    <div className="fd109 container" data-active-tab={view.tab} data-testid="fd109-free-result">
       <div className="fd109-tabs" role="tablist" aria-label={t("tabs.ariaLabel")} ref={tabListRef}>
         {CANONICAL_RESULT_TABS.map((tab, index) => (
           <button key={tab} id={`tab-${tab}`} role="tab" aria-controls={`panel-${tab}`}
-            aria-selected={tab === initialState.tab} tabIndex={tab === initialState.tab ? 0 : -1}
+            aria-selected={tab === view.tab} tabIndex={tab === view.tab ? 0 : -1}
             onClick={() => navigate(tab)} onKeyDown={(event) => tabKeyDown(event, index)} type="button">{t(`tabs.${tab}`)}</button>
         ))}
       </div>
       <div className="fd109-layout">
         <aside className="fd109-chart" data-free-result-block="chart" aria-label={t("tabs.chart")} id="free-result-board" tabIndex={-1}>
           <button className="fd109-enlarge" data-testid="fd109-chart-enlarge" type="button"
-            onClick={(event) => { triggerRef.current = event.currentTarget; setChartExpanded(true); }}>{t("freeResult.enlargeChart")}</button>
+            onClick={(event) => openSheet("chart", event.currentTarget)}>{t("freeResult.enlargeChart")}</button>
           {chartView()}
         </aside>
         <div className="fd109-main">
@@ -293,7 +320,7 @@ export function ZiweiFreeResult({
             </div><p>{t("freeResult.monthsMasked")}</p></> : <p>{t("freeResult.yearUnavailable")}</p>}
             {model.periodTeaser && <div data-testid="fd109-period-teaser">
               <SecureLockedPreview title={t("freeResult.periodTitle")} locale={locale} clippedSentences={model.periodTeaser.sentences} lengthHint={5}
-                actionLabel={t("freeResult.periodPreview")} onAction={() => { triggerRef.current = document.querySelector<HTMLButtonElement>('[data-testid="fd109-period-teaser"] button'); setChartExpanded(false); setPeriodPreview(true); setAskEligible(true); }} />
+                actionLabel={t("freeResult.periodPreview")} onAction={() => openSheet("period", document.querySelector<HTMLButtonElement>('[data-testid="fd109-period-teaser"] button'))} />
             </div>}
           </section>
           <section {...panel("palaces")} className="fd109-block" data-free-result-block="palaces">
@@ -332,7 +359,7 @@ export function ZiweiFreeResult({
                   </div>
                   <div className="matrix-card-action">
                     <EvidenceDrawer chart={chart} chartId={chartId} locale={locale} evidenceId={evidenceId} loadEvidence={loadEvidence}
-                      isOpen={initialState.tab === "evidence" && initialState.open === suffix}
+                      isOpen={view.tab === "evidence" && view.open === suffix}
                       onOpenChange={(open) => navigate("evidence", open ? CANONICAL_ID_TO_EVIDENCE_SUFFIX[evidenceId] : undefined)} />
                   </div>
                 </article>
@@ -349,9 +376,10 @@ export function ZiweiFreeResult({
         onClick={(event) => { if (event.target === event.currentTarget) closeModal(); }}>
         <div>
           <span className="fd109-sheet-handle" aria-hidden="true" />
-          <button className="fd109-close" autoFocus type="button" onClick={closeModal}>{t("freeResult.close")}</button>
+          <button className="fd109-close" autoFocus type="button" onClick={closeModal}>{modalId === "chart" ? t("freeResult.sheetClose") : t("freeResult.close")}</button>
           <h2 id="fd109-preview-title">{modalId === "chart" ? t("freeResult.enlargeChart") : periodPreview ? t("freeResult.periodTitle") : previewTopic?.title ?? previewPalace?.name ?? t("freeResult.preview")}</h2>
-          {modalId === "chart" ? <div className="fd109-chart-pan">{chartView()}</div> : <>
+          {modalId === "chart" ? <ZiweiChartSheet chart={chart} birthSummary={birthSummary} locale={locale}
+            selectedPalaceId={selectedChartPalace} onSelectPalace={setSelectedChartPalace} /> : <>
             {periodPreview && model.periodTeaser && <SecureLockedPreview title={t("freeResult.periodTitle")} locale={locale} clippedSentences={model.periodTeaser.sentences} lengthHint={5} />}
             {previewPalace && <>{score(previewPalace)}<p>{previewPalace.facts}</p></>}
             {previewTopic && <><p>{previewTopic.question}</p><ul>{[...previewTopic.primaryPalaces, ...previewTopic.supportingPalaces].map((id) => {
