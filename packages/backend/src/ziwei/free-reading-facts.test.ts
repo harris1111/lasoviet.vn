@@ -48,4 +48,11 @@ describe("offline free-reading facts preparation", () => {
     expect(result.facts.some(f => f.key === "data:time-uncertain")).toBe(true);
     expect(result.allowedWithheld).toEqual([]);
   });
+  it("does not infer an empty palace from a legacy star with unspecified category", async () => {
+    const source = await chart();
+    const legacy = { ...source, palaces: source.palaces.map(p => p.id === "ziwei.palace.life" ? { ...p,
+      stars: [{ id: "ziwei.star.ziwei", brightness: "ziwei.brightness.exalted" as const }] } : p) };
+    const result = buildFreeReadingFacts({ chart: legacy, focusPalaceId: "ziwei.palace.life", locale: "vi" });
+    expect(result.facts.some(f => f.key === "palace:life:empty")).toBe(false);
+  });
 });

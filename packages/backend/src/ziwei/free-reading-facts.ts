@@ -38,7 +38,8 @@ export function buildFreeReadingFacts(input: {
       facts.push({ key: `${key}:star:${suffix(star.id)}`, label: label(star.id),
         value: [label(star.id), label(id), label(star.brightness), ...transformations].join(" · ") });
     }
-    if (!palace.stars.some(star => star.category === "major")) {
+    // Optional categories in older normalized charts cannot prove absence of major stars.
+    if (palace.stars.every(star => star.category !== undefined && star.category !== "major")) {
       facts.push({ key: `${key}:empty`, label: label(id), value: vi ? "Không có chính tinh" : "No principal star" });
     }
   }
