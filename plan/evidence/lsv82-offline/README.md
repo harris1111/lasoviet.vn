@@ -18,3 +18,13 @@ node scripts/export-free-reading-review.mjs
 ```
 
 Prompt construction is offline and deterministic. Hashes record preparation payloads only; no token-bound proof, measured provider usage, live evaluation budget, durable writer/cache integration or runtime activation is claimed. PR319 remains draft; LSV82 remains open.
+
+## Owner R3 update (2026-10-08)
+
+Style findings are advisory in both VI and EN: formula wording, self-reference,
+untranslated/raw formatting, repeated prose, named-anchor wording and teaser
+style remain visible for editing but do not reject the draft. Invalid contracts,
+unresolved/invented facts, placement/brightness/Hoa mismatches, unsupported dates
+or numeric scores, uncertainty disclosure and FD089 content fences remain hard.
+The checker is lexical preparation, not proof of semantic truth or publication
+acceptance. Draft cards and samples still have accepted:false and zero calls.

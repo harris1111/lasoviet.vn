@@ -63,11 +63,9 @@ describe("offline free-reading copy preparation", () => {
     }
   });
   it.each([
-    ["formula_leak", "Điểm cấu trúc là 77/100."], ["uncomputed_date", "Năm 2027 sẽ đổi việc."],
+    ["uncomputed_date", "Năm 2027 sẽ đổi việc."], ["uncomputed_number", "Điểm cấu trúc là 77/100."],
     ["content_line", "Bạn sẽ chết sớm."], ["content_line", "Bạn mắc ung thư."],
     ["content_line", "Mua vật phẩm phong thủy để giải hạn."], ["content_line", "Chỉ còn 3 phút còn lại."],
-    ["locale_integrity", "ziwei.palace.life là cung chính."], ["locale_integrity", "紫微"],
-    ["self_reference", "AI của chúng tôi đã xem lá số."], ["teaser_boundary", "Hãy đổi việc vì sao này."],
   ])("rejects %s without altering a valid baseline", async (code, bad) => {
     const chart = await calculate();
     const source = buildFreeReadingFacts({ chart, focusPalaceId: chart.soulPalaceId, locale: "vi" });
@@ -80,6 +78,36 @@ describe("offline free-reading copy preparation", () => {
     expect(result.ok).toBe(false);
     expect(result.findings.some(f => f.code === code && f.hard)).toBe(true);
   });
+  it.each(["vi", "en"] as const)("reports style findings softly while preserving truth gates in %s", async locale => {
+    const chart = await calculate();
+    const source = buildFreeReadingFacts({ chart, focusPalaceId: chart.soulPalaceId, locale });
+    const good = compileFreeReadingFallback(source);
+    for (const [code, text] of [
+      ["formula_leak", locale === "vi" ? "Điểm cấu trúc nằm ngoài bài." : "The structural score belongs in its formula box."],
+      ["locale_integrity", "ziwei.palace.life 紫微"],
+      ["self_reference", locale === "vi" ? "AI hỗ trợ cách diễn đạt." : "Our team uses an algorithm."],
+      ["teaser_boundary", locale === "vi" ? "Hãy cân nhắc kỹ." : "You should consider carefully."],
+    ]) {
+      const changed = structuredClone(good);
+      if (code === "teaser_boundary") changed.teasers[0]!.line += ` ${text}`;
+      else changed.overview.portrait.text += ` ${text}`;
+      const checked = checkFreeReadingQuality({ content: changed, source });
+      expect(checked.ok).toBe(true);
+      expect(checked.findings.some(f => f.code === code && !f.hard)).toBe(true);
+    }
+  });
+
+  it.each(["vi", "en"] as const)("blocks invented numeric fortune and probability claims in %s", async locale => {
+    const chart = await calculate();
+    const source = buildFreeReadingFacts({ chart, focusPalaceId: chart.soulPalaceId, locale });
+    for (const text of locale === "vi" ? ["Điểm may mắn của bạn là 99%.", "Bạn có xác suất thành công 97."] : ["Your luck score is 99%.", "Your probability of success is 97."]) {
+      const changed = compileFreeReadingFallback(source); changed.overview.portrait.text += ` ${text}`;
+      const result = checkFreeReadingQuality({ content: changed, source });
+      expect(result.ok).toBe(false);
+      expect(result.findings.some(f => f.code === "uncomputed_number" && f.hard)).toBe(true);
+    }
+  });
+
   it.each(["vi", "en"] as const)("rejects explicit wrong palace, brightness and Hoa in %s", async locale => {
     const chart = await calculate();
     const source = buildFreeReadingFacts({ chart, focusPalaceId: chart.soulPalaceId, locale });

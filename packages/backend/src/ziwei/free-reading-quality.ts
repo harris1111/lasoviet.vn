@@ -3,17 +3,20 @@ import { HAN_IDEOGRAPH_PATTERN, wholeWord } from "../reports/comprehensive-repor
 import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "../reports/ziwei-canonical-labels.js";
 import { FREE_PALACE_EN_LABELS, freePalaceLabel } from "./free-palace-labels.js";
 
-export const FREE_READING_QUALITY_VERSION = "free-reading-lexical-quality-v2-draft-1";
+export const FREE_READING_QUALITY_VERSION = "free-reading-lexical-quality-v2-draft-2";
 export type FreeReadingFinding = Readonly<{ code: string; block: string; hard: boolean; detail: string }>;
 type ProseBlock = { block: string; text: string; keys: string[]; teaser?: boolean; basis?: boolean };
 const normalize = (text: string) => text.normalize("NFC").replace(/\s+/gu, " ").trim().toLowerCase();
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 const words = (text: string) => text.trim().split(/\s+/u).filter(Boolean).length;
 const formula = /điểm cấu trúc|độ mạnh cấu trúc|phần riêng|phần chiếu|nền\s+\d+|\d+\s*\/\s*100|structural score|own component|related-palace contribution/iu;
+const numericalScore = /\d[\d.,]*\s*(?:%|\/\s*100)|(?:điểm|score|rating|xác suất|probability|chance)[^.!?\n]{0,100}\d/iu;
 const dates = /\b(?:19|20)\d{2}\b|(?<![\p{L}\p{N}])(?:ngày|tháng|tuổi|age|aged|year|month)\s+\d+|\d+\s*(?:tuổi|years? old)|\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/iu;
 const contentLine = /(?<![\p{L}\p{N}])(?:chết|tử vong|qua đời|tuổi thọ|yểu mệnh|khắc chết|lifespan|life expectancy|death|will die|ung thư|tiểu đường|đột quỵ|cancer|diabetes|stroke|chẩn đoán|diagnos(?:is|ed)|cúng sao|giải hạn|hóa giải|hoá giải|bùa|làm lễ|vật phẩm phong thủy|ritual|feng shui objects|xổ số|số đề|lottery|jackpot|fake review|giá gốc giả)(?![\p{L}\p{N}])/iu;
 const falseClaims = /chỉ còn\s+\d+|\d+\s+người (?:đã|đang) mua|\d+\s+(?:phút|giây) còn lại|tôi đã xem.{0,30}lá số|fake countdown|only\s+\d+\s+left|\d+\s+people bought/iu;
-const selfReference = /(?<![\p{L}\p{N}])(?:chúng tôi|đội ngũ|thuật toán|mô hình|AI)(?![\p{L}\p{N}])/u;
+const selfReference = /(?<![\p{L}\p{N}])(?:chúng tôi|đội ngũ|thuật toán|mô hình|AI|our team|algorithm|model|we)(?![\p{L}\p{N}])/iu;
+// Owner R3: style findings guide editing; truth/content/privacy/schema fences stay hard.
+const STYLE_FINDINGS = new Set(["formula_leak", "locale_integrity", "self_reference", "basis_anchor", "missing_anchor", "duplicate_claim", "teaser_boundary"]);
 
 function prose(content: FreeReadingContentV2): ProseBlock[] {
   const blocks: ProseBlock[] = [];
@@ -39,7 +42,7 @@ function prose(content: FreeReadingContentV2): ProseBlock[] {
 /** Conservative lexical checks for review preparation, not proof of semantic grounding or a publish gate. */
 export function checkFreeReadingQuality(input: { content: unknown; source: unknown }): { ok: boolean; findings: FreeReadingFinding[] } {
   const findings: FreeReadingFinding[] = [];
-  const add = (code: string, block: string, detail: string, hard = true) => findings.push({ code, block, detail, hard });
+  const add = (code: string, block: string, detail: string, hard = !STYLE_FINDINGS.has(code)) => findings.push({ code, block, detail, hard });
   const checked = validateFreeReadingReferences(input.content, input.source);
   if (!checked.ok) return { ok: false, findings: [{ code: checked.code, block: "reading", detail: "Invalid private schema or unresolved references", hard: true }] };
   const source = FreeReadingFactsV2Schema.parse(input.source), content = checked.content;
@@ -65,6 +68,7 @@ export function checkFreeReadingQuality(input: { content: unknown; source: unkno
     const anchor = b.keys.map(k => facts.get(k)!.value).join(" ");
     if (formula.test(b.text)) add("formula_leak", b.block, "Structural formula in prose");
     if (dates.test(b.text)) add("uncomputed_date", b.block, "Timing is not available in this offline structural source");
+    if (numericalScore.test(b.text) || (formula.test(b.text) && /\d/u.test(b.text))) add("uncomputed_number", b.block, "This offline source supplies no numeric score for the claim");
     if (contentLine.test(b.text) || falseClaims.test(b.text)) add("content_line", b.block, "FD089 content boundary");
     if (HAN_IDEOGRAPH_PATTERN.test(b.text) || /ziwei\.[a-z0-9_.]+|(?:palace|card|rel):[a-z_:]+|[#*_`]|[\p{Extended_Pictographic}]/u.test(b.text)) add("locale_integrity", b.block, "Raw identifiers, markup or untranslated Han text");
     if (selfReference.test(b.text)) add("self_reference", b.block, "Writer/provider self-reference");

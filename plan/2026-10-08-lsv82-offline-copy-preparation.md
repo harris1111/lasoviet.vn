@@ -18,3 +18,13 @@ Export three synthetic comparisons (major-star, empty-palace, provisional-time),
 - This draft uses the first canonical-ordered reviewed major-star card, and does not synthesize multi-star meanings, new brightness/Hoa meanings or auxiliary/temporal interpretations. Lexical checks cannot prove complete semantic faithfulness, catch every phrasing of prohibited content, or certify teaser secrecy. These remain production gates, not silently waived requirements.
 - The three VI/EN comparison cases and provenance/version metadata are versioned in `plan/evidence/lsv82-offline/`; the artifact contains only synthetic free-content inputs and output.
 - Final i18n/lint/typecheck and producer builds passed; lint retains four existing warnings. The independent reviewer repeated all thirty focused tests and returned GO for offline preparation only. The final generated examples pass implemented hard lexical checks while retaining explicit repetition/English-length warnings. No provider, runtime or owner acceptance is inferred from these checks.
+
+## Owner R3 update (2026-10-08)
+
+Style findings are advisory in both VI and EN: formula wording, self-reference,
+untranslated/raw formatting, repeated prose, named-anchor wording and teaser
+style remain visible for editing but do not reject the draft. Invalid contracts,
+unresolved/invented facts, placement/brightness/Hoa mismatches, unsupported dates
+or numeric scores, uncertainty disclosure and FD089 content fences remain hard.
+The checker is lexical preparation, not proof of semantic truth or publication
+acceptance. Draft cards and samples still have accepted:false and zero calls.

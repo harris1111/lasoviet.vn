@@ -1185,13 +1185,13 @@
             "focus": 576
           },
           "versions": {
-            "prompt": "free-reading-prompt-v2-draft-1",
+            "prompt": "free-reading-prompt-v2-draft-2",
             "schema": "free-reading-v2-draft-1",
             "cards": "free-reading-cards-v2-draft-1",
-            "quality": "free-reading-lexical-quality-v2-draft-1",
+            "quality": "free-reading-lexical-quality-v2-draft-2",
             "rules": "free-reading-rules-v2-draft-1"
           },
-          "promptSha256": "2c243dac932b59c22b7826495589f935f3d56ffb2e01be9ffe2002c6cbc8fdbe"
+          "promptSha256": "1cbf3907a0e01fd130e2eeb078efbc5af522ae82ad919dc3bf849ce189471462"
         },
         "en": {
           "facts": {
@@ -2374,13 +2374,13 @@
             "focus": 442
           },
           "versions": {
-            "prompt": "free-reading-prompt-v2-draft-1",
+            "prompt": "free-reading-prompt-v2-draft-2",
             "schema": "free-reading-v2-draft-1",
             "cards": "free-reading-cards-v2-draft-1",
-            "quality": "free-reading-lexical-quality-v2-draft-1",
+            "quality": "free-reading-lexical-quality-v2-draft-2",
             "rules": "free-reading-rules-v2-draft-1"
           },
-          "promptSha256": "266773ec68bf15c447fcbb0494a972894b3ffbcb423459f66db785c4997ebfdc"
+          "promptSha256": "f31be9169a31ac44fc928b2f7ba4448688e205c3639ea3c10beecc30176bb1ca"
         }
       }
     },
@@ -3645,13 +3645,13 @@
             "focus": 719
           },
           "versions": {
-            "prompt": "free-reading-prompt-v2-draft-1",
+            "prompt": "free-reading-prompt-v2-draft-2",
             "schema": "free-reading-v2-draft-1",
             "cards": "free-reading-cards-v2-draft-1",
-            "quality": "free-reading-lexical-quality-v2-draft-1",
+            "quality": "free-reading-lexical-quality-v2-draft-2",
             "rules": "free-reading-rules-v2-draft-1"
           },
-          "promptSha256": "fd2407ae8c9195f097e2a3eab9b075eff034c50e9ca167260bd76bd9a223a879"
+          "promptSha256": "0fb5708b4a089d665fcbcbe875334e4a42cd43c23b02a4ffc98b8f68a7e9d279"
         },
         "en": {
           "facts": {
@@ -4914,13 +4914,13 @@
             "focus": 549
           },
           "versions": {
-            "prompt": "free-reading-prompt-v2-draft-1",
+            "prompt": "free-reading-prompt-v2-draft-2",
             "schema": "free-reading-v2-draft-1",
             "cards": "free-reading-cards-v2-draft-1",
-            "quality": "free-reading-lexical-quality-v2-draft-1",
+            "quality": "free-reading-lexical-quality-v2-draft-2",
             "rules": "free-reading-rules-v2-draft-1"
           },
-          "promptSha256": "483b95026fd1c2339a8ab6594e252823b746171d44157356be6a93fae7ae7209"
+          "promptSha256": "9cd43d028f4d5decf93b503ab73e7da0a63dccdd045afa9a8e886322a594764e"
         }
       }
     },
@@ -6110,13 +6110,13 @@
             "focus": 563
           },
           "versions": {
-            "prompt": "free-reading-prompt-v2-draft-1",
+            "prompt": "free-reading-prompt-v2-draft-2",
             "schema": "free-reading-v2-draft-1",
             "cards": "free-reading-cards-v2-draft-1",
-            "quality": "free-reading-lexical-quality-v2-draft-1",
+            "quality": "free-reading-lexical-quality-v2-draft-2",
             "rules": "free-reading-rules-v2-draft-1"
           },
-          "promptSha256": "7617be64020e37f3d53b3ee4171d7592e4e58019011cc88e0fad32bce41427f5"
+          "promptSha256": "4fbb568fd89448fade67e7855f240d211108aaf19809cd6981f30e5e820d0634"
         },
         "en": {
           "facts": {
@@ -7304,13 +7304,13 @@
             "focus": 441
           },
           "versions": {
-            "prompt": "free-reading-prompt-v2-draft-1",
+            "prompt": "free-reading-prompt-v2-draft-2",
             "schema": "free-reading-v2-draft-1",
             "cards": "free-reading-cards-v2-draft-1",
-            "quality": "free-reading-lexical-quality-v2-draft-1",
+            "quality": "free-reading-lexical-quality-v2-draft-2",
             "rules": "free-reading-rules-v2-draft-1"
           },
-          "promptSha256": "758c5115c602e9f2741d026269fece68541b1601016504ffad6fb279e70e8fa6"
+          "promptSha256": "e90d0f831a8f92fec93e4d1610565ae3e3da07d389435cea9bd5f8cecc56755d"
         }
       }
     }

@@ -3,7 +3,7 @@ import { FREE_READING_CARDS_VERSION, selectFreeReadingCards } from "./free-readi
 import { FREE_READING_QUALITY_VERSION } from "./free-reading-quality.js";
 import { FREE_READING_RULES_VERSION } from "./free-reading-fallback.js";
 
-export const FREE_READING_PROMPT_VERSION = "free-reading-prompt-v2-draft-1";
+export const FREE_READING_PROMPT_VERSION = "free-reading-prompt-v2-draft-2";
 
 /** Deterministic preparation payload; contains no adapter, dispatch or cost-bound claim. */
 export function buildFreeReadingPrompt(input: FreeReadingFactsV2) {
@@ -23,6 +23,7 @@ export function buildFreeReadingPrompt(input: FreeReadingFactsV2) {
     "Return one free-card-only teaser for every exact locked target. No paid source is provided. Teasers contain no advice, dates, numbers or detailed causal explanation.",
     "No formula, structural score, canonical identifier or provider self-reference in customer prose. Do not invent scarcity, timers, reference prices, reviews or experts.",
     "FD089: no death/lifespan, named disease diagnoses, ritual/remedy sales or feng shui objects, lottery numbers, invented events or uncomputed dates. Measured preparation advice remains allowed.",
+    "Style guidance is advisory in both Vietnamese and English. Aim for a personal, expert, conversational voice; style findings must not turn the reading into mechanical prose. Truth, FD089 content boundaries and the source/schema/privacy boundaries remain mandatory.",
     "New prose is a draft requiring human reading and source verification. Lexical checks cannot certify semantic truth.",
   ].join("\n");
   return { system, user: JSON.stringify({ FACTS: source, CARDS: selectFreeReadingCards(source),
