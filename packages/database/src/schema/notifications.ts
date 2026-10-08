@@ -183,3 +183,16 @@ export const recoveryClickReceipts = pgTable("recovery_click_receipts", {
  AND ${table.recognizedVnd} IS NOT NULL AND ${table.paymentEventId} IS NOT NULL AND ${table.grantTransactionId} IS NOT NULL AND ${table.spendTransactionId} IS NOT NULL
  AND ${table.paidVnd} > 0 AND ${table.chargedLa} > 0 AND ${table.recognizedVnd} >= 0 AND ${table.recognizedVnd} <= ${table.paidVnd}))`),
 ]);
+
+/** Durable stop is default-on; activation is a separately authorized private operation. */
+export const recoveryOutboundControl = pgTable("recovery_outbound_control", {
+  id: text("id").primaryKey(),
+  emergencyStopped: boolean("emergency_stopped").notNull().default(true),
+  cohortIds: jsonb("cohort_ids").$type<string[]>().notNull().default([]),
+  dailyLimit: integer("daily_limit").notNull().default(5),
+  updatedAt: timestamp("updated_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
+}, table => [check("recovery_outbound_control_closed", sql`${table.id} = 'pending-topup' AND ${table.dailyLimit} BETWEEN 1 AND 5 AND jsonb_typeof(${table.cohortIds}) = 'array' AND jsonb_array_length(${table.cohortIds}) <= 5`)]);
+export const recoveryOutboundDailyAttempts = pgTable("recovery_outbound_daily_attempts", {
+  utcDay: text("utc_day").primaryKey(),
+  attempts: integer("attempts").notNull(),
+}, table => [check("recovery_outbound_daily_attempts_cap", sql`${table.utcDay} ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND ${table.attempts} BETWEEN 1 AND 5`)]);
