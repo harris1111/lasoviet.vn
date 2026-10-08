@@ -179,7 +179,15 @@
     "giftBridgeDescription": "Bạn vừa đọc đầy đủ một cung của lá số. Các cung còn lại và những chủ đề sâu hơn nằm trong phần luận giải đầy đủ.",
     "structuralOverview": "Tổng quan cấu trúc · từ sao và vị trí thật trên lá số",
     "periodTitle": "Năm hiện tại và đại vận",
-    "periodPreview": "Xem phần đọc sâu"
+    "periodPreview": "Xem phần đọc sâu",
+    "sheetClose": "Đóng",
+    "zoomIn": "Phóng to lá số",
+    "zoomOut": "Thu nhỏ lá số",
+    "zoomFit": "Vừa khung",
+    "zoomFitLabel": "Vừa khung màn hình",
+    "zoomLevel": "Mức phóng",
+    "sheetTools": "Điều khiển phóng to",
+    "detailToggle": "Chi tiết cung đang chọn"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

@@ -179,7 +179,15 @@
     "giftBridgeDescription": "You have just read one palace of your chart in full. The remaining palaces and deeper topics are in the full reading.",
     "structuralOverview": "Structural overview · from the chart’s actual stars and placements",
     "periodTitle": "Current year and age cycle",
-    "periodPreview": "Preview the deeper reading"
+    "periodPreview": "Preview the deeper reading",
+    "sheetClose": "Close",
+    "zoomIn": "Zoom in on the chart",
+    "zoomOut": "Zoom out of the chart",
+    "zoomFit": "Fit",
+    "zoomFitLabel": "Fit to screen width",
+    "zoomLevel": "Zoom level",
+    "sheetTools": "Zoom controls",
+    "detailToggle": "Selected palace details"
   },
   "dailyReading": {
     "title": "Today’s personal reading",

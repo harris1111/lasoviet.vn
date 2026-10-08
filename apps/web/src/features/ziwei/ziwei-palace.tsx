@@ -68,12 +68,12 @@ export function ZiweiPalace({
       onClick={onSelect}
       style={style}
     >
-      <div className="ziwei-palace-header">
-        <div className="palace-name-group">
+      <span className="ziwei-palace-header">
+        <span className="palace-name-group">
           <span className="palace-stem-branch">{stemBranchLabel}</span>
-          <h3 className="palace-title">{presentation.palace(palace.id)}</h3>
-        </div>
-        <div className="palace-badges">
+          <span className="palace-title">{presentation.palace(palace.id)}</span>
+        </span>
+        <span className="palace-badges">
           {relationLabel ? (
             <span className={`palace-relation-tag tag-${relationType}`}>
               {relationLabel}
@@ -85,18 +85,18 @@ export function ZiweiPalace({
           {isBody ? (
             <span className="palace-role-tag tag-body">{presentation.chrome.bodyMarker}</span>
           ) : null}
-        </div>
-      </div>
+        </span>
+      </span>
 
-      <div className="ziwei-palace-content">
-        <div className="palace-stars-section major-stars">
+      <span className="ziwei-palace-content">
+        <span className="palace-stars-section major-stars">
           {majorStars.length === 0 ? (
             <span className="palace-empty-major">{presentation.chrome.noStars}</span>
           ) : (
             majorStars.map((star) => {
               const trans = getTransformation(star.id);
               return (
-                <div className="palace-star-row major-row" key={star.id}>
+                <span className="palace-star-row major-row" key={star.id}>
                   <span className="star-name">{presentation.star(star.id)}</span>
                   <span className="star-brightness">({presentation.brightness(star.brightness)})</span>
                   {trans ? (
@@ -104,14 +104,14 @@ export function ZiweiPalace({
                       {presentation.transformation(trans.id)}
                     </span>
                   ) : null}
-                </div>
+                </span>
               );
             })
           )}
-        </div>
+        </span>
 
         {otherStars.length > 0 ? (
-          <div className="palace-stars-section minor-stars">
+          <span className="palace-stars-section minor-stars">
             {otherStars.map((star) => {
               const trans = getTransformation(star.id);
               return (
@@ -125,14 +125,14 @@ export function ZiweiPalace({
                 </span>
               );
             })}
-          </div>
+          </span>
         ) : null}
-      </div>
+      </span>
 
       {cycleStateText ? (
-        <div className="ziwei-palace-footer">
+        <span className="ziwei-palace-footer">
           <span className="palace-cycle-state">{cycleStateText}</span>
-        </div>
+        </span>
       ) : null}
     </button>
   );
