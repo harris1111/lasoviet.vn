@@ -1,5 +1,5 @@
-import { astro } from "iztro";
-import { Solar } from "lunar-typescript";
+import { astro, util } from "iztro";
+import { Lunar, Solar } from "lunar-typescript";
 
 import type {
   NormalizedBirthProfileV1,
@@ -13,7 +13,7 @@ import type {
 } from "@lasoviet/contracts";
 
 import { iztroGender, iztroTimeIndex } from "./iztro-adapter.js";
-import { branchIds, palaceIds } from "./iztro-mapping.js";
+import { branchIds, palaceIds, starIds } from "./iztro-mapping.js";
 import { computedMonthlyAttention } from "./monthly-attention.js";
 
 const STEM_NAMES_VI: Record<string, string> = {
@@ -367,9 +367,45 @@ export function calculateZiweiHoroscope(
     ],
   };
 
-  // Exact local iztro 2.6.0 API, shared with the established report-snapshot adapter.
-  const decadal = astrolabe.decadalList().find(item => targetYear >= item.yearRange[0] && targetYear <= item.yearRange[1]);
-  const decadalPalaceId = decadal ? palaceIds[decadal.palaceName] : undefined;
+  // Exact installed iztro 2.6.0 list APIs preserve direction and lunar birth year.
+  const transformationIds = ["ziwei.transformation.prosperity", "ziwei.transformation.power", "ziwei.transformation.fame", "ziwei.transformation.obstacle"] as const;
+  const transformations = (mutagen: readonly string[]) => mutagen.map((name, i) => {
+    const starId = starIds[name], transformationId = transformationIds[i];
+    if (!starId || !transformationId) throw new Error("HOROSCOPE_TEMPORAL_TRANSFORMATION_UNMAPPED");
+    return { starId, transformationId };
+  });
+  const vendorCycles = astrolabe.decadalList();
+  const decadalCycles = vendorCycles.map((item, ordinal) => {
+    const palaceId = palaceIds[item.palaceName];
+    if (!palaceId) throw new Error("HOROSCOPE_DECADAL_MAPPING_INVALID");
+    return { ordinal, palaceId, startAge: item.ageRange[0], endAge: item.ageRange[1],
+      startYear: item.yearRange[0], endYear: item.yearRange[1],
+      state: targetYear < item.yearRange[0] ? "future" as const : targetYear > item.yearRange[1] ? "past" as const : "current" as const,
+      transformations: transformations(item.mutagen),
+      // The installed yearlyList recomputes unused daily/monthly stars 120 times.
+      // Project the same normal-year branch and mutagens using public vendor utilities.
+      annualPalaces: Array.from({ length: 10 }, (_, offset) => {
+        const year = item.yearRange[0] + offset, age = item.ageRange[0] + offset;
+        const lunar = Lunar.fromYmd(year, 6, 1);
+        const index = util.fixEarthlyBranchIndex(lunar.getYearZhi() as Parameters<typeof util.fixEarthlyBranchIndex>[0]);
+        const annualPalaceId = palaceIds[astrolabe.palaces[index]!.name];
+        if (!annualPalaceId) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
+        const mutagen = util.getMutagensByHeavenlyStem(lunar.getYearGan() as Parameters<typeof util.getMutagensByHeavenlyStem>[0]);
+        return { year, age, palaceId: annualPalaceId, transformations: transformations(mutagen) };
+      }),
+    };
+  });
+  const currentCycle = decadalCycles.find(cycle => cycle.state === "current");
+  const directionStep = (vendorCycles[1]!.index - vendorCycles[0]!.index + 12) % 12;
+  if (directionStep !== 1 && directionStep !== 11) throw new Error("HOROSCOPE_DECADAL_DIRECTION_INVALID");
+  const bureauMap: Record<string, NonNullable<ZiweiHoroscopeResultV1["chartMetadata"]>["bureau"]> = { "water 2nd": "water2", "wood 3rd": "wood3", "metal 4th": "metal4", "earth 5th": "earth5", "fire 6th": "fire6" };
+  const bureau = bureauMap[astrolabe.fiveElementsClass];
+  const lifeMasterStarId = starIds[astrolabe.soul], bodyMasterStarId = starIds[astrolabe.body];
+  if (!bureau || !lifeMasterStarId || !bodyMasterStarId) throw new Error("HOROSCOPE_METADATA_UNMAPPED");
+  const [birthSolarYear, birthSolarMonth, birthSolarDay] = astrolabe.solarDate.split("-").map(Number) as [number, number, number];
+  const birthLunar = Solar.fromYmd(birthSolarYear, birthSolarMonth, birthSolarDay).getLunar();
+  const birthCycleIndex = Array.from({ length: 60 }, (_, i) => i).find(i => i % 10 === birthLunar.getYearGanIndex() && i % 12 === birthLunar.getYearZhiIndex());
+  if (birthCycleIndex === undefined) throw new Error("HOROSCOPE_NAYIN_MAPPING_INVALID");
   return {
     version: 1,
     chartId,
@@ -378,6 +414,10 @@ export function calculateZiweiHoroscope(
     isUnlocked,
     yearly: yearlyHan,
     daily: dailyHoroscope,
-    ...(decadal && decadalPalaceId ? { decadal: { palaceId: decadalPalaceId, startAge: decadal.ageRange[0], endAge: decadal.ageRange[1], startYear: decadal.yearRange[0], endYear: decadal.yearRange[1] } } : {}),
+    decadalCycles, currentDecadalOrdinal: currentCycle?.ordinal ?? null,
+    decadalDirection: directionStep === 1 ? "forward" : "reverse",
+    chartMetadata: { bureau, lifeMasterStarId, bodyMasterStarId, naYinCycleIndex: Math.floor(birthCycleIndex / 2) },
+    ...(currentCycle ? { decadal: { palaceId: currentCycle.palaceId, startAge: currentCycle.startAge,
+      endAge: currentCycle.endAge, startYear: currentCycle.startYear, endYear: currentCycle.endYear } } : {}),
   };
 }

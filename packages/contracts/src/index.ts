@@ -812,6 +812,7 @@ export {
   ZiweiYearlyHanV1Schema,
   ZiweiDailyHoroscopeV1Schema,
   ZiweiHoroscopeResultV1Schema,
+  ZiweiDecadalCycleV1Schema,
 } from "./ziwei-horoscope-v1.js";
 export type {
   ZiweiMonthMarker,
@@ -819,6 +820,7 @@ export type {
   ZiweiYearlyHanV1,
   ZiweiDailyHoroscopeV1,
   ZiweiHoroscopeResultV1,
+  ZiweiDecadalCycleV1,
 } from "./ziwei-horoscope-v1.js";
 
 
@@ -940,6 +942,7 @@ export { FreeStructuralOverviewDocV1Schema, FreeStructuralPalaceDocV1Schema, typ
 
 export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1 } from "./free-structural-overview-v1.js";
 
+export * from "./free-reading-v2.js";
 export { matchesReportYearLineage } from "./report-year-lineage.js";
 
 export { RecoveryControlCommandSchema } from "./recovery-outbound-control-v1.js";
