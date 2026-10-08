@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readResultView, sameView, writeResultView } from "./ziwei-result-history";
+import { hasSheetMarker, planSheetClose, readResultView, sameView, writeResultView } from "./ziwei-result-history";
 
 function fakeHistory() {
   const calls: Array<{ kind: "push" | "replace"; state: unknown; url: string }> = [];
@@ -48,5 +48,26 @@ describe("free result local navigation (FE-3 / N7)", () => {
   it("compares views including the sheet", () => {
     expect(sameView({ tab: "chart" }, { tab: "chart" })).toBe(true);
     expect(sameView({ tab: "chart" }, { tab: "chart", sheet: "chart" })).toBe(false);
+  });
+
+  describe("planSheetClose", () => {
+    const marked = { fd109Sheet: "chart" };
+    it("goes Back only when this instance pushed the marked entry and still sits on it", () => {
+      expect(planSheetClose({ entryOwned: true, closing: false, historyState: marked, sheet: "chart" })).toBe("back");
+    });
+    it("strips the marker in place for a stale or restored marker", () => {
+      expect(planSheetClose({ entryOwned: false, closing: false, historyState: marked, sheet: "chart" })).toBe("replace");
+      expect(planSheetClose({ entryOwned: true, closing: false, historyState: null, sheet: "chart" })).toBe("replace");
+      expect(planSheetClose({ entryOwned: true, closing: false, historyState: { fd109Sheet: "period" }, sheet: "chart" })).toBe("replace");
+    });
+    it("ignores a second close while Back is pending", () => {
+      expect(planSheetClose({ entryOwned: true, closing: true, historyState: marked, sheet: "chart" })).toBe("noop");
+    });
+  });
+
+  it("detects the marker key even when its value is invalid", () => {
+    expect(hasSheetMarker({ fd109Sheet: "bogus" })).toBe(true);
+    expect(hasSheetMarker(null)).toBe(false);
+    expect(hasSheetMarker({})).toBe(false);
   });
 });

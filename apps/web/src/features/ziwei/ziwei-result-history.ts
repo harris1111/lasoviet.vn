@@ -9,7 +9,7 @@ type HistoryWriter = Pick<History, "pushState" | "replaceState">;
 
 const SHEET_KEY = "fd109Sheet";
 
-function sheetFromState(state: unknown): ResultSheet | undefined {
+export function sheetFromState(state: unknown): ResultSheet | undefined {
   const value = typeof state === "object" && state !== null ? (state as Record<string, unknown>)[SHEET_KEY] : undefined;
   return value === "chart" || value === "period" ? value : undefined;
 }
@@ -34,6 +34,23 @@ export function writeResultView(
   const state = view.sheet ? { [SHEET_KEY]: view.sheet } : null;
   if (mode === "push") history.pushState(state, "", url);
   else history.replaceState(state, "", url);
+}
+
+/** True when the history state carries our sheet marker key (valid or not). */
+export function hasSheetMarker(state: unknown): boolean {
+  return typeof state === "object" && state !== null && SHEET_KEY in state;
+}
+
+/**
+ * How to close an open sheet. Only go Back when THIS instance pushed the marked entry and the browser is
+ * still sitting on it; otherwise strip the marker in place. A pending Back is never repeated.
+ */
+export function planSheetClose(input: {
+  entryOwned: boolean; closing: boolean; historyState: unknown; sheet: ResultSheet;
+}): "back" | "replace" | "noop" {
+  if (input.closing) return "noop";
+  if (input.entryOwned && sheetFromState(input.historyState) === input.sheet) return "back";
+  return "replace";
 }
 
 export function sameView(a: ResultView, b: ResultView): boolean {

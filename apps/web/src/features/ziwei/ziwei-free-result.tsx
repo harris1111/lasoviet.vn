@@ -16,7 +16,7 @@ import { PartFeedback } from "../reports/part-feedback";
 import { SecureLockedPreview } from "./secure-locked-preview";
 import { ZiweiChart } from "./ziwei-chart";
 import { ZiweiChartSheet } from "./ziwei-chart-sheet";
-import { readResultView, sameView, writeResultView, type ResultSheet, type ResultView } from "./ziwei-result-history";
+import { hasSheetMarker, planSheetClose, readResultView, sameView, writeResultView, type ResultSheet, type ResultView } from "./ziwei-result-history";
 import type { FreeResultModel } from "./ziwei-free-result-model";
 import { ziweiPresentation, type ZiweiPresentationLocale } from "./ziwei-presentation";
 import {
@@ -183,17 +183,35 @@ export function ZiweiFreeResult({
   const engagementRef = useRef(createEngagementReporter(recordEngagement));
   const viewRef = useRef(view);
   useEffect(() => { viewRef.current = view; }, [view]);
-  // The server only decides the first view; a later prop change (e.g. a refresh) re-syncs tab/open
-  // but must not drop an open sheet.
-  const initialKey = `${initialState.tab}|${initialState.open ?? ""}`;
-  const [syncedKey, setSyncedKey] = useState(initialKey);
-  if (syncedKey !== initialKey) {
-    setSyncedKey(initialKey);
+  // The server only decides the first view. A new initialState object (each server render) re-syncs
+  // tab/open; an equal tab/open keeps the local view, including its open sheet.
+  const [syncedState, setSyncedState] = useState(initialState);
+  if (syncedState !== initialState) {
+    setSyncedState(initialState);
     if (view.tab !== initialState.tab || view.open !== initialState.open) setView(initialState);
   }
+  // True only while THIS instance owns a pushed sheet entry; closingRef guards a double history.back().
+  const sheetEntryRef = useRef(false);
+  const closingRef = useRef(false);
   useEffect(() => {
-    // Back, Forward and shared links: rebuild the view from the address bar plus the sheet marker.
-    const onPopState = () => setView(readResultView(window.location.search, window.history.state));
+    // Next copies the first server render's router state into native pushState, so after leaving and
+    // pressing Back we remount with the original initialState: rebuild the real view from the address bar.
+    const real = readResultView(window.location.search, window.history.state);
+    if (!sameView(viewRef.current, real)) {
+      viewRef.current = real;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView(real);
+    }
+    if (!real.sheet && hasSheetMarker(window.history.state)) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    const onPopState = () => {
+      sheetEntryRef.current = false;
+      closingRef.current = false;
+      const next = readResultView(window.location.search, window.history.state);
+      viewRef.current = next;
+      setView(next);
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
@@ -202,6 +220,7 @@ export function ZiweiFreeResult({
     viewRef.current = next;
     setView(next);
     writeResultView(window.history, basePath, next, mode);
+    sheetEntryRef.current = mode === "push" && Boolean(next.sheet);
   }
   function navigate(tab: ZiweiResultTab, open?: string) {
     // A genuine user action (tab click, preview or evidence open): report each tab once, fire-and-forget.
@@ -220,10 +239,12 @@ export function ZiweiFreeResult({
   }
   function closeModal() {
     if (view.sheet) {
-      // The sheet owns a history entry: closing it with Back keeps the stack tidy.
-      const marked = typeof window.history.state === "object" && window.history.state !== null && "fd109Sheet" in window.history.state;
-      if (marked) window.history.back();
-      else go({ tab: view.tab, open: view.open }, "replace");
+      // Back keeps the stack tidy only when we pushed the marked entry; otherwise strip the marker in place.
+      const plan = planSheetClose({
+        entryOwned: sheetEntryRef.current, closing: closingRef.current, historyState: window.history.state, sheet: view.sheet,
+      });
+      if (plan === "back") { closingRef.current = true; window.history.back(); }
+      else if (plan === "replace") go({ tab: view.tab, open: view.open }, "replace");
     } else if (previewId) navigate(view.tab);
   }
   function tabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
