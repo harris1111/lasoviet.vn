@@ -69,6 +69,11 @@ describe("Ziwei result tabs state parsing & canonical URL building", () => {
     );
   });
 
+  it("reads the retired evidence tab as the overview in the free result, keeping the open sheet id", () => {
+    expect(parseResultTabState({ tab: "evidence", open: "life-palace" }, "free-result")).toEqual({ tab: "overview", open: "life-palace" });
+    expect(parseResultTabState({ tab: "overview", open: "transformations" }, "free-result")).toEqual({ tab: "overview", open: "transformations" });
+    expect(parseResultTabState({ tab: "overview", open: "life-palace" })).toEqual({ tab: "overview", open: undefined });
+  });
   it("verifies exact bijective mapping between evidence suffix and canonical ID", () => {
     expect(EVIDENCE_SUFFIX_TO_CANONICAL_ID["life-palace"]).toBe("ziwei.identity.life-palace");
     expect(EVIDENCE_SUFFIX_TO_CANONICAL_ID["body-palace"]).toBe("ziwei.identity.body-palace");

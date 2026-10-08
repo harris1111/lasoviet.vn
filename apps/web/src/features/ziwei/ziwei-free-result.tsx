@@ -50,10 +50,10 @@ function subscribeDesktop(callback: () => void) {
 }
 function desktopSnapshot() { return window.matchMedia("(min-width: 1024px)").matches; }
 // The chart is the stage above the tabs, so it is no longer a tab; ?tab=chart (and the default) reads as overview.
-const STAGE_TABS = CANONICAL_RESULT_TABS.filter((tab) => tab !== "chart");
+const STAGE_TABS = CANONICAL_RESULT_TABS.filter((tab) => tab !== "chart" && tab !== "evidence");
 const mobileAnchors: Record<ZiweiResultTab, string> = {
   chart: "free-result-board", overview: "panel-overview", "nam-nay": "panel-nam-nay",
-  palaces: "panel-palaces", topics: "panel-topics", evidence: "panel-evidence",
+  palaces: "panel-palaces", topics: "panel-topics", evidence: "panel-overview",
 };
 const DRAWER_HINT_ID = "fd109-palace-drawer-title";
 
@@ -69,7 +69,7 @@ export function ZiweiFreeResult({
   // FE-3 / N7: tab, preview and sheet are local state (instant), the address bar is synced with the native
   // History API (no server round trip). popstate restores state for Back/Forward.
   const [view, setView] = useState<ResultView>(initialState);
-  const activeTab: ZiweiResultTab = view.tab === "chart" ? "overview" : view.tab;
+  const activeTab: ZiweiResultTab = view.tab === "chart" || view.tab === "evidence" ? "overview" : view.tab;
   const chartExpanded = view.sheet === "chart";
   const palaceDrawer = view.sheet === "palace";
   const periodPreview = view.sheet === "period";
@@ -322,15 +322,13 @@ export function ZiweiFreeResult({
     selectStagePalace(palaceId);
     if (desktop) document.getElementById("free-result-board")?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
+  const inspectorEvidence = selectedChartPalace === chart.soulPalaceId ? "life-palace" : selectedChartPalace === chart.bodyPalaceId ? "body-palace" : undefined;
   function inspector() {
     return <>
       <ZiweiChart chart={chart} birthSummary={birthSummary} locale={locale}
         selectedPalaceId={selectedChartPalace} onSelectPalace={setSelectedChartPalace} hideBoard />
-      <button className="fd109-evidence-link" type="button" data-testid="fd109-inspector-evidence"
-        onClick={() => {
-          navigate("evidence");
-          requestAnimationFrame(() => document.getElementById(desktop ? "tab-evidence" : "panel-evidence")?.scrollIntoView({ block: "start" }));
-        }}>{t("freeResult.inspectorEvidence")}</button>
+      {inspectorEvidence && <button className="fd109-evidence-link" type="button" data-testid="fd109-inspector-evidence"
+        onClick={() => navigate("overview", inspectorEvidence)}>{t("freeResult.inspectorEvidence")}</button>}
     </>;
   }
 
@@ -374,7 +372,6 @@ export function ZiweiFreeResult({
                   <h3>{section.title}</h3>{section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
                 </article>)}
               </div>
-              <div className="fd109-overview-evidence">{model.insights.filter(insight => insight.evidenceId && CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId]).map(insight => <EvidenceDrawer key={insight.id} chart={chart} chartId={chartId} locale={locale} evidenceId={insight.evidenceId!} loadEvidence={loadEvidence} isOpen={false} onOpenChange={open => { if (open) navigate("evidence", CANONICAL_ID_TO_EVIDENCE_SUFFIX[insight.evidenceId!]); }} />)}</div>
               <PartFeedback locale={locale} chartId={chartId} partId="structural-overview" sku="free-result" />
               {model.isGuest && <div className="fd109-save"><p>{t("freeResult.saveDescription")}</p>
                 <Link className="button button-secondary" href={signInHref}>{t("freeResult.save")}</Link></div>}
@@ -431,31 +428,26 @@ export function ZiweiFreeResult({
               <span className="fd109-state">{t("freeResult.locked")}</span>
             </button>)}</div>
           </section>
+          <section className="fd109-block" data-free-result-block="evidence" data-testid="fd109-evidence-row" aria-labelledby="fd109-evidence-title">
+            <h2 id="fd109-evidence-title">{t("freeResult.evidenceRowTitle")}</h2>
+            <p>{t("evidenceTab.subtitle")}</p>
+            <ul className="fd109-evidence-row">
+              {Object.entries(EVIDENCE_SUFFIX_TO_CANONICAL_ID).map(([suffix, evidenceId]) => (
+                <li key={evidenceId}>
+                  <strong>{presentation.evidence(suffix)}</strong>
+                  <EvidenceDrawer chart={chart} chartId={chartId} locale={locale} evidenceId={evidenceId} loadEvidence={loadEvidence}
+                    isOpen={activeTab === "overview" && view.open === suffix}
+                    onOpenChange={(open) => navigate("overview", open ? CANONICAL_ID_TO_EVIDENCE_SUFFIX[evidenceId] : undefined)} />
+                </li>
+              ))}
+            </ul>
+          </section>
           <section className="fd109-completion" data-free-result-block="completion" data-completion-tabs="overview topics"
             data-testid="fd109-completion" ref={completionRef}>
             <p className="eyebrow">09 · {t("freeResult.complete")}</p>
             <h2>{model.gift ? t("freeResult.giftBridge") : t("freeResult.bridge")}</h2>
             <p>{model.gift ? t("freeResult.giftBridgeDescription") : t("freeResult.bridgeDescription")}</p>
             <Link className="button" href={offerHref} onClick={trackDoor}>{t("freeResult.choose")}</Link>
-          </section>
-          <section {...panel("evidence")} className="fd109-block" data-free-result-block="evidence">
-            <h2 id="heading-evidence">{t("tabs.evidence")}</h2>
-            <p>{t("evidenceTab.subtitle")}</p>
-            <div className="evidence-cards-matrix">
-              {Object.entries(EVIDENCE_SUFFIX_TO_CANONICAL_ID).map(([suffix, evidenceId], index) => (
-                <article className="evidence-matrix-card" key={evidenceId}>
-                  <div className="matrix-card-head">
-                    <span className="matrix-badge">{t("evidenceTab.sourceLabel")} 0{index + 1}</span>
-                    <h3>{presentation.evidence(suffix)}</h3>
-                  </div>
-                  <div className="matrix-card-action">
-                    <EvidenceDrawer chart={chart} chartId={chartId} locale={locale} evidenceId={evidenceId} loadEvidence={loadEvidence}
-                      isOpen={activeTab === "evidence" && view.open === suffix}
-                      onOpenChange={(open) => navigate("evidence", open ? CANONICAL_ID_TO_EVIDENCE_SUFFIX[evidenceId] : undefined)} />
-                  </div>
-                </article>
-              ))}
-            </div>
           </section>
         </div>
       </div>

@@ -378,3 +378,6 @@ html[data-theme="light"] .fd109-divider {
   .fd109 .fd109-pcard:hover { border-color: var(--gold-500); background: var(--surface-raised); }
 }
 @media (prefers-reduced-motion: reduce) { .fd109 .fd109-pcard { transition: none; } }
+
+.fd109-evidence-row { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+.fd109-evidence-row li { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-panel); }

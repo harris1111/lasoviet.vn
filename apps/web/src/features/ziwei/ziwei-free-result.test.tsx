@@ -28,10 +28,12 @@ function render(tab: "chart" | "overview" | "topics" = "overview") {
 }
 
 describe("free-result reader structure", () => {
-  it("places one completion after the topic map and before collapsed evidence", () => {
+  it("places the evidence row in the overview, then one completion", () => {
     const html = render();
     expect(html.match(/data-testid="fd109-completion"/g)).toHaveLength(1);
-    expect(html.indexOf('data-free-result-block="completion"')).toBeLessThan(html.indexOf('data-free-result-block="evidence"'));
+    expect(html.indexOf('data-free-result-block="evidence"')).toBeLessThan(html.indexOf('data-free-result-block="completion"'));
+    expect(html).not.toContain('id="tab-evidence"');
+    expect(html).not.toContain('id="panel-evidence"');
     expect(html).toContain('<details');
     expect(html).toContain('data-completion-tabs="overview topics"');
   });
@@ -79,7 +81,7 @@ describe("free-result reader structure", () => {
     });
     it("phone (no desktop match) renders every section as a visible region, one scrolling page", () => {
       const html = render();
-      for (const tab of ["overview", "nam-nay", "palaces", "topics", "evidence"]) {
+      for (const tab of ["overview", "nam-nay", "palaces", "topics"]) {
         expect(html).toMatch(new RegExp(`id="panel-${tab}"[^>]*role="region"`));
         expect(html).toContain(`aria-labelledby="heading-${tab}"`);
       }

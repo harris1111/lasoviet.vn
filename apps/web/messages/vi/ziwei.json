@@ -196,7 +196,8 @@
     "supportMidpoint": "Vạch giữa là mốc 50",
     "supportViewOnChart": "Xem trên lá số",
     "supportCard": "Cung {name}, {band}, {score} điểm. Bấm để xem trên lá số.",
-    "supportNoMajor": "Chưa có chính tinh, cung đối chiếu sang"
+    "supportNoMajor": "Chưa có chính tinh, cung đối chiếu sang",
+    "evidenceRowTitle": "Căn cứ của lá số"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

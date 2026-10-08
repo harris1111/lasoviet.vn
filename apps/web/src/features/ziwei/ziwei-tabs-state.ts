@@ -84,6 +84,8 @@ export function parseResultTabState(
     resolvedTab = "nam-nay";
   }
 
+  // The free result has no evidence tab: the evidence sheets open from the overview (old links keep working).
+  if (context === "free-result" && resolvedTab === "evidence") resolvedTab = "overview";
   const tab: ZiweiResultTab =
     resolvedTab && (CANONICAL_RESULT_TABS as readonly string[]).includes(resolvedTab)
       ? (resolvedTab as ZiweiResultTab)
@@ -98,7 +100,8 @@ export function parseResultTabState(
     } else if (tab === "topics" && ((CANONICAL_TOPIC_IDS as readonly string[]).includes(trimmed)
       || (context === "free-result" && (FREE_RESULT_TOPIC_IDS as readonly string[]).includes(trimmed)))) {
       open = trimmed;
-    } else if (tab === "evidence" && (CANONICAL_EVIDENCE_OPEN_IDS as readonly string[]).includes(trimmed)) {
+    } else if ((tab === "evidence" || (context === "free-result" && tab === "overview"))
+      && (CANONICAL_EVIDENCE_OPEN_IDS as readonly string[]).includes(trimmed)) {
       open = trimmed;
     }
   }

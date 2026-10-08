@@ -196,7 +196,8 @@
     "supportMidpoint": "The middle line marks 50",
     "supportViewOnChart": "View on the chart",
     "supportCard": "{name} palace, {band}, {score} points. Select to see it on the chart.",
-    "supportNoMajor": "No principal star; read through the opposite palace"
+    "supportNoMajor": "No principal star; read through the opposite palace",
+    "evidenceRowTitle": "What this reading rests on"
   },
   "dailyReading": {
     "title": "Today’s personal reading",
