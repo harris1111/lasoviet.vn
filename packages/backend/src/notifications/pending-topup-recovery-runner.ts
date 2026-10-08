@@ -19,7 +19,7 @@ function matchesSource(row: typeof notificationDeliveries.$inferSelect, source: 
 }
 export type RecoveryOutboundClaim = { deliveryId: string; attemptCount: number };
 
-/** Injection-only preparation: no production worker or environment can activate this runner. */
+/** Fresh queue delivery requires explicit composition and audited, unstopped cohort controls. */
 export function createPendingTopUpRecoveryRunner(options: {
   database: Database; mode?: "disabled" | "prepare"; tokenSecret: string;
   orderTtlSeconds: number; provider: EmailProvider; now?: () => Date;

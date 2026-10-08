@@ -946,3 +946,5 @@ export { BAZI_STEM_IDS, BAZI_BRANCH_IDS, BaziFactsInputV1Schema, BaziFactsV1Sche
 export type { BaziFactsInputV1, BaziFactsV1 } from "./bazi-facts-v1.js";
 export * from "./free-reading-v2.js";
 export { matchesReportYearLineage } from "./report-year-lineage.js";
+
+export { RecoveryControlCommandSchema } from "./recovery-outbound-control-v1.js";

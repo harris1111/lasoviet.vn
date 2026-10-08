@@ -369,6 +369,16 @@ describe("createMaintenanceRunner", () => {
     }));
   });
 
+  it("rejects an outbound enable flag without configured SMTP", () => {
+    process.env.RECOVERY_OUTBOUND_ENABLED = "true";
+    expect(() => createMaintenanceRunner()).toThrow("RECOVERY_OUTBOUND_SMTP_REQUIRED");
+  });
+
+  it.each(["yes", "prepare", ""])("rejects ambiguous outbound flag %j", flag => {
+    process.env.RECOVERY_OUTBOUND_ENABLED = flag;
+    expect(() => createMaintenanceRunner()).toThrow("RECOVERY_OUTBOUND_CONFIG_INVALID");
+  });
+
   it("initializes runner successfully with analytics retention wired", () => {
     const runner = createMaintenanceRunner();
     expect(runner).toBeDefined();
