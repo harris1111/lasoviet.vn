@@ -128,9 +128,11 @@ html:not([data-theme="light"]) .fd109 .ziwei-traditional-board {
 }
 html:not([data-theme="light"]) .fd109 .ziwei-palace:not(.is-selected):not(.relation-opposite):not(.relation-trine) { background: rgb(15 13 10 / 0.8); }
 html:not([data-theme="light"]) .fd109 .ziwei-palace:not(.is-selected):not(.relation-opposite):not(.relation-trine):hover { background: rgb(38 32 25 / 0.92); }
-.fd109 .ziwei-palace { border-width: 0; }
-.fd109 .ziwei-palace.is-selected, .fd109 .ziwei-palace.relation-opposite, .fd109 .ziwei-palace.relation-trine { border-width: 1px; }
-.fd109 .ziwei-board-center { position: relative; overflow: hidden; border-width: 0; }
+/* Borderless cells pair with the 2px lacquer gap, so they are dark-only; light keeps its cell lines. */
+html:not([data-theme="light"]) .fd109 .ziwei-palace { border-width: 0; }
+html:not([data-theme="light"]) .fd109 .ziwei-palace.is-selected, html:not([data-theme="light"]) .fd109 .ziwei-palace.relation-opposite, html:not([data-theme="light"]) .fd109 .ziwei-palace.relation-trine { border-width: 1px; }
+.fd109 .ziwei-board-center { position: relative; overflow: hidden; }
+html:not([data-theme="light"]) .fd109 .ziwei-board-center { border-width: 0; }
 html:not([data-theme="light"]) .fd109 .ziwei-board-center { background: radial-gradient(circle at 50% 42%, var(--lacquer-700), rgb(15 13 10 / 0.8) 74%); }
 html:not([data-theme="light"]) .fd109 .ziwei-board-center::before {
   content: ""; position: absolute; inset: -14%; pointer-events: none; opacity: 0.3;
