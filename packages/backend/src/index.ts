@@ -865,3 +865,5 @@ export { createReportNotificationService, resolveReportNotificationMode, ReportN
 export {createRecoveryClickReceiptService,RecoveryReceiptError} from "./notifications/recovery-click-receipt.js";
 
 export * from "./notifications/recovery-financial-attribution.js";
+
+export { renderPendingTopUpRecoveryEmail, type PendingTopUpRecoveryEmail, type PendingTopUpRecoveryEmailInput } from "./notifications/pending-topup-recovery-email.js";
