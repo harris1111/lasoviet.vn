@@ -33,12 +33,13 @@ Không đổi bố cục tab (việc của GĐ4), không đổi chữ (GĐ3), kh
 ### Backend (An; ticket trong `research/04-ticket-be-cho-an.md`)
 - **BE-P0-2 (B2):** `calculateZiweiHoroscope` đúng cho năm khác năm hiện tại: cung lưu niên, can chi, chặng tính theo `targetYear` chứ không theo `asOfDate`.
 - **BE-P0-3 (B3):** thống nhất ranh giới năm: dùng năm âm lịch (Tết) hoặc xử lý rõ 01/01–05/02; hiện từ 01/01 đến 05/02/2027 báo cáo "2027" dùng lưu niên Bính Ngọ.
-- **BE-P0-4 (B1):** tháng "cần chú ý" không còn bị ép (mặc định bỏ; chờ R4 để chốt); dùng chung định nghĩa "tháng hạn" với bản trả phí (Hoá Kỵ lưu nguyệt); `hanMonthCount` chỉ đếm tháng thật.
+- **BE-P0-4 (B1, R4 = KHÔNG ép):** bỏ ép tháng 7, bỏ "tiền bạc, giấy tờ" mặc định và câu chuẩn bị mẫu; **tháng cần chú ý do engine tính thật bằng một quy tắc nhiều tín hiệu** (Hoá Kỵ lưu nguyệt, lưu niên, đại vận, đối cung, sát tinh, chính tinh hãm) dùng chung cho trang miễn phí và bản trả phí; báo cáo phân bố trên ≥200 lá số để anh duyệt; lá số nào ra 0 tháng thì tinh chỉnh quy tắc cho đúng Tử Vi, không hạ ngưỡng hay bịa. Chi tiết: `research/04-ticket-be-cho-an.md` BE-P0-4.
+- **BE-P0-8 (R7):** kiểm chứng engine đại vận và suy luận thời gian (chiều thuận/nghịch, tuổi bắt đầu = số Cục, khoảng năm, nhận diện chặng quanh Tết) cho mọi lá số; chạy song song, xong trước khi bày Đường đời 10 năm.
 - **BE-P0-5:** sửa `daily.headline` bỏ câu "Mở mỗi sáng trong gói Hội viên" khi Hội viên đang ẩn.
 - Không đổi luồng tiền.
 
 ## Architecture
-Frontend chỉ sửa CSS, một ít markup lớp bọc, và logic điều hướng cục bộ. Ảnh nền và dấu triện đã có trong `apps/web/public/images/lasoviet/`; không thêm ảnh. Giữ tên lớp `.fd109*` để không vỡ test hiện có. Backend sửa hàm thuần trong `packages/engine-adapters`; test cố định theo bảng 7 lá số của `research/01` mục 4.2.
+Frontend chỉ sửa CSS, một ít markup lớp bọc, và logic điều hướng cục bộ. Ảnh nền và dấu triện đã có trong `apps/web/public/images/lasoviet/`; không thêm ảnh. Giữ tên lớp `.fd109*` để không vỡ test hiện có. Backend sửa hàm thuần trong `packages/engine-adapters`; test cố định theo bảng 7 lá số của `research/01` mục 4.2. Mọi mã backend ở phase này là ticket cho An (R1).
 
 ## Related Code Files
 - Modify: `apps/web/src/styles/global.css` (trạng thái nút dùng chung, sau dòng 58–60)
@@ -47,7 +48,7 @@ Frontend chỉ sửa CSS, một ít markup lớp bọc, và logic điều hướ
 - Modify: `apps/web/src/features/ziwei/ziwei-chart.tsx`, `ziwei-palace.tsx` (dấu triện/la kinh; `<h3>`/`<div>` trong `<button>`)
 - Modify: `apps/web/src/features/reports/offer-ladder.tsx`, `paid-topic-selector-client.tsx`, `apps/web/src/features/commerce/contextual-unlock.css`, `membership-panel.tsx` (bản vá nút, chữ lặp)
 - Modify (nếu chữ xám chưa đạt): `apps/web/src/styles/tokens.css`
-- Modify (BE): `packages/engine-adapters/src/ziwei/iztro-horoscope.ts` (`:184-199`, `:315-330`, `:341`, `:387`), `packages/backend/src/reports/identity-report-config.ts` (`:366-381`), `period-reading-facts.ts`
+- Modify (BE): `packages/engine-adapters/src/ziwei/iztro-horoscope.ts` (`:184-199`, `:221-345`, `:387`), mới `month-attention.ts`, `packages/backend/src/reports/identity-report-config.ts` (`:366-381`), `packages/engine-adapters/src/ziwei/period-reading-facts.ts`
 - Tests: `ziwei-free-result.test.tsx`; Playwright 390/1440 × sáng/tối × VI/EN; test engine 7 lá số × năm 2026/2027/2030/2035; ngày 2027-01-15, 2027-02-05, 2027-02-06
 
 ## Implementation Steps
@@ -65,7 +66,7 @@ Frontend chỉ sửa CSS, một ít markup lớp bọc, và logic điều hướ
 - [ ] Không chữ nội dung <12px; mọi chữ thường ≥4,5:1; vùng bấm ≥44px.
 - [ ] Mọi điều khiển E2/E3 có đủ hover/nhấn/focus/khoá/đang tải (bảng đạt/chưa, không dòng nào "chưa").
 - [ ] Bấm hàng hoặc tab: tấm/tab hiện tức thì (không chờ máy chủ); Back/Forward và liên kết chia sẻ vẫn đúng.
-- [ ] Test 7 lá số × 4 năm đạt; ngày 2027-01-15, 2027-02-05, 2027-02-06 cho đúng năm; không còn tháng hạn ép; `daily.headline` không nhắc Hội viên.
+- [ ] Test 7 lá số × 4 năm đạt; ngày 2027-01-15, 2027-02-05, 2027-02-06 cho đúng năm; không còn tháng hạn ép (mọi tháng `warn` có tín hiệu engine); báo cáo phân bố ≥200 lá số được anh duyệt; `daily.headline` không nhắc Hội viên; bảng kiểm đại vận (BE-P0-8) không còn dòng lệch.
 - [ ] Bộ kiểm tra cũ vẫn đạt; LCP giả lập < 2,5 giây.
 
 ## Risk Assessment
@@ -76,4 +77,4 @@ Frontend chỉ sửa CSS, một ít markup lớp bọc, và logic điều hướ
 - Đổi hàm tính năm làm lệch dữ kiện bản đang bán → test cố định so với bảng chạy thử; không đổi kết quả cho năm hiện tại.
 
 ## Trang HTML duyệt
-`truoc-sau-sua-lech.html`: từng mục U1…P6 và từng nhóm nút một hàng, hai ảnh cạnh nhau (desktop 1440 và điện thoại 390), chú thích một câu; bảng nút bấm trước–sau (hover, nhấn, khoá, đang tải) và số đo tương phản. Anh làm gì: duyệt hoặc chỉ chỗ còn lệch. Phần dữ kiện (BE) anh không cần xem code; trang ghi 3 dòng "trước nói gì, sau nói gì" cho tháng cần chú ý và năm.
+`truoc-sau-sua-lech.html`: từng mục U1…P6 và từng nhóm nút một hàng, hai ảnh cạnh nhau (desktop 1440 và điện thoại 390), chú thích một câu; bảng nút bấm trước–sau (hover, nhấn, khoá, đang tải) và số đo tương phản. Anh làm gì: duyệt hoặc chỉ chỗ còn lệch. Phần dữ kiện (BE) anh không cần xem code; trang ghi 3 dòng "trước nói gì, sau nói gì" cho tháng cần chú ý và năm, kèm **5 lá số mẫu hiện tín hiệu engine của từng tháng cần chú ý** và tỉ lệ lá số có 0 tháng.

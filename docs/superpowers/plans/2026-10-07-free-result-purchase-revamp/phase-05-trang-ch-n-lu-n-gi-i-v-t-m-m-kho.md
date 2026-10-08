@@ -22,20 +22,22 @@ Trang chọn luận giải bày thẻ theo **tầng thời gian**, mỗi tầng 
 | Tầng | Miễn phí (đã đọc ở trang lá số) | Trả phí | Giá Lá | Hiện khi |
 |---|---|---|---|---|
 | Hôm nay | một dòng ngày + cung bị chạm | Hôm nay của bạn | 60 | bán ngay |
-| Tháng | 12 ô tháng, đánh dấu | Tháng này của bạn | 300 | qua cổng (GĐ6) |
+| Tháng | 12 ô tháng, đánh dấu (chỉ tháng engine tính thật, R4/R5) | Tháng này của bạn | 300 | qua cổng (GĐ6: kiểm tự động + 2–3 bài thử tay) |
 | Năm | cung lưu niên, tóm tắt năm | **Vận hạn năm [Y]** (năm nay hoặc năm sau) | 480 | tham số năm xong + qua cổng |
-| Chặng 10 năm | Đường đời 10 năm, điểm | **Chặng [a–b] tuổi của bạn** | 360 (đề xuất R7) | xây xong + qua cổng |
+| Chặng 10 năm | Đường đời 10 năm, điểm | **Chặng [a–b] tuổi của bạn** | **360 (R7 đã chốt)** | xây xong + engine đại vận đã kiểm chứng (BE-P0-8) + qua cổng |
 | Cung | 12 điểm, 1 cung quà | Một cung (120), Bản mệnh (240) | 120 / 240 | bán ngay |
-| Chủ đề | câu hỏi + cung liên quan | Tình duyên, Công việc | 480 | qua cổng (GĐ6) |
+| Chủ đề | câu hỏi + cung liên quan | Tình duyên, Công việc, và chủ đề mới khi Active (`research/05`) | 480 | qua cổng (GĐ6) |
+| Hai người | — | Hợp đôi (Tử Vi + Bát Tự) | 600 | mã xong + kết quả kiểm tra pháp lý Nghị định 13/2023 (GĐ6) |
+| Hệ thứ hai | — | Bát Tự toàn diện | giá theo SKU Bát Tự (anh chốt khi có mẫu) | engine + qua cổng (GĐ6) |
 | Trọn đời | — | Tử Vi trọn đời | 960 | bán ngay |
-| Gói gộp | — | Combo "Trọn đời + Năm [Y]" (1.300); gói cặp Năm nay + Năm sau (780, R8) | 1.300 / 780 | qua cổng |
+| Gói gộp | — | Combo "Trọn đời + Năm [Y]" (1.300); gói cặp Năm nay + Năm sau (780, R8 đã chốt) | 1.300 / 780 | qua cổng (gói cặp sau khi Năm đạt) |
 
-**Ẩn có điều kiện (Q1, đã chốt):** mỗi món chỉ ẩn **đến khi qua cổng chất lượng**; bật món trong danh mục thì thẻ tự hiện (giao diện chỉ đọc trạng thái từ danh mục, không viết cứng); có test "món đang giữ không hiện". Tab Hội viên ẩn khi còn giữ (R10). Không còn "Sắp mở/Sắp có/Sắp ra mắt"; không còn thẻ mang hai nhãn.
+**Ẩn có điều kiện (Q1, đã chốt):** mỗi món chỉ ẩn **đến khi qua cổng chất lượng**; bật món trong danh mục thì thẻ tự hiện (giao diện chỉ đọc trạng thái từ danh mục, không viết cứng); có test "món đang giữ không hiện". Tab Hội viên **ẩn** khi còn giữ (R10 đã chốt: giữ "sắp ra mắt", công cụ Hội viên được xây ở GĐ6 nhưng chưa mở bán, không nút mua). Không còn "Sắp mở/Sắp có/Sắp ra mắt"; không còn thẻ mang hai nhãn.
 
 ### Chọn thẻ đầu theo từng người (Q5, bảng 4.4 nghiên cứu 01)
 API "dữ kiện theo người" (BE, chỉ đọc) trả: năm âm lịch hiện tại Y, số tháng âm lịch còn lại của năm, chặng hiện tại [a–b] tuổi, năm thứ k trong chặng, số năm còn lại R = 10 − k, cung lưu niên của Y và Y+1, cung chặng kế. Giao diện chọn thẻ đầu:
 - Bấm "Năm nay", còn nhiều tháng → thẻ đầu **Vận hạn năm Y**, thẻ hai **Chặng hiện tại**; câu mở bằng số thật ("Năm Bính Ngọ của bạn rơi vào cung X, năm thứ k trong chặng a–b tuổi").
-- Bấm "Năm nay", chỉ còn vài tháng cuối trước Tết (R8) → thẻ đầu **Vận hạn năm Y+1** hoặc cặp Y và Y+1; nói **sự thật về thời gian** ("năm Bính Ngọ đến 06/02/2027"), không đếm ngược giả.
+- Bấm "Năm nay", chỉ còn vài tháng cuối trước Tết (R8 đã chốt; ngưỡng mặc định ≤3 tháng âm lịch còn lại) → thẻ đầu **Vận hạn năm Y+1** hoặc cặp Y và Y+1; nói **sự thật về thời gian** ("năm Bính Ngọ đến 06/02/2027"), không đếm ngược giả.
 - R ≤ 2 → thêm **Chặng kế tiếp** ("Chặng a–b của bạn kết thúc năm B; chặng kế bắt đầu B+1 ở cung X'"). k ≤ 2 → làm nổi **Chặng hiện tại**.
 - Chưa đến tuổi chặng đầu → ẩn Chặng, hiện "chặng đầu bắt đầu năm …". Giờ sinh chưa chắc → nhãn "tạm tính" (FD-103).
 - Đã có Trọn đời → mở lại báo cáo; Năm Y (12 tháng) là phần **thêm**; nói thật điều này.
@@ -43,7 +45,7 @@ API "dữ kiện theo người" (BE, chỉ đọc) trả: năm âm lịch hiện
 
 ### Thẻ và tấm mở khoá
 - Mỗi thẻ: 3 dòng "bạn sẽ biết", số phần (ví dụ "12 cung + 10 chặng + năm Y"), đọc thử ngắn của **chính lá số** (từ GĐ3), giá Lá; **một nút duy nhất** "Mở – N Lá →" ngay trên thẻ, mở thẳng tấm xác nhận (bỏ nút "Chọn phần này" và nút gộp cuối trang). Thẻ bấm cả vùng; thẻ "Một cung" có chip chọn cung hiện ✓, chỉ kéo giãn vùng đầu thẻ.
-- **Bảng so sánh ngắn** Một cung / Bản mệnh / Chặng / Năm / Trọn đời: mỗi gói có gì, giá, "đã trả trước được trừ khi nâng cấp trong 7 ngày" (luật hiện có; chưa mở rộng cho Năm/Chặng, R9).
+- **Bảng so sánh ngắn** Một cung / Bản mệnh / Chặng / Năm / Trọn đời: mỗi gói có gì, giá, "đã trả trước được trừ khi nâng cấp trong 7 ngày" (luật hiện có; **chưa mở rộng** cho Năm/Chặng, R9 đã chốt).
 - **Làm nổi gói khớp ý định** qua `?offer=&palace=`: nhãn "Hợp với câu bạn vừa hỏi", hai lớp viền vàng.
 - **Thuật ngữ:** "Độ mạnh cấu trúc: 71/100" → nhãn dễ hiểu ("Bộ sao hỗ trợ mạnh") + số nhỏ.
 - **Giá tiền đồng (Q6 = Không):** không ghi trên thẻ, không ghi trong tấm xem thử. Chỉ ở **bước xác nhận cuối** ngay trước thanh toán/nạp (số dư, còn lại bao nhiêu, quy đổi tiền đồng từ gói nạp phổ biến trong `la-packs.ts`, ghi rõ gói dùng để quy đổi). Hàm quy đổi chỉ để hiển thị; có test.
@@ -54,7 +56,7 @@ API "dữ kiện theo người" (BE, chỉ đọc) trả: năm âm lịch hiện
 ### Backend: năm tham số (An; chi tiết trong `research/04-ticket-be-cho-an.md`)
 - SKU năm theo tham số: hoặc `ZIWEI-YEAR-{Y}-P0` sinh theo năm, hoặc một SKU `ZIWEI-YEAR-P0` + `period_key = Y`. Sửa 4 chỗ kiểm tra `deriveReportTimingLineage(now).targetYear !== 2026` trong `wallet-unlock.service.ts` (dòng 581, 648, 814, 1002), `purchasePeriodKey` trong `period-report-config.ts`, trigger combo ở migration 0054 (**migration mới**, không sửa 0054 đã chạy), `han-month-reminder.service.ts` (26, 79), enum SKU, báo giá, hoàn Lá, thẻ ở `offer-ladder.tsx:15`.
 - Cho phép mua **năm hiện tại và năm kế**; khoảng cho phép nằm trong cấu hình.
-- Combo tham số "Trọn đời + Năm [Y]" (chờ R9).
+- Combo tham số "Trọn đời + Năm [Y]" (R9 đã chốt: giữ 1.300 Lá; BE-P1-11).
 - `ziwei-free-result-model.ts:141` đã suy ra SKU năm theo năm động nhưng danh mục không có `ZIWEI-YEAR-2027-P0` nên rơi về Trọn đời → sửa cùng.
 - **Hạn chót thực tế: phát hành trước Tết 06/02/2027.** Bắt đầu ngay, không chờ FE.
 - API "dữ kiện theo người" (B6) chỉ đọc, test với 7 lá số của nghiên cứu 01 mục 4.2.

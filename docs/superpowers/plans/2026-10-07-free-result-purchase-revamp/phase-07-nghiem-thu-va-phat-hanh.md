@@ -18,6 +18,10 @@ Kiểm tra toàn luồng sau mỗi đợt phát hành, đo hiệu quả bằng s
   - **Kiểm nút bấm:** đối chiếu từng hàng của danh sách E2 (22 nhóm trang lá số) và E3 (14 nhóm trang chọn luận giải) trong nghiên cứu 03: hover, nhấn, focus, đã chọn, bị khoá, đang tải; ghi đạt/chưa từng dòng.
   - **Kiểm chu kỳ theo người:** 7 lá số tổng hợp (nam/nữ, nhiều năm sinh) × năm 2026/2027/2030/2035: đúng chặng, đúng cung chặng, đúng cung lưu niên, đúng điểm chặng (= điểm cung chặng đi qua); ngày 2027-01-15, 2027-02-05, 2027-02-06 cho đúng năm; không còn tháng hạn ép.
   - **Kiểm chữ AI:** 10 nhận định ngẫu nhiên mỗi bài, 10 bài, đối chiếu tay với lá số; không câu nào sai sự thật; tỉ lệ khối rơi về chữ quy tắc; chi phí/lá số; độ trễ.
+  - **Kiểm tháng cần chú ý (R4):** không còn tháng ép; mọi tháng `warn` có tín hiệu engine và căn cứ; trang miễn phí và bản trả phí nói cùng tháng; báo cáo phân bố ≥200 lá số đã được anh duyệt; đối chiếu 3 lá số tay.
+  - **Kiểm engine đại vận (R7):** bảng ≥30 lá số × 4 ngày mốc (gồm 2027-02-05 và 2027-02-06) không còn dòng lệch; Chặng 10 năm của khách thử khớp.
+  - **Kiểm chữ AI tiếng Anh (R3):** làm lại phép kiểm 10 nhận định/bài cho một phần bài tiếng Anh; cảnh báo tăng trưởng trần ngày (R2) kích hoạt đúng bằng số liệu giả.
+  - **Kiểm món mới (R1):** mỗi món mở bán có ghi 2–3 bài thử tay (ảnh chụp, Claude chấm) và kiểm tự động; Combo, gói cặp, chủ đề mới, Bát Tự, công cụ Hội viên (chỉ tài khoản thử), Hợp đôi (chỉ khi kết quả kiểm tra pháp lý đã ghi vào tracker thì kiểm cả luồng mua).
   - Kiểm trên trang thật sau phát hành: VI/EN, sáng/tối, Chromium/Firefox/WebKit, 360/390/430/1024/1280/1440.
   - Đo: LCP 4G giả lập <2,5 giây; không lộ chữ khoá; không giá trên thân trang; không tiền đồng ngoài bước xác nhận cuối; tương phản; vùng bấm.
   - **Số liệu sạch:** cửa sổ 7 ngày trước và 7 ngày sau phát hành, loại lượt thử nghiệm đã biết; so tỷ lệ: xem lá số → đọc hết miễn phí → mở tấm đọc thử → mở tấm mua → mua.
@@ -41,7 +45,9 @@ Kiểm tra toàn luồng sau mỗi đợt phát hành, đo hiệu quả bằng s
 - [ ] Bộ kiểm thử cũ + các luồng mới đạt ở mọi khổ.
 - [ ] Bảng nút bấm: 0 dòng "chưa".
 - [ ] 7 lá số × 4 năm đúng toàn bộ; năm tham số qua ranh giới Tết đúng.
-- [ ] Chữ AI: 0 câu sai sự thật trong 100 nhận định đối chiếu tay.
+- [ ] Chữ AI: 0 câu sai sự thật trong 100 nhận định đối chiếu tay (VI và một phần EN).
+- [ ] Tháng cần chú ý: 0 tháng ép; bảng đại vận không dòng lệch.
+- [ ] Mỗi món đã mở bán có bằng chứng 2–3 bài thử tay + kiểm tự động; Hội viên vẫn ẩn; Hợp đôi không bán nếu chưa có kết quả pháp lý.
 - [ ] Trang thật khớp các bản mẫu anh đã duyệt.
 - [ ] Có số liệu phễu trước/sau trên cửa sổ sạch (không điền số giả khi thiếu dữ liệu).
 - [ ] Anh duyệt trang nghiệm thu; ticket Kaneo chuyển Done có bằng chứng.

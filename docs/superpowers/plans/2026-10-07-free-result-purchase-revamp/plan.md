@@ -1,6 +1,6 @@
 ---
 title: "Làm lại luồng luận giải: lá số miễn phí, trang chọn luận giải, dải sản phẩm"
-description: "Kế hoạch v2 (07/10): sửa UX/UI, nút bấm, độ trung thực dữ kiện, để AI viết chữ miễn phí, dựng dải sản phẩm theo vòng thời gian của từng người và xây các món còn khuyết. Mỗi giai đoạn có một trang HTML để anh duyệt trước khi viết code thật."
+description: "Kế hoạch v2.1 (08/10, đã gộp vòng 2 R1-R13 = FD-118): sửa UX/UI, nút bấm, độ trung thực dữ kiện, để AI viết chữ miễn phí, dựng dải sản phẩm theo vòng thời gian của từng người và xây toàn bộ sản phẩm còn khuyết. Mỗi giai đoạn có một trang HTML để anh duyệt trước khi viết code thật."
 status: pending
 priority: P1
 branch: "plan/free-result-purchase-revamp"
@@ -8,7 +8,7 @@ tags: [ux, ui, copy, ai-writer, engine, free-result, offer, product-lineup, desk
 blockedBy: []
 blocks: []
 created: "2026-10-07T12:03:43.744Z"
-updated: "2026-10-07"
+updated: "2026-10-08"
 createdBy: "ck:plan"
 source: skill
 ---
@@ -19,15 +19,16 @@ source: skill
 
 **Vì sao làm:** anh xem trang thật trên desktop ngày 07/10 và thấy giao diện vỡ, sơ sài, không dùng lá số có dấu triện đã duyệt; khách đọc chưa đủ hấp dẫn để mua; logic các tab chưa hợp lý. Biên bản họp: `docs/reviews/2026-10-07-hop-ux-ui-luong-mua-luan-giai.md`.
 
-**Bản v2 này** gộp: 10 câu anh đã trả lời vòng 1 (ghi thành FD-117), ba bản nghiên cứu trong `research/` (dải sản phẩm và vòng thời gian; hệ thống AI viết chữ; tab, hình ảnh, nút bấm), và các điều chỉnh sau khi Opus review.
+**Bản v2.1 này** gộp: 10 câu anh đã trả lời vòng 1 (FD-117), **13 câu vòng 2 anh đã trả lời ngày 08/10 (FD-118)**, bốn bản nghiên cứu trong `research/` (dải sản phẩm và vòng thời gian; hệ thống AI viết chữ; tab, hình ảnh, nút bấm; backlog backend cho An) cộng bản tổng hợp chủ đề mới từ từ khoá Google (`research/05-chu-de-moi-tu-seo.md`), và các điều chỉnh sau khi Opus review.
 
 **Không làm lại việc đã xong.** Kế hoạch `2026-10-03-ux-funnel-overhaul` đã giao 7/9 giai đoạn (LSV-74, 75, 76, 78, 80 Done; 77 và 79 chỉ chờ SePay và email thật). Plan này giữ nguyên các phần đó: form trang chủ một bước, cache tổng quan, cắt giữa câu có mờ an toàn, tấm mở khoá tại chỗ, nạp trong tấm, phòng chờ, nhắc khách.
 
-**Bốn nhóm việc:**
+**Năm nhóm việc:**
 1. Sửa chỗ trang thật lệch bản mẫu đã duyệt (FD-116) và sửa mọi nút bấm cho có phản hồi rõ ràng (nhóm A + Q10).
 2. Làm đúng độ trung thực của dữ kiện năm/tháng và bỏ chữ "2026" cứng trong sản phẩm (An, backend).
 3. Cho AI viết chữ miễn phí, có căn cứ nằm cạnh từng nhận định (Q2, Q9).
-4. Dựng lại trang lá số (tab theo thời gian, hình ảnh trực quan) và trang chọn luận giải (dải sản phẩm theo vòng thời gian từng người), rồi xây các món còn khuyết (Q1, Q3, Q5, Q7, Q8).
+4. Dựng lại trang lá số (tab theo thời gian, hình ảnh trực quan) và trang chọn luận giải (dải sản phẩm theo vòng thời gian từng người) (Q1, Q3, Q5, Q7, Q8).
+5. **Xây mã cho toàn bộ sản phẩm còn khuyết ngay trên engine của repo** (R1): Vận hạn năm [Y], Chặng 10 năm, Tình duyên, Công việc, Tháng này, Hôm nay (tinh chỉnh), Combo, chủ đề mới, công cụ Hội viên, Bát Tự và Hợp đôi. Luật "20 bài thật liên tiếp" bỏ; mỗi món chỉ cần 2–3 bài thử tay cộng kiểm tự động.
 
 ## Những gì đã quyết (FD-117, vòng 1)
 
@@ -46,12 +47,30 @@ source: skill
 
 **Cách tính điểm cho "Đường đời 10 năm" (đã chốt, không còn mở):** điểm của một chặng 10 năm = điểm cấu trúc đã công bố (FD-107, FD-111) của **cung mà chặng đó đi qua**. Công thức ấy đã cộng cung đối và hai cung tam hợp (tam phương tứ chính) nên không cần công thức mới. Hộp "Điểm này tính thế nào" ghi rõ: đây là sức nâng đỡ của bộ sao ở cung ấy, **không phải điểm may rủi** của 10 năm; cột rời rạc, không vẽ đường dự đoán từng năm. (Nghiên cứu 01 từng đề xuất "không điểm"; điều đó đã bị Q8 thay thế.)
 
+## Những gì đã quyết ở vòng 2 (FD-118, anh trả lời 08/10)
+
+| Câu | Anh đã chốt | Ảnh hưởng tới |
+|---|---|---|
+| R1 Đồng ý + ghi chú | **Bỏ luật "20 bài thật liên tiếp".** Mỗi món chỉ cần 2–3 bài thử tay của anh và đồng nghiệp (gửi ảnh chụp cho Claude chấm nếu cần). **Xây mã cho TẤT CẢ sản phẩm dựa trên engine hiện có của repo ngay.** Quy tắc: UX/UI = anh + Claude; mọi mã backend = ticket Kaneo cho An | GĐ6 (viết lại), `04` |
+| R2 Đồng ý | Trần AI miễn phí giữ 3.000đ/lá số và 50.000đ/ngày; **khi lượng khách tăng, hệ thống phải CẢNH BÁO để nâng trần ngày**; bộ chặn tiền dùng giá đã duyệt FD-114; thử ≤180.000đ | GĐ3, BE-P1-5 |
+| R3 (không chọn, ghi chú) | **Tiếng Anh dùng cùng quy tắc như tiếng Việt**: cá nhân hoá, chuyên gia, giọng tư vấn/đồng hành/tâm tình. Không siết từ cấm quá mức làm hại mục tiêu cuối (khách tin + mua): **chỉ cấm điều luật cấm và điều sai sự thật về lá số**. AI viết cả VI và EN | GĐ3, BE-P1-2, BE-P1-3 |
+| R4 **KHÔNG** | **Bỏ tháng "cần chú ý" bị ép.** Phải do engine tính, đúng những tháng thật sự cần chú ý của lá số; anh tin lá số nào cũng có tháng riêng; "đào sâu engine". Tạo quy tắc thật; lá số nào không ra thì tinh chỉnh quy tắc, không bịa | GĐ2, GĐ4, GĐ6, BE-P0-4 |
+| R5 Đồng ý | Dải 12 ô tháng hiện theo thứ tự, ô cần chú ý có dấu khoá | GĐ4 |
+| R6 Đồng ý | Điện thoại: một trang cuộn + thanh 5 chip dính | GĐ4 |
+| R7 Đồng ý + ghi chú | Món "Chặng 10 năm của bạn" **360 Lá**; **kiểm tra engine thật kỹ** để suy luận thời gian và đọc chặng đúng cho mọi lá số (đại vận, chiều thuận/nghịch, khoảng tuổi, nhận diện chặng hiện tại quanh Tết) | GĐ5, GĐ6, BE-P0-8 |
+| R8 Đồng ý | Gần Tết thẻ đầu chuyển sang năm sau; gói cặp "Năm nay + Năm sau" 780 Lá làm sau khi bản Năm đạt | GĐ5, GĐ6 |
+| R9 Đồng ý | Combo đổi nghĩa "Trọn đời + Năm [Y]" 1.300 Lá; khấu trừ 7 ngày giữ như cũ | GĐ6 |
+| R10 **KHÔNG** | Hội viên **giữ "sắp ra mắt"** như bây giờ, **và xây các công cụ Hội viên còn thiếu ngay** | GĐ5 (giữ ẩn), GĐ6, BE-P1-14 |
+| R11 **KHÔNG** | **Xây CẢ Hợp đôi và hệ thứ hai Bát Tự.** Anh nói Hợp đôi không cần người kia đồng ý, một người xem cho cả hai. **Cờ pháp lý (giữ trong plan): ngày sinh của người thứ hai là dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP; anh sẽ kiểm tra pháp lý (dữ liệu tối thiểu, không lưu ngoài lúc dựng bài đọc, chữ chính sách bảo mật); kết quả quyết định thiết kế cuối cùng (quy tắc "chỉ luật Việt Nam là ranh giới").** Bản đồ sao Tây phương không được nhắc → vẫn hoãn | GĐ6, BE-P1-15, BE-P1-16 |
+| R12 **KHÔNG** | **Làm ngay các chủ đề kế tiếp** theo gợi ý của Claude và nghiên cứu từ khoá Google đã có trong repo (`data/lasoviet_research_master.xlsx`) | GĐ6, BE-P1-17, `05` |
+| R13 Đồng ý | Cục, Mệnh chủ, Thân chủ, nạp âm giữa lá số: làm ở đợt hoàn thiện, không chặn việc khác | GĐ6, BE-P1-13 |
+
 ## Phát hiện mới từ nghiên cứu (đã đưa vào các giai đoạn)
 
-1. **Các món "Sắp mở" không chờ giao diện.** Tình duyên, Công việc, Tháng này, Vận hạn năm, Combo đều **đã có code backend, đã triển khai**. Chúng bị giữ vì luật "20 bài thật đạt liên tiếp" và chưa duyệt ngân sách. Hợp đôi, Bát Tự, Tây phương **chưa có engine**. Hội viên thiếu đặc tả công cụ trả phí.
+1. **Các món "Sắp mở" không chờ giao diện.** Tình duyên, Công việc, Tháng này, Vận hạn năm, Combo đều **đã có code backend, đã triển khai**. Chúng từng bị giữ vì luật "20 bài thật đạt liên tiếp" và chưa duyệt ngân sách; **vòng 2 bỏ luật đó (R1)**, thay bằng 2–3 bài thử tay + kiểm tự động. Hợp đôi, Bát Tự, Tây phương **chưa có engine**: **vòng 2 quyết xây Bát Tự và Hợp đôi** (Tây phương vẫn hoãn). Hội viên thiếu đặc tả công cụ trả phí: **xây các công cụ ngay, Hội viên vẫn ẩn (R10)**.
 2. **Engine Tử Vi tính được mọi tầng thời gian** (chặng 10 năm, năm, tháng, ngày) cho bất kỳ năm nào. Thiếu: sản phẩm "Chặng 10 năm" (chưa có SKU và writer) và danh sách đủ các chặng ra trang miễn phí.
 3. **Mỗi người một chặng khác nhau.** Chạy thử 7 lá số tổng hợp: năm 2026 rơi vào chặng khác, cung khác, còn từ 2 đến 8 năm trong chặng; nam và nữ cùng ngày sinh ra chặng khác. Không thể nói chung "2026 nằm trong đại vận".
-4. **Tháng "cần chú ý" bị ép.** Khi không có tháng nào đạt điều kiện, code tự đặt tháng 7 thành tháng cần chú ý. Bản đề xuất mặc định: **bỏ**, nói thật (câu hỏi R4).
+4. **Tháng "cần chú ý" bị ép.** Khi không có tháng nào đạt điều kiện, code tự đặt tháng 7 thành tháng cần chú ý (và còn tự thêm "tiền bạc, giấy tờ" vào câu tóm tắt, và dùng câu chuẩn bị mẫu giống nhau). **Anh quyết (R4): bỏ, phải do engine tính thật**; An nghiên cứu quy tắc nhiều tín hiệu (Hoá Kỵ lưu nguyệt/lưu niên/đại vận, đối cung, sát tinh) và đo trên ≥200 lá số (BE-P0-4).
 5. **"Vận hạn năm 2026" bị cứng năm** ở SKU, backend (4 chỗ), bộ kích hoạt cơ sở dữ liệu (migration 0054) và thẻ trang chọn. Sau Tết 06/02/2027 sản phẩm không bán được nữa. Còn khoảng 4 tháng. Ưu tiên cao.
 6. **Nút bấm:** thẻ ở trang chọn luận giải không phải nút, trạng thái "đã chọn" quá nhạt, dòng xác nhận nằm cuối trang; 22 nhóm điều khiển ở trang lá số không có trạng thái nhấn; nút bị khoá trông như nút bấm được; mỗi lần bấm hàng/tab ở trang lá số phải hỏi máy chủ lại cả trang.
 7. **Trọn đời hiện chỉ có đúng một đoạn "chặng hiện tại", một đoạn "năm hiện tại"** và vài đoạn mồi. Câu "năm 2026 nằm trong Trọn đời" đúng nhưng mỏng; phải nói thật khi dùng.
@@ -63,12 +82,12 @@ Mỗi giai đoạn bắt đầu bằng một trang HTML (Artifact riêng tư tr�
 
 | GĐ | Trang HTML anh nhận được | Anh làm gì trên trang |
 |---|---|---|
-| 1 | `ke-hoach-v2-duyet.html`: đã chốt gì, đã tìm ra gì, giải thích lại Q4, dải sản phẩm, hình minh hoạ, brief ảnh ChatGPT, 13 câu vòng 2 | Bấm Đồng ý / Không / Sửa cho R1–R13 |
+| 1 | `ke-hoach-v2-duyet.html`: đã chốt gì, đã tìm ra gì, giải thích lại Q4, dải sản phẩm, hình minh hoạ, brief ảnh ChatGPT, 13 câu vòng 2 | **Đã xong 08/10** (FD-118) |
 | 2 | `truoc-sau-sua-lech.html`: ảnh trước–sau desktop 1440 và điện thoại 390; bảng nút bấm trước–sau | Duyệt hoặc chỉ chỗ còn lệch |
 | 3 | `chu-mien-phi-v2.html`: 3 lá số mẫu, chữ cũ và chữ mới cạnh nhau, căn cứ, thang chấm 1–5 | Chấm điểm, sửa chữ, chọn giọng văn |
 | 4 | `la-so-mien-phi-v3.html`: bản mẫu bấm được của trang lá số mới | Bấm thử, bình luận từng khối |
 | 5 | `chon-luan-giai-v3.html`: trang chọn luận giải + tấm mở khoá + dải sản phẩm | Chọn bộ câu mời mua A/B, sửa chữ |
-| 6 | `mau-bai-<mon>.html` cho từng món mới: 5 bài mẫu thật + bảng kết quả 20 bài | Xem mẫu, duyệt mở bán từng món |
+| 6 | `mau-bai-<mon>.html` cho từng món (Năm, Chặng, Tình duyên, Công việc, Tháng, chủ đề mới, Bát Tự, Hợp đôi): mẫu bài + ảnh chụp 2–3 bài thử tay + kết quả kiểm tự động | Xem mẫu, chấm, duyệt mở bán từng món; ghi kết quả kiểm tra pháp lý cho Hợp đôi |
 | 7 | `nghiem-thu.html`: ảnh trang thật, bảng đạt/chưa đạt, số đo, phễu trước/sau | Duyệt phát hành, kéo ticket Done |
 
 Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trước khi viết; khi trang cần lưu lựa chọn thì nạp `artifact-capabilities`; dùng lá số mẫu tổng hợp, **không dùng ngày sinh hay tên thật**; lưu bản nguồn vào `prototype/revamp-2026-10/`.
@@ -77,20 +96,20 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 
 | Phase | Name | Ai làm | Status |
 |-------|------|--------|--------|
-| 1 | [Quyết định vòng 2](./phase-01-b-ng-quy-t-nh-g-c.md) | Claude dựng trang; anh duyệt | Page ready (chờ anh) |
+| 1 | [Quyết định vòng 2](./phase-01-b-ng-quy-t-nh-g-c.md) | Claude dựng trang; anh duyệt | **Xong (FD-118, 08/10)** |
 | 2 | [Sửa lệch bản đã duyệt, nút bấm, độ trung thực dữ kiện](./phase-02-s-a-l-ch-b-n-duy-t.md) | FE: Lãm + Claude; BE: An | Pending |
 | 3 | [Hệ thống AI viết chữ và căn cứ](./phase-03-engine-sinh-ch-mi-n-ph-v2.md) | BE: An; anh duyệt chữ | Pending |
 | 4 | [Bố cục trang lá số miễn phí và hình ảnh](./phase-04-b-c-c-trang-l-s-mi-n-ph-m-i.md) | FE: Lãm + Claude; BE phụ: An | Pending |
 | 5 | [Trang chọn luận giải và dải sản phẩm](./phase-05-trang-ch-n-lu-n-gi-i-v-t-m-m-kho.md) | FE: Lãm + Claude; BE năm tham số: An | Pending |
-| 6 | [Hoàn thiện sản phẩm còn khuyết](./phase-06-hoan-thien-san-pham-con-khuyet.md) | BE: An; FE: Lãm + Claude | Pending |
+| 6 | [Xây toàn bộ sản phẩm còn khuyết](./phase-06-hoan-thien-san-pham-con-khuyet.md) | BE: An (ticket Kaneo); FE: Lãm + Claude | Pending |
 | 7 | [Nghiệm thu và phát hành](./phase-07-nghiem-thu-va-phat-hanh.md) | Claude + Lãm; An sửa lỗi | Pending |
 
 **Thứ tự và song song:**
-- GĐ1 trước (vài phút anh bấm). Không chờ GĐ1 để bắt đầu các việc **P0 của An** không cần quyết định: tham số hoá năm (hạn chót thực tế là Tết 06/02/2027), sửa tính năm, ranh giới năm âm lịch, chữ quy tắc v2 (xem `research/04-ticket-be-cho-an.md`).
+- GĐ1 đã xong. **Tạo ngay ticket P0 cho An** (không còn chờ quyết định nào): tham số hoá năm (hạn chót thực tế là Tết 06/02/2027), sửa tính năm, ranh giới năm âm lịch, **tháng cần chú ý do engine tính thật**, **kiểm chứng engine đại vận**, chữ quy tắc v2 (xem `research/04-ticket-be-cho-an.md`).
 - GĐ2 chạy ngay (FE và BE độc lập nhau), không cần duyệt thiết kế lại.
 - GĐ3 (chữ) song song GĐ2; chữ quy tắc v2 ra trước, AI ra sau khi An gỡ hai chỗ chặn.
 - GĐ4 và GĐ5 dựng bản mẫu HTML sau GĐ1, dùng chữ của GĐ3 khi có; viết code sau khi anh duyệt bản mẫu.
-- GĐ6 chạy theo từng món (mỗi món một cổng chất lượng); GĐ7 chạy sau mỗi đợt phát hành.
+- GĐ6 chạy theo từng món (mỗi món: kiểm tự động + 2–3 bài thử tay); Bát Tự, Hợp đôi, chủ đề mới và công cụ Hội viên là các nhánh song song, không chặn nhau; Hợp đôi chỉ bật bán sau kết quả kiểm tra pháp lý. GĐ7 chạy sau mỗi đợt phát hành.
 
 ## Mục tiêu đo được
 
@@ -101,6 +120,9 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 - Mọi hàng "Chưa mở" mở ra tấm có đọc thử thật của chính lá số đó.
 - Chữ tổng quan miễn phí: không còn công thức trong thân bài; chỉ một câu thận trọng cho cả bài; mỗi đoạn có chi tiết riêng của lá số; mọi nhận định có căn cứ cạnh bên.
 - Sản phẩm năm không còn cứng 2026; mua được năm hiện tại và năm kế.
+- Không còn tháng "cần chú ý" bị ép: mọi tháng `warn` có tín hiệu engine kèm căn cứ; báo cáo phân bố trên ≥200 lá số được anh duyệt.
+- Đường đời 10 năm và sản phẩm Chặng: bảng kiểm engine đại vận (≥30 lá số × 4 ngày mốc) không còn dòng lệch.
+- Mỗi món bật có: kiểm tự động đạt + 2–3 bài thử tay (ảnh chụp, Claude chấm).
 - 7 lá số mẫu (nam/nữ, nhiều năm sinh) cho ra đúng chặng, đúng cung lưu niên khi so với kết quả chạy thử.
 - LCP 4G giả lập < 2,5 giây giữ nguyên; không lộ chữ của phần khoá.
 - Đo phễu: tỷ lệ mở tấm xem thử và tỷ lệ mua sau 7 ngày so với 7 ngày trước khi phát hành (cửa sổ sạch, loại lượt thử nghiệm).
@@ -111,18 +133,19 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 - Không đổi header/footer dùng chung (FD-100).
 - Không đổi luồng tiền, ví, đơn nạp, khấu trừ 7 ngày. **Ngoại lệ duy nhất:** tham số hoá năm 2026 trong SKU, kiểm tra mua, khoá kỳ, trigger combo (có migration mới, test mua/đọc/hoàn Lá).
 - Không viết lại báo cáo trả phí Trọn đời (writer v4.2).
-- Không làm Hợp đôi, Bát Tự, Tây phương, Hội viên trong plan này trừ khi anh chọn khác ở R10, R11.
+- Không **bán** Hội viên (vẫn "sắp ra mắt", không nút mua) dù công cụ Hội viên được xây (R10). Không làm Bản đồ sao Tây phương (R11 không nhắc). Không bán Hợp đôi trước khi có kết quả kiểm tra pháp lý (Nghị định 13/2023/NĐ-CP).
 - Không đếm ngược giả, không số người mua giả, không "giải mã vận mệnh"/"đổi đời"/"bí mật".
 
 ## Phân công và quy tắc thực thi
 
 - **Sonnet viết code, Opus chỉ review** (quy tắc của anh 30/09 và 07/10).
 - **Giao diện (frontend, UX/UI web): anh (Lãm) làm cùng Claude.** Mọi giao diện làm cho điện thoại trước; báo anh trước khi bắt đầu viết giao diện thật.
-- **Backend và engine: An làm qua ticket Kaneo.** Danh sách việc ưu tiên P0/P1/P2, tiêu chí nghiệm thu và việc nào chờ quyết định nào nằm ở `research/04-ticket-be-cho-an.md`. Claude không gọi Kaneo thay; ticket tạo sau khi anh duyệt GĐ1.
+- **Backend và engine (mọi mã backend): An làm qua ticket Kaneo** (R1). Danh sách việc ưu tiên P0/P1/P2, tiêu chí nghiệm thu và phụ thuộc nằm ở `research/04-ticket-be-cho-an.md` (viết để dán nguyên mục thành ticket). Claude không gọi Kaneo thay; Lãm hoặc người điều phối tạo ticket **ngay bây giờ** vì GĐ1 đã xong.
 - Trang HTML duyệt của từng giai đoạn do Claude dựng (không phải code sản phẩm).
 - Mỗi việc một nhánh ngắn, PR vào `master`, test xanh, An hoặc Lãm duyệt mới merge (FD-097). Không bao giờ đẩy thẳng lên `master`.
-- Sau khi anh duyệt GĐ1: tạo ticket Kaneo cho GĐ2–7 trong dự án "La so viet"; chỉ chuyển Done khi có bằng chứng đã phát hành và kiểm tra trên trang thật.
-- Ghi quyết định vòng 2 vào `rules-and-decisions-tracker.md` (FD-118) và xoá chữ cũ mâu thuẫn trong tài liệu.
+- GĐ1 đã duyệt: tạo ticket Kaneo cho GĐ2–7 trong dự án "La so viet"; chỉ chuyển Done khi có bằng chứng đã phát hành và kiểm tra trên trang thật.
+- Quyết định vòng 2 đã ghi vào `rules-and-decisions-tracker.md` (FD-118); chữ cũ mâu thuẫn trong plan đã được thay.
+- Cổng chất lượng mỗi món (R1): kiểm tự động + 2–3 bài thử tay của anh và đồng nghiệp (ảnh chụp gửi Claude chấm).
 
 ## Các giai đoạn tạo ra gì (tóm tắt)
 
@@ -133,14 +156,28 @@ Quy tắc chung cho mọi trang HTML: nạp kỹ năng `artifact-design` trướ
 | 3 | Chip "Căn cứ", trạng thái "đang viết riêng cho bạn", nhãn AI | Thẻ nghĩa; chữ quy tắc v2; gỡ chặn AI; writer một lần gọi; cổng kiểm tra; bộ chạy thử | `chu-mien-phi-v2.html` |
 | 4 | 5 tab, 3+3 cung, Đường đời 10 năm, 12 ô tháng, lớp phủ đại vận/lưu niên, 12 cung có biểu tượng, tấm đọc thử, lá số lớn; 2–3 ảnh mới | Danh sách đủ chặng; căn cứ theo từng mục; dòng đọc thử cho 13 mục | `la-so-mien-phi-v3.html` |
 | 5 | Thẻ một bước, dải sản phẩm theo vòng thời gian, tấm mở khoá, so sánh gói, bộ câu mời mua | **Năm tham số** (SKU, mua, hoàn Lá, migration); API "dữ kiện theo người" | `chon-luan-giai-v3.html` |
-| 6 | Thẻ/đọc thử của món mới tự hiện khi qua cổng | Writer + SKU + cổng cho Chặng 10 năm; đợt 20 bài Năm, Chặng, Tình duyên, Công việc, Tháng; Combo tham số | `mau-bai-<mon>.html` |
+| 6 | Thẻ/đọc thử của mọi món mới tự hiện khi qua cổng; trang Bát Tự và Hợp đôi; màn công cụ Hội viên (ẩn); điền Cục/Mệnh chủ giữa lá số | Writer + SKU + cổng cho Chặng 10 năm; kích hoạt Năm, Tình duyên, Công việc, Tháng; Combo tham số; chủ đề mới; công cụ Hội viên; engine Bát Tự; Hợp đôi (chờ pháp lý để bán) | `mau-bai-<mon>.html` |
 | 7 | Báo cáo nghiệm thu, 3+ luồng e2e mới | Sửa lỗi phát sinh | `nghiem-thu.html` |
 
 ## Dependencies
 
-- Dựa trên: `docs/superpowers/plans/2026-10-03-ux-funnel-overhaul/` (đã giao gần hết), FD-063, FD-065, FD-105, FD-107, FD-109, FD-110, FD-111, FD-112, FD-114, FD-116, FD-117.
-- Nghiên cứu: `research/01-dai-san-pham-va-vong-thoi-gian.md`, `research/02-he-thong-ai-viet-chu.md`, `research/03-tab-hinh-anh-nut-bam.md`; ticket cho An: `research/04-ticket-be-cho-an.md`.
+- Dựa trên: `docs/superpowers/plans/2026-10-03-ux-funnel-overhaul/` (đã giao gần hết), FD-063, FD-065, FD-105, FD-107, FD-109, FD-110, FD-111, FD-112 (luật 20 bài đã được FD-118 thay cho đợt này), FD-114, FD-116, FD-117, **FD-118**.
+- Nghiên cứu: `research/01-dai-san-pham-va-vong-thoi-gian.md`, `research/02-he-thong-ai-viet-chu.md`, `research/03-tab-hinh-anh-nut-bam.md`; **backlog backend cho An (chính thức): `research/04-ticket-be-cho-an.md`**; **chủ đề mới từ từ khoá Google: `research/05-chu-de-moi-tu-seo.md`**.
 - Bản mẫu nguồn: `prototype/revamp-2026-09/la-so-ket-qua-v2*`, `la-so-ket-qua-v2-phase4-proposal.*`, `chon-luan-giai.html`, `contextual-unlock-proposal-2026-10-03.html`; trang duyệt vòng 2: `prototype/revamp-2026-10/ke-hoach-v2-duyet.html`.
 - Định hướng hình ảnh: `docs/22-art-direction.md`, `docs/24-light-theme-color-spec.md`. Giọng văn: `docs/13-brand-experience-guideline.md`, `docs/20-deep-research-ta-social-listening-handoff.md`.
 - Chặn kỹ thuật cho AI: `apps/api/src/free-palace-composition.ts` (chưa có bằng chứng giới hạn token) và bộ nối 9router/Gemini (số token bị coi là "không rõ"). Chữ quy tắc v2 không bị chặn bởi hai việc này.
 - Liên quan nhưng không chặn: LSV-63 (Tháng/Năm), LSV-65 (Combo).
+
+## Tài sản hình ảnh (Assets)
+
+Ba ảnh ChatGPT **đã duyệt và đã xử lý** (nền trong suốt, có PNG và WebP) nằm ở `/Users/admin/Downloads/Add-on photos 1/da-xu-ly/`:
+1. `goc-trang-tri-hoa-van-khung-vang-lasoviet` (hoa văn góc khung),
+2. `vong-huy-hieu-cung-nang-do-lasoviet` (vòng huy hiệu cung),
+3. `chang-duong-10-nam-dai-van-lasoviet` (biểu tượng chặng 10 năm).
+
+Ở giai đoạn FE (GĐ4) sao chép vào `apps/web/public/images/lasoviet/` (WebP trước, PNG dự phòng), giữ tên SEO lowercase-hyphen. Không đưa tệp `xem-thu-nho.png` (ảnh xem thử) vào web. Không thêm ảnh ngoài ba ảnh này.
+
+## Cờ pháp lý còn mở (việc của anh)
+
+1. **Hợp đôi:** dữ liệu ngày sinh của người thứ hai là dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP; anh kiểm tra pháp lý (dữ liệu tối thiểu, không lưu ngoài lúc dựng bài đọc, chữ chính sách bảo mật); kết quả quyết định thiết kế đồng ý/thông báo cuối cùng và việc bật bán (FD-118, OD-005).
+2. **Nội dung:** liệt kê điều luật Việt Nam thực sự cấm để cổng chất lượng chỉ chặn cứng đúng điều đó (R3); cho tới lúc đó các chủ đề FD-075 giữ nguyên.

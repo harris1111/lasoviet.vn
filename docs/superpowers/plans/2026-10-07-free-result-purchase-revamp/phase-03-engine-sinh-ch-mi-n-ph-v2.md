@@ -14,7 +14,7 @@ Anh đã chốt (Q9, Q2): **AI viết** chữ miễn phí, prompt rất chặt, 
 
 Cách làm (theo `research/02-he-thong-ai-viet-chu.md`): **một lần gọi AI cho mỗi lá số**, trả về một gói gồm: bài tổng quan, cung đọc trọn theo mối quan tâm, dòng đọc thử cho 13 mục còn khoá (11 cung + 2 chủ đề), đoạn "Năm nay" cắt giữa câu, và căn cứ cho từng nhận định. Gói được kiểm tự động theo từng khối; khối nào rớt thì dùng chữ quy tắc đã cải tiến (không gọi lại, vì tiền vẫn tính).
 
-**Thứ tự giao:** (1) chữ quy tắc v2 + thư viện thẻ nghĩa ra **trước**, vì không bị chặn kỹ thuật và là đường dự phòng; (2) AI ra sau khi An gỡ hai chỗ chặn. Ngân sách tiền (R2) và bốn nguyên tắc viết (R3) chờ anh trả lời trước khi bật AI thật.
+**Thứ tự giao:** (1) chữ quy tắc v2 + thư viện thẻ nghĩa ra **trước**, vì không bị chặn kỹ thuật và là đường dự phòng; (2) AI ra sau khi An gỡ hai chỗ chặn. **Vòng 2 đã chốt (FD-118):** R2 giữ trần 3.000đ/lá số và 50.000đ/ngày + **cảnh báo khi lượng khách tăng để nâng trần ngày**; R3 **tiếng Anh dùng cùng quy tắc giọng như tiếng Việt, AI viết cả hai ngôn ngữ, chỉ cấm điều luật cấm và điều sai sự thật về lá số**. Không còn gì chờ anh trước khi bật AI, ngoài hai điều chặn kỹ thuật của An.
 
 ## Hiện trạng (đã kiểm trong mã)
 - Chữ tổng quan do `free-structural-overview.ts` ghép từ câu mẫu, không AI; chỉ biết ý nghĩa 14 chính tinh viết lối Hán Việt cứng; in cả công thức điểm vào thân bài; mỗi cung lặp câu tự phủ nhận; "Nên làm/Nên tránh" giống nhau cho mọi người cùng cung.
@@ -31,17 +31,17 @@ Cách làm (theo `research/02-he-thong-ai-viet-chu.md`): **một lần gọi AI 
 - **Dòng đọc thử 13 mục** (cho Q4): 1–2 câu thật của chính mục đó, dừng ở chỗ còn câu hỏi; **không** lời khuyên, lý do, con số, kết luận tốt/xấu; không lộ nội dung trả phí (FD-059).
 - **Đoạn Năm nay:** 2 câu hiển thị khớp số liệu thật + câu thứ ba cắt giữa câu; phần sau của câu **không tồn tại ở bất kỳ nơi nào**.
 - **Căn cứ (Q2):** hai tầng: (1) thẻ sao/cung/độ sáng lấy thẳng từ engine (không thể sai); (2) 2–3 bước do AI viết như người có nghề giải thích cho người ngoài ngành, bám đúng lá số.
-- **Cổng kiểm tra tự động theo khối:** chặn cứng (sai schema/độ dài; khoá dẫn chứng không có thật; sao/cung/Hoá/số không có trong dữ kiện; **tả sai độ sáng**; **sai vị trí sao–cung**; sai Hoá; công thức lọt vào bài; từ cấm; câu thận trọng quá số; teaser lộ nội dung; đoạn cắt sai dạng) và cảnh báo mềm (câu dài, danh từ trừu tượng chồng, lặp đầu câu, rào đón, ít chữ "bạn", dồn Hán Việt).
+- **Cổng kiểm tra tự động theo khối:** chặn cứng (sai schema/độ dài; khoá dẫn chứng không có thật; sao/cung/Hoá/số không có trong dữ kiện; **tả sai độ sáng**; **sai vị trí sao–cung**; sai Hoá; công thức lọt vào bài; chủ đề luật cấm; teaser lộ nội dung; đoạn cắt sai dạng) và cảnh báo mềm (câu dài, danh từ trừu tượng chồng, lặp đầu câu, rào đón, ít chữ "bạn", dồn Hán Việt, **cụm từ/văn phong bị liệt kê, câu thận trọng quá số**). **Theo R3, danh sách cụm từ cấm văn phong không còn làm rớt bài**: chỉ điều luật cấm và câu sai sự thật mới chặn cứng.
 - **Dự phòng:** khối nào rớt chặn cứng dùng chữ quy tắc v2 (cùng thư viện thẻ nghĩa); hết trần ngày hoặc không rõ giá → không gọi AI; **không thử lại**.
-- **Tiếng Anh:** AI chỉ tiếng Việt; người đọc tiếng Anh dùng chữ quy tắc (chờ R3).
-- **Tên khách không gửi cho AI**; trang tự chèn câu chào (chờ R3).
-- **Chi phí:** khoảng 990đ/lá số theo giá FD-114, trần chặn trước khi gọi ≈1.290đ; theo giá hệ thống hiện tại ≈1.974đ, trần chặn ≈2.585đ (dưới 3.000đ nhưng chỉ dư ≈415đ → không tăng `max_tokens`, không bật "thinking" dài). **Bộ chặn tiền dùng giá tham chiếu FD-114** (đề xuất R2), đồng nhất với FD-114; An cập nhật bảng giá hoặc cấu hình tham chiếu cho khớp. Trần ngày 50.000đ chỉ đủ ≈25–50 lá số/ngày; còn lại dùng chữ quy tắc v2.
+- **Tiếng Anh (R3 đã chốt):** AI viết **cả tiếng Việt và tiếng Anh** với cùng quy tắc: cá nhân hoá, chuyên gia, giọng tư vấn/đồng hành/tâm tình. Thẻ nghĩa và chữ quy tắc v2 có bản tiếng Anh; cổng kiểm tra có phiên bản tiếng Anh cho các kiểm tra phụ thuộc ngôn ngữ. Mỗi lá số một lần gọi theo ngôn ngữ người đang đọc.
+- **Tên khách không gửi cho AI** (giữ riêng tư); trang tự chèn câu chào.
+- **Chi phí:** khoảng 990đ/lá số theo giá FD-114, trần chặn trước khi gọi ≈1.290đ; theo giá hệ thống hiện tại ≈1.974đ, trần chặn ≈2.585đ (dưới 3.000đ nhưng chỉ dư ≈415đ → không tăng `max_tokens`, không bật "thinking" dài). **Bộ chặn tiền dùng giá tham chiếu FD-114** (R2 đã chốt), đồng nhất với FD-114; An cập nhật bảng giá hoặc cấu hình tham chiếu cho khớp. Trần ngày 50.000đ chỉ đủ ≈25–50 lá số/ngày; còn lại dùng chữ quy tắc v2. **Cảnh báo tăng trưởng (R2):** hệ thống đếm lá số được AI viết và lá số bị đẩy về chữ quy tắc vì hết trần; cảnh báo mức 1 khi trần ngày dùng ≥80% sớm trong ngày hoặc ≥3 trong 7 ngày, mức 2 khi đã hết trần; gợi ý mức trần mới kèm số liệu; kênh qua hạ tầng quan sát nội bộ (không email khách). Chi tiết `research/04-ticket-be-cho-an.md` BE-P1-5.
 - **Không dùng hiệu ứng "chờ lâu":** giao diện hiện bản quy tắc trước rồi thay bằng bản AI khi xong (dự kiến 40–90 giây).
 
 ## Architecture
 1. **Thư viện thẻ nghĩa có phiên bản** `content/knowledge/vi/ziwei/free-reading-cards.v1.json`: 14 chính tinh (essence/strength/cost/scene/độ sáng/Hoá), 12 cung, 4 Hoá, ~18 sao phụ (lục cát, lục sát, Lộc Tồn, Thiên Mã, Tuần, Triệt), 6 quan hệ; soạn từ Kho tri thức V4.1 + văn bài mẫu đã duyệt; mỗi thẻ có `sourcePassageIds`; **anh duyệt**. Thiếu thẻ cho sao nào thì bỏ sao đó khỏi dữ kiện.
 2. **Dựng dữ kiện thuần, tất định** `free-reading-facts.ts`: khoá dẫn chứng (`palace:<p>:star:<s>`, `hoa:<s>`, `time:decadal`…), thứ hạng "điều hiếm", chọn thẻ. Không đưa vào: tên, ngày/giờ/nơi sinh, `chart_id`, điểm số, nội dung trả phí.
-3. **Writer một lần gọi** `free-reading-writer.ts` (khuôn `free-palace-writer.ts`): phiên bản prompt `free-reading-prompt-v2.0`; system prompt = bản nháp đầy đủ trong nghiên cứu 02 mục 3.1 (sau khi anh duyệt giọng) với khối giọng v4.2, danh sách cấm từ cấu hình `config/ziwei-free-reading-quality.v1.json` (tách khỏi báo cáo trả phí, xử lý mâu thuẫn "tài lộc").
+3. **Writer một lần gọi** `free-reading-writer.ts` (khuôn `free-palace-writer.ts`): phiên bản prompt `free-reading-prompt-v2.0`; system prompt = bản nháp đầy đủ trong nghiên cứu 02 mục 3.1 (sau khi anh duyệt giọng) với khối giọng v4.2, cấu hình `config/ziwei-free-reading-quality.v1.json` (tách khỏi báo cáo trả phí); theo R3, prompt **không nhồi danh sách từ cấm văn phong**, chỉ nêu điều luật cấm và điều không được bịa; "tài lộc" và các từ người mới hiểu được dùng tự nhiên.
 4. **Cổng chất lượng** `free-reading-quality.ts` (hàm thuần, mỗi mã lỗi một cặp test tốt/xấu).
 5. **Lưu và cache:** bảng artifact mới (migration kế tiếp), lưu `content_v2`, trạng thái từng khối `ai|rule_v2`, lineage gồm 4 phiên bản; xoá theo 24 giờ và khi xoá dữ liệu như hiện nay; chiếu DTO an toàn ra giao diện (không gửi khoá thô/hash).
 6. **Cờ triển khai:** chữ quy tắc v2 luôn bật; `FREE_READING_V2_ENABLED` cho AI; bật theo thứ tự: tài khoản đã xác minh → khách đã tương tác.
@@ -66,7 +66,7 @@ Cách làm (theo `research/02-he-thong-ai-viet-chu.md`): **một lần gọi AI 
 | 4 | Dựng dữ kiện, schema, cổng chất lượng, writer một lần gọi (chạy thử bằng giả lập) | An |
 | 5 | **Gỡ chặn 1 và 2** (bằng chứng giới hạn token; số token Gemini) | An (P1-AI, bắt đầu sớm vì thời gian chờ dài) |
 | 6 | Soạn prompt với Claude trước (6 lá số, rẻ), chỉnh luật | Claude + An |
-| 7 | Chạy thật 30 lá số (trần thử riêng ≤180.000đ cho 3 vòng, chờ R2); cổng tự động; xuất 10 nhận định/bài để đối chiếu tay | An |
+| 7 | Chạy thật 30 lá số (trần thử riêng ≤180.000đ cho 3 vòng, R2 đã đồng ý; một phần chạy cả tiếng Anh); cổng tự động; xuất 10 nhận định/bài để đối chiếu tay | An |
 | 8 | **Trang HTML duyệt chữ**: mỗi lá số một cột "Chữ cũ / Chữ mới / Căn cứ"; số chữ; đánh dấu chi tiết riêng; thang chấm của anh | Claude dựng từ JSON bộ chạy thử |
 | 9 | Anh đọc 5 lá số (vô chính diệu; giờ sinh chưa chắc; Mệnh có sao miếu; Hoá Kỵ ở Mệnh; chọn "tình cảm"), chấm 4 tiêu chí; A/B mù bản cũ–mới | Anh |
 | 10 | Sửa prompt (tối đa 3 vòng); kiểm độ trùng giữa các lá số | An + Claude |
@@ -85,7 +85,7 @@ Cách làm (theo `research/02-he-thong-ai-viet-chu.md`): **một lần gọi AI 
 
 ## Risk Assessment
 - **AI chưa chạy được đến khi An gỡ hai chỗ chặn.** Giảm thiểu: chữ quy tắc v2 ra trước và là đường dự phòng vĩnh viễn.
-- Trần ngày 50.000đ chỉ đủ 25–50 lá số → phần lớn khách thấy chữ quy tắc v2; đo tỉ lệ rơi, quyết nâng trần theo số liệu (R2).
+- Trần ngày 50.000đ chỉ đủ 25–50 lá số → phần lớn khách thấy chữ quy tắc v2; đo tỉ lệ rơi; **cảnh báo tăng trưởng (R2) báo anh khi nên nâng trần** theo số liệu.
 - Chờ 40–90 giây → hiện bản quy tắc trước, thay khi AI xong; nếu JSON hỏng >10% hoặc p95 >60 giây thì chuyển 2 lần gọi song song (cần sửa FD-109a).
 - "Nghĩa gượng" mà cổng không bắt được → mắt anh ở bước chấm và nút "Đúng / Một phần / Không đúng" theo từng nhận định.
 - Kho tri thức V4.1 không phủ sao phụ trang trí → bỏ sao thiếu thẻ khỏi dữ kiện, không bịa.
