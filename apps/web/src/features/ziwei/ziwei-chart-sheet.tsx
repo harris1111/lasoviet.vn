@@ -63,7 +63,7 @@ export function ZiweiChartSheet({ chart, birthSummary, locale, selectedPalaceId,
       <div className="fd109-sheet-tools" role="toolbar" aria-label={t("freeResult.sheetTools")}>
         <button type="button" className="fd109-sheet-btn" aria-label={t("freeResult.zoomOut")}
           aria-disabled={zoom <= ZOOM_MIN} onClick={() => setZoom((value) => stepZoom(value, -1))}>−</button>
-        <span className="fd109-sheet-level" role="status" aria-label={t("freeResult.zoomLevel")}>{percent}</span>
+        <span className="fd109-sheet-level" role="status">{percent}</span>
         <button type="button" className="fd109-sheet-btn" aria-label={t("freeResult.zoomIn")}
           aria-disabled={zoom >= ZOOM_MAX} onClick={() => setZoom((value) => stepZoom(value, 1))}>+</button>
         <button type="button" className="fd109-sheet-btn fd109-sheet-fit" aria-label={t("freeResult.zoomFitLabel")}
@@ -80,11 +80,15 @@ export function ZiweiChartSheet({ chart, birthSummary, locale, selectedPalaceId,
             </div>
           </div>
         </div>
-        <section className="fd109-sheet-detail" data-open={detailOpen ? "true" : "false"}>
+        <section className="fd109-sheet-detail" data-open={detailOpen ? "true" : "false"}
+          aria-labelledby="fd109-sheet-detail-title">
+          {/* Below 1100px the label is a disclosure button; from 1100px the detail is always shown, so CSS
+              swaps the button (display:none, out of focus order and a11y tree) for a plain heading. */}
           <button type="button" className="fd109-sheet-detail-toggle" aria-expanded={detailOpen}
             aria-controls="fd109-sheet-detail-body" onClick={() => setDetailOpen((open) => !open)}>
             {t("freeResult.detailToggle")}
           </button>
+          <h3 id="fd109-sheet-detail-title" className="fd109-sheet-detail-heading">{t("freeResult.detailToggle")}</h3>
           <div id="fd109-sheet-detail-body" className="fd109-sheet-detail-body">
             <ZiweiChart chart={chart} birthSummary={birthSummary} locale={locale} hideBoard
               selectedPalaceId={selectedPalaceId} onSelectPalace={onSelectPalace} />

@@ -211,6 +211,9 @@ html:not([data-theme="light"]) .fd109 .ziwei-board-center::after {
 .fd109-sheet-board .center-transformations { display: flex; }
 .fd109-sheet-detail { flex: 0 0 auto; border-top: 1px solid var(--border-soft); background: var(--surface-raised); }
 .fd109 .fd109-sheet-detail-toggle { width: 100%; min-height: 48px; border: 0; background: transparent; text-align: left; padding: 0 4px; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
+.fd109 .fd109-sheet-detail-heading { display: none; margin: 0; font-weight: 600; font-size: 16px; padding: 0 4px 8px; }
+/* The inspector eyebrow repeats the toggle/heading label, so it is hidden inside the sheet. */
+.fd109-sheet-detail .ziwei-detail-inspector .eyebrow { display: none; }
 .fd109-sheet-detail-toggle::after { content: "▴"; font-size: 14px; }
 .fd109-sheet-detail[data-open="true"] .fd109-sheet-detail-toggle::after { content: "▾"; }
 .fd109-sheet-detail-body { display: none; max-height: 36dvh; overflow: auto; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
@@ -223,8 +226,8 @@ html:not([data-theme="light"]) .fd109 .ziwei-board-center::after {
   .fd109-sheet-body { flex-direction: row; gap: 24px; }
   .fd109-sheet-viewport { flex: 1 1 0; }
   .fd109-sheet-detail { flex: 0 0 380px; border-top: 0; border-left: 1px solid var(--border-soft); padding-left: 20px; overflow: auto; background: transparent; }
-  .fd109 .fd109-sheet-detail-toggle { cursor: default; pointer-events: none; }
-  .fd109-sheet-detail-toggle::after { content: none !important; }
+  .fd109 .fd109-sheet-detail-toggle { display: none; }
+  .fd109 .fd109-sheet-detail-heading { display: block; }
   .fd109-sheet-detail-body { display: block; max-height: none; overflow: visible; }
 }
 
