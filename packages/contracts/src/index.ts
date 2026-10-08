@@ -939,3 +939,6 @@ export { ziweiMajorStarMeaning, ZIWEI_MAJOR_STAR_MEANING_VERSION } from "./ziwei
 export { FreeStructuralOverviewDocV1Schema, FreeStructuralPalaceDocV1Schema, type FreeStructuralOverviewDocV1, type FreeStructuralPalaceDocV1 } from "./free-structural-overview-v1.js";
 
 export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1 } from "./free-structural-overview-v1.js";
+
+export { BAZI_STEM_IDS, BAZI_BRANCH_IDS, BaziFactsInputV1Schema, BaziFactsV1Schema } from "./bazi-facts-v1.js";
+export type { BaziFactsInputV1, BaziFactsV1 } from "./bazi-facts-v1.js";

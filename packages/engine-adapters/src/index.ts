@@ -34,3 +34,5 @@ export type {
 export { calculatePeriodReadingFacts } from "./ziwei/period-reading-facts.js";
 export { lunarPeriodPurchaseKey } from "./ziwei/period-purchase-key.js";
 export { lunarReminderDay } from "./ziwei/period-purchase-key.js";
+
+export { calculateBaziFacts } from "./bazi/lunar-bazi-facts.js";
