@@ -4,7 +4,7 @@
 
 On 2026-10-07, the owner answered: “ok chốt, theo cách bạn đề xuất nha”. This accepts the preceding backlog proposal and remaining revamp choices. Q2 and Q9 retain the owner's newer explicit choices. This documentation changes no application code or production configuration.
 
-Baseline: local master `220c76e3ab86c0d7fe3ddfc6106199dc5d56be5a`. The preceding Kaneo audit found nine In Review and two To Do tickets. A fresh audit, external updates and remote reconciliation are pending: the current session denies Kaneo tool approval and cannot connect to GitHub from the shell. No external task status, remote branch or release change is claimed.
+Baseline: local master `220c76e3ab86c0d7fe3ddfc6106199dc5d56be5a`. The preceding Kaneo audit found nine In Review and two To Do tickets. On 2026-10-08, GitHub push access, Docker and Kaneo task reads/writes were verified. Remote master remains at that baseline; the plan branch advanced to `fc0687287bcd9608794c1bf9c0ca953263e05808`. The old handoff reflected access failures in the previous session, not current restrictions.
 
 ## Approved backlog disposition
 
@@ -18,7 +18,7 @@ Baseline: local master `220c76e3ab86c0d7fe3ddfc6106199dc5d56be5a`. The preceding
 | LSV-64, LSV-65 | Return to the waiting-work queue; preserve sale holds. | Membership retains the complete promised benefits, pending tool contracts/monthly quality. Combo requires annual quality and final atomic-purchase acceptance. |
 | LSV-66 | Return to To Do with an explicit deferred note. | PR231 is a held design, not a deployed compatibility product. ZiWei plus BaZi, grounded evidence and consent/revocation remain required. |
 
-The first three closures apply only to owner-approved narrowed deployed scopes. Before changing status, create/link the retained follow-up, attach deployment/smoke evidence and record the scope change in the original task. Reconcile new failures or owner comments found on the fresh task read first. No status updates have been applied yet.
+The first three closures apply only to owner-approved narrowed deployed scopes. Before changing status, create/link the retained follow-up, attach deployment/smoke evidence and record the scope change in the original task. Reconcile new failures or owner comments found on the fresh task read first. Kaneo follow-ups LSV-84 (`ir8gtja3rv63n41t1rb81d3v`) and LSV-85 (`g6cfpphfhrmhsfci2s9vpvsr`) were created and related before closure on 2026-10-08. Original deployed evidence was read back; LSV-50/77/60 status `done` and LSV-79 `in-progress` were read back successfully. LSV-63 and LSV-79 block LSV-85, never the reverse.
 
 ## Follow-ups to retain
 
@@ -31,30 +31,30 @@ Create follow-up relationships to both source tasks and the LSV-63/79 dependenci
 
 | Choice | Result |
 | --- | --- |
-| Q1 | Hide unavailable/coming-soon products, including membership, from report selection. |
+| Q1 | Audit the full product lineup and build missing products when their gates pass; unavailable items remain hidden until then. No held package is activated by this batch. |
 | Q2 | Remove the separate evidence tab; place factual chart-specific reasons beside assertions. |
 | Q3 | Tabs: Overview with chart, This year, Decadal periods, Twelve palaces, Topics. Do not repeat palace details in every tab. |
 | Q4 | Locked rows open a deliberate preview for the current chart; price appears inside. Keep locked paid plaintext server-side. |
-| Q5 | Offer the available lifetime report now with truthful year-coverage copy. Reserve the annual product until LSV-63 quality acceptance. |
-| Q6 | Show a clearly qualified VND equivalent beside La only inside confirmation/unlock, derived from the approved catalog basis. No new wallet/payment authority. |
+| Q5 | Plan per-person current/next-year and decadal offers; retain the truthful lifetime fallback until the relevant product passes its quality gate. |
+| Q6 | Keep content prices in La. A qualified VND equivalent belongs only at final confirmation immediately before payment; FD-065 otherwise stays binding. |
 | Q7 | Replace radar with three structurally strongest palaces and three requiring attention, grounded in the approved deterministic method. |
 | Q8 | Approve the ten-year/decadal structural trajectory with a disclosed formula/explanation. No fabricated predictions or undisclosed scores. |
 | Q9 | AI writes natural Vietnamese with chart-grounded assertions; retain one call/cache, 3,000 VND/chart and 50,000 VND/day limits. Rules v2 is the truthful error/budget fallback. The rules-only recommendation is superseded. |
 | Q10 | Apply proposed double borders and pill/arrow primary controls to chart, product cards and unlock sheet. |
 
-Amend only the affected FD-063/065/109/116 clauses; the FD-063 exception is limited to the disclosed deterministic decadal structure in Q8. Privacy, free/paid separation, retention, durable cost controls and financial authority remain binding. AI is the approved LSV-82 implementation direction; production activation follows enforcement and release acceptance. No runtime flag is toggled by this record.
+Preserve the detailed FD-117 already recorded on the plan branch, including Q1 product audit, Q5 per-person year logic, Q6 final-confirmation boundary and Q8 reuse of the approved palace structural score. The old handoff paraphrase of Q6 was broader (confirmation/unlock); it is retained in the original portable patch as historical evidence and superseded here by the more precise existing record. FD-065 stays unchanged outside its existing final payment boundary. Amend only the affected FD-063/109/116 clauses; the FD-063 exception is limited to the disclosed deterministic decadal structure in Q8. Privacy, free/paid separation, retention, durable cost controls and financial authority remain binding. AI is the approved LSV-82 implementation direction; production activation follows enforcement and release acceptance. No runtime flag is toggled by this record.
 
 ## Execution order and ownership
 
-1. Apply the split/closure records when Kaneo access is restored.
+1. Split/closure records were applied with follow-up and deployment evidence; retain the unverified live requirements in LSV-84/85.
 2. LSV-83 phase two corrects deviations from the approved design. Frontend remains with the owner/Claude; avoid duplicate implementation. New layout and purchase phases still require their HTML previews before product code.
 3. LSV-82 backend prepares grounded input/output, prompt/quality contracts and deterministic fallback using the updated Q2/Q9 choices. Claude prepares three synthetic old/new text comparisons for owner review before merge. Do not reopen API/model/pricing decisions.
 4. Finish LSV-79 off-by-default email preparation and the rollout proposal without customer sends.
 
-The preceding audit read `plan/free-result-purchase-revamp` at `1b2adc55b7449543693f3c0e9ae54e8bb0295814`. Reconcile its phase-one/three defaults with this approval before implementation. Recheck remote decision IDs before publishing because the plan is maintained concurrently.
+The preceding audit read the plan at `1b2adc55b7449543693f3c0e9ae54e8bb0295814`; the refreshed branch is `fc0687287bcd9608794c1bf9c0ca953263e05808`. Research 01–04 and round-2 R1–R13 are proposals awaiting their corresponding decisions. They do not reopen the approved API/model/pricing or Q2/Q9 choices. LSV-82 preparation may proceed without live calls or merging owner text samples before approval.
 
 ## Pending execution
 
-- Refresh Kaneo/remote master in a session with working access; create/link follow-ups, record acceptance and verify status updates.
+- Follow-ups and narrowed closure receipts are recorded above; waiting-product status reconciliation and LSV-79/82 implementation remain tracked separately.
 - Publish this documentation through its dedicated branch/PR into master. Remote publication is not complete.
 - Review actual HTML/text previews when delivered. No new scope-choice, API, model or pricing answer is required now.
