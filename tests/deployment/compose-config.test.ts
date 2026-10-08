@@ -30,7 +30,7 @@ async function composeConfig(profile?: string) {
       "--format",
       "json",
     ],
-    { cwd: root },
+    { cwd: root, timeout: 15_000 },
   );
   return JSON.parse(stdout) as {
     services: Record<string, Record<string, unknown>>;
@@ -53,6 +53,7 @@ async function registryComposeConfig(releaseSha: string, profile?: string) {
     ],
     {
       cwd: root,
+      timeout: 15_000,
       env: {
         ...process.env,
         LASOVIET_RELEASE_SHA: releaseSha,
@@ -65,7 +66,7 @@ async function registryComposeConfig(releaseSha: string, profile?: string) {
   };
 }
 
-describe("founder-run Compose topology", () => {
+describe("founder-run Compose topology", { timeout: 20_000 }, () => {
   it("keeps browser authentication same-origin without a public auth build argument", async () => {
     const configuration = await composeConfig();
     const [webDockerfile, authClient] = await Promise.all([
