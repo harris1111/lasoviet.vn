@@ -284,6 +284,7 @@
 }
 
 .pack-card:active { transform: scale(.99); }
+@media (prefers-reduced-motion: reduce) { .seg3 button:active, .pack-card:active { transform: none; } }
 
 .pack-card:hover {
   border-color: var(--pearl-600);
