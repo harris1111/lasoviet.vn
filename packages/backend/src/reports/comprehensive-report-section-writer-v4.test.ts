@@ -773,6 +773,23 @@ describe("writeComprehensiveReportSectionV4", () => {
     expect(annual.allowedEvidenceKeys.some((key: string) => key.startsWith("decadal."))).toBe(false);
   });
 
+  it("provides and parses frozen lunar-year metadata at the actual provider schema boundary", async () => {
+    const reportFacts = facts();
+    reportFacts.sourceSnapshot = { asOfDate: "2027-01-15", timingRuleVersion: "ziwei.timing.lunar-year.v2" };
+    reportFacts.timing.annual.targetYear = 2026;
+    const provider = { generateStructured: vi.fn(async (request: any) => {
+      const frozen = JSON.parse(request.user).facts.frozenTiming;
+      expect(request.system).toContain("ziwei.timing.lunar-year.v2");
+      const output = request.schema.parse({ key: "annualSnapshot", value: {
+        title: "Synthetic", narrative: "Synthetic engine facts", evidenceKeys: ["natal.ziwei.palace.life"], ...frozen,
+      } });
+      return { ok: true, value: { value: output, providerId: "synthetic", modelId: "synthetic" } };
+    }) };
+    const result = await writeComprehensiveReportSectionV4({ sectionKey: "annualSnapshot", facts: reportFacts,
+      knowledgePacks: [], provider: provider as never, promptVersion: REPORT_PROMPT_VERSION_V4_0_1 });
+    expect(result.ok).toBe(true);
+  });
+
   it("keeps FD-072 restoration constraints and rejects unsupported prompt versions", async () => {
     const provider = { generateStructured: vi.fn() };
     await expect(() => writeComprehensiveReportSectionV4({

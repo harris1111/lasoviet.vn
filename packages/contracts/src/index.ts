@@ -941,3 +941,4 @@ export { FreeStructuralOverviewDocV1Schema, FreeStructuralPalaceDocV1Schema, typ
 export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1 } from "./free-structural-overview-v1.js";
 
 export * from "./free-reading-v2.js";
+export { matchesReportYearLineage } from "./report-year-lineage.js";

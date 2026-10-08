@@ -15,7 +15,7 @@ export function calculatePeriodReadingFacts(input: {
   const solar = Solar.fromYmd(year, month, day);
   if (solar.toYmd() !== input.asOfDate) throw new Error("PERIOD_DATE_INVALID");
   const lunar = solar.getLunar();
-  const targetYear = input.kind === "monthly" ? lunar.getYear() : (input.targetYear ?? year);
+  const targetYear = input.kind === "monthly" ? lunar.getYear() : (input.targetYear ?? lunar.getYear());
   if (targetYear < 1900 || targetYear > 2100) throw new Error("PERIOD_YEAR_INVALID");
   const gender = iztroGender(profile), timeIndex = iztroTimeIndex(profile);
   if (!gender || timeIndex === undefined) throw new Error("PERIOD_PROFILE_INVALID");
