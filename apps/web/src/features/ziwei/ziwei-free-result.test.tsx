@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ZIWEI_PALACE_IDS, type FreeIdentityPreviewV1, type NormalizedZiweiChartV1 } from "@lasoviet/contracts";
@@ -73,6 +75,21 @@ describe("free-result reader structure", () => {
       expect(html).toContain('data-active-tab="overview"');
       expect(html).toContain('aria-selected="true"');
       expect(html).not.toContain('id="tab-chart"');
+    });
+    it("phone (no desktop match) renders every section as a visible region, one scrolling page", () => {
+      const html = render();
+      for (const tab of ["overview", "nam-nay", "palaces", "topics", "evidence"]) {
+        expect(html).toMatch(new RegExp(`id="panel-${tab}"[^>]*role="region"`));
+        expect(html).toContain(`aria-labelledby="heading-${tab}"`);
+      }
+      expect(html).not.toMatch(/id="panel-[a-z-]+"[^>]*aria-hidden/);
+      expect(html).not.toContain('role="tabpanel"');
+    });
+    it("only hides inactive panels from 1024px up", () => {
+      const css = readFileSync(fileURLToPath(new URL("../../styles/free-result-read-first.css", import.meta.url)), "utf8");
+      const hide = css.indexOf(".fd109-main [data-tab] { display: none; }");
+      expect(hide).toBeGreaterThan(css.lastIndexOf("@media", hide) - 1);
+      expect(css.slice(css.lastIndexOf("@media", hide), hide)).toContain("min-width: 1024px");
     });
     it("decorates the stage with ornaments that assistive tech ignores", () => {
       const html = render();

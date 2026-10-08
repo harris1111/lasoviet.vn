@@ -50,6 +50,10 @@ function subscribeDesktop(callback: () => void) {
 function desktopSnapshot() { return window.matchMedia("(min-width: 1024px)").matches; }
 // The chart is the stage above the tabs, so it is no longer a tab; ?tab=chart (and the default) reads as overview.
 const STAGE_TABS = CANONICAL_RESULT_TABS.filter((tab) => tab !== "chart");
+const mobileAnchors: Record<ZiweiResultTab, string> = {
+  chart: "free-result-board", overview: "panel-overview", "nam-nay": "panel-nam-nay",
+  palaces: "panel-palaces", topics: "panel-topics", evidence: "panel-evidence",
+};
 const DRAWER_HINT_ID = "fd109-palace-drawer-title";
 
 export function ZiweiFreeResult({
@@ -59,6 +63,7 @@ export function ZiweiFreeResult({
   const reportT = useTranslations("reports");
   const presentation = ziweiPresentation(locale);
   const desktop = useSyncExternalStore(subscribeDesktop, desktopSnapshot, () => false);
+  const [spyTab, setSpyTab] = useState<ZiweiResultTab | null>(null);
   const [askEligible, setAskEligible] = useState(false);
   // FE-3 / N7: tab, preview and sheet are local state (instant), the address bar is synced with the native
   // History API (no server round trip). popstate restores state for Back/Forward.
@@ -137,6 +142,48 @@ export function ZiweiFreeResult({
   }, []);
 
   useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const focusOnResize = () => {
+      const active = document.activeElement;
+      if (!media.matches && active instanceof HTMLElement && active.getAttribute("role") === "tab") {
+        document.getElementById(mobileAnchors[view.tab])?.focus({ preventScroll: true });
+      }
+    };
+    media.addEventListener("change", focusOnResize);
+    return () => media.removeEventListener("change", focusOnResize);
+  }, [view.tab]);
+
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 1024px)").matches || view.open) return;
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(mobileAnchors[view.tab])?.scrollIntoView({ block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+    // Opening/closing a modal must not re-run the section anchor scroll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.tab]);
+
+  // Phone: the page is one scroll, so the chip of the section in view is highlighted.
+  useEffect(() => {
+    if (desktop) return;
+    const ids = STAGE_TABS.map((tab) => [tab, `panel-${tab}`] as const);
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      let current: ZiweiResultTab | null = null;
+      for (const [tab, id] of ids) {
+        const node = document.getElementById(id);
+        if (node && node.getBoundingClientRect().top <= 140) current = tab;
+      }
+      setSpyTab(current);
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(update); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    return () => { window.removeEventListener("scroll", onScroll); if (frame) cancelAnimationFrame(frame); };
+  }, [desktop]);
+
+  useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog || !modalId) return;
     const tabs = tabListRef.current;
@@ -154,10 +201,10 @@ export function ZiweiFreeResult({
       const trigger = triggerRef.current;
       const activeTab = tabs?.querySelector<HTMLButtonElement>('[aria-selected="true"]');
       const target = trigger?.isConnected && trigger.getClientRects().length ? trigger
-        : activeTab?.getClientRects().length ? activeTab : document.getElementById("free-result-board");
+        : activeTab?.getClientRects().length ? activeTab : document.getElementById(mobileAnchors[view.tab]);
       target?.focus({ preventScroll: true });
     };
-  }, [modalId]);
+  }, [modalId, view.tab]);
 
   const engagementRef = useRef(createEngagementReporter(recordEngagement));
   const viewRef = useRef(view);
@@ -225,6 +272,12 @@ export function ZiweiFreeResult({
       else if (plan === "replace") go({ tab: view.tab, open: view.open }, "replace");
     } else if (previewId) navigate(view.tab);
   }
+  useEffect(() => {
+    if (desktop && palaceDrawer) closeModal();
+    // closeModal reads the latest view; only the breakpoint crossing should trigger it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [desktop]);
+
   function tabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     const count = STAGE_TABS.length;
     const next = event.key === "ArrowRight" ? (index + 1) % count
@@ -237,8 +290,9 @@ export function ZiweiFreeResult({
   }
   function panel(tab: ZiweiResultTab) {
     return {
-      id: `panel-${tab}`, "data-tab": tab, role: "tabpanel", "aria-labelledby": `tab-${tab}`,
-      "aria-hidden": activeTab !== tab ? true : undefined, tabIndex: -1,
+      id: `panel-${tab}`, "data-tab": tab, role: desktop ? "tabpanel" : "region",
+      "aria-labelledby": desktop ? `tab-${tab}` : `heading-${tab}`,
+      "aria-hidden": desktop && activeTab !== tab ? true : undefined, tabIndex: -1,
     };
   }
   function score(palace: typeof selected) {
@@ -257,7 +311,7 @@ export function ZiweiFreeResult({
       <button className="fd109-evidence-link" type="button" data-testid="fd109-inspector-evidence"
         onClick={() => {
           navigate("evidence");
-          requestAnimationFrame(() => document.getElementById("tab-evidence")?.scrollIntoView({ block: "start" }));
+          requestAnimationFrame(() => document.getElementById(desktop ? "tab-evidence" : "panel-evidence")?.scrollIntoView({ block: "start" }));
         }}>{t("freeResult.inspectorEvidence")}</button>
     </>;
   }
@@ -283,7 +337,7 @@ export function ZiweiFreeResult({
       <div className="fd109-tabs" role="tablist" aria-label={t("tabs.ariaLabel")} ref={tabListRef}>
         {STAGE_TABS.map((tab, index) => (
           <button key={tab} id={`tab-${tab}`} role="tab" aria-controls={`panel-${tab}`}
-            aria-selected={tab === activeTab} tabIndex={tab === activeTab ? 0 : -1}
+            aria-selected={tab === (desktop ? activeTab : spyTab ?? activeTab)} tabIndex={tab === activeTab ? 0 : -1}
             onClick={() => navigate(tab)} onKeyDown={(event) => tabKeyDown(event, index)} type="button">{t(`tabs.${tab}`)}</button>
         ))}
       </div>

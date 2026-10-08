@@ -300,12 +300,6 @@ html[data-theme="light"] .fd109-corner, html[data-theme="light"] .fd109-divider 
 .fd109-tabs::-webkit-scrollbar { display: none; }
 .fd109-tabs button { flex: 0 0 auto; background: transparent; border: 1px solid var(--border-soft); border-radius: 24px; padding: 10px 18px; font-size: 16px; white-space: nowrap; }
 .fd109-tabs button[aria-selected="true"] { border-color: var(--gold-500); color: var(--gold-500); }
-.fd109-main [data-tab] { display: none; }
-.fd109[data-active-tab="overview"] [data-tab="overview"], .fd109[data-active-tab="nam-nay"] [data-tab="nam-nay"],
-.fd109[data-active-tab="palaces"] [data-tab="palaces"], .fd109[data-active-tab="topics"] [data-tab="topics"],
-.fd109[data-active-tab="evidence"] [data-tab="evidence"] { display: block; }
-.fd109-completion { display: none; }
-.fd109[data-active-tab="overview"] .fd109-completion, .fd109[data-active-tab="topics"] .fd109-completion { display: block; }
 .fd109-main p, .fd109-main li, .fd109 .fd109-gift p { font-size: 18px; line-height: 1.7; }
 .fd109-main p, .fd109-overview-prose p { max-width: 70ch; }
 .fd109-radar .report-radar { max-width: 480px; margin: 0 auto 16px; }
@@ -319,6 +313,12 @@ html[data-theme="light"] .fd109-corner, html[data-theme="light"] .fd109-divider 
   .fd109-stage .palace-stem-branch { font-size: 12px; }
 }
 @media (min-width: 1024px) {
+.fd109-main [data-tab] { display: none; }
+.fd109[data-active-tab="overview"] [data-tab="overview"], .fd109[data-active-tab="nam-nay"] [data-tab="nam-nay"],
+.fd109[data-active-tab="palaces"] [data-tab="palaces"], .fd109[data-active-tab="topics"] [data-tab="topics"],
+.fd109[data-active-tab="evidence"] [data-tab="evidence"] { display: block; }
+.fd109-completion { display: none; }
+.fd109[data-active-tab="overview"] .fd109-completion, .fd109[data-active-tab="topics"] .fd109-completion { display: block; }
   .fd109-stage { grid-template-columns: minmax(520px, 780px) minmax(280px, 1fr); gap: 32px; align-items: start; padding: 56px 40px; }
   .fd109-stage-inspector { display: block; position: sticky; top: 96px; }
   .fd109-stage .fd109-enlarge { width: auto; padding-inline: 20px; }
