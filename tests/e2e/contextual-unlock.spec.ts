@@ -166,11 +166,26 @@ test("cancel restores entry focus; errors and reserved choices cannot buy", asyn
   await expect(page.getByTestId("contextual-lifetime-unlock")).toBeFocused();
   await page.keyboard.press("Escape");
   for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-COMBO-2026-P0"]) {
-    const card = page.locator(`[data-sku="${sku}"]`); await expect(card).toContainText("Sắp mở"); await expect(card.getByRole("button")).toHaveCount(0);
+    const card = page.locator(`[data-sku="${sku}"]`); await expect(card).toContainText("Sắp mở"); await expect(card.getByRole("button")).toBeDisabled();
   }
   await mountFixture(page, "vi", { quoteStatus: 503 }); await page.locator("#preview-trigger").click();
   await expect(page.getByTestId("contextual-palace-unlock")).toBeDisabled();
   await expect(page.getByTestId("contextual-unlock").getByRole("alert")).toBeVisible();
+});
+test("clicking the card body (away from the button text) selects it, even after hover and press feedback", async ({ page }) => {
+  await mountFixture(page);
+  const ladder = page.getByTestId("offer-ladder");
+  const card = ladder.locator('[data-sku="ZIWEI-IDENTITY-P0"]');
+  const select = card.getByRole("button");
+  // IDENTITY starts selected; move the selection elsewhere first so the click below has an effect.
+  await ladder.locator(".palace-picker button").first().click();
+  await expect(select).toHaveAttribute("aria-pressed", "false");
+  await expect(ladder.locator(".offer-ladder-summary")).not.toContainText("720 Lá");
+  // Hover first: hover/active filter or transform on the button would shrink its ::after overlay and swallow this click.
+  await card.hover({ position: { x: 12, y: 12 } });
+  await card.click({ position: { x: 12, y: 12 } });
+  await expect(select).toHaveAttribute("aria-pressed", "true");
+  await expect(ladder.locator(".offer-ladder-summary")).toContainText("720 Lá");
 });
 test("server intent updates stale displayed rollover before confirmation", async ({ page }) => {
   const { commands } = await mountFixture(page, "vi", { intentPrice: 840 });
