@@ -46,7 +46,8 @@ describe("free-result reader structure", () => {
   it("offers readable enlargement and score explanations within reading and preview", () => {
     const html = render();
     expect(html).toContain('data-testid="fd109-chart-enlarge"');
-    expect(html.match(/Điểm này tính thế nào/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(html.match(/Điểm này tính thế nào/g)?.length).toBeGreaterThanOrEqual(1);
+    expect(html).toContain("fd109-support-palaces");
     expect(html).toContain('id="free-result-board"');
     expect(html).toContain('data-free-result-block="scores"');
   });

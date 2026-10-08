@@ -188,7 +188,15 @@
     "zoomLevel": "Mức phóng",
     "sheetTools": "Điều khiển phóng to",
     "detailToggle": "Chi tiết cung đang chọn",
-    "inspectorEvidence": "Xem căn cứ của lá số"
+    "inspectorEvidence": "Xem căn cứ của lá số",
+    "supportStrong": "3 cung nâng đỡ nhất",
+    "supportWeak": "3 cung cần lưu tâm hơn cả",
+    "supportWeakNote": "Cung thấp nhất vẫn ở mức thuận, chỉ thấp hơn các cung khác.",
+    "supportAll": "Xem cả 12 cung",
+    "supportMidpoint": "Vạch giữa là mốc 50",
+    "supportViewOnChart": "Xem trên lá số",
+    "supportCard": "Cung {name}, {band}, {score} điểm. Bấm để xem trên lá số.",
+    "supportNoMajor": "Chưa có chính tinh, cung đối chiếu sang"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

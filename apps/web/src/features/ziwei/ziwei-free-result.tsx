@@ -10,6 +10,7 @@ import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { createFreeResultAnalytics } from "./free-result-analytics";
 import { createEngagementReporter } from "./free-palace-engagement-reporter";
 import { FreePalaceGiftBlock } from "./free-palace-gift-block";
+import { ZiweiSupportPalaces, type SupportPalace } from "./ziwei-support-palaces";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart-visuals";
 import { PartFeedback } from "../reports/part-feedback";
@@ -90,8 +91,6 @@ export function ZiweiFreeResult({
   const modalId = previewId ? `preview:${previewId}` : chartExpanded ? "chart" : palaceDrawer ? "palace" : undefined;
   const offerHref = `${basePath}/chon-luan-giai`;
   const scoreMap = new Map(model.palaces.map((palace) => [palace.id, { score: palace.score }]));
-  const strongest = model.palaces.reduce((best, palace) => palace.score > best.score ? palace : best, model.palaces[0]!);
-  const weakest = model.palaces.reduce((best, palace) => palace.score < best.score ? palace : best, model.palaces[0]!);
 
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
@@ -308,6 +307,21 @@ export function ZiweiFreeResult({
     const trigger = document.querySelector<HTMLButtonElement>(`#free-result-board [data-palace-id="${palaceId}"]`);
     openSheet("palace", trigger);
   }
+  const supportPalaces: SupportPalace[] = model.palaces.map((palace) => ({
+    id: palace.id, name: palace.name, score: palace.score, band: palace.band,
+    stars: chart.palaces.find((item) => item.id === palace.id)?.stars.filter((star) => star.category === "major")
+      .map((star) => presentation.star(star.id)).join(", ") || t("freeResult.supportNoMajor"),
+  }));
+  const supportLabels = {
+    strongTitle: t("freeResult.supportStrong"), weakTitle: t("freeResult.supportWeak"), weakNote: t("freeResult.supportWeakNote"),
+    allTitle: t("freeResult.supportAll"), midpoint: t("freeResult.supportMidpoint"), viewOnChart: t("freeResult.supportViewOnChart"),
+    band: (band: SupportPalace["band"]) => reportT(`reader.score_band_${band}`),
+    card: (palace: SupportPalace) => t("freeResult.supportCard", { name: palace.name, band: reportT(`reader.score_band_${palace.band}`), score: palace.score }),
+  };
+  function focusPalaceOnChart(palaceId: string) {
+    selectStagePalace(palaceId);
+    if (desktop) document.getElementById("free-result-board")?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
   function inspector() {
     return <>
       <ZiweiChart chart={chart} birthSummary={birthSummary} locale={locale}
@@ -368,15 +382,12 @@ export function ZiweiFreeResult({
             <section className="fd109-block" data-free-result-block="scores">
             <p className="eyebrow">03</p><h2 id="heading-scores">{t("freeResult.scores")}</h2>
             <p>{t("freeResult.scoreDescription")}</p>
-            <p>{t("freeResult.strongest", { name: strongest.name })} · {score(strongest)}</p>
-            <p>{t("freeResult.weakest", { name: weakest.name })} · {score(weakest)}</p>
-            <ul className="fd109-score-list">{model.palaces.map((palace) => <li key={palace.id}><span>{palace.name}</span>{score(palace)}</li>)}</ul>
+            <ZiweiSupportPalaces palaces={supportPalaces} labels={supportLabels} onFocus={focusPalaceOnChart} />
             <ReportScoreExplainer t={reportT} />
           </section>
             {model.gift ? (
               <>
                 <FreePalaceGiftBlock gift={model.gift} chartId={chartId} locale={locale} remainingPalaces={others.length} score={score(selected)} />
-                <ReportScoreExplainer t={reportT} />
               </>
             ) : (
               <section className="fd109-gift" data-free-result-block="free-palace" data-palace-id={selected.id}>
@@ -388,7 +399,6 @@ export function ZiweiFreeResult({
                 <div className="fd109-gift-actions"><div className="fd109-gift-do"><h3>{t("freeResult.giftDo")}</h3><ul>{model.structuralPalace.do.map(item => <li key={item}>{item}</li>)}</ul></div>
                   <div className="fd109-gift-avoid"><h3>{t("freeResult.giftAvoid")}</h3><ul>{model.structuralPalace.avoid.map(item => <li key={item}>{item}</li>)}</ul></div></div>
                 {model.giftPreparing && <p role="status" data-testid="fd109-gift-preparing">{t("freeResult.giftPreparing", { name: selected.name })}</p>}
-                <ReportScoreExplainer t={reportT} />
               </section>
             )}
           </section>

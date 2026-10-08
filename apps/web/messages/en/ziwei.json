@@ -188,7 +188,15 @@
     "zoomLevel": "Zoom level",
     "sheetTools": "Zoom controls",
     "detailToggle": "Selected palace details",
-    "inspectorEvidence": "See the chart evidence"
+    "inspectorEvidence": "See the chart evidence",
+    "supportStrong": "The 3 strongest supports",
+    "supportWeak": "The 3 palaces to look after",
+    "supportWeakNote": "Even the lowest palace is still in a favourable range, just lower than the others.",
+    "supportAll": "See all 12 palaces",
+    "supportMidpoint": "The middle line marks 50",
+    "supportViewOnChart": "View on the chart",
+    "supportCard": "{name} palace, {band}, {score} points. Select to see it on the chart.",
+    "supportNoMajor": "No principal star; read through the opposite palace"
   },
   "dailyReading": {
     "title": "Today’s personal reading",
