@@ -292,3 +292,23 @@ html:not([data-theme="light"]) .fd109 .ziwei-board-center::after {
 .anonymous-deletion-line .anonymous-deletion-link:hover { color: var(--text-heading); }
 .anonymous-deletion-line .anonymous-deletion-link:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 3px; }
 .anonymous-deletion-line > p { margin: 8px 0; font-size: 14px; line-height: 1.6; color: var(--text-muted); }
+
+/* Light theme: the inspector card and board centre are hard-coded dark surfaces in global.css while their text
+   tokens remap to ink, which left dark text on near-black. Give them paper surfaces (docs/24). */
+html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center { background: var(--paper-100); border: 1px solid var(--paper-300); }
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector { background: var(--paper-50); border-color: var(--paper-300); }
+html[data-theme="light"]:has([data-light-ready]) .fd109-sheet-detail .ziwei-detail-inspector { background: transparent; border: 0; }
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .relation-box { background: var(--paper-100); border-color: var(--paper-300); }
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-title,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .relation-palace-name,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .axis-value { color: var(--ink-900); }
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-domain,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-footnote,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .star-brightness-tag,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-cycle-state span,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .center-birth-data,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .transformations-label,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .center-instruction { color: var(--ink-600); }
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-stars-list li { color: var(--ink-800); }
+html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-chip,
+html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .center-tag { background: var(--paper-100); border-color: var(--paper-300); color: var(--ink-800); }
