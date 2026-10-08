@@ -870,3 +870,5 @@ export { renderPendingTopUpRecoveryEmail, type PendingTopUpRecoveryEmail, type P
 
 export { createPendingTopUpRecoveryRunner } from "./notifications/pending-topup-recovery-runner.js";
 export type { RecoveryOutboundClaim } from "./notifications/pending-topup-recovery-runner.js";
+export { createRecoveryOutboundControlTool } from "./notifications/recovery-outbound-control.js";
+export { createRecoveryOutboundMaintenance } from "./notifications/recovery-outbound-maintenance.js";
