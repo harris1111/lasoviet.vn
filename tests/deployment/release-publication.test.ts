@@ -25,6 +25,7 @@ type JobBlock = {
   concurrency?: {
     group?: string;
     cancelInProgress?: boolean;
+    queue?: string;
   };
   steps: StepBlock[];
 };
@@ -83,6 +84,7 @@ function parseJobBlock(name: string, lines: string[]): JobBlock {
   let needs: string[] | undefined;
   let cancelInProgress: boolean | undefined;
   let concurrencyGroup: string | undefined;
+  let concurrencyQueue: string | undefined;
 
   const steps: StepBlock[] = [];
   let inSteps = false;
@@ -113,6 +115,9 @@ function parseJobBlock(name: string, lines: string[]): JobBlock {
       const cancelMatch = line.match(/^\s{6}cancel-in-progress:\s*(true|false)$/);
       if (cancelMatch) cancelInProgress = cancelMatch[1] === "true";
 
+      const queueMatch = line.match(/^\s{6}queue:\s*(.+)$/);
+      if (queueMatch) concurrencyQueue = queueMatch[1]!.trim();
+
       if (/^\s{4}steps:\s*$/.test(line)) {
         inSteps = true;
         continue;
@@ -136,7 +141,7 @@ function parseJobBlock(name: string, lines: string[]): JobBlock {
     needs,
     concurrency:
       concurrencyGroup !== undefined || cancelInProgress !== undefined
-        ? { group: concurrencyGroup, cancelInProgress }
+        ? { group: concurrencyGroup, cancelInProgress, ...(concurrencyQueue ? { queue: concurrencyQueue } : {}) }
         : undefined,
     steps,
   };
@@ -187,12 +192,14 @@ describe("CI GHCR release publication contract", () => {
     expect(promoteJob?.concurrency).toEqual({
       group: "production-promotion-${{ github.ref }}",
       cancelInProgress: false,
+      queue: "max",
     });
   });
 
   it("prevents late stale promotion and fails closed on invalid remote state", async () => {
     const content = await readFile(workflowPath, "utf8");
-    const finalStep = parseWorkflowJobs(content).get("promote-production")!.steps.at(-1)!;
+    const promoter = parseWorkflowJobs(content).get("promote-production")!;
+    const finalStep = promoter.steps.at(-1)!;
     const block = finalStep.rawText.split(/run:\s*\|\s*\n/)[1];
     expect(block).toBeDefined();
     const script = block!.split("\n").map(line => line.replace(/^          /, "")).join("\n");
@@ -209,8 +216,16 @@ describe("CI GHCR release publication contract", () => {
           MOCK_GIT_FAILURE: String(failure), MOCK_PROMOTION_LOG: log },
         stdio: "pipe",
       });
-      run(newer, newer);
-      run(older, newer);
+      // GitHub's documented single pending slot replaces C when late B arrives.
+      // Model A running, latest C pending, late stale B, using workflow policy.
+      const waiting: string[] = [];
+      for (const arriving of [newer, older]) {
+        if (promoter.concurrency?.queue !== "max") waiting.splice(0);
+        waiting.push(arriving);
+      }
+      expect(waiting).toEqual([newer, older]);
+      run("c".repeat(40), newer);
+      for (const candidate of waiting) run(candidate, newer);
       expect(() => run(older, "invalid")).toThrow();
       expect(() => run(older, newer, true)).toThrow();
       const promotions = (await readFile(log, "utf8")).trim().split("\n");

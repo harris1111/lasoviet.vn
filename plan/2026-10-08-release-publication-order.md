@@ -19,6 +19,9 @@ Use immutable-SHA publication groups so an older commit cannot cancel a newer
 commit's build. Serialize production-marker promotion without cancellation and
 check the current remote master before the sole marker mutation. A stale commit
 must skip promotion; malformed/unavailable remote state must fail closed.
+Use the documented `queue: max` with `cancel-in-progress: false` so a stale late
+arrival cannot replace the latest pending promoter. The default single pending
+slot would lose the latest candidate even though running jobs are not cancelled.
 
 GitHub documents that concurrency follows job-arrival order rather than original
 workflow-dispatch order, which explains the observed cancellation:
@@ -27,5 +30,7 @@ https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows
 Exercise the actual workflow promotion script against owned git/docker doubles:
 matching current SHA promotes exactly once, later stale completion cannot
 overwrite it, and failed/invalid remote lookup cannot mutate the marker. Retain
+the A-running/C-latest-pending/B-stale-late queue regression using the documented
+GitHub queue policy; this local simulation is not a live scheduler test. Retain
 the immutable image/tag and sole-marker-mutation contract checks. No live registry
 mutation occurs in these local regression checks.
