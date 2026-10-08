@@ -384,29 +384,15 @@ describe("commerce repository - library and order history (WP-03)", () => {
       items: [],
       totalCount: 0,
     });
-    await database.update(walletPurchaseIntents).set({ status: "completed", chartVersionId: randomUUID() })
-      .where(eq(walletPurchaseIntents.id, walletIntent.id));
-    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
-      version: 2,
-      items: [],
-      totalCount: 0,
-    });
-    await database.update(walletPurchaseIntents).set({
-      chartVersionId: walletIntent.chartVersionId,
-      sku: "ZIWEI-IDENTITY-P0",
-      locale: "en",
-      priceLa: 960,
-    }).where(eq(walletPurchaseIntents.id, walletIntent.id));
-    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
-      version: 2,
-      items: [],
-      totalCount: 0,
-    });
-    await database.update(walletPurchaseIntents).set({
-      sku: walletIntent.sku,
-      locale: walletIntent.locale,
-      priceLa: walletIntent.priceLa,
-    }).where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(database.update(walletPurchaseIntents).set({ status: "completed", chartVersionId: randomUUID() })
+      .where(eq(walletPurchaseIntents.id, walletIntent.id))).rejects.toThrow();
+    await expect(database.update(walletPurchaseIntents).set({sku: "ZIWEI-IDENTITY-P0", locale: "en", priceLa: 960})
+      .where(eq(walletPurchaseIntents.id, walletIntent.id))).rejects.toThrow();
+    // Rejected binding edits preserve the cancelled state; authorized lifecycle updates remain possible.
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({version: 2, items: [], totalCount: 0});
+    await database.update(walletPurchaseIntents).set({status: "completed"}).where(eq(walletPurchaseIntents.id, walletIntent.id));
+    await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toMatchObject({version: 2, totalCount: 1,
+      items: [expect.objectContaining({source: "ledger_spend"})]});
 
     const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
     const [spend] = await database.select().from(walletTransactions).where(and(

@@ -1,3 +1,4 @@
+import { freezePurchaseCommercialTerms } from "./purchase-commercial-terms.js";
 import { createDatabaseDailyReadingAccess } from "./personal-daily-reading.service.js";
 import { and, desc, eq, gt, isNull, notExists, sql } from "drizzle-orm";
 import {
@@ -107,6 +108,8 @@ export function createDailyWalletUnlockService(database: Database, wallet: Walle
         const [intent] = await transaction.insert(walletPurchaseIntents).values({
           ownerId: actor.userId, chartId: chart.chartId, chartVersionId: chart.chartVersionId,
           sku: DAILY_SKU, locale: "vi", priceLa: 60, createdAt: current,
+          commercialTerms: freezePurchaseCommercialTerms({ownerId: actor.userId, chartId: chart.chartId,
+            chartVersionId: chart.chartVersionId, sku: DAILY_SKU, locale: "vi", periodKey: "lifetime", priceLa: 60, createdAt: current}),
         }).returning();
         if (!intent) throw new Error("DAILY_INTENT_CREATE_FAILED");
         return { ok: true, value: projectIntent(intent), reused: false };

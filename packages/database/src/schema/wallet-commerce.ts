@@ -104,6 +104,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   locale: text("locale").notNull(),
   periodKey: text("period_key").notNull().default("lifetime"),
   priceLa: integer("price_la").notNull(),
+  commercialTerms: jsonb("commercial_terms").$type<Record<string, unknown>>(),
   status: text("status").notNull().default("pending"),
   stateVersion: integer("state_version").notNull().default(1),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),

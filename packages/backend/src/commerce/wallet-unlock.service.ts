@@ -1,3 +1,4 @@
+import { freezePurchaseCommercialTerms, readPurchaseCommercialTerms, matchesPurchaseCreditProof } from "./purchase-commercial-terms.js";
 import { creditProofSchema, enqueueCommittedWalletUpgrade, projectCommittedWalletUpgrade, type CreditProof } from "./wallet-upgrade-event.js";
 import { isComboSku, comboComponentSkus, comboAnnualSku, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
 import { reserveComboReports } from "./combo-report-reservation.js";
@@ -51,6 +52,7 @@ import {
   walletAccounts,
   walletCommandReceipts,
   walletPurchaseIntents,
+  walletTopUpContinuations,
   walletTransactions,
   walletLedgerEntries,
   ziweiChartVersions,
@@ -336,6 +338,8 @@ async function price(
   sku: string,
   now: Date,
   periodKey: string,
+  frozenIntent?: typeof walletPurchaseIntents.$inferSelect,
+  honorBoundContinuation = true,
 ): Promise<PriceResult> {
   const product = findLaProduct(sku);
   if (!product || product.availability !== "active") return { ok: false, code: "WALLET_INTENT_INVALID" };
@@ -370,7 +374,7 @@ async function price(
     .limit(1);
   if (sameSku !== undefined) return { ok: false, code: "WALLET_ENTITLEMENT_EXISTS" };
 
-  if (sku === "ZIWEI-MONTHLY-P0" && member) return { ok: true, amountLa: 0 };
+  if (sku === "ZIWEI-MONTHLY-P0" && member && !frozenIntent) return { ok: true, amountLa: 0 };
 
   if (isComboSku(sku)) {
     const [ownedComponent] = await database.select({id: commerceEntitlements.id}).from(commerceEntitlements)
@@ -381,11 +385,44 @@ async function price(
     if (ownedComponent) return {ok: false, code: "WALLET_ENTITLEMENT_EXISTS"};
   }
 
+  // Freeze the catalog basis, while rechecking the original membership/rollover eligibility.
+  // A snapshot does not extend an expired credit window or subscription.
+  // Historical null snapshots retain their original base; current sale prices cannot invalidate them.
+  const basePriceLa = frozenIntent ? readPurchaseCommercialTerms(frozenIntent)?.basePriceLa : product.priceLa;
+  if (basePriceLa === undefined || basePriceLa === null) return { ok: false, code: "WALLET_INTENT_INVALID" };
+  if (frozenIntent && honorBoundContinuation) {
+    const [bound] = await database.select({id: walletTopUpContinuations.orderId}).from(walletTopUpContinuations)
+      .where(and(eq(walletTopUpContinuations.ownerId, ownerId), eq(walletTopUpContinuations.purchaseIntentId, frozenIntent.id),
+        eq(walletTopUpContinuations.status, "pending"), eq(walletTopUpContinuations.intentStateVersion, frozenIntent.stateVersion),
+        eq(walletTopUpContinuations.confirmedPriceLa, frozenIntent.priceLa))).limit(1);
+    if (bound) {
+      const terms = readPurchaseCommercialTerms(frozenIntent)!;
+      // Legacy rows have no captured benefit proof. Reconstruct their original live quote
+      // at creation against the historical base, retaining today's active-source fencing.
+      const original: PriceResult = frozenIntent.commercialTerms === null
+        ? await price(database, ownerId, chartId, sku, frozenIntent.createdAt, periodKey, frozenIntent, false)
+        : {ok: true, amountLa: terms.chargedLa, creditLa: terms.creditLa,
+            ...(terms.creditProof ? {creditProof: terms.creditProof, creditExpiresAt: terms.creditExpiresAt,
+              creditSourceSkus: [...new Set(terms.creditProof.sources.map(source => source.sku))]} : {})};
+      if (!original.ok || original.amountLa !== frozenIntent.priceLa || now < frozenIntent.createdAt) return {ok: false, code: "WALLET_INTENT_INVALID"};
+      if ((original.amountLa === 0 && sku === "ZIWEI-MONTHLY-P0" ||
+          !original.creditProof && original.amountLa < basePriceLa) && !member) return {ok: false, code: "WALLET_INTENT_INVALID"};
+      if (original.creditProof) {
+        if (now.getTime() >= Date.parse(original.creditExpiresAt!)) return {ok: false, code: "WALLET_INTENT_INVALID"};
+        const active = await qualifyingRolloverSpends(database, ownerId, chartId, now);
+        if (original.creditProof.sources.some(source => !active.some(spend => spend.spendId === source.spendId &&
+          spend.sku === source.sku && spend.amountLa === source.amountLa && spend.spentAt.toISOString() === source.spentAt))) return {ok: false, code: "WALLET_INTENT_INVALID"};
+      }
+      return original;
+    }
+  }
+  if (sku === "ZIWEI-MONTHLY-P0" && member) return {ok: true, amountLa: 0};
+
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId, now);
-    const rollover = calculateRolloverCredit({ spends, now });
-    const amountLa = membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member);
-    const creditLa = amountLa === rollover.effectivePriceLa ? product.priceLa - rollover.effectivePriceLa : 0;
+    const rollover = calculateRolloverCredit({ spends, now, basePriceLa });
+    const amountLa = membershipPrice(basePriceLa, rollover.effectivePriceLa, !!member);
+    const creditLa = amountLa === rollover.effectivePriceLa ? basePriceLa - rollover.effectivePriceLa : 0;
     const eligible = spends.filter(spend => spend.amountLa > 0 && rollover.windowOpenedAt && rollover.windowExpiresAt && spend.spentAt >= rollover.windowOpenedAt && spend.spentAt < rollover.windowExpiresAt);
     let remaining = creditLa;
     const sources: CreditProof["sources"] = [];
@@ -402,17 +439,11 @@ async function price(
     } : {}) };
   }
 
-  return { ok: true as const, amountLa: membershipPrice(product.priceLa, undefined, !!member) };
+  return { ok: true as const, amountLa: membershipPrice(basePriceLa, undefined, !!member) };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
-  const product = findLaProduct(intent.sku);
-  if (!product || product.availability !== "active" || !supportedLocale(intent.locale) || !product.locales.includes(intent.locale)) return false;
-  if (intent.sku === "ZIWEI-IDENTITY-P0") {
-    return intent.priceLa >= 0 && intent.priceLa <= 960;
-  }
-  if (intent.sku === "ZIWEI-MONTHLY-P0" && intent.priceLa === 0) return true;
-  return intent.priceLa === product.priceLa || intent.priceLa === membershipPrice(product.priceLa, undefined, true);
+  return readPurchaseCommercialTerms(intent) !== null;
 }
 
 function hasUnlockOutboxLineage(
@@ -584,7 +615,18 @@ export function createWalletUnlockService(
           sku.startsWith("MEMBERSHIP-")) { quotes.push(row); continue; }
         if (!hasNatalEvidence) {quotes.push(row); continue;}
         const periodKey = purchasePeriodKey(sku, quoteNow, input.targetYear);
-        const selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
+        const [pending] = await database.select().from(walletPurchaseIntents).where(and(
+          eq(walletPurchaseIntents.ownerId, actor.userId), eq(walletPurchaseIntents.chartId, input.chartId),
+          eq(walletPurchaseIntents.chartVersionId, input.chartVersionId), eq(walletPurchaseIntents.sku, sku),
+          eq(walletPurchaseIntents.locale, input.locale), eq(walletPurchaseIntents.periodKey, periodKey),
+          eq(walletPurchaseIntents.status, "pending"))).limit(1);
+        let selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey, pending);
+        let usedPending = pending;
+        if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && pending && validIntentTerms(pending)) {
+          // Expired or refunded credit cannot authorize settlement; a fresh read can offer new terms.
+          usedPending = undefined;
+          selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
+        }
         if (!selectedPrice.ok) {
           if (selectedPrice.code === "WALLET_ENTITLEMENT_EXISTS") {
             const candidates = await database.select({ reportId: reportReservations.reportId }).from(commerceEntitlements)
@@ -617,8 +659,10 @@ export function createWalletUnlockService(
           continue;
         }
         const creditLa = selectedPrice.creditLa ?? 0;
-        quotes.push({ ...row, state: "available", priceLa: selectedPrice.amountLa, creditLa,
-          discountLa: product.priceLa - creditLa - selectedPrice.amountLa,
+        const basePriceLa = usedPending ? readPurchaseCommercialTerms(usedPending)?.basePriceLa : product.priceLa;
+        if (basePriceLa === undefined) {quotes.push(row); continue;}
+        quotes.push({ ...row, basePriceLa, state: "available", priceLa: selectedPrice.amountLa, creditLa,
+          discountLa: basePriceLa - creditLa - selectedPrice.amountLa,
           creditExpiresAt: selectedPrice.creditExpiresAt ?? null, creditSourceSkus: selectedPrice.creditSourceSkus ?? [] });
       }
       return { ok: true, value: WalletQuotesV1Schema.parse({ ...input, version: 1, quotedAt: quoteNow.toISOString(), quotes }) };
@@ -655,8 +699,6 @@ export function createWalletUnlockService(
         if (await ownedChart(transaction, ownerId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
         if (await evidenceFor(transaction, request.chartVersionId) === undefined) return failed("WALLET_EVIDENCE_MISSING");
         await revokeExpiredMonthlyGrant(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear));
-        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear));
-        if (!selectedPrice.ok) return selectedPrice;
         const [pending] = await transaction.select().from(walletPurchaseIntents)
           .where(and(
             eq(walletPurchaseIntents.ownerId, ownerId),
@@ -666,9 +708,18 @@ export function createWalletUnlockService(
           ))
           .limit(1)
           .for("update");
+        const sameTerms = pending !== undefined && pending.chartVersionId === request.chartVersionId &&
+          pending.locale === locale && pending.periodKey === purchasePeriodKey(sku, quoteNow, request.targetYear);
+        let selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow,
+          purchasePeriodKey(sku, quoteNow, request.targetYear), sameTerms ? pending : undefined);
+        const reusedPrice = selectedPrice.ok;
+        if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && sameTerms && pending && validIntentTerms(pending)) {
+          selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear));
+        }
+        if (!selectedPrice.ok) return selectedPrice;
         if (pending !== undefined) {
           if (
-            pending.chartVersionId === request.chartVersionId &&
+            reusedPrice && matchesPurchaseCreditProof(pending, selectedPrice.creditProof) && pending.chartVersionId === request.chartVersionId &&
             pending.locale === locale &&
             pending.priceLa === selectedPrice.amountLa &&
             pending.periodKey === purchasePeriodKey(sku, quoteNow, request.targetYear)
@@ -695,6 +746,10 @@ export function createWalletUnlockService(
           priceLa: selectedPrice.amountLa,
           periodKey: purchasePeriodKey(sku, quoteNow, request.targetYear),
           createdAt: quoteNow,
+          commercialTerms: freezePurchaseCommercialTerms({ownerId, chartId: request.chartId,
+            chartVersionId: request.chartVersionId, sku, locale,
+            periodKey: purchasePeriodKey(sku, quoteNow, request.targetYear), priceLa: selectedPrice.amountLa,
+            createdAt: quoteNow}, selectedPrice),
         }).returning();
         if (created === undefined) throw new Error("WALLET_INTENT_CREATE_FAILED");
         return { ok: true as const, value: projectIntent(created), reused: false };
@@ -823,8 +878,8 @@ export function createWalletUnlockService(
           if (evidence === undefined) return failed("WALLET_INTENT_INVALID");
 
           await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined));
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined));
-          if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined), lockedIntent);
+          if (!selectedPrice.ok || selectedPrice.amountLa !== 0 || !matchesPurchaseCreditProof(lockedIntent, selectedPrice.creditProof)) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
 
@@ -1010,8 +1065,8 @@ export function createWalletUnlockService(
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined));
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined));
-          if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa) {
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined), lockedIntent);
+          if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa || !matchesPurchaseCreditProof(lockedIntent, selectedPrice.creditProof)) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const reportVersions = periodKindForSku(sku) ? periodReportVersions() : topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);

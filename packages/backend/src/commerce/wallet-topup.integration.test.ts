@@ -30,6 +30,7 @@ import {
   walletTransactions,
   type Database,
 } from "@lasoviet/database";
+import { WalletPurchaseIntentV1Schema, getLaPrice } from "@lasoviet/contracts";
 import type { CurrentActor } from "@lasoviet/contracts";
 
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
@@ -76,12 +77,14 @@ function validV3StructuredContent() {
     ],
   };
 }
-const monthlyCatalogGate = vi.hoisted(() => ({ enabled: false }));
+const monthlyCatalogGate = vi.hoisted(() => ({ enabled: false, lifetimePrice: null as number | null }));
 const dailyCatalogGate = vi.hoisted(() => ({ enabled: false }));
 vi.mock("@lasoviet/contracts", async importOriginal => {
   const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
   return { ...actual, findLaProduct: (sku: string) => {
-    const product = actual.findLaProduct(sku);
+    const original = actual.findLaProduct(sku);
+    const product = original && sku === "ZIWEI-IDENTITY-P0" && monthlyCatalogGate.lifetimePrice !== null
+      ? {...original, priceLa: monthlyCatalogGate.lifetimePrice} : original;
     return product && ((monthlyCatalogGate.enabled && sku === "ZIWEI-MONTHLY-P0") || (dailyCatalogGate.enabled && sku === "ZIWEI-TODAY-P0")) ? { ...product, availability: "active" } : product;
   }};
 });
@@ -184,11 +187,17 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
 
   const frozenNow = new Date("2026-09-30T09:00:00.000Z");
 
-  async function continuationFixture(sku = "ZIWEI-NATAL-EXCERPT-P0") {
+  async function continuationFixture(sku = "ZIWEI-NATAL-EXCERPT-P0", legacy = false, legacyPrice?: number) {
     const actor = await createAccount();
     const chart = await chartFixture(actor);
     const repository = createDatabaseCommerceRepository(database, { now: () => frozenNow });
-    const intent = await repository.createWalletPurchaseIntent(actor, { chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku, locale: "vi" });
+    const [legacyIntent] = legacy ? await database.insert(walletPurchaseIntents).values({ownerId: actor.userId,
+      chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku, locale: "vi",
+      priceLa: legacyPrice ?? getLaPrice(sku)!, createdAt: frozenNow}).returning() : [];
+    const intent = legacyIntent ? {ok: true as const, value: WalletPurchaseIntentV1Schema.parse({id: legacyIntent.id,
+      sku, chartVersionId: chart.chartVersionId, locale: "vi", amountLa: legacyIntent.priceLa,
+      status: "pending", stateVersion: 1, createdAt: frozenNow.toISOString()})}
+      : await repository.createWalletPurchaseIntent(actor, { chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku, locale: "vi" });
     if (!intent.ok) throw new Error(intent.code);
     const continuation = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, confirmedPriceLa: intent.value.amountLa, returnTab: "palaces" as const, returnOpen: "life" };
     return { actor, chart, repository, intent: intent.value, continuation };
@@ -247,7 +256,8 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
       expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
     });
     it.each(["profile_deleted", "account_deletion", "stale_version", "cancelled", "reserved", "price_changed"] as const)("hides invalidated candidate %s", async reason => {
-      const { actor, chart, repository, intent } = await continuationFixture();
+      const { actor, chart, repository, intent } = await continuationFixture(reason === "reserved" ? "ZIWEI-CAREER-P0" : undefined,
+        ["reserved", "price_changed"].includes(reason), reason === "price_changed" ? 192 : undefined);
       if (reason === "profile_deleted") {
         const [ownedChart] = await database.select().from(ziweiCharts).where(eq(ziweiCharts.id, chart.chartId));
         await database.update(birthProfiles).set({deletedAt: frozenNow}).where(eq(birthProfiles.id, ownedChart!.profileId));
@@ -261,8 +271,8 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
         await database.insert(ziweiChartVersions).values({...old!, id: `version-${randomUUID()}`, calculationRunId: newRun, createdAt: new Date(old!.createdAt.getTime() + 1000)});
       }
       if (reason === "cancelled") await database.update(walletPurchaseIntents).set({status: "cancelled"}).where(eq(walletPurchaseIntents.id, intent.id));
-      if (reason === "reserved") await database.update(walletPurchaseIntents).set({sku: "ZIWEI-CAREER-P0", priceLa: 480}).where(eq(walletPurchaseIntents.id, intent.id));
-      if (reason === "price_changed") await database.update(walletPurchaseIntents).set({priceLa: 192}).where(eq(walletPurchaseIntents.id, intent.id));
+      // Legacy reserved/expired-discount fixtures are inserted with their original terms.
+      // An immutable intent can no longer be corrupted by a later financial UPDATE.
       expect(await repository.readPendingUnlockHint(actor, "vi")).toBeNull();
     });
   });
@@ -580,6 +590,73 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
       .toEqual([expect.objectContaining({occurredAt: frozenNow, properties: expect.objectContaining({amount: 720, credit_amount: 240})})]);
   }, 20_000);
 
+  it.each([false, true])("settles original same-order terms across catalog drift (legacy=%s)", async legacy => {
+    const {actor, chart, repository, continuation} = await continuationFixture("ZIWEI-IDENTITY-P0", legacy);
+    const created = await repository.createTopUpOrder(actor, "LA-START-1100", "vi", continuation);
+    if (!created.ok) throw new Error(created.code);
+    monthlyCatalogGate.lifetimePrice = 1200;
+    try {
+      expect(await repository.createWalletPurchaseIntent(actor, {chartId: chart.chartId, chartVersionId: chart.chartVersionId,
+        sku: "ZIWEI-IDENTITY-P0", locale: "vi"})).toMatchObject({ok: true, value: {id: continuation.purchaseIntentId, amountLa: 960}});
+      const payment = {invoiceNumber: created.value.invoiceNumber, providerEventId: randomUUID(),
+        amount: 99000, currency: "VND", traceId: "frozen-catalog-smoke"};
+      expect(await repository.recordPaid(payment)).toMatchObject({ok: true});
+      expect((await repository.readTopUpOrderProjection(actor, created.value.id))?.continuation).toMatchObject({status: "completed", remainingLa: 140});
+      const committed = await walletOf(actor.userId);
+      expect(await repository.recordPaid(payment)).toMatchObject({ok: true, replayed: true});
+      expect(await walletOf(actor.userId)).toEqual(committed);
+      expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, committed!.id),
+        eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+    } finally {monthlyCatalogGate.lifetimePrice = null;}
+  });
+
+  it.each([false, true])("retains original bound rollover proof after another palace spend (legacy=%s)", async legacy => {
+    const actor = await createAccount();
+    const chart = await chartFixture(actor);
+    let current = new Date(frozenNow.getTime() - 2000);
+    const repository = createDatabaseCommerceRepository(database, {now: () => current, reportVersionResolver: v4_1SensitivityReportVersions});
+    const seed = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi");
+    if (!seed.ok) throw new Error(seed.code);
+    expect(await repository.recordPaid({invoiceNumber: seed.value.invoiceNumber, providerEventId: randomUUID(), amount: 29000,
+      currency: "VND", traceId: "bound-rollover-seed"})).toMatchObject({ok: true});
+    async function buyPalace(sku: string) {
+      const intent = await repository.createWalletPurchaseIntent(actor, {chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku, locale: "vi"});
+      if (!intent.ok) throw new Error(intent.code);
+      const balance = await walletOf(actor.userId);
+      expect(await repository.unlockWalletPurchase(actor, {purchaseIntentId: intent.value.id, expectedIntentVersion: 1,
+        expectedWalletVersion: balance!.stateVersion, idempotencyKey: randomUUID()})).toMatchObject({ok: true});
+    }
+    current = new Date(frozenNow.getTime() - 1000);
+    await buyPalace("ZIWEI-PALACE-LIFE-P0");
+    current = frozenNow;
+    const request = {chartId: chart.chartId, chartVersionId: chart.chartVersionId, sku: "ZIWEI-IDENTITY-P0", locale: "vi" as const};
+    const [legacyRow] = legacy ? await database.insert(walletPurchaseIntents).values({ownerId: actor.userId, ...request,
+      priceLa: 840, createdAt: current}).returning() : [];
+    const intent = legacyRow ? {ok: true as const, value: WalletPurchaseIntentV1Schema.parse({id: legacyRow.id, sku: request.sku, chartVersionId: request.chartVersionId, locale: request.locale,
+      amountLa: 840, status: "pending", stateVersion: 1, createdAt: current.toISOString()})}
+      : await repository.createWalletPurchaseIntent(actor, request);
+    if (!intent.ok) throw new Error(intent.code);
+    expect(intent.value.amountLa).toBe(840);
+    const continuation = {purchaseIntentId: intent.value.id, expectedIntentVersion: 1, confirmedPriceLa: 840, returnTab: "palaces" as const};
+    const order = await repository.createTopUpOrder(actor, "LA-START-1100", "vi", continuation);
+    if (!order.ok) throw new Error(order.code);
+    current = new Date(frozenNow.getTime() + 1000);
+    await buyPalace("ZIWEI-PALACE-WEALTH-P0");
+    monthlyCatalogGate.lifetimePrice = 1200;
+    try {
+      expect(await repository.createWalletPurchaseIntent(actor, request)).toMatchObject({ok: true, value: {id: intent.value.id, amountLa: 840}});
+      const payment = {invoiceNumber: order.value.invoiceNumber, providerEventId: randomUUID(), amount: 99000,
+        currency: "VND", traceId: "bound-rollover-original"};
+      expect(await repository.recordPaid(payment)).toMatchObject({ok: true});
+      expect((await repository.readTopUpOrderProjection(actor, order.value.id))?.continuation).toMatchObject({status: "completed", remainingLa: 320});
+      const [upgrade] = await database.select().from(outbox).where(and(eq(outbox.actorId, actor.userId), eq(outbox.eventType, WALLET_UPGRADE_EVENT_TYPE)));
+      expect(upgrade!.payload).toMatchObject({upgrade: {chargedLa: 840, creditLa: 120, sourceSkus: ["ZIWEI-PALACE-LIFE-P0"]}});
+      const committed = await walletOf(actor.userId);
+      expect(await repository.recordPaid(payment)).toMatchObject({ok: true});
+      expect(await walletOf(actor.userId)).toEqual(committed);
+    } finally {monthlyCatalogGate.lifetimePrice = null;}
+  });
+
   it("credits and completes the confirmed unlock atomically, then replays without a second debit", async () => {
     const fixture = await continuationFixture();
     const { actor, repository, continuation, chart } = fixture;
@@ -655,11 +732,12 @@ describe("wallet top-up money path (FD-105 package 1.1)", () => {
   });
 
   it.each(["cancelled", "insufficient", "price_changed", "stale_version"])("leaves top-up credit intact when continuation is %s", async (failure) => {
-    const { actor, repository, continuation, intent } = await continuationFixture(["insufficient", "price_changed"].includes(failure) ? "ZIWEI-IDENTITY-P0" : undefined);
+    const { actor, repository, continuation, intent } = await continuationFixture(["insufficient", "price_changed"].includes(failure) ? "ZIWEI-IDENTITY-P0" : undefined, failure === "price_changed");
     const created = await repository.createTopUpOrder(actor, "LA-ENTRY-300", "vi", continuation);
     if (!created.ok) throw new Error(created.code);
     if (failure === "cancelled") await database.update(walletPurchaseIntents).set({ status: "cancelled", stateVersion: intent.stateVersion + 1 }).where(eq(walletPurchaseIntents.id, intent.id));
-    if (failure === "price_changed") await database.update(walletPurchaseIntents).set({ priceLa: intent.amountLa - 1 }).where(eq(walletPurchaseIntents.id, intent.id));
+    if (failure === "price_changed") await expect(database.update(walletPurchaseIntents).set({ priceLa: intent.amountLa - 1 })
+      .where(eq(walletPurchaseIntents.id, intent.id))).rejects.toThrow();
     if (failure === "stale_version") await database.update(walletPurchaseIntents).set({ stateVersion: intent.stateVersion + 1 }).where(eq(walletPurchaseIntents.id, intent.id));
     expect(await repository.recordPaid({ invoiceNumber: created.value.invoiceNumber, providerEventId: `blocked-${randomUUID()}`, amount: 29000, currency: "VND", traceId: "blocked" })).toMatchObject({ ok: true });
     const projection = await repository.readTopUpOrderProjection(actor, created.value.id);

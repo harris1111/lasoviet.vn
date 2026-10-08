@@ -1,3 +1,4 @@
+import { readPurchaseCommercialTerms } from "../commerce/purchase-commercial-terms.js";
 import { createHash } from "node:crypto";
 
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
@@ -499,7 +500,7 @@ export function createDatabaseWalletRepository(
         const [intent] = await transaction.select().from(walletPurchaseIntents)
           .where(and(eq(walletPurchaseIntents.id, spend.purchaseIntentId), eq(walletPurchaseIntents.ownerId, actor.userId)))
           .limit(1).for("update");
-        if (intent === undefined || intent.status !== "pending" || intent.priceLa !== spend.amountLa) return failure("WALLET_INVALID_INTENT");
+        if (intent === undefined || !readPurchaseCommercialTerms(intent) || intent.status !== "pending" || intent.priceLa !== spend.amountLa) return failure("WALLET_INVALID_INTENT");
         const lots = await transaction.select().from(walletCreditLots)
           .where(and(eq(walletCreditLots.walletId, wallet.id), sql`${walletCreditLots.remainingLa} > 0`))
           .orderBy(asc(sql`case when ${walletCreditLots.bucket} = 'promotional' then 0 else 1 end`), asc(walletCreditLots.grantedAt), asc(walletCreditLots.id))

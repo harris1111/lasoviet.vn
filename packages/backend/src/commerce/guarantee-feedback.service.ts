@@ -1,3 +1,4 @@
+import { readPurchaseCommercialTerms } from "./purchase-commercial-terms.js";
 import { periodKindForSku } from "../reports/period-report-config.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, desc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
@@ -466,14 +467,18 @@ export function createGuaranteeFeedbackService(
 
       // 7. Get spend price in Lá and check < 500 Lá
       let priceLa = 0;
+      let frozenGuarantee: "full" | "none" | undefined;
       if (spend.purchaseIntentId) {
         const [intent] = await transaction
-          .select({ priceLa: walletPurchaseIntents.priceLa })
+          .select()
           .from(walletPurchaseIntents)
           .where(eq(walletPurchaseIntents.id, spend.purchaseIntentId))
           .limit(1);
         if (intent) {
-          priceLa = intent.priceLa;
+          const terms = readPurchaseCommercialTerms(intent);
+          if (!terms) return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+          priceLa = terms.chargedLa;
+          frozenGuarantee = terms.guarantee;
         }
       }
 
@@ -487,7 +492,7 @@ export function createGuaranteeFeedbackService(
         priceLa = Number(allocated?.amountLa ?? 0);
       }
 
-      if (priceLa <= 0 || priceLa >= 500) {
+      if (priceLa <= 0 || frozenGuarantee === "none" || (frozenGuarantee === undefined && priceLa >= 500)) {
         return { ok: false, code: "GUARANTEE_PRICE_EXCEEDS_LIMIT" };
       }
 
