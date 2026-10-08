@@ -10,7 +10,6 @@ type AnonymousDataDeletionControlProps = {
   labels: {
     title: string;
     description: string;
-    begin: string;
     confirmation: string;
     cancel: string;
     confirm: string;

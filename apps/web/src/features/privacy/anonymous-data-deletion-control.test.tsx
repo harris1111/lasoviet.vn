@@ -5,7 +5,7 @@ vi.mock("../birth-profile/homepage-birth-prefill", () => ({ clearBirthCache: () 
 import { AnonymousDataDeletionControl } from "./anonymous-data-deletion-control";
 
 const labels = {
-  title: "Quyền riêng tư", description: "Xóa dữ liệu lá số ẩn danh", begin: "Xóa dữ liệu lá số",
+  title: "Quyền riêng tư", description: "Xóa dữ liệu lá số ẩn danh",
   confirmation: "Thao tác này xóa ngay.", cancel: "Giữ lại", confirm: "Xác nhận xóa", pending: "Đang xóa", error: "Lỗi",
 };
 
