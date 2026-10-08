@@ -132,6 +132,7 @@
     "ladderDescription": "Mua một cung hoặc đọc trọn lá số. Các phần mua lẻ đủ điều kiện được khấu trừ khi nâng cấp trong 7 ngày.",
     "ladderScore": "Độ mạnh cấu trúc: {score}/100",
     "ladderSelect": "Chọn phần này",
+    "ladderSelected": "Đã chọn",
     "ladderBalance": "Số dư: {balance} Lá",
     "inlinePackLabel": "Chọn gói nạp Lá",
     "inlinePackBonus": "+{bonus} Lá tặng",

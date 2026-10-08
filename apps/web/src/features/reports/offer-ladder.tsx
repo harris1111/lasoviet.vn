@@ -11,6 +11,7 @@ import { ladderSelectionQuery } from "../commerce/offer-selection";
 import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { claimLadderViewEvents } from "./offer-ladder-analytics";
 import { PalacePicker } from "./palace-picker";
+import { OfferCard } from "./offer-ladder-card";
 
 const FIXED_SKUS: LaSku[] = ["ZIWEI-TODAY-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"];
 export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, initialResume = false, balance, scores }: {
@@ -75,20 +76,12 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     {quote.status === "error" && <div role="alert"><p>{t("selection.ladderQuoteError")}</p><button type="button" className="button" onClick={quote.retry}>{t("selection.retry")}</button></div>}
     <div className="offer-ladder-cards">{[palaceSku, ...FIXED_SKUS.filter(sku => findLaProduct(sku)?.locales.includes(locale))].map(sku => {
       const item = terms(sku);
-      const lifetime = sku === "ZIWEI-IDENTITY-P0";
-      return <article key={isSinglePalaceSku(sku) ? "palace" : sku} className={lifetime ? "offer-ladder-best" : undefined} data-sku={sku}>
-        {lifetime && <span className="fd109-state">{t("selection.ladderBestValue")}</span>}
-        <h3>{isSinglePalaceSku(sku) ? t("selection.ladderPalace") : item.product.name[locale]}</h3>
-        <p className="offer-ladder-price">{t("selection.ladderPrice", { price: item.price })}</p>
-        {lifetime && <p>{t("selection.ladderLifetimeComparison")}</p>}
-        {item.quote && item.quote.creditLa > 0 && <p>{t("selection.ladderCredit", { credit: item.quote.creditLa, price: item.price })}</p>}
-        {item.quote && item.quote.discountLa > 0 && <p>{t("selection.ladderDiscount", { discount: item.quote.discountLa })}</p>}
-        {item.state === "owned" && <p>{t("selection.ladderOwned")}</p>}
-        {item.state === "coming_soon" || item.product.availability !== "active" ? <p>{t("selection.ladderComingSoon")}</p> :
-          item.state === "unavailable" ? <p>{t("selection.ladderUnavailable")}</p> :
-          <button type="button" className="button button-secondary" aria-pressed={selectedSku === sku} onClick={() => select(sku)}>{t("selection.ladderSelect")}</button>}
-        {isSinglePalaceSku(sku) && <PalacePicker locale={locale} selectedSku={selectedSku} onSelect={select} scores={scores} quotes={quote.quotes} />}
-      </article>;
+      const palace = isSinglePalaceSku(sku);
+      return <OfferCard key={palace ? "palace" : sku} sku={sku} name={palace ? t("selection.ladderPalace") : item.product.name[locale]}
+        price={item.price} state={item.state} locked={item.product.availability !== "active"} quote={item.quote}
+        selected={selectedSku === sku} lifetime={sku === "ZIWEI-IDENTITY-P0"} onSelect={select}>
+        {palace && <PalacePicker locale={locale} selectedSku={selectedSku} onSelect={select} scores={scores} quotes={quote.quotes} />}
+      </OfferCard>;
     })}</div>
     <div className="offer-ladder-summary" aria-label={t("selection.ladderHeading")}>
       <p><strong>{selected.product.name[locale]}</strong> · {t("selection.ladderPrice", { price: selected.price })}</p>

@@ -260,7 +260,7 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
         await expect(page.locator(".offer-ladder-summary")).toContainText("120");
       }
       for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
-        await expect(ladder.locator(`article[data-sku="${sku}"]`).getByRole("button")).toHaveCount(0);
+        await expect(ladder.locator(`article[data-sku="${sku}"]`).locator("button:not([disabled])")).toHaveCount(0);
       }
       await page.locator('.offer-ladder-summary .button-primary').click();
       const sheet = page.locator("dialog.unlock-sheet"); await expect(sheet.getByTestId("inline-topup")).toBeVisible();
