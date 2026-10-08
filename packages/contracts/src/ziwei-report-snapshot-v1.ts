@@ -1,3 +1,4 @@
+import { matchesReportYearLineage } from "./report-year-lineage.js";
 import { ZiweiPeriodReadingFactsV1Schema } from "./ziwei-period-reading-v1.js";
 import { z } from "zod";
 import { ZIWEI_PALACE_IDS } from "./ziwei-comprehensive-report-v1.js";
@@ -297,7 +298,7 @@ export const ZiweiReportSnapshotV1Schema = z
     }
 
     const asOfDateYear = parseInt(snapshot.asOfDate.slice(0, 4), 10);
-    if (snapshot.timing.annual.targetYear !== asOfDateYear) {
+    if (!matchesReportYearLineage(snapshot.asOfDate, snapshot.timing.annual.targetYear, snapshot.timingRuleVersion)) {
       ctx.addIssue({
         code: "custom",
         path: ["timing", "annual", "targetYear"],

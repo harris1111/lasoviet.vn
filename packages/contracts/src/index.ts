@@ -941,3 +941,5 @@ export { ziweiMajorStarMeaning, ZIWEI_MAJOR_STAR_MEANING_VERSION } from "./ziwei
 export { FreeStructuralOverviewDocV1Schema, FreeStructuralPalaceDocV1Schema, type FreeStructuralOverviewDocV1, type FreeStructuralPalaceDocV1 } from "./free-structural-overview-v1.js";
 
 export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1 } from "./free-structural-overview-v1.js";
+
+export { matchesReportYearLineage } from "./report-year-lineage.js";

@@ -1,3 +1,4 @@
+import { matchesReportYearLineage } from "./report-year-lineage.js";
 import { z } from "zod";
 import {
   ReportPdfRequestedV1Schema,
@@ -60,7 +61,7 @@ export const ReportGenerationRequestedV2Schema = z
   .strict()
   .superRefine((payload, ctx) => {
     const asOfDateYear = parseInt(payload.asOfDate.slice(0, 4), 10);
-    if (payload.targetYear !== asOfDateYear) {
+    if (!matchesReportYearLineage(payload.asOfDate, payload.targetYear, payload.timingRuleVersion)) {
       ctx.addIssue({
         code: "custom",
         path: ["targetYear"],

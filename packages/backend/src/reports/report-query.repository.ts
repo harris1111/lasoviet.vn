@@ -1,6 +1,6 @@
 import {readCompensatedReportFailure} from "./report-compensated-failure.js";
 import type {ReportFailedWalletSpendViewV2} from "@lasoviet/contracts";
-import { COMBO_SKU, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
+import { COMBO_SKU, isComboSku, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
 import { readActiveMembership } from "../commerce/membership.service.js";
 import { findLaProduct } from "@lasoviet/contracts";
 import { reportReservationAuthority } from "./natal-report-authority.js";
@@ -69,9 +69,9 @@ function hasExclusiveAuthority(entitlement: typeof commerceEntitlements.$inferSe
 }
 
 function isSupportedWalletPrice(sku: string, priceLa: number): boolean {
-  if (sku === COMBO_SKU) return isSupportedComboPrice(priceLa);
+  if (isComboSku(sku)) return isSupportedComboPrice(priceLa);
   const product = findLaProduct(sku);
-  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
   if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
   return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }
@@ -176,7 +176,7 @@ export function createDatabaseReportQueryRepository(
           eq(walletPurchaseIntents.id, walletTransactions.purchaseIntentId),
           eq(walletPurchaseIntents.ownerId, input.ownerId),
           eq(walletPurchaseIntents.status, "completed"),
-          or(eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey), eq(walletPurchaseIntents.sku, COMBO_SKU)),
+          or(eq(walletPurchaseIntents.periodKey, commerceEntitlements.periodKey), or(eq(walletPurchaseIntents.sku, COMBO_SKU), eq(walletPurchaseIntents.sku, "ZIWEI-COMBO-P0"))),
         ),
       )
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
@@ -214,7 +214,7 @@ export function createDatabaseReportQueryRepository(
       .orderBy(desc(reportReservations.createdAt), desc(reportReservations.id))
       .limit(1);
 
-    const comboAuthority = !!record && record.intent.sku === COMBO_SKU && await hasCompleteComboAuthority(database, record);
+    const comboAuthority = !!record && isComboSku(record.intent.sku) && await hasCompleteComboAuthority(database, record);
     if (
       !record ||
       !hasExclusiveAuthority(record.entitlement) ||
