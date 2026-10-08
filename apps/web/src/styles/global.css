@@ -56,7 +56,24 @@ button { cursor: pointer; }
 .desktop-nav a, .locale-link { color: var(--pearl-200); }
 .header-actions { display: flex; align-items: center; gap: 18px; }
 .button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 10px; padding: 0 25px; border: 0; border-radius: 4px; background: var(--gold-gradient); color: var(--lacquer-900); font-weight: 600; }
-.button:hover { color: var(--lacquer-900); filter: brightness(1.08); text-decoration: none; }
+.button { touch-action: manipulation; cursor: pointer; transition: filter var(--motion-feedback) ease, transform var(--motion-feedback) ease, border-color var(--motion-feedback) ease, color var(--motion-feedback) ease; }
+.button:hover { color: var(--lacquer-900); text-decoration: none; }
+@media (hover: hover) { .button:hover { filter: brightness(1.08); } }
+.button:active { transform: scale(.98); filter: brightness(.96); }
+.button:focus-visible { outline: 3px solid var(--gold-400); outline-offset: 3px; }
+/* Locked controls: dark fill, dashed border, no hover lift, no press feedback. Put the reason in text next to it. */
+.button:disabled, .button[aria-disabled="true"] { background: var(--lacquer-700); color: var(--pearl-300); border: 1px dashed var(--pearl-500); cursor: not-allowed; filter: none; transform: none; box-shadow: none; }
+.button:disabled:hover, .button[aria-disabled="true"]:hover { color: var(--pearl-300); filter: none; }
+/* Busy: spinner replaces nothing, blocks double activation. */
+.button[aria-busy="true"] { pointer-events: none; cursor: progress; }
+.button[aria-busy="true"]::after { content: ""; width: 1em; height: 1em; flex: none; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: button-spin .7s linear infinite; }
+@keyframes button-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .button, .button:active { transition: none; transform: none; } .button[aria-busy="true"]::after { animation: none; } }
+/* Whole-card click area: put .stretched-target on the card's single primary control and .stretched-card on the card.
+   Secondary controls inside the card get .stretched-above so they stay clickable. */
+.stretched-card { position: relative; }
+.stretched-target::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.stretched-above { position: relative; z-index: 1; }
 .button-small { min-height: 44px; padding-inline: 19px; font-size: 14px; }
 .mobile-menu { display: none; }
 .mobile-menu summary { display: grid; min-width: 44px; min-height: 44px; place-items: center; border: 1px solid var(--lacquer-line); border-radius: 4px; color: var(--pearl-50); cursor: pointer; list-style: none; }
