@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { NormalizedZiweiChartV1Schema, type CurrentActor } from "@lasoviet/contracts";
+import { calculateZiweiHoroscope } from "../../../engine-adapters/src/ziwei/iztro-horoscope.js";
+import { computeNormalizedPalaceScores } from "../reports/structural-palace-score.js";
 import { createFreeOverviewCache } from "./free-structural-overview-cache.js";
 
 import {
@@ -107,12 +109,58 @@ function repository(overrides: Partial<ZiweiQueryRepository> = {}) {
 }
 
 describe("Zi Wei query service", () => {
+  it.each([
+    [{source: "offset", offsetMinutes: 420}, 2027, "2027-02-06"],
+    [{source: "offset", offsetMinutes: -300}, 2026, "2027-02-05"],
+    [{source: "iana", ianaZone: "Asia/Ho_Chi_Minh", runtime: "Intl"}, 2027, "2027-02-06"],
+  ] as const)("reads purchase context in the authorized local calendar %j", async (timezone, expectedYear, expectedDate) => {
+    const stored = record({ normalizedInput: {...profileNormalizedInput, timezoneProvenance: timezone} });
+    const service = createZiweiQueryService({ repository: repository({readAuthorizedChart: vi.fn().mockResolvedValue(stored)}),
+      now: () => new Date("2027-02-05T18:00:00Z"), calculateHoroscope: calculateZiweiHoroscope });
+    const result = await service.readHoroscope(account, "chart-1", {targetYear: 2027});
+    expect(result.ok).toBe(true); if (!result.ok) return;
+    expect(result.value.asOfDate).toBe(expectedDate);
+    expect(result.value.purchaseFacts?.lunarYear).toBe(expectedYear);
+    expect(result.value.purchaseFacts?.annualPalaces.map(item => item.year)).toEqual([expectedYear, expectedYear + 1]);
+    expect(result.value.yearly.targetYear).toBe(2027);
+    expect(result.value.isUnlocked).toBe(false);
+  });
+
+  it("denies purchase context before engine evaluation for unowned or expired charts", async () => {
+    const calculate = vi.fn().mockReturnValue({});
+    const store = repository({readAuthorizedChart: vi.fn().mockResolvedValue(null)});
+    const service = createZiweiQueryService({repository: store, now: () => now, calculateHoroscope: calculate});
+    expect(await service.readHoroscope(account, "other-chart")).toMatchObject({ok: false, error: {code: "CHART_NOT_FOUND"}});
+    const expired: CurrentActor = {kind: "anonymous", anonymousActorId: "expired", sessionId: "expired-session",
+      requestId: "expired-request", expiresAt: "2026-09-01T00:00:00Z"};
+    expect(await service.readHoroscope(expired, "chart-1")).toMatchObject({ok: false, error: {code: "ANONYMOUS_EXPIRED"}});
+    expect(calculate).not.toHaveBeenCalled();
+    expect(store.readAuthorizedChart).toHaveBeenCalledTimes(1);
+  });
+
   it.each(["offset", "iana"])("uses the authorized profile %s timezone and injected clock for the temporal layer", async kind => {
     const calculate = vi.fn().mockReturnValue({});
     const stored=record({normalizedInput:{...profileNormalizedInput, timezoneProvenance:kind==="iana"?{source:"iana",ianaZone:"Asia/Ho_Chi_Minh",runtime:"Intl"}:{source:"offset",offsetMinutes:420}}});
     const service=createZiweiQueryService({repository:repository({readAuthorizedChart:vi.fn().mockResolvedValue(stored)}),now:()=>new Date("2026-12-31T18:00:00Z"),calculateHoroscope:calculate});
     await service.readHoroscope(account,"chart-1");
     expect(calculate).toHaveBeenCalledWith(expect.anything(),expect.objectContaining({asOfDate:"2027-01-01",isUnlocked:false}));
+  });
+
+  it("projects the published structural palace score onto each authorized decadal cycle", async () => {
+    const service = createZiweiQueryService({
+      repository: repository({ readAuthorizedChart: vi.fn().mockResolvedValue(record()) }),
+      now: () => now, calculateHoroscope: calculateZiweiHoroscope,
+    });
+    const result = await service.readHoroscope(account, "chart-1", { asOfDate: "2026-09-22" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const scores = computeNormalizedPalaceScores(NormalizedZiweiChartV1Schema.parse(record().normalizedOutput));
+    expect(result.value.decadalCycles).toHaveLength(12);
+    for (const cycle of result.value.decadalCycles!) {
+      const score = scores.get(cycle.palaceId)!;
+      expect(cycle.structuralScore).toEqual({ value: score.score, band: score.band,
+        parts: score.parts, formulaVersion: "fd107-fd111-v1" });
+    }
   });
 
   it("returns validated cache documents after authorization without exposing cache identity", async () => {

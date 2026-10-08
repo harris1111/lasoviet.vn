@@ -254,7 +254,7 @@ export function createReportQueryService(options: {
         "ZIWEI-RELATIONSHIP-P0",
         "ZIWEI-CAREER-P0",
         "ZIWEI-MONTHLY-P0",
-        "ZIWEI-YEAR-2026-P0",
+        "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0",
       ];
       if (
         (!allowedSkus.includes(reservation.sku) && !isSinglePalaceSku(reservation.sku)) ||

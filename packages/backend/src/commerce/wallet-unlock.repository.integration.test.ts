@@ -20,12 +20,14 @@ import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/pe
 import { findLaProduct } from "@lasoviet/contracts";
 import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
 import { lunarPeriodPurchaseKey } from "../../../engine-adapters/src/ziwei/period-purchase-key.js";
-const topicCatalogGate = vi.hoisted(() => ({ enabled: false }));
+const topicCatalogGate = vi.hoisted(() => ({ enabled: false, lifetimePrice: null as number | null }));
 vi.mock("@lasoviet/contracts", async importOriginal => {
   const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
   return { ...actual, findLaProduct: (sku: string) => {
-    const product = actual.findLaProduct(sku);
-    return topicCatalogGate.enabled && product && ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"].includes(sku) ? { ...product, availability: "active" } : product;
+    const original = actual.findLaProduct(sku);
+    const product = original && sku === "ZIWEI-IDENTITY-P0" && topicCatalogGate.lifetimePrice !== null
+      ? {...original, priceLa: topicCatalogGate.lifetimePrice} : original;
+    return topicCatalogGate.enabled && product && ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-COMBO-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"].includes(sku) ? { ...product, availability: "active" } : product;
   }};
 });
 import { randomUUID } from "node:crypto";
@@ -240,6 +242,129 @@ describe("wallet unlock repository integration", () => {
   async function financialEvents(ownerId: string) {
     return database.select().from(analyticsEvents).where(and(eq(analyticsEvents.userId, ownerId), eq(analyticsEvents.name, "upgrade_purchased")));
   }
+
+  it.each(["legacy-null", "frozen"])("preserves %s pending and completed rights across catalog drift", async (kind) => {
+    const owner = await ownerFixture(`Commercial ${kind}`);
+    const ports = walletPorts(owner.userId);
+    const funded = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()),
+      topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!funded.ok) throw new Error("fund");
+    const input = {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-IDENTITY-P0", locale: "vi" as const};
+    let intentId: string;
+    if (kind === "legacy-null") {
+      const [legacy] = await database.insert(walletPurchaseIntents).values({ownerId: owner.userId, ...input,
+        priceLa: 960, createdAt: frozenNow}).returning();
+      intentId = legacy!.id;
+    } else {
+      const result = await ports.service.createPurchaseIntent(owner.actor, input);
+      if (!result.ok) throw new Error(result.code);
+      intentId = result.value.id;
+      const [snapshot] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, intentId));
+      expect(snapshot!.commercialTerms).toMatchObject({version: 1, policy: "pre-fd119", basePriceLa: 960,
+        chargedLa: 960, guarantee: "none", discountBasis: "none"});
+      await expect(database.update(walletPurchaseIntents).set({commercialTerms: null}).where(eq(walletPurchaseIntents.id, intentId))).rejects.toThrow();
+
+    }
+    // The legacy-null promise has the same immutable authority as a new snapshot.
+    await expect(database.update(walletPurchaseIntents).set({priceLa: 720}).where(eq(walletPurchaseIntents.id, intentId))).rejects.toThrow();
+    await expect(database.update(walletPurchaseIntents).set({chartVersionId: "forged-version"}).where(eq(walletPurchaseIntents.id, intentId))).rejects.toThrow();
+    topicCatalogGate.lifetimePrice = 1200;
+    try {
+      expect(await ports.service.readQuotes(owner.actor, {chartId: input.chartId, chartVersionId: input.chartVersionId, locale: input.locale})).toMatchObject({ok: true, value: {quotes:
+        expect.arrayContaining([expect.objectContaining({sku: input.sku, basePriceLa: 960, priceLa: 960})])}});
+      expect(await ports.service.createPurchaseIntent(owner.actor, input)).toMatchObject({ok: true, reused: true,
+        value: {id: intentId, amountLa: 960}});
+      const command = {purchaseIntentId: intentId, expectedIntentVersion: 1,
+        expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()};
+      const purchased = await ports.service.unlock(owner.actor, command);
+      expect(purchased).toMatchObject({ok: true, value: {balance: {totalLa: 1040}}});
+      if (!purchased.ok) throw new Error(purchased.code);
+      expect(await createDatabaseReportQueryRepository(database, () => frozenNow).readAuthorizedReport(owner.userId,
+        purchased.value.reportId)).not.toBeNull();
+      expect(await ports.service.unlock(owner.actor, command)).toMatchObject({ok: true, value: {reportId: purchased.value.reportId}});
+      const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+      expect(wallet!.promotionalBalance).toBe(1040);
+      expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id),
+        eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+    } finally {topicCatalogGate.lifetimePrice = null;}
+  });
+
+  it("blocks a bound membership-discount unlock at exact expiry while retaining the top-up", async () => {
+    const owner = await ownerFixture("Expired bound membership");
+    let current = frozenNow;
+    const ports = walletPorts(owner.userId, {now: () => current});
+    const funded = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()),
+      topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!funded.ok) throw new Error("fund");
+    const membership = createMembershipService(database, createWalletService(ports.repository), {now: () => current,
+      catalog: sku => {const product = findLaProduct(sku); return product ? {...product, availability: "active"} : undefined;}});
+    const memberIntent = await membership.createIntent(owner.actor, {sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi"});
+    if (!memberIntent.ok) throw new Error(memberIntent.code);
+    expect(await membership.purchase(owner.actor, {purchaseIntentId: memberIntent.value.id, expectedIntentVersion: 1,
+      expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()})).toMatchObject({ok: true});
+    const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+    if (!intent.ok) throw new Error(intent.code);
+    expect(intent.value.amountLa).toBe(768);
+    const commerce = createDatabaseCommerceRepository(database, {now: () => current});
+    const order = await commerce.createTopUpOrder(owner.actor, "LA-ENTRY-300", "vi", {purchaseIntentId: intent.value.id,
+      expectedIntentVersion: 1, confirmedPriceLa: 768, returnTab: "palaces"});
+    if (!order.ok) throw new Error(order.code);
+    current = new Date(frozenNow.getTime() + 30 * 86400000);
+    const payment = {invoiceNumber: order.value.invoiceNumber, providerEventId: randomUUID(), amount: 29000, currency: "VND", traceId: "bound-member-expiry"};
+    expect(await commerce.recordPaid(payment)).toMatchObject({ok: true});
+    expect((await commerce.readTopUpOrderProjection(owner.actor, order.value.id))?.continuation).toMatchObject({status: "blocked"});
+    const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    expect(wallet).toMatchObject({promotionalBalance: 500, purchasedBalance: 300});
+    expect(await commerce.recordPaid(payment)).toMatchObject({ok: true});
+    expect((await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId)))[0]).toEqual(wallet);
+    expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id), eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+  });
+
+  it("rechecks membership expiry after a real chart-lock wait without posting another debit", async () => {
+    const owner = await ownerFixture("Queued membership expiry");
+    let current = frozenNow;
+    const ports = walletPorts(owner.userId, {now: () => current});
+    const funded = await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID()),
+      topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    if (!funded.ok) throw new Error("fund");
+    const member = createMembershipService(database, createWalletService(ports.repository), {now: () => current,
+      catalog: sku => {const product = findLaProduct(sku); return product ? {...product, availability: "active"} : undefined;}});
+    const memberIntent = await member.createIntent(owner.actor, {sku: "MEMBERSHIP-MONTHLY-P0", locale: "vi"});
+    if (!memberIntent.ok) throw new Error(memberIntent.code);
+    expect(await member.purchase(owner.actor, {purchaseIntentId: memberIntent.value.id, expectedIntentVersion: 1,
+      expectedWalletVersion: funded.value.balance.stateVersion, idempotencyKey: randomUUID()})).toMatchObject({ok: true});
+    const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId,
+      sku: "ZIWEI-IDENTITY-P0", locale: "vi"});
+    if (!intent.ok) throw new Error(intent.code);
+    await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID(), 300),
+      topUpOrderId: null, trustedGrantToken: ports.authority.token});
+    const [wallet] = await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId));
+    let acquired!: () => void, release!: () => void;
+    const acquiredSignal = new Promise<void>(resolve => {acquired = resolve;});
+    const releaseSignal = new Promise<void>(resolve => {release = resolve;});
+    const holding = database.transaction(async tx => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`commerce:chart:${owner.chartId}`}))`);
+      acquired(); await releaseSignal;
+    });
+    await acquiredSignal;
+    const pending = ports.service.unlock(owner.actor, {purchaseIntentId: intent.value.id, expectedIntentVersion: 1,
+      expectedWalletVersion: wallet!.stateVersion, idempotencyKey: randomUUID()});
+    try {
+      let blocked = false;
+      for (let attempt = 0; attempt < 2000; attempt++) {
+        const rows = await database.execute(sql`SELECT 1 FROM pg_locks l JOIN pg_stat_activity a ON a.pid = l.pid
+          WHERE l.locktype = 'advisory' AND NOT l.granted AND a.datname = current_database() LIMIT 1`);
+        if (rows.length > 0) {blocked = true; break;}
+      }
+      expect(blocked).toBe(true);
+      current = new Date(frozenNow.getTime() + 30 * 86400000);
+    } finally {release(); await holding;}
+    expect(await pending).toMatchObject({ok: false});
+    expect((await database.select().from(walletAccounts).where(eq(walletAccounts.ownerId, owner.userId)))[0]).toEqual(wallet);
+    expect(await database.select().from(walletTransactions).where(and(eq(walletTransactions.walletId, wallet!.id),
+      eq(walletTransactions.kind, "spend")))).toHaveLength(1);
+  }, 20000);
 
   it("durably delivers a posted upgrade once across concurrent command and worker retries without browser metadata", async () => {
     const fixture = await committedUpgradeFixture();
@@ -843,6 +968,89 @@ describe("wallet unlock repository integration", () => {
     } finally {topicCatalogGate.enabled=false;}
   });
 
+  it("recognizes historical2026 ownership in generic2026 quotes without another debit", async () => {
+    const audit = await ownerFixture("Legacy alias audit"), owner = await ownerFixture("Legacy alias buyer");
+    const ports = walletPorts(audit.userId); topicCatalogGate.enabled = true;
+    try {
+      await ports.repository.grant({ targetOwnerId: owner.userId, grant: grant(audit.userId, randomUUID(), 3000), topUpOrderId: null, trustedGrantToken: ports.authority.token });
+      const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi" as const };
+      const intent = await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-YEAR-2026-P0" });
+      if (!intent.ok) throw new Error(intent.code);
+      const paid = await ports.service.unlock(owner.actor, { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: 2, idempotencyKey: randomUUID() });
+      if (!paid.ok) throw new Error(paid.code);
+      expect(await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-YEAR-P0", targetYear: 2026 })).toMatchObject({ ok: false, code: "WALLET_ENTITLEMENT_EXISTS" });
+      const quote = await ports.service.readQuotes(owner.actor, { ...request, targetYear: 2026 });
+      expect(quote).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: "ZIWEI-YEAR-P0", state: "owned", reportId: paid.value.reportId })]) } });
+      expect(await ports.service.createPurchaseIntent(owner.actor, { ...request, sku: "ZIWEI-YEAR-P0", targetYear: 2027 })).toMatchObject({ ok: true, value: { targetYear: 2027 } });
+      expect(await createWalletService(ports.repository).readBalance(owner.actor)).toMatchObject({ ok: true, value: { totalLa: 2520 } });
+    } finally { topicCatalogGate.enabled = false; }
+  });
+
+  it.each([2026, 2027])("purchases lunar year %i with frozen authority, replay and exact refund", async (targetYear) => {
+    const audit = await ownerFixture("Generic annual audit"), owner = await ownerFixture("Generic annual buyer");
+    let current = new Date("2027-01-15T12:00:00Z");
+    const ports = walletPorts(audit.userId, { now: () => current });
+    const request = { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-YEAR-P0", locale: "vi" as const };
+    expect((await ports.service.createPurchaseIntent(owner.actor, { ...request, targetYear: 2027 })).ok).toBe(false);
+    topicCatalogGate.enabled = true;
+    try {
+      await ports.repository.grant({ targetOwnerId: owner.userId, grant: grant(audit.userId, randomUUID(), 3000), topUpOrderId: null, trustedGrantToken: ports.authority.token });
+      expect((await ports.service.createPurchaseIntent(owner.actor, { ...request, targetYear: 2028 })).ok).toBe(false);
+      let walletVersion = 2;
+        const quoted = await ports.service.readQuotes(owner.actor, { chartId: owner.chartId, chartVersionId: owner.chartVersionId, locale: "vi", targetYear });
+        expect(quoted).toMatchObject({ ok: true, value: { quotes: expect.arrayContaining([expect.objectContaining({ sku: request.sku, state: "available", priceLa: 480 })]) } });
+        const intent = await ports.service.createPurchaseIntent(owner.actor, { ...request, targetYear });
+        if (!intent.ok) throw new Error(intent.code);
+        expect(intent.value).toMatchObject({ targetYear, amountLa: 480 });
+        const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: walletVersion, idempotencyKey: randomUUID() };
+        const paid = await ports.service.unlock(owner.actor, command);
+        if (!paid.ok) throw new Error(paid.code);
+        walletVersion = paid.value.balance.stateVersion;
+        const [frozen] = await database.select().from(reportReservations).where(eq(reportReservations.reportId, paid.value.reportId!));
+        expect(frozen).toMatchObject({ targetYear, sku: request.sku, timingRuleVersion: "ziwei.timing.lunar-year.v2" });
+        const [event] = await database.select().from(outbox).where(eq(outbox.aggregateId, paid.value.reportId!));
+        expect(event!.payload).toMatchObject({ targetYear });
+        const query = createDatabaseReportQueryRepository(database, () => current);
+        expect(await query.readAuthorizedReport(owner.userId, paid.value.reportId!)).not.toBeNull();
+        current = new Date("2027-02-06T12:00:00Z");
+        expect(await ports.service.unlock(owner.actor, command)).toMatchObject({ ok: true, value: { reportId: paid.value.reportId } });
+        current = new Date("2027-01-15T12:00:00Z");
+        const guarantee = createGuaranteeFeedbackService(database, { now: () => current });
+        const refunded = await guarantee.claimGuarantee(owner.actor, { chartId: owner.chartId, partId: request.sku, reportId: paid.value.reportId, rating: "inaccurate", idempotencyKey: randomUUID() });
+        if (!refunded.ok) throw new Error(refunded.code);
+        expect(refunded).toMatchObject({ ok: true, value: { amountLaRestored: 480 } });
+        expect(await query.readAuthorizedReport(owner.userId, paid.value.reportId!)).toBeNull();
+        const balance = await createWalletService(ports.repository).readBalance(owner.actor);
+        if (!balance.ok) throw new Error("missing balance");
+        walletVersion = balance.value.stateVersion;
+    } finally { topicCatalogGate.enabled = false; }
+  });
+
+  it("grants the generic combo annual child for its chosen year and rejects mismatched period authority", async () => {
+    const audit = await ownerFixture("Generic combo audit"), owner = await ownerFixture("Generic combo buyer");
+    const now = new Date("2027-02-06T12:00:00Z");
+    const ports = walletPorts(audit.userId, { now: () => now, reportVersionResolver: v4_1SensitivityReportVersions });
+    topicCatalogGate.enabled = true;
+    try {
+      await ports.repository.grant({ targetOwnerId: owner.userId, grant: grant(audit.userId, randomUUID(), 3000), topUpOrderId: null, trustedGrantToken: ports.authority.token });
+      const intent = await ports.service.createPurchaseIntent(owner.actor, { chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku: "ZIWEI-COMBO-P0", locale: "vi", targetYear: 2028 });
+      if (!intent.ok) throw new Error(intent.code);
+      const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: 2, idempotencyKey: randomUUID() };
+      const paid = await ports.service.unlock(owner.actor, command);
+      if (!paid.ok) throw new Error(paid.code);
+      expect(paid.value.balance.totalLa).toBe(1700);
+      expect(await ports.service.unlock(owner.actor, command)).toMatchObject({ ok: true });
+      const children = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId, owner.chartId));
+      expect(children).toHaveLength(2);
+      const annual = children.find(child => child.sku === "ZIWEI-YEAR-P0")!;
+      expect(annual.periodKey).toBe("2028");
+      const [reservation] = await database.select().from(reportReservations).where(eq(reportReservations.entitlementId, annual.id));
+      expect(reservation).toMatchObject({ targetYear: 2028 });
+      expect(await createDatabaseReportQueryRepository(database, () => now).readAuthorizedReport(owner.userId, reservation!.reportId)).not.toBeNull();
+      await expect(database.update(commerceEntitlements).set({ periodKey: "2027" }).where(eq(commerceEntitlements.id, annual.id))).rejects.toThrow();
+    } finally { topicCatalogGate.enabled = false; }
+  });
+
   it("reserves annual sales, charges exactly 480 for 2026, and rejects a quote after the year boundary", async () => {
     const audit=await ownerFixture("Annual audit");const owner=await ownerFixture("Annual buyer");let current=new Date("2026-12-31T12:00:00.000Z");const {authority,repository,service}=walletPorts(audit.userId,{now:()=>current});
     const request={chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-YEAR-2026-P0",locale:"vi" as const};
@@ -850,7 +1058,7 @@ describe("wallet unlock repository integration", () => {
     try {
       await repository.grant({targetOwnerId:owner.userId,grant:grant(audit.userId,`annual-grant-${randomUUID()}`),topUpOrderId:null,trustedGrantToken:authority.token});
       const intent=await service.createPurchaseIntent(owner.actor,request);if(!intent.ok)throw new Error(intent.code);expect(intent.value.amountLa).toBe(480);
-      current=new Date("2027-01-01T12:00:00.000Z");expect((await service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`annual-stale-${randomUUID()}`})).ok).toBe(false);expect((await service.createPurchaseIntent(owner.actor,request)).ok).toBe(false);
+      current=new Date("2027-02-06T12:00:00.000Z");expect((await service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`annual-stale-${randomUUID()}`})).ok).toBe(false);expect((await service.createPurchaseIntent(owner.actor,request)).ok).toBe(false);
       current=new Date("2026-12-31T12:00:00.000Z");const result=await service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:`annual-valid-${randomUUID()}`});if(!result.ok)throw new Error(result.code);expect(result.value.balance.totalLa).toBe(1520);
       const [entitlement]=await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId,owner.chartId));expect(entitlement).toMatchObject({periodKey:"2026",scope:{sections:["periodReading"]}});
       const [reservation] = await database.select().from(reportReservations).where(eq(reportReservations.reportId, result.value.reportId));
@@ -1459,7 +1667,7 @@ describe("wallet unlock repository integration", () => {
       reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
       asOfDate: timing.asOfDate,
       targetYear: timing.targetYear,
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
     });
     expect(event?.eventType).toBe("report.generation.requested.v2");
@@ -1469,7 +1677,7 @@ describe("wallet unlock repository integration", () => {
       reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
       asOfDate: timing.asOfDate,
       targetYear: timing.targetYear,
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
       readingContextRevisionId: null,
     });

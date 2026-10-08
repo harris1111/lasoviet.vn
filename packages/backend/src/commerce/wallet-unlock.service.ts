@@ -1,10 +1,11 @@
+import { freezePurchaseCommercialTerms, readPurchaseCommercialTerms, matchesPurchaseCreditProof } from "./purchase-commercial-terms.js";
 import { creditProofSchema, enqueueCommittedWalletUpgrade, projectCommittedWalletUpgrade, type CreditProof } from "./wallet-upgrade-event.js";
-import { COMBO_SKU, COMBO_COMPONENT_SKUS, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
+import { isComboSku, comboComponentSkus, comboAnnualSku, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
 import { reserveComboReports } from "./combo-report-reservation.js";
 import { membershipPrice, readActiveMembership } from "./membership.service.js";
 import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
 import { calculateBonusExpiry } from "@lasoviet/contracts";
-import { periodKindForSku, periodReportVersions, purchasePeriodKey as resolvePurchasePeriodKey } from "../reports/period-report-config.js";
+import { annualSkuAliases, isAnnualPurchaseSku, annualPurchaseYear, periodKindForSku, periodReportVersions, purchasePeriodKey as resolvePurchasePeriodKey } from "../reports/period-report-config.js";
 import { topicIdForSku, topicReportVersions } from "../reports/topic-report-config.js";
 import { randomUUID } from "node:crypto";
 
@@ -51,6 +52,7 @@ import {
   walletAccounts,
   walletCommandReceipts,
   walletPurchaseIntents,
+  walletTopUpContinuations,
   walletTransactions,
   walletLedgerEntries,
   ziweiChartVersions,
@@ -127,6 +129,7 @@ export type WalletPurchaseIntentRequest = {
   chartVersionId: string;
   sku: string;
   locale: "vi" | "en";
+  targetYear?: number;
 };
 
 export type WalletUnlockRequest = {
@@ -161,6 +164,7 @@ function projectIntent(row: typeof walletPurchaseIntents.$inferSelect): WalletPu
     status: row.status,
     stateVersion: row.stateVersion,
     createdAt: row.createdAt.toISOString(),
+    ...(["ZIWEI-YEAR-P0", "ZIWEI-COMBO-P0"].includes(row.sku) ? { targetYear: Number(row.periodKey) } : {}),
   });
 }
 
@@ -334,6 +338,8 @@ async function price(
   sku: string,
   now: Date,
   periodKey: string,
+  frozenIntent?: typeof walletPurchaseIntents.$inferSelect,
+  honorBoundContinuation = true,
 ): Promise<PriceResult> {
   const product = findLaProduct(sku);
   if (!product || product.availability !== "active") return { ok: false, code: "WALLET_INTENT_INVALID" };
@@ -350,7 +356,7 @@ async function price(
     .where(and(
       eq(commerceEntitlements.ownerId, ownerId),
       eq(commerceEntitlements.chartId, chartId),
-      or(eq(commerceEntitlements.sku, sku),
+      or(inArray(commerceEntitlements.sku, annualSkuAliases(sku, periodKey)),
         ...(sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)
           ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
       eq(commerceEntitlements.periodKey, periodKey),
@@ -368,22 +374,55 @@ async function price(
     .limit(1);
   if (sameSku !== undefined) return { ok: false, code: "WALLET_ENTITLEMENT_EXISTS" };
 
-  if (sku === "ZIWEI-MONTHLY-P0" && member) return { ok: true, amountLa: 0 };
+  if (sku === "ZIWEI-MONTHLY-P0" && member && !frozenIntent) return { ok: true, amountLa: 0 };
 
-  if (sku === COMBO_SKU) {
+  if (isComboSku(sku)) {
     const [ownedComponent] = await database.select({id: commerceEntitlements.id}).from(commerceEntitlements)
       .leftJoin(walletTransactions, eq(walletTransactions.id, commerceEntitlements.ledgerSpendId))
       .where(and(eq(commerceEntitlements.ownerId, ownerId), eq(commerceEntitlements.chartId, chartId),
-        inArray(commerceEntitlements.sku, [...COMBO_COMPONENT_SKUS]), isNull(commerceEntitlements.revokedAt),
+        or(eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"), and(inArray(commerceEntitlements.sku, annualSkuAliases(comboAnnualSku(sku), periodKey)), eq(commerceEntitlements.periodKey, periodKey))), isNull(commerceEntitlements.revokedAt),
         or(isNotNull(commerceEntitlements.orderId), and(eq(walletTransactions.kind, "spend"), activeSpendCondition(database))))).limit(1);
     if (ownedComponent) return {ok: false, code: "WALLET_ENTITLEMENT_EXISTS"};
   }
 
+  // Freeze the catalog basis, while rechecking the original membership/rollover eligibility.
+  // A snapshot does not extend an expired credit window or subscription.
+  // Historical null snapshots retain their original base; current sale prices cannot invalidate them.
+  const basePriceLa = frozenIntent ? readPurchaseCommercialTerms(frozenIntent)?.basePriceLa : product.priceLa;
+  if (basePriceLa === undefined || basePriceLa === null) return { ok: false, code: "WALLET_INTENT_INVALID" };
+  if (frozenIntent && honorBoundContinuation) {
+    const [bound] = await database.select({id: walletTopUpContinuations.orderId}).from(walletTopUpContinuations)
+      .where(and(eq(walletTopUpContinuations.ownerId, ownerId), eq(walletTopUpContinuations.purchaseIntentId, frozenIntent.id),
+        eq(walletTopUpContinuations.status, "pending"), eq(walletTopUpContinuations.intentStateVersion, frozenIntent.stateVersion),
+        eq(walletTopUpContinuations.confirmedPriceLa, frozenIntent.priceLa))).limit(1);
+    if (bound) {
+      const terms = readPurchaseCommercialTerms(frozenIntent)!;
+      // Legacy rows have no captured benefit proof. Reconstruct their original live quote
+      // at creation against the historical base, retaining today's active-source fencing.
+      const original: PriceResult = frozenIntent.commercialTerms === null
+        ? await price(database, ownerId, chartId, sku, frozenIntent.createdAt, periodKey, frozenIntent, false)
+        : {ok: true, amountLa: terms.chargedLa, creditLa: terms.creditLa,
+            ...(terms.creditProof ? {creditProof: terms.creditProof, creditExpiresAt: terms.creditExpiresAt,
+              creditSourceSkus: [...new Set(terms.creditProof.sources.map(source => source.sku))]} : {})};
+      if (!original.ok || original.amountLa !== frozenIntent.priceLa || now < frozenIntent.createdAt) return {ok: false, code: "WALLET_INTENT_INVALID"};
+      if ((original.amountLa === 0 && sku === "ZIWEI-MONTHLY-P0" ||
+          !original.creditProof && original.amountLa < basePriceLa) && !member) return {ok: false, code: "WALLET_INTENT_INVALID"};
+      if (original.creditProof) {
+        if (now.getTime() >= Date.parse(original.creditExpiresAt!)) return {ok: false, code: "WALLET_INTENT_INVALID"};
+        const active = await qualifyingRolloverSpends(database, ownerId, chartId, now);
+        if (original.creditProof.sources.some(source => !active.some(spend => spend.spendId === source.spendId &&
+          spend.sku === source.sku && spend.amountLa === source.amountLa && spend.spentAt.toISOString() === source.spentAt))) return {ok: false, code: "WALLET_INTENT_INVALID"};
+      }
+      return original;
+    }
+  }
+  if (sku === "ZIWEI-MONTHLY-P0" && member) return {ok: true, amountLa: 0};
+
   if (sku === "ZIWEI-IDENTITY-P0") {
     const spends = await qualifyingRolloverSpends(database, ownerId, chartId, now);
-    const rollover = calculateRolloverCredit({ spends, now });
-    const amountLa = membershipPrice(product.priceLa, rollover.effectivePriceLa, !!member);
-    const creditLa = amountLa === rollover.effectivePriceLa ? product.priceLa - rollover.effectivePriceLa : 0;
+    const rollover = calculateRolloverCredit({ spends, now, basePriceLa });
+    const amountLa = membershipPrice(basePriceLa, rollover.effectivePriceLa, !!member);
+    const creditLa = amountLa === rollover.effectivePriceLa ? basePriceLa - rollover.effectivePriceLa : 0;
     const eligible = spends.filter(spend => spend.amountLa > 0 && rollover.windowOpenedAt && rollover.windowExpiresAt && spend.spentAt >= rollover.windowOpenedAt && spend.spentAt < rollover.windowExpiresAt);
     let remaining = creditLa;
     const sources: CreditProof["sources"] = [];
@@ -400,17 +439,11 @@ async function price(
     } : {}) };
   }
 
-  return { ok: true as const, amountLa: membershipPrice(product.priceLa, undefined, !!member) };
+  return { ok: true as const, amountLa: membershipPrice(basePriceLa, undefined, !!member) };
 }
 
 function validIntentTerms(intent: typeof walletPurchaseIntents.$inferSelect) {
-  const product = findLaProduct(intent.sku);
-  if (!product || product.availability !== "active" || !supportedLocale(intent.locale) || !product.locales.includes(intent.locale)) return false;
-  if (intent.sku === "ZIWEI-IDENTITY-P0") {
-    return intent.priceLa >= 0 && intent.priceLa <= 960;
-  }
-  if (intent.sku === "ZIWEI-MONTHLY-P0" && intent.priceLa === 0) return true;
-  return intent.priceLa === product.priceLa || intent.priceLa === membershipPrice(product.priceLa, undefined, true);
+  return readPurchaseCommercialTerms(intent) !== null;
 }
 
 function hasUnlockOutboxLineage(
@@ -494,13 +527,13 @@ async function verifyLineageAndRespond(
     !validIntentTerms(lineage.intent) ||
     lineage.entitlement.ledgerSpendId !== lineage.spend.id ||
     lineage.entitlement.chartId !== lineage.intent.chartId ||
-    (lineage.intent.sku !== COMBO_SKU && lineage.entitlement.sku !== lineage.intent.sku) ||
-    (lineage.intent.sku !== COMBO_SKU && lineage.intent.periodKey !== lineage.entitlement.periodKey) ||
+    (!isComboSku(lineage.intent.sku) && lineage.entitlement.sku !== lineage.intent.sku) ||
+    (!isComboSku(lineage.intent.sku) && lineage.intent.periodKey !== lineage.entitlement.periodKey) ||
     lineage.reservation.chartVersionId !== lineage.intent.chartVersionId ||
     lineage.reservation.evidenceVersionId !== lineage.evidence.id ||
     lineage.evidence.chartVersionId !== lineage.intent.chartVersionId ||
     lineage.evidence.capabilityId !== "ziwei.identity.p0" ||
-    (lineage.intent.sku !== COMBO_SKU && lineage.reservation.entitlementId === lineage.entitlement.id && lineage.reservation.sku !== lineage.intent.sku) ||
+    (!isComboSku(lineage.intent.sku) && lineage.reservation.entitlementId === lineage.entitlement.id && lineage.reservation.sku !== lineage.intent.sku) ||
     lineage.reservation.locale !== lineage.intent.locale ||
     !((lineage.event.aggregateType === "report" && lineage.event.aggregateId === lineage.reservation.reportId) ||
       (lineage.event.aggregateType === "order" && lineage.event.aggregateId === lineage.origin.orderId)) ||
@@ -514,13 +547,13 @@ async function verifyLineageAndRespond(
     return failed("WALLET_RECONCILIATION_FAILED");
   }
 
-  if (lineage.intent.sku === COMBO_SKU) {
+  if (isComboSku(lineage.intent.sku)) {
     if (lineage.entitlement.sku !== "ZIWEI-IDENTITY-P0" || !continuation.annual || continuation.annual.entitlementId === lineage.entitlement.id || !await hasCompleteComboAuthority(db, {intent: lineage.intent, entitlement: lineage.entitlement})) return failed("WALLET_RECONCILIATION_FAILED");
     const child = continuation.annual;
     const [annual] = await db.select({entitlement: commerceEntitlements, reservation: reportReservations, event: outbox})
       .from(commerceEntitlements).innerJoin(reportReservations, eq(reportReservations.entitlementId, commerceEntitlements.id))
       .innerJoin(outbox, eq(outbox.id, child.outboxId)).where(and(eq(commerceEntitlements.id, child.entitlementId),
-        eq(commerceEntitlements.ledgerSpendId, transactionId), eq(commerceEntitlements.sku, "ZIWEI-YEAR-2026-P0"),
+        eq(commerceEntitlements.ledgerSpendId, transactionId), eq(commerceEntitlements.sku, comboAnnualSku(lineage.intent.sku)),
         eq(reportReservations.id, child.reservationId), eq(reportReservations.reportId, child.reportId), eq(reportReservations.reportVersionId, child.reportVersionId))).limit(1);
     if (!annual || annual.event.aggregateType !== "report" || annual.event.aggregateId !== child.reportId ||
         annual.event.eventType !== "report.generation.requested.v2" || !hasUnlockOutboxLineage(annual.event.payload, annual.reservation)) return failed("WALLET_RECONCILIATION_FAILED");
@@ -549,7 +582,7 @@ export function createWalletUnlockService(
   options: { now?: () => Date; reportVersionResolver?: ReportVersionResolver; dailyReadingWriter?: DailyReadingWriter; resolveMonthlyPeriodKey?: (asOfDate: string) => string } = {},
 ) {
   const now = options.now ?? (() => new Date());
-  const purchasePeriodKey = (sku: string, time: Date) => resolvePurchasePeriodKey(sku, time, options.resolveMonthlyPeriodKey);
+  const purchasePeriodKey = (sku: string, time: Date, requestedYear?: number) => resolvePurchasePeriodKey(sku, time, options.resolveMonthlyPeriodKey, requestedYear);
   const reportVersionResolver = options.reportVersionResolver ?? currentReportVersions;
   const daily = createDailyWalletUnlockService(database, wallet, { now, writer: options.dailyReadingWriter });
 
@@ -576,19 +609,30 @@ export function createWalletUnlockService(
           continue;
         }
         if ((isSinglePalaceSku(sku) && !["v3", "v4", "v4_1"].includes(reportVersionResolver(input.locale).family)) ||
-          ((topicIdForSku(sku) !== null || periodKindForSku(sku) !== null || sku === COMBO_SKU) && input.locale !== "vi") ||
+          ((topicIdForSku(sku) !== null || periodKindForSku(sku) !== null || isComboSku(sku)) && input.locale !== "vi") ||
           (sku === "ZIWEI-MONTHLY-P0" && !options.resolveMonthlyPeriodKey) ||
-          ((sku === "ZIWEI-YEAR-2026-P0" || sku === COMBO_SKU) && deriveReportTimingLineage(quoteNow).targetYear !== 2026) ||
+          (isAnnualPurchaseSku(sku) && annualPurchaseYear(sku, quoteNow, input.targetYear) === null) ||
           sku.startsWith("MEMBERSHIP-")) { quotes.push(row); continue; }
         if (!hasNatalEvidence) {quotes.push(row); continue;}
-        const periodKey = purchasePeriodKey(sku, quoteNow);
-        const selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
+        const periodKey = purchasePeriodKey(sku, quoteNow, input.targetYear);
+        const [pending] = await database.select().from(walletPurchaseIntents).where(and(
+          eq(walletPurchaseIntents.ownerId, actor.userId), eq(walletPurchaseIntents.chartId, input.chartId),
+          eq(walletPurchaseIntents.chartVersionId, input.chartVersionId), eq(walletPurchaseIntents.sku, sku),
+          eq(walletPurchaseIntents.locale, input.locale), eq(walletPurchaseIntents.periodKey, periodKey),
+          eq(walletPurchaseIntents.status, "pending"))).limit(1);
+        let selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey, pending);
+        let usedPending = pending;
+        if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && pending && validIntentTerms(pending)) {
+          // Expired or refunded credit cannot authorize settlement; a fresh read can offer new terms.
+          usedPending = undefined;
+          selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
+        }
         if (!selectedPrice.ok) {
           if (selectedPrice.code === "WALLET_ENTITLEMENT_EXISTS") {
             const candidates = await database.select({ reportId: reportReservations.reportId }).from(commerceEntitlements)
               .innerJoin(reportReservations, reportReservationAuthority(database))
               .where(and(eq(commerceEntitlements.ownerId, actor.userId), eq(commerceEntitlements.chartId, input.chartId),
-                or(eq(commerceEntitlements.sku, sku), ...((sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)) ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
+                or(inArray(commerceEntitlements.sku, annualSkuAliases(sku, periodKey)), ...((sku === "ZIWEI-NATAL-EXCERPT-P0" || isSinglePalaceSku(sku)) ? [eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0")] : [])),
                 eq(commerceEntitlements.periodKey, periodKey), isNull(commerceEntitlements.revokedAt),
                 eq(reportReservations.chartVersionId, input.chartVersionId), eq(reportReservations.locale, input.locale),
                 or(isNull(commerceEntitlements.expiresAt), gt(commerceEntitlements.expiresAt, quoteNow))))
@@ -615,8 +659,10 @@ export function createWalletUnlockService(
           continue;
         }
         const creditLa = selectedPrice.creditLa ?? 0;
-        quotes.push({ ...row, state: "available", priceLa: selectedPrice.amountLa, creditLa,
-          discountLa: product.priceLa - creditLa - selectedPrice.amountLa,
+        const basePriceLa = usedPending ? readPurchaseCommercialTerms(usedPending)?.basePriceLa : product.priceLa;
+        if (basePriceLa === undefined) {quotes.push(row); continue;}
+        quotes.push({ ...row, basePriceLa, state: "available", priceLa: selectedPrice.amountLa, creditLa,
+          discountLa: basePriceLa - creditLa - selectedPrice.amountLa,
           creditExpiresAt: selectedPrice.creditExpiresAt ?? null, creditSourceSkus: selectedPrice.creditSourceSkus ?? [] });
       }
       return { ok: true, value: WalletQuotesV1Schema.parse({ ...input, version: 1, quotedAt: quoteNow.toISOString(), quotes }) };
@@ -633,7 +679,7 @@ export function createWalletUnlockService(
         product.availability !== "active" ||
         !supportedLocale(request.locale) ||
         !product.locales.includes(request.locale) ||
-        ((topicIdForSku(request.sku) !== null || periodKindForSku(request.sku) !== null || request.sku === COMBO_SKU) && request.locale !== "vi") ||
+        ((topicIdForSku(request.sku) !== null || periodKindForSku(request.sku) !== null || isComboSku(request.sku)) && request.locale !== "vi") ||
         !nonEmptyId(request.chartId) ||
         !nonEmptyId(request.chartVersionId)
       ) {
@@ -645,16 +691,14 @@ export function createWalletUnlockService(
       const quoteNow = now();
       const sku = request.sku;
       const locale = request.locale;
-      if ((sku === "ZIWEI-YEAR-2026-P0" || sku === COMBO_SKU) && deriveReportTimingLineage(quoteNow).targetYear !== 2026) return failed("WALLET_INTENT_INVALID");
+      if (isAnnualPurchaseSku(sku) && annualPurchaseYear(sku, quoteNow, request.targetYear) === null) return failed("WALLET_INTENT_INVALID");
 
       return database.transaction(async (transaction) => {
         if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
         await transaction.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`wallet-intent:${ownerId}:${request.chartId}:${sku}`}))`);
         if (await ownedChart(transaction, ownerId, request.chartId, request.chartVersionId) === undefined) return failed("WALLET_CHART_NOT_FOUND");
         if (await evidenceFor(transaction, request.chartVersionId) === undefined) return failed("WALLET_EVIDENCE_MISSING");
-        await revokeExpiredMonthlyGrant(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow));
-        const selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow));
-        if (!selectedPrice.ok) return selectedPrice;
+        await revokeExpiredMonthlyGrant(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear));
         const [pending] = await transaction.select().from(walletPurchaseIntents)
           .where(and(
             eq(walletPurchaseIntents.ownerId, ownerId),
@@ -664,12 +708,21 @@ export function createWalletUnlockService(
           ))
           .limit(1)
           .for("update");
+        const sameTerms = pending !== undefined && pending.chartVersionId === request.chartVersionId &&
+          pending.locale === locale && pending.periodKey === purchasePeriodKey(sku, quoteNow, request.targetYear);
+        let selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow,
+          purchasePeriodKey(sku, quoteNow, request.targetYear), sameTerms ? pending : undefined);
+        const reusedPrice = selectedPrice.ok;
+        if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && sameTerms && pending && validIntentTerms(pending)) {
+          selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear));
+        }
+        if (!selectedPrice.ok) return selectedPrice;
         if (pending !== undefined) {
           if (
-            pending.chartVersionId === request.chartVersionId &&
+            reusedPrice && matchesPurchaseCreditProof(pending, selectedPrice.creditProof) && pending.chartVersionId === request.chartVersionId &&
             pending.locale === locale &&
             pending.priceLa === selectedPrice.amountLa &&
-            pending.periodKey === purchasePeriodKey(sku, quoteNow)
+            pending.periodKey === purchasePeriodKey(sku, quoteNow, request.targetYear)
           ) {
             return { ok: true as const, value: projectIntent(pending), reused: true };
           }
@@ -691,8 +744,12 @@ export function createWalletUnlockService(
           sku,
           locale,
           priceLa: selectedPrice.amountLa,
-          periodKey: purchasePeriodKey(sku, quoteNow),
+          periodKey: purchasePeriodKey(sku, quoteNow, request.targetYear),
           createdAt: quoteNow,
+          commercialTerms: freezePurchaseCommercialTerms({ownerId, chartId: request.chartId,
+            chartVersionId: request.chartVersionId, sku, locale,
+            periodKey: purchasePeriodKey(sku, quoteNow, request.targetYear), priceLa: selectedPrice.amountLa,
+            createdAt: quoteNow}, selectedPrice),
         }).returning();
         if (created === undefined) throw new Error("WALLET_INTENT_CREATE_FAILED");
         return { ok: true as const, value: projectIntent(created), reused: false };
@@ -770,7 +827,6 @@ export function createWalletUnlockService(
       // Zero-cost audit path for complete rollover credit or included monthly membership access.
       if (intent.priceLa === 0) {
         const zeroResult = await database.transaction<WalletResult<WalletUnlockOutcome>>(async (transaction) => {
-          const currentNow = now();
           // Match paid wallet commands: account, wallet, intent, then chart locks.
           if (!await verifiedAccount(transaction, actor, true)) return failed("WALLET_ACCOUNT_INELIGIBLE");
           const [walletAccount] = await transaction.select().from(walletAccounts)
@@ -806,12 +862,14 @@ export function createWalletUnlockService(
           ) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
+          // Sample after authority locks; a queued command must not extend expired benefits.
+          const currentNow = now();
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || lockedIntent.sku === COMBO_SKU) && lockedIntent.locale !== "vi")) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || isComboSku(lockedIntent.sku)) && lockedIntent.locale !== "vi")) {
             return failed("WALLET_INTENT_INVALID");
           }
-          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow)) return failed("WALLET_INTENT_VERSION_CONFLICT");
-          if ((lockedIntent.sku === "ZIWEI-YEAR-2026-P0" || lockedIntent.sku === COMBO_SKU) && deriveReportTimingLineage(currentNow).targetYear !== 2026) return failed("WALLET_INTENT_INVALID");
+          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow, isAnnualPurchaseSku(lockedIntent.sku) ? Number(lockedIntent.periodKey) : undefined)) return failed("WALLET_INTENT_VERSION_CONFLICT");
+          if (isAnnualPurchaseSku(lockedIntent.sku) && annualPurchaseYear(lockedIntent.sku, currentNow, Number(lockedIntent.periodKey)) === null) return failed("WALLET_INTENT_INVALID");
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
@@ -820,9 +878,9 @@ export function createWalletUnlockService(
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return failed("WALLET_INTENT_INVALID");
 
-          await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
-          if (!selectedPrice.ok || selectedPrice.amountLa !== 0) {
+          await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined));
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined), lockedIntent);
+          if (!selectedPrice.ok || selectedPrice.amountLa !== 0 || !matchesPurchaseCreditProof(lockedIntent, selectedPrice.creditProof)) {
             return failed("WALLET_INTENT_VERSION_CONFLICT");
           }
 
@@ -975,7 +1033,6 @@ export function createWalletUnlockService(
         continuationOperation: `wallet.report.unlock.v1.intent-v${request.expectedIntentVersion}`,
         continuationResultCodec: continuationCodec,
         continuation: async (transaction, metadata) => {
-          const currentNow = now();
           const [initialIntent] = await transaction.select().from(walletPurchaseIntents)
             .where(and(eq(walletPurchaseIntents.id, intent.id), eq(walletPurchaseIntents.ownerId, actor.userId)))
             .limit(1)
@@ -994,12 +1051,14 @@ export function createWalletUnlockService(
             lockedIntent.priceLa !== metadata.intent.amountLa) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
+          // Sample after authority locks; a queued command must not extend expired benefits.
+          const currentNow = now();
           const product = findLaProduct(lockedIntent.sku);
-          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || lockedIntent.sku === COMBO_SKU) && lockedIntent.locale !== "vi")) {
+          if (!product || product.availability !== "active" || !supportedLocale(lockedIntent.locale) || !product.locales.includes(lockedIntent.locale) || ((topicIdForSku(lockedIntent.sku) !== null || periodKindForSku(lockedIntent.sku) !== null || isComboSku(lockedIntent.sku)) && lockedIntent.locale !== "vi")) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
-          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow)) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
-          if ((lockedIntent.sku === "ZIWEI-YEAR-2026-P0" || lockedIntent.sku === COMBO_SKU) && deriveReportTimingLineage(currentNow).targetYear !== 2026) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          if (lockedIntent.periodKey !== purchasePeriodKey(lockedIntent.sku, currentNow, isAnnualPurchaseSku(lockedIntent.sku) ? Number(lockedIntent.periodKey) : undefined)) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          if (isAnnualPurchaseSku(lockedIntent.sku) && annualPurchaseYear(lockedIntent.sku, currentNow, Number(lockedIntent.periodKey)) === null) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           const sku = lockedIntent.sku;
           const locale = lockedIntent.locale;
           if (await ownedChart(transaction, actor.userId, lockedIntent.chartId, lockedIntent.chartVersionId) === undefined) {
@@ -1007,9 +1066,9 @@ export function createWalletUnlockService(
           }
           const evidence = await evidenceFor(transaction, lockedIntent.chartVersionId);
           if (evidence === undefined) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
-          await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
-          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow));
-          if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa) {
+          await revokeExpiredMonthlyGrant(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined));
+          const selectedPrice = await price(transaction, actor.userId, lockedIntent.chartId, sku, currentNow, purchasePeriodKey(sku, currentNow, isAnnualPurchaseSku(sku) ? Number(lockedIntent.periodKey) : undefined), lockedIntent);
+          if (!selectedPrice.ok || selectedPrice.amountLa !== lockedIntent.priceLa || !matchesPurchaseCreditProof(lockedIntent, selectedPrice.creditProof)) {
             return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           }
           const reportVersions = periodKindForSku(sku) ? periodReportVersions() : topicIdForSku(sku) ? topicReportVersions() : reportVersionResolver(locale);
@@ -1022,8 +1081,8 @@ export function createWalletUnlockService(
           let reservation: typeof reportReservations.$inferSelect;
           let event: typeof outbox.$inferSelect;
           let annual: ComboAnnualContinuation | undefined;
-          if (sku === COMBO_SKU) {
-            const pair = await reserveComboReports(transaction, {spendId: metadata.spendTransactionId, ownerId: actor.userId,
+          if (isComboSku(sku)) {
+            const pair = await reserveComboReports(transaction, {spendId: metadata.spendTransactionId, comboSku: sku, targetYear: Number(lockedIntent.periodKey), ownerId: actor.userId,
               chartId: lockedIntent.chartId, chartVersionId: lockedIntent.chartVersionId, evidenceVersionId: evidence.id,
               readingContextRevisionId: readingContext?.revisionId ?? null, natalVersions: reportVersionResolver(locale), now: currentNow, traceId: actor.requestId});
             entitlement = pair.lifetime; reservation = pair.natal.reservation; event = pair.natal.event;
@@ -1060,7 +1119,7 @@ export function createWalletUnlockService(
             eq(walletPurchaseIntents.stateVersion, lockedIntent.stateVersion),
           )).returning();
           if (completed === undefined) throw new Error("WALLET_INTENT_COMPLETE_FAILED");
-          if (sku === COMBO_SKU && !await hasCompleteComboAuthority(transaction, {intent: completed, entitlement})) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
+          if (isComboSku(sku) && !await hasCompleteComboAuthority(transaction, {intent: completed, entitlement})) return abortWalletSpendContinuation("WALLET_INVALID_INTENT");
           await enqueueCommittedWalletUpgrade(transaction, {ownerId: actor.userId, transactionId: metadata.spendTransactionId,
             intent: completed, creditProof: selectedPrice.creditProof, traceId: actor.requestId});
           return {

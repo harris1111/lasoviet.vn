@@ -1,3 +1,4 @@
+import { matchesReportYearLineage } from "@lasoviet/contracts";
 import { calculatePeriodReadingFacts } from "./period-reading-facts.js";
 import { createHash } from "node:crypto";
 
@@ -258,8 +259,7 @@ export async function calculateIztroReportSnapshot(
     return failure("ENGINE_INPUT_INVALID");
   }
 
-  const asOfDateYear = parseInt(input.asOfDate.slice(0, 4), 10);
-  if (input.targetYear !== asOfDateYear) {
+  if (!matchesReportYearLineage(input.asOfDate, input.targetYear, timingRuleVersion)) {
     return failure("ENGINE_INPUT_INVALID");
   }
 
@@ -367,7 +367,7 @@ export async function calculateIztroReportSnapshot(
 
   let hs: ReturnType<typeof selectedAstrolabe.horoscope>;
   try {
-    hs = selectedAstrolabe.horoscope(input.asOfDate, selectedVendorTimeIndex);
+    hs = selectedAstrolabe.horoscope(timingRuleVersion === "ziwei.timing.lunar-year.v2" ? `${input.targetYear}-07-01` : input.asOfDate, selectedVendorTimeIndex);
   } catch {
     return failure("ENGINE_UNAVAILABLE");
   }

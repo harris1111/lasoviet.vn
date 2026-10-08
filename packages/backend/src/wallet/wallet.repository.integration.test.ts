@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -15,6 +15,7 @@ import {
   walletCreditLots,
   walletLedgerEntries,
   walletPurchaseIntents,
+  walletRestorationAllocations,
   walletSpendAllocations,
   walletTransactions,
   type Database,
@@ -168,6 +169,89 @@ describe("wallet repository", () => {
     if (wallet === undefined) throw new Error(`wallet not found for ${ownerId}`);
     return wallet;
   }
+
+  it("serializes direct SQL recognition against an uncommitted purchased-lot spend", async () => {
+    const ownerId=await createAccount("sql-recognition-race");
+    const {repository,authority}=trustedRepository(ownerId,()=>new Date("2026-10-08T17:30:00Z"));
+    const grant=await repository.grant({targetOwnerId:ownerId,grant:entryGrant(ownerId,randomUUID()),
+      topUpOrderId:await insertEntryOrder(ownerId),trustedGrantToken:authority.token});
+    expect(grant.ok).toBe(true);
+    const wallet=await walletFor(ownerId);
+    const [lot]=await database.select().from(walletCreditLots).where(eq(walletCreditLots.walletId,wallet.id));
+    const firstIntent=await insertIntent(ownerId,1), secondIntent=await insertIntent(ownerId,1);
+    let release!:()=>void, entered!:()=>void;
+    const held=new Promise<void>(resolve=>{release=resolve;}),ready=new Promise<void>(resolve=>{entered=resolve;});
+    async function directSpend(intent: string, revenue: number, hold=false) {
+      return database.transaction(async tx=>{
+        const [spend]=await tx.insert(walletTransactions).values({walletId:wallet.id,kind:"spend",purchaseIntentId:intent,
+          idempotencyKey:randomUUID(),fingerprint:randomUUID(),createdAt:new Date("2026-10-08T17:30:00Z")}).returning();
+        await tx.insert(walletSpendAllocations).values({spendTransactionId:spend!.id,creditLotId:lot!.id,
+          bucket:"purchased",amountLa:1,purchasedLa:1,recognizedVnd:revenue});
+        await tx.insert(walletLedgerEntries).values({transactionId:spend!.id,bucket:"purchased",amountLa:-1});
+        await tx.update(walletCreditLots).set({remainingLa:sql`${walletCreditLots.remainingLa} - 1`}).where(eq(walletCreditLots.id,lot!.id));
+        await tx.update(walletAccounts).set({purchasedBalance:sql`${walletAccounts.purchasedBalance} - 1`,
+          stateVersion:sql`${walletAccounts.stateVersion} + 1`}).where(eq(walletAccounts.id,wallet.id));
+        if(hold){entered();await held;}
+      });
+    }
+    const first=directSpend(firstIntent,96,true);
+    await ready;
+    const second=directSpend(secondIntent,96).then(()=>({accepted:true}),()=>({accepted:false}));
+    let observed=false;
+    try {
+      for(let n=0;n<200;n++){
+        const waiting=await database.execute(sql`select 1 from pg_locks where not granted limit 1`);
+        if(waiting.length){observed=true;break;}
+      }
+      expect(observed).toBe(true);
+    } finally {release();await first;}
+    expect(await second).toEqual({accepted:false});
+    await directSpend(secondIntent,97);
+    const allocations=await database.select().from(walletSpendAllocations).where(eq(walletSpendAllocations.creditLotId,lot!.id));
+    expect(allocations.map(a=>a.recognizedVnd).sort()).toEqual([96,97]);
+    expect((await walletFor(ownerId)).purchasedBalance).toBe(298);
+  });
+
+  it.each(["legacy-null-full", "explicit-partial"] as const)("retains %s accounting when the original purchased lot is spent again", async mode => {
+    const ownerId=await createAccount(`amount-aware-${mode}`), actor=accountActor(ownerId);
+    const {repository,authority}=trustedRepository(ownerId,()=>new Date("2026-10-08T17:30:00Z"));
+    const grant=await repository.grant({targetOwnerId:ownerId,grant:entryGrant(ownerId,randomUUID()),
+      topUpOrderId:await insertEntryOrder(ownerId),trustedGrantToken:authority.token});
+    expect(grant.ok).toBe(true);
+    const intentId=await insertIntent(ownerId,2);
+    const spend=await repository.spend({actor,spend:{kind:"spend",actorId:ownerId,reasonCode:"wallet.report.unlock",
+      requestId:randomUUID(),traceId:randomUUID(),idempotencyKey:randomUUID(),purchaseIntentId:intentId,amountLa:2,expectedWalletVersion:2}});
+    if(!spend.ok) throw new Error(spend.error.code);
+    const [allocation]=await database.select().from(walletSpendAllocations).where(eq(walletSpendAllocations.spendTransactionId,spend.value.transactionId));
+    expect(allocation!.recognizedVnd).toBe(193);
+    const wallet=await walletFor(ownerId),returned=mode==="explicit-partial"?1:2;
+    async function insertRestoration(revenue: number | null) {
+      await database.transaction(async tx=>{
+        const [reversal]=await tx.insert(walletTransactions).values({walletId:wallet.id,kind:"restoration",
+          idempotencyKey:randomUUID(),fingerprint:randomUUID(),reversalOfTransactionId:spend.ok?spend.value.transactionId:""}).returning();
+        await tx.insert(walletRestorationAllocations).values({restorationTransactionId:reversal!.id,
+          spendAllocationId:allocation!.id,amountLa:mode==="explicit-partial"?returned:null,reversedVnd:revenue});
+        await tx.insert(walletLedgerEntries).values({transactionId:reversal!.id,bucket:"purchased",amountLa:returned});
+        await tx.update(walletCreditLots).set({remainingLa:298+returned}).where(eq(walletCreditLots.id,allocation!.creditLotId));
+        await tx.update(walletAccounts).set({purchasedBalance:298+returned,stateVersion:4}).where(eq(walletAccounts.id,wallet.id));
+      });
+    }
+    if(mode==="explicit-partial"){
+      await expect(insertRestoration(95)).rejects.toThrow();
+      expect((await walletFor(ownerId)).purchasedBalance).toBe(298);
+    }
+    await insertRestoration(mode==="explicit-partial"?96:null);
+    const nextIntent=await insertIntent(ownerId,2);
+    const next=await repository.spend({actor,spend:{kind:"spend",actorId:ownerId,reasonCode:"wallet.report.unlock",
+      requestId:randomUUID(),traceId:randomUUID(),idempotencyKey:randomUUID(),purchaseIntentId:nextIntent,amountLa:2,expectedWalletVersion:4}});
+    if(!next.ok) throw new Error(next.error.code);
+    const [nextAllocation]=await database.select().from(walletSpendAllocations).where(eq(walletSpendAllocations.spendTransactionId,next.value.transactionId));
+    expect(nextAllocation!.recognizedVnd).toBe(193);
+    expect((await walletFor(ownerId)).purchasedBalance).toBe(296+returned);
+    await expect(database.update(walletCreditLots).set({remainingLa:300}).where(eq(walletCreditLots.id,allocation!.creditLotId))).rejects.toThrow();
+    await expect(database.update(walletRestorationAllocations).set({amountLa:2}).where(eq(walletRestorationAllocations.spendAllocationId,allocation!.id))).rejects.toThrow();
+    await expect(insertRestoration(mode==="explicit-partial"?96:null)).rejects.toThrow();
+  });
 
   it("requires an account actor for reads", async () => {
     const repository = createDatabaseWalletRepository(database);

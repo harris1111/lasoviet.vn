@@ -36,6 +36,7 @@ export const WalletUnlockResultV1Schema = z.object({
   intent: z.object({
     id,
     sku: LaSkuSchema,
+    targetYear: z.number().int().min(1900).max(2100).optional(),
     productTitle: z.string().trim().min(1).max(160),
     locale: z.enum(["vi", "en"]),
     amountLa: amount,
@@ -43,6 +44,7 @@ export const WalletUnlockResultV1Schema = z.object({
     stateVersion: z.number().int().positive(),
     createdAt: z.iso.datetime({ offset: true }),
   }).strict().superRefine((intent, context) => {
+    if (["ZIWEI-YEAR-P0", "ZIWEI-COMBO-P0"].includes(intent.sku) && intent.targetYear === undefined) context.addIssue({code: "custom", message: "Annual unlock requires its frozen year"});
     const product = findLaProduct(intent.sku);
     const validPrice = intent.sku === "ZIWEI-IDENTITY-P0" ? intent.amountLa <= 960 :
       intent.sku === "ZIWEI-MONTHLY-P0" && intent.amountLa === 0 ||

@@ -16,6 +16,7 @@ import {
   resolveReportNotificationMode,
   createVerifiedSignInNurtureService,
   createPendingTopUpRecoveryCaptureService,
+  createRecoveryOutboundMaintenance,
   createHanMonthReminderService,
   createDatabaseNotificationPreferenceStore,
   createDatabaseAnonymousRetentionRepository,
@@ -103,6 +104,12 @@ export function createMaintenanceRunner() {
     tokenSecret: environment.value.internalActorSecret,
     orderTtlSeconds: environment.value.sepay.environment !== "disabled" ? environment.value.sepay.orderTtlSeconds : 86400,
   });
+  const recoveryMaintenance = createRecoveryOutboundMaintenance({
+    enabled: process.env.RECOVERY_OUTBOUND_ENABLED, smtpEnabled: environment.value.smtp.enabled,
+    database, provider, tokenSecret: environment.value.internalActorSecret,
+    orderTtlSeconds: environment.value.sepay.environment !== "disabled" ? environment.value.sepay.orderTtlSeconds : 86400,
+    capture: recoveryCapture,
+  });
   const recoveryFinancial = createRecoveryFinancialAttributionService({ database,
     providerEnvironment: environment.value.sepay.environment, tokenSecret: environment.value.internalActorSecret ?? "" });
   const nurture = createVerifiedSignInNurtureService({ database, preferenceStore, tokenSecret: environment.value.internalActorSecret });
@@ -141,7 +148,7 @@ export function createMaintenanceRunner() {
         }).purgeExpired(new Date(), limit),
     },
     retryAuthEmail: async (limit) => {
-      await recoveryCapture.scanAndCapture(limit);
+      await recoveryMaintenance.runOnce(limit);
       await recoveryFinancial.project(limit);
       await reportNotices.captureReady(limit);
       await nurture.scanAndEnqueue(limit);

@@ -867,3 +867,8 @@ export {createRecoveryClickReceiptService,RecoveryReceiptError} from "./notifica
 export * from "./notifications/recovery-financial-attribution.js";
 
 export { renderPendingTopUpRecoveryEmail, type PendingTopUpRecoveryEmail, type PendingTopUpRecoveryEmailInput } from "./notifications/pending-topup-recovery-email.js";
+
+export { createPendingTopUpRecoveryRunner } from "./notifications/pending-topup-recovery-runner.js";
+export type { RecoveryOutboundClaim } from "./notifications/pending-topup-recovery-runner.js";
+export { createRecoveryOutboundControlTool } from "./notifications/recovery-outbound-control.js";
+export { createRecoveryOutboundMaintenance } from "./notifications/recovery-outbound-maintenance.js";

@@ -1,5 +1,6 @@
-import { astro } from "iztro";
-import { Solar } from "lunar-typescript";
+import { buildZiweiPurchaseFacts } from "./iztro-purchase-facts.js";
+import { astro, util } from "iztro";
+import { Lunar, Solar } from "lunar-typescript";
 
 import type {
   NormalizedBirthProfileV1,
@@ -13,7 +14,8 @@ import type {
 } from "@lasoviet/contracts";
 
 import { iztroGender, iztroTimeIndex } from "./iztro-adapter.js";
-import { branchIds, palaceIds } from "./iztro-mapping.js";
+import { branchIds, palaceIds, starIds } from "./iztro-mapping.js";
+import { computedMonthlyAttention } from "./monthly-attention.js";
 
 const STEM_NAMES_VI: Record<string, string> = {
   jia: "Giáp",
@@ -137,6 +139,7 @@ export type CalculateHoroscopeOptions = {
   chartVersionId?: string;
   asOfDate?: string; // YYYY-MM-DD
   targetYear?: number;
+  nearYearEndMonthThreshold?: number;
   isUnlocked?: boolean;
 };
 
@@ -150,7 +153,7 @@ export function calculateZiweiHoroscope(
   const asOfMonth = asOfDateParts[1]!;
   const asOfDay = asOfDateParts[2]!;
 
-  const targetYear = options.targetYear || asOfYear;
+  const targetYear = options.targetYear ?? Solar.fromYmd(asOfYear, asOfMonth, asOfDay).getLunar().getYear();
   const isUnlocked = Boolean(options.isUnlocked);
   const chartId = options.chartId || "transient-chart";
   const chartVersionId = options.chartVersionId || "transient-version";
@@ -182,7 +185,7 @@ export function calculateZiweiHoroscope(
   });
 
   const hs = astrolabe.horoscope(asOfDate, selectedTimeIndex);
-  const yearly = hs.yearly;
+  const yearly = astrolabe.horoscope(`${targetYear}-07-01`, selectedTimeIndex).yearly;
 
   // 1. Annual (Lưu Niên) layer
   const annualStemVi = STEM_NAMES_VI[yearly.heavenlyStem] || yearly.heavenlyStem;
@@ -193,10 +196,10 @@ export function calculateZiweiHoroscope(
   const annualPalaceId = annualPalaceObj ? palaceIds[annualPalaceObj.name] : undefined;
   const annualPalaceName = annualPalaceObj ? PALACE_NAMES_VI[annualPalaceObj.name] : undefined;
   if (!annualPalaceId || !annualPalaceName) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
-  const monthlyList = astrolabe.monthlyList(targetYear);
+  const monthlyList = astrolabe.monthlyList(targetYear).filter(period => !period.isLeapMonth);
 
   // Lunar age (Tuổi âm)
-  const birthYear = parseInt(birthProfile.normalizedCalendar.date.slice(0, 4), 10);
+  const birthYear = astrolabe.rawDates.lunarDate.lunarYear;
   const lunarAge = Math.max(1, targetYear - birthYear + 1);
 
   // 2. Monthly Hạn analysis
@@ -205,7 +208,7 @@ export function calculateZiweiHoroscope(
 
   for (let i = 0; i < monthlyList.length; i++) {
     const m = monthlyList[i]!;
-    const monthIndex = i + 1;
+    const monthIndex = m.month;
     const palaceObj = astrolabe.palaces[m.index];
     const palaceId = palaceObj ? palaceIds[palaceObj.name] : "ziwei.palace.life";
     const palaceName = palaceObj ? PALACE_NAMES_VI[palaceObj.name] : "Mệnh";
@@ -217,29 +220,13 @@ export function calculateZiweiHoroscope(
       `annual.month.${monthIndex}.branch.${branchIds[m.earthlyBranch] || m.earthlyBranch}`,
     ];
 
-    // Sát tinh & Kỵ tinh
-    const natalMajorAffliction = palaceObj?.majorStars.some((s) => {
-      const mutagenStr = s.mutagen as string | undefined;
-      const brightnessStr = s.brightness as string | undefined;
-      return mutagenStr === "obstacle" || mutagenStr === "忌" || brightnessStr === "trap" || brightnessStr === "陷";
+    if (!palaceObj || !palaceId || !palaceName) throw new Error("HOROSCOPE_MONTHLY_MAPPING_INVALID");
+    const attention = computedMonthlyAttention({
+      stars: [...palaceObj.majorStars, ...palaceObj.minorStars], monthlyMutagen: m.mutagen, annualMutagen: yearly.mutagen,
     });
-    const natalMinorSát = palaceObj?.minorStars.some((s) =>
-      ["driven", "tangled", "impulsive", "spark", "ideologue", "fickle", "擎羊", "陀罗", "火星", "铃星", "地空", "地劫"].includes(s.name)
-    );
-
-    // Monthly mutagen obstacle
-    const monthlyKỵStar = m.mutagen[3];
-    const isMonthlyKỵInPalace = palaceObj?.majorStars.some((s) => s.name === monthlyKỵStar);
-
-    // Yearly mutagen obstacle
-    const yearlyKỵStar = yearly.mutagen[3];
-    const isYearlyKỵInPalace = palaceObj?.majorStars.some((s) => s.name === yearlyKỵStar);
-
-    // Monthly stars in palace
-    const monthlyStarsInPalace = Array.isArray(m.stars) && m.stars[m.index] ? m.stars[m.index]! : [];
-    const hasMonthlySát = monthlyStarsInPalace.some((s) =>
-      ["driven(M)", "tangled(M)", "月羊", "月陀"].includes(s.name)
-    );
+    const natalMinorSát = palaceObj.minorStars.some(star =>
+      ["driven", "tangled", "impulsive", "spark", "ideologue", "fickle"].includes(star.name));
+    const monthlyStarsInPalace = m.stars?.[m.index] ?? [];
 
     // Auspicious stars
     const monthlyLộcStar = m.mutagen[0];
@@ -267,13 +254,13 @@ export function calculateZiweiHoroscope(
       primaryFocus = "công việc";
     }
 
-    if (isMonthlyKỵInPalace || isYearlyKỵInPalace || (hasMonthlySát && (natalMajorAffliction || natalMinorSát))) {
+    if (attention.warn) {
       marker = "warn";
       focusSet.add(primaryFocus);
       evidenceKeys.push(`annual.month.${monthIndex}.marker.warn`);
-      if (isMonthlyKỵInPalace) evidenceKeys.push(`annual.month.${monthIndex}.evidence.monthly-hua-ji`);
-      if (isYearlyKỵInPalace) evidenceKeys.push(`annual.month.${monthIndex}.evidence.yearly-hua-ji`);
-      if (hasMonthlySát) evidenceKeys.push(`annual.month.${monthIndex}.evidence.monthly-sat-star`);
+      for (const reason of attention.reasons) {
+        evidenceKeys.push(`annual.month.${monthIndex}.obstacle.${reason.scope}.${reason.starId}`);
+      }
 
       if (primaryFocus === "tiền bạc") {
         prepText = "Tháng cần đặc biệt chú ý chi tiêu và bảo toàn tài chính, tránh cho vay mượn hoặc đầu tư mạo hiểm.";
@@ -312,33 +299,13 @@ export function calculateZiweiHoroscope(
     });
   }
 
-  // Ensure realistic distribution if chart has no strict warnings (minimum 1 warn month)
-  const warnCount = months.filter((m) => m.marker === "warn").length;
-  if (warnCount === 0 && months.length === 12) {
-    const targetIdx = 6;
-    const m = months[targetIdx]!;
-    m.marker = "warn";
-    m.isLocked = !isUnlocked;
-    m.monthNumberDisplay = !isUnlocked ? "?" : String(m.monthIndex);
-    m.label = !isUnlocked ? "Tháng hạn, mở để xem" : `Tháng ${m.monthIndex}`;
-    m.primaryFocus = "tiền bạc";
-    focusSet.add("tiền bạc");
-    m.evidenceKeys.push(`annual.month.${m.monthIndex}.marker.warn`);
-    if (!m.isLocked) {
-      m.preparationText = "Tháng cần lưu ý cân đối tài chính và giữ bình tĩnh trước các quyết định phát sinh.";
-    }
-  }
-
   const finalWarnCount = months.filter((m) => m.marker === "warn").length;
   const favorableCount = months.filter((m) => m.marker === "good").length;
   const neutralCount = 12 - finalWarnCount - favorableCount;
 
   const focusAreas = Array.from(focusSet);
-  if (focusAreas.length === 0) {
-    focusAreas.push("tiền bạc", "giấy tờ");
-  }
-
-  const summary = `Năm nay có ${finalWarnCount} tháng cần chú ý và ${favorableCount} tháng thuận. Tháng hạn rơi vào chuyện ${focusAreas.join(" và ")}.`;
+  const summary = `Năm nay có ${finalWarnCount} tháng cần chú ý và ${favorableCount} tháng thuận.` +
+    (focusAreas.length ? ` Các tháng cần chú ý liên quan tới ${focusAreas.join(" và ")}.` : "");
 
   const yearlyHan: ZiweiYearlyHanV1 = {
     targetYear,
@@ -384,7 +351,7 @@ export function calculateZiweiHoroscope(
   const touchedPalaceId = (touchedPalaceObj ? palaceIds[touchedPalaceObj.name] : undefined) || "ziwei.palace.children";
   const touchedPalaceName = (touchedPalaceObj ? PALACE_NAMES_VI[touchedPalaceObj.name] : undefined) || "Tử Tức";
 
-  const headline = `Ngày ${dayStemBranch} chạm cung ${touchedPalaceName} của bạn. Mở mỗi sáng trong gói Hội viên.`;
+  const headline = `Ngày ${dayStemBranch} chạm cung ${touchedPalaceName} của bạn.`;
 
   const dailyHoroscope: ZiweiDailyHoroscopeV1 = {
     solarDate: asOfDate,
@@ -402,9 +369,45 @@ export function calculateZiweiHoroscope(
     ],
   };
 
-  // Exact local iztro 2.6.0 API, shared with the established report-snapshot adapter.
-  const decadal = astrolabe.decadalList().find(item => asOfYear >= item.yearRange[0] && asOfYear <= item.yearRange[1]);
-  const decadalPalaceId = decadal ? palaceIds[decadal.palaceName] : undefined;
+  // Exact installed iztro 2.6.0 list APIs preserve direction and lunar birth year.
+  const transformationIds = ["ziwei.transformation.prosperity", "ziwei.transformation.power", "ziwei.transformation.fame", "ziwei.transformation.obstacle"] as const;
+  const transformations = (mutagen: readonly string[]) => mutagen.map((name, i) => {
+    const starId = starIds[name], transformationId = transformationIds[i];
+    if (!starId || !transformationId) throw new Error("HOROSCOPE_TEMPORAL_TRANSFORMATION_UNMAPPED");
+    return { starId, transformationId };
+  });
+  const vendorCycles = astrolabe.decadalList();
+  const decadalCycles = vendorCycles.map((item, ordinal) => {
+    const palaceId = palaceIds[item.palaceName];
+    if (!palaceId) throw new Error("HOROSCOPE_DECADAL_MAPPING_INVALID");
+    return { ordinal, palaceId, startAge: item.ageRange[0], endAge: item.ageRange[1],
+      startYear: item.yearRange[0], endYear: item.yearRange[1],
+      state: targetYear < item.yearRange[0] ? "future" as const : targetYear > item.yearRange[1] ? "past" as const : "current" as const,
+      transformations: transformations(item.mutagen),
+      // The installed yearlyList recomputes unused daily/monthly stars 120 times.
+      // Project the same normal-year branch and mutagens using public vendor utilities.
+      annualPalaces: Array.from({ length: 10 }, (_, offset) => {
+        const year = item.yearRange[0] + offset, age = item.ageRange[0] + offset;
+        const lunar = Lunar.fromYmd(year, 6, 1);
+        const index = util.fixEarthlyBranchIndex(lunar.getYearZhi() as Parameters<typeof util.fixEarthlyBranchIndex>[0]);
+        const annualPalaceId = palaceIds[astrolabe.palaces[index]!.name];
+        if (!annualPalaceId) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
+        const mutagen = util.getMutagensByHeavenlyStem(lunar.getYearGan() as Parameters<typeof util.getMutagensByHeavenlyStem>[0]);
+        return { year, age, palaceId: annualPalaceId, transformations: transformations(mutagen) };
+      }),
+    };
+  });
+  const currentCycle = decadalCycles.find(cycle => cycle.state === "current");
+  const directionStep = (vendorCycles[1]!.index - vendorCycles[0]!.index + 12) % 12;
+  if (directionStep !== 1 && directionStep !== 11) throw new Error("HOROSCOPE_DECADAL_DIRECTION_INVALID");
+  const bureauMap: Record<string, NonNullable<ZiweiHoroscopeResultV1["chartMetadata"]>["bureau"]> = { "water 2nd": "water2", "wood 3rd": "wood3", "metal 4th": "metal4", "earth 5th": "earth5", "fire 6th": "fire6" };
+  const bureau = bureauMap[astrolabe.fiveElementsClass];
+  const lifeMasterStarId = starIds[astrolabe.soul], bodyMasterStarId = starIds[astrolabe.body];
+  if (!bureau || !lifeMasterStarId || !bodyMasterStarId) throw new Error("HOROSCOPE_METADATA_UNMAPPED");
+  const [birthSolarYear, birthSolarMonth, birthSolarDay] = astrolabe.solarDate.split("-").map(Number) as [number, number, number];
+  const birthLunar = Solar.fromYmd(birthSolarYear, birthSolarMonth, birthSolarDay).getLunar();
+  const birthCycleIndex = Array.from({ length: 60 }, (_, i) => i).find(i => i % 10 === birthLunar.getYearGanIndex() && i % 12 === birthLunar.getYearZhiIndex());
+  if (birthCycleIndex === undefined) throw new Error("HOROSCOPE_NAYIN_MAPPING_INVALID");
   return {
     version: 1,
     chartId,
@@ -413,6 +416,21 @@ export function calculateZiweiHoroscope(
     isUnlocked,
     yearly: yearlyHan,
     daily: dailyHoroscope,
-    ...(decadal && decadalPalaceId ? { decadal: { palaceId: decadalPalaceId, startAge: decadal.ageRange[0], endAge: decadal.ageRange[1], startYear: decadal.yearRange[0], endYear: decadal.yearRange[1] } } : {}),
+    purchaseFacts: buildZiweiPurchaseFacts({ asOfDate, cycles: decadalCycles,
+      provisional: birthProfile.normalizedTime.precision === "unknown" || birthProfile.normalizedTime.precision === "range",
+      nearYearEndThreshold: options.nearYearEndMonthThreshold,
+      annualPalace: year => {
+        const branch = Lunar.fromYmd(year, 6, 1).getYearZhi();
+        const index = util.fixEarthlyBranchIndex(branch as Parameters<typeof util.fixEarthlyBranchIndex>[0]);
+        const palaceId = palaceIds[astrolabe.palaces[index]!.name];
+        if (!palaceId) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
+        return palaceId;
+      },
+    }),
+    decadalCycles, currentDecadalOrdinal: currentCycle?.ordinal ?? null,
+    decadalDirection: directionStep === 1 ? "forward" : "reverse",
+    chartMetadata: { bureau, lifeMasterStarId, bodyMasterStarId, naYinCycleIndex: Math.floor(birthCycleIndex / 2) },
+    ...(currentCycle ? { decadal: { palaceId: currentCycle.palaceId, startAge: currentCycle.startAge,
+      endAge: currentCycle.endAge, startYear: currentCycle.startYear, endYear: currentCycle.endYear } } : {}),
   };
 }

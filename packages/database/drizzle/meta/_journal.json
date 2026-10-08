@@ -435,6 +435,34 @@
       "when": 1791319900002,
       "tag": "0061_free_structural_overview_cache",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1791446400000,
+      "tag": "0062_parameterized_annual_products",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1791446460000,
+      "tag": "0063_recovery_outbound_control",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1791468000000,
+      "tag": "0064_frozen_purchase_commercial_terms",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1791478800000,
+      "tag": "0065_amount_aware_wallet_restoration",
+      "breakpoints": true
     }
   ]
 }

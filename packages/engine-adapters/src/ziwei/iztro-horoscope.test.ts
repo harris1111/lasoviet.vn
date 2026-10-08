@@ -126,7 +126,7 @@ describe("calculateZiweiHoroscope", () => {
     expect(result.daily.dayStemBranch).toBe("Kỷ Hợi");
     expect(result.daily.solarTerm).toBe("Bạch Lộ");
     expect(result.daily.headline).toContain("Ngày Kỷ Hợi chạm cung");
-    expect(result.daily.headline).toContain("Mở mỗi sáng trong gói Hội viên");
+    expect(result.daily.headline).not.toContain("Hội viên");
     expect(result.daily.evidenceKeys.length).toBeGreaterThan(0);
   });
 });

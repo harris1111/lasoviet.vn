@@ -812,6 +812,8 @@ export {
   ZiweiYearlyHanV1Schema,
   ZiweiDailyHoroscopeV1Schema,
   ZiweiHoroscopeResultV1Schema,
+  ZiweiDecadalCycleV1Schema,
+  ZiweiPurchaseFactsV1Schema,
 } from "./ziwei-horoscope-v1.js";
 export type {
   ZiweiMonthMarker,
@@ -819,6 +821,8 @@ export type {
   ZiweiYearlyHanV1,
   ZiweiDailyHoroscopeV1,
   ZiweiHoroscopeResultV1,
+  ZiweiDecadalCycleV1,
+  ZiweiPurchaseFactsV1,
 } from "./ziwei-horoscope-v1.js";
 
 
@@ -939,3 +943,10 @@ export { ziweiMajorStarMeaning, ZIWEI_MAJOR_STAR_MEANING_VERSION } from "./ziwei
 export { FreeStructuralOverviewDocV1Schema, FreeStructuralPalaceDocV1Schema, type FreeStructuralOverviewDocV1, type FreeStructuralPalaceDocV1 } from "./free-structural-overview-v1.js";
 
 export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1 } from "./free-structural-overview-v1.js";
+
+export { BAZI_STEM_IDS, BAZI_BRANCH_IDS, BaziFactsInputV1Schema, BaziFactsV1Schema } from "./bazi-facts-v1.js";
+export type { BaziFactsInputV1, BaziFactsV1 } from "./bazi-facts-v1.js";
+export * from "./free-reading-v2.js";
+export { matchesReportYearLineage } from "./report-year-lineage.js";
+
+export { RecoveryControlCommandSchema } from "./recovery-outbound-control-v1.js";

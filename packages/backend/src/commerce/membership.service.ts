@@ -1,3 +1,4 @@
+import { freezePurchaseCommercialTerms } from "./purchase-commercial-terms.js";
 import { and, desc, eq, gt, isNull, notExists, sql } from "drizzle-orm";
 import { findLaProduct, getLaPrice, WalletPurchaseIntentV1Schema, type CurrentActor } from "@lasoviet/contracts";
 import { authUsers, membershipSubscriptions, walletAccounts, walletPurchaseIntents, walletSpendAllocations, walletTransactions, type Database } from "@lasoviet/database";
@@ -91,7 +92,11 @@ export function createMembershipService(database: Database, wallet: WalletServic
         const [pending] = await transaction.select().from(walletPurchaseIntents).where(and(eq(walletPurchaseIntents.ownerId, actor.userId), eq(walletPurchaseIntents.chartId, scope(actor.userId)), eq(walletPurchaseIntents.sku, sku), eq(walletPurchaseIntents.status, "pending"))).limit(1);
         if (pending && pending.priceLa === MEMBERSHIP_PLANS[sku].priceLa && pending.locale === request.locale) return { ok: true as const, value: projectIntent(pending) };
         if (pending) await transaction.update(walletPurchaseIntents).set({ status: "expired", stateVersion: pending.stateVersion + 1 }).where(eq(walletPurchaseIntents.id, pending.id));
-        const [intent] = await transaction.insert(walletPurchaseIntents).values({ ownerId: actor.userId, chartId: scope(actor.userId), chartVersionId: scope(actor.userId), sku, locale: request.locale, priceLa: MEMBERSHIP_PLANS[sku].priceLa, createdAt: now() }).returning();
+        const createdAt = now();
+        const terms = {ownerId: actor.userId, chartId: scope(actor.userId), chartVersionId: scope(actor.userId),
+          sku, locale: request.locale, periodKey: "lifetime", priceLa: MEMBERSHIP_PLANS[sku].priceLa, createdAt};
+        const [intent] = await transaction.insert(walletPurchaseIntents).values({...terms,
+          commercialTerms: freezePurchaseCommercialTerms(terms)}).returning();
         if (!intent) throw new Error("MEMBERSHIP_INTENT_CREATE_FAILED");
         return { ok: true as const, value: projectIntent(intent) };
       });

@@ -1,29 +1,12 @@
+import { creditProofSchema, type CreditProof, readPurchaseCommercialTerms, matchesPurchaseCreditProof } from "./purchase-commercial-terms.js";
 import { createHash } from "node:crypto";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { LaSkuSchema, isQualifyingRolloverSku, ROLLOVER_WINDOW_MS, WalletUpgradePurchaseV1Schema, z, type WalletUpgradePurchaseV1 } from "@lasoviet/contracts";
+import { ROLLOVER_WINDOW_MS, WalletUpgradePurchaseV1Schema, z, type WalletUpgradePurchaseV1 } from "@lasoviet/contracts";
 import { outbox, walletAccounts, walletLedgerEntries, walletPurchaseIntents, walletTransactions, type Database } from "@lasoviet/database";
 
 export const WALLET_UPGRADE_EVENT_TYPE = "wallet.upgrade.committed.v1";
 export const WalletUpgradeEventPayloadSchema = z.object({transactionId: z.string().uuid(), upgrade: WalletUpgradePurchaseV1Schema}).strict();
-export const creditProofSchema = z.object({
-  version: z.literal(1),
-  creditLa: z.number().int().positive().max(960),
-  sources: z.array(z.object({
-    spendId: z.string().uuid(),
-    sku: LaSkuSchema.refine(isQualifyingRolloverSku),
-    amountLa: z.number().int().positive(),
-    creditedLa: z.number().int().positive(),
-    spentAt: z.iso.datetime({ offset: true }),
-  }).strict()).min(1).max(13),
-}).strict().superRefine((proof, context) => {
-  if (new Set(proof.sources.map(source => source.spendId)).size !== proof.sources.length ||
-      proof.sources.some(source => source.creditedLa > source.amountLa) ||
-      proof.sources.reduce((sum, source) => sum + source.creditedLa, 0) !== proof.creditLa ||
-      Math.min(960, proof.sources.reduce((sum, source) => sum + source.amountLa, 0)) !== proof.creditLa) {
-    context.addIssue({ code: "custom", message: "Credit proof must match unique original spend allocations" });
-  }
-});
-export type CreditProof = z.infer<typeof creditProofSchema>;
+export { creditProofSchema, type CreditProof } from "./purchase-commercial-terms.js";
 const compareCreditCode = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 
 
@@ -33,8 +16,9 @@ export async function projectCommittedWalletUpgrade(db: Database, input: {
 }): Promise<WalletUpgradePurchaseV1 | null> {
     const parsed = creditProofSchema.safeParse(input.creditProof);
     const completedAt = input.intent.completedAt;
-    if (!parsed.success || input.intent.sku !== "ZIWEI-IDENTITY-P0" || completedAt === null ||
-        parsed.data.creditLa + input.intent.priceLa !== 960) return null;
+    const terms = readPurchaseCommercialTerms(input.intent);
+    if (!parsed.success || !terms || !matchesPurchaseCreditProof(input.intent, parsed.success ? parsed.data : undefined) || input.intent.sku !== "ZIWEI-IDENTITY-P0" || completedAt === null ||
+        parsed.data.creditLa + input.intent.priceLa !== terms.basePriceLa) return null;
     const proof = parsed.data;
     // This is historical proof: later source revocation/restoration cannot erase
     // the credit that was applied to this still-authorized target at commit.

@@ -37,6 +37,7 @@
     "@lasoviet/database": "workspace:0.0.0",
     "@nestjs/common": "12.0.1",
     "drizzle-orm": "0.45.2",
+    "lunar-typescript": "1.8.6",
     "nodemailer": "9.1.0",
     "playwright-core": "1.62.1",
     "reflect-metadata": "0.2.2",

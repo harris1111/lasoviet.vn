@@ -65,9 +65,9 @@ export async function projectCommittedTopUpUnlock(db: Database, ownerId: string,
         eq(reportReservations.id, proof.reservationId), eq(reportReservations.reportId, proof.reportId),
         eq(reportReservations.reportVersionId, proof.reportVersionId), eq(reportReservations.chartVersionId, source.intent.chartVersionId),
         eq(reportReservations.locale, source.intent.locale))).limit(1);
-    const entitlementSku = source.intent.sku === "ZIWEI-COMBO-2026-P0" ? "ZIWEI-IDENTITY-P0" : source.intent.sku;
+    const entitlementSku = ["ZIWEI-COMBO-P0", "ZIWEI-COMBO-2026-P0"].includes(source.intent.sku) ? "ZIWEI-IDENTITY-P0" : source.intent.sku;
     if (!lineage || lineage.entitlement.sku !== entitlementSku ||
-        (source.intent.sku !== "ZIWEI-COMBO-2026-P0" && lineage.entitlement.periodKey !== source.intent.periodKey)) return null;
+        (!["ZIWEI-COMBO-P0", "ZIWEI-COMBO-2026-P0"].includes(source.intent.sku) && lineage.entitlement.periodKey !== source.intent.periodKey)) return null;
   }
   // Zero-price regular receipts legitimately have a posted zero transaction and no allocations.
   const allocations = await db.select({amount: walletLedgerEntries.amountLa}).from(walletLedgerEntries).where(eq(walletLedgerEntries.transactionId, source.spend.id));

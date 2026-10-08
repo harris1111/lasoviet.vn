@@ -89,10 +89,13 @@ export const walletRestorationAllocations = pgTable("wallet_restoration_allocati
   id: uuid("id").defaultRandom().primaryKey(),
   restorationTransactionId: uuid("restoration_transaction_id").notNull().references(() => walletTransactions.id, { onDelete: "restrict" }),
   spendAllocationId: uuid("spend_allocation_id").notNull().references(() => walletSpendAllocations.id, { onDelete: "restrict" }),
+  amountLa: integer("amount_la"),
+  reversedVnd: integer("reversed_vnd"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("wallet_restoration_allocations_restoration_allocation_unique").on(table.restorationTransactionId, table.spendAllocationId),
   uniqueIndex("wallet_restoration_allocations_spend_allocation_unique").on(table.spendAllocationId),
+  check("wallet_restoration_allocations_amounts_valid", sql`(${table.amountLa} IS NULL AND ${table.reversedVnd} IS NULL) OR (${table.amountLa} IS NOT NULL AND ${table.reversedVnd} IS NOT NULL AND ${table.amountLa} > 0 AND ${table.reversedVnd} >= 0)`),
 ]);
 
 export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
@@ -104,6 +107,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   locale: text("locale").notNull(),
   periodKey: text("period_key").notNull().default("lifetime"),
   priceLa: integer("price_la").notNull(),
+  commercialTerms: jsonb("commercial_terms").$type<Record<string, unknown>>(),
   status: text("status").notNull().default("pending"),
   stateVersion: integer("state_version").notNull().default(1),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
@@ -117,6 +121,8 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
     OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
     OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240, 0))
+    OR (${table.sku} = 'ZIWEI-YEAR-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384) AND ${table.periodKey} ~ '^(19[0-9]{2}|20[0-9]{2}|2100)$')
+    OR (${table.sku} = 'ZIWEI-COMBO-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040) AND ${table.periodKey} ~ '^(19[0-9]{2}|20[0-9]{2}|2100)$')
     OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040))
     OR (${table.sku} IN ('MEMBERSHIP-MONTHLY-P0', 'MEMBERSHIP-MONTHLY-1500') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1500)

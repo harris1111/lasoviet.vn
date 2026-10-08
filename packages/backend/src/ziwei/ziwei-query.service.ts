@@ -1,3 +1,4 @@
+import { computeNormalizedPalaceScores } from "../reports/structural-palace-score.js";
 import { readFreeOverviewDocuments } from "./free-structural-overview-cache.js";
 import type { DailyReadingService } from "../commerce/personal-daily-reading.service.js";
 import {
@@ -369,6 +370,17 @@ export function createZiweiQueryService(options: ZiweiQueryServiceOptions) {
         targetYear: horoscopeOptions?.targetYear,
         isUnlocked: false,
       });
+      if (result.decadalCycles) {
+        const chart = NormalizedZiweiChartV1Schema.safeParse(record.normalizedOutput);
+        if (!chart.success) throw new ZiweiQueryDataError();
+        const scores = computeNormalizedPalaceScores(chart.data);
+        result.decadalCycles = result.decadalCycles.map(cycle => {
+          const score = scores.get(cycle.palaceId);
+          if (!score) throw new ZiweiQueryDataError();
+          return { ...cycle, structuralScore: { value: score.score, band: score.band,
+            parts: score.parts, formulaVersion: "fd107-fd111-v1" as const } };
+        });
+      }
       return { ok: true, value: result };
     },
   };
