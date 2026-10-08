@@ -1,3 +1,4 @@
+import { matchesReportYearLineage } from "./report-year-lineage.js";
 import { z } from "zod";
 import {
   ZIWEI_PALACE_IDS,
@@ -129,13 +130,14 @@ export const ZiweiComprehensiveReportAnnualSnapshotV2Schema = z
     title: z.string().trim().min(1).max(120),
     targetYear: z.number().int(),
     asOfDate: z.iso.date(),
+    timingRuleVersion: z.string().trim().min(1).optional(),
     narrative: z.string().trim().min(1).max(5_000),
     evidenceKeys: z.array(z.string().trim().min(1)).min(1),
   })
   .strict()
   .superRefine((annual, ctx) => {
     const asOfDateYear = parseInt(annual.asOfDate.slice(0, 4), 10);
-    if (annual.targetYear !== asOfDateYear) {
+    if (!matchesReportYearLineage(annual.asOfDate, annual.targetYear, annual.timingRuleVersion)) {
       ctx.addIssue({
         code: "custom",
         path: ["targetYear"],

@@ -43,7 +43,7 @@ ${ZIWEI_THEMATIC_SYNTHESIS_IDS.map((id, index) => `     ${index + 1}. "${id}"`).
    - "currentDecadal": Object đại vận 10 năm hiện hành:
      Nếu đại vận đang hoạt động: { "title": string, "state": "active", "index": number, "ageRange": [number, number], "yearRange": [number, number], "narrative": string, "evidenceKeys": string[] }.
      Nếu đại vận chưa khởi (thời thơ ấu): { "title": string, "state": "not_started", "firstCycleStartAge": number, "firstCycleStartYear": number, "narrative": string, "evidenceKeys": string[] }.
-   - "annualSnapshot": Object lưu niên năm hiện hành: { "title": string, "targetYear": number, "asOfDate": string, "narrative": string, "evidenceKeys": string[] }.
+   - "annualSnapshot": Object lưu niên năm hiện hành: { "title": string, "targetYear": number, "asOfDate": string, "timingRuleVersion"?: string, "narrative": string, "evidenceKeys": string[] }. Nếu frozenTiming.timingRuleVersion là ziwei.timing.lunar-year.v2, annualSnapshot phải sao chép nguyên văn timingRuleVersion này; targetYear và asOfDate phải giữ đúng facts kể cả khi khác năm dương lịch.
    - "practicalDirection": Array gồm từ 3 đến 5 Object hành động thực tế, mỗi Object chứa đúng 4 trường:
      { "recommendation": string, "rationale": string, "avoid": string, "evidenceKeys": string[] }.
 
@@ -223,6 +223,7 @@ HƯỚNG DẪN HIỆU CHỈNH:
       requiredThematicOrder: ZIWEI_THEMATIC_SYNTHESIS_IDS,
       frozenTiming: {
         asOfDate: facts.sourceSnapshot.asOfDate,
+        timingRuleVersion: facts.sourceSnapshot.timingRuleVersion,
         targetYear: facts.timing.annual.targetYear,
         decadalState: facts.timing.decadal.state,
       },
@@ -321,6 +322,7 @@ HƯỚNG DẪN HIỆU CHỈNH:
     title: rawReport.annualSnapshot.title?.trim() || `Lưu niên năm ${facts.timing.annual.targetYear}`,
     targetYear: facts.timing.annual.targetYear,
     asOfDate: facts.sourceSnapshot.asOfDate,
+    ...(facts.sourceSnapshot.timingRuleVersion === "ziwei.timing.lunar-year.v2" ? { timingRuleVersion: facts.sourceSnapshot.timingRuleVersion } : {}),
     narrative: normalizeComprehensiveReportModelProse(rawReport.annualSnapshot.narrative),
     evidenceKeys: rawReport.annualSnapshot.evidenceKeys.length > 0
       ? rawReport.annualSnapshot.evidenceKeys

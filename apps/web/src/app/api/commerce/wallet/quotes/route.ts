@@ -11,7 +11,8 @@ export async function GET(request: Request): Promise<Response> {
   if (new Set(keys).size !== keys.length) {
     return NextResponse.json({ code: "WALLET_INTENT_INVALID" }, { status: 400, headers: HEADERS });
   }
-  const parsed = WalletQuoteRequestV1Schema.safeParse(Object.fromEntries(query));
+  const values = Object.fromEntries(query);
+  const parsed = WalletQuoteRequestV1Schema.safeParse(values.targetYear !== undefined && /^\d{4}$/.test(values.targetYear) ? { ...values, targetYear: Number(values.targetYear) } : values);
   if (!parsed.success) return NextResponse.json({ code: "WALLET_INTENT_INVALID" }, { status: 400, headers: HEADERS });
   let actor;
   try {
@@ -22,12 +23,12 @@ export async function GET(request: Request): Promise<Response> {
   }
   try {
     const response = await privateApiClient(actor, actor.requestId).request<unknown>(
-      `/commerce/wallet/quotes?${new URLSearchParams(parsed.data).toString()}`,
+      `/commerce/wallet/quotes?${new URLSearchParams(Object.entries(parsed.data).filter(([, value]) => value !== undefined).map(([key, value]) => [key, String(value)])).toString()}`,
     );
     const envelope = response as { ok?: unknown; value?: unknown } | null;
     const result = WalletQuotesV1Schema.safeParse(envelope?.ok === true ? envelope.value : undefined);
     if (!result.success || result.data.chartId !== parsed.data.chartId ||
-      result.data.chartVersionId !== parsed.data.chartVersionId || result.data.locale !== parsed.data.locale) {
+      result.data.chartVersionId !== parsed.data.chartVersionId || result.data.locale !== parsed.data.locale || result.data.targetYear !== parsed.data.targetYear) {
       return NextResponse.json({ code: "PRIVATE_API_RESPONSE_INVALID" }, { status: 502, headers: HEADERS });
     }
     return NextResponse.json(result.data, { headers: HEADERS });

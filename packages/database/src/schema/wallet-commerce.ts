@@ -117,6 +117,8 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
     OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
     OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240, 0))
+    OR (${table.sku} = 'ZIWEI-YEAR-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384) AND ${table.periodKey} ~ '^(19[0-9]{2}|20[0-9]{2}|2100)$')
+    OR (${table.sku} = 'ZIWEI-COMBO-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040) AND ${table.periodKey} ~ '^(19[0-9]{2}|20[0-9]{2}|2100)$')
     OR (${table.sku} = 'ZIWEI-YEAR-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-COMBO-2026-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (1300, 1040))
     OR (${table.sku} IN ('MEMBERSHIP-MONTHLY-P0', 'MEMBERSHIP-MONTHLY-1500') AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 1500)

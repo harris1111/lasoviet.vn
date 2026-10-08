@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { findLaProduct, type HanMonthReminderEmailRequest, type ZiweiPeriodReadingFactsV1 } from "@lasoviet/contracts";
 import { authUsers, birthProfiles, commerceEntitlements, notificationDeliveries, reportReservations, ziweiCharts, type Database } from "@lasoviet/database";
 import { dailyReadingDate } from "../commerce/daily-wallet-unlock.service.js";
@@ -23,7 +23,7 @@ export function createHanMonthReminderService(database: Database, options: {
   const nowValue = options.now ?? (() => new Date());
   async function requestFor(reportId: string): Promise<HanMonthReminderEmailRequest | null> {
     // Track 2's real-provider/stability gate controls activation. No reserved-product mail.
-    if (findLaProduct("ZIWEI-YEAR-2026-P0")?.availability !== "active") return null;
+    if (!["ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].some(sku => findLaProduct(sku)?.availability === "active")) return null;
     const now = nowValue();
     const day = options.resolveLunarDay(dailyReadingDate(now));
     const [row] = await database.select({ reservation: reportReservations, owner: authUsers, chartId: commerceEntitlements.chartId }).from(reportReservations)
@@ -31,7 +31,7 @@ export function createHanMonthReminderService(database: Database, options: {
       .innerJoin(authUsers, and(eq(authUsers.id, commerceEntitlements.ownerId), eq(authUsers.emailVerified, true), eq(authUsers.isAnonymous, false)))
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
       .innerJoin(birthProfiles, and(eq(birthProfiles.id, ziweiCharts.profileId), eq(birthProfiles.userId, authUsers.id), isNull(birthProfiles.deletedAt)))
-      .where(and(eq(reportReservations.reportId, reportId), eq(reportReservations.sku, "ZIWEI-YEAR-2026-P0"))).orderBy(desc(reportReservations.createdAt), desc(reportReservations.id)).limit(1);
+      .where(and(eq(reportReservations.reportId, reportId), inArray(reportReservations.sku, ["ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].filter(sku => findLaProduct(sku)?.availability === "active")))).orderBy(desc(reportReservations.createdAt), desc(reportReservations.id)).limit(1);
     if (!row || !await options.preferenceStore.isNonTransactionalAllowed(row.owner.email, row.owner.id, "han") ||
       !(await options.preferenceStore.getPreferences(row.owner.id)).hanRemindersAllowed) return null;
     const repository = createDatabaseReportQueryRepository(database, nowValue);
@@ -76,10 +76,10 @@ export function createHanMonthReminderService(database: Database, options: {
         Object.keys(current).filter((key) => key !== "unsubscribeUrl").every((key) => JSON.stringify(current[key as keyof typeof current]) === JSON.stringify(request[key as keyof typeof request]));
     },
     async scanAndEnqueue(limit = 25) {
-      if (findLaProduct("ZIWEI-YEAR-2026-P0")?.availability !== "active") return 0;
+      if (!["ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].some(sku => findLaProduct(sku)?.availability === "active")) return 0;
       const now = nowValue();
       const rows = await database.select({ id: reportReservations.id, reportId: reportReservations.reportId }).from(reportReservations)
-        .where(eq(reportReservations.sku, "ZIWEI-YEAR-2026-P0"))
+        .where(inArray(reportReservations.sku, ["ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].filter(sku => findLaProduct(sku)?.availability === "active")))
         .orderBy(sql`${reportReservations.lastReminderCheckAt} nulls first`, reportReservations.createdAt).limit(Math.max(1, Math.min(limit, 100)));
       let enqueued = 0;
       for (const row of rows) {

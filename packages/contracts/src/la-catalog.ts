@@ -232,6 +232,16 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     availability: "reserved",
   },
   {
+    sku: "ZIWEI-YEAR-P0", priceLa: ANNUAL_2026_PRICE_LA,
+    name: { vi: "Vận hạn năm", en: "Annual forecast" }, locales: ["vi", "en"],
+    category: "forecast", qualifiesForRollover: false, availability: "reserved",
+  },
+  {
+    sku: "ZIWEI-COMBO-P0", priceLa: COMBO_2026_PRICE_LA,
+    name: { vi: "Combo Tử Vi trọn đời + Vận hạn năm", en: "Lifetime Zi Wei + Annual Combo" }, locales: ["vi", "en"],
+    category: "combo", qualifiesForRollover: false, availability: "reserved",
+  },
+  {
     sku: "ZIWEI-YEAR-2026-P0",
     priceLa: ANNUAL_2026_PRICE_LA,
     name: { vi: "Vận hạn năm 2026", en: "Year 2026 forecast" },
@@ -336,6 +346,8 @@ export const LaSkuSchema = z.enum([
   "ZIWEI-PALACE-PARENTS-P0",
   "ZIWEI-TODAY-P0",
   "ZIWEI-MONTHLY-P0",
+  "ZIWEI-YEAR-P0",
+  "ZIWEI-COMBO-P0",
   "ZIWEI-YEAR-2026-P0",
   "ZIWEI-COMBO-2026-P0",
   "MEMBERSHIP-MONTHLY-P0",
