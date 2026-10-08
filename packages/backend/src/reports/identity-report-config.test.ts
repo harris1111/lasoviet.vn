@@ -201,7 +201,7 @@ describe("identity report config", () => {
       reportConfigVersion: "ziwei.comprehensive.report.v4",
       templateVersion: "ziwei-comprehensive-html.v1",
       contentVersion: "ziwei-comprehensive.v2",
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
     });
 
     // Vietnamese comprehensive reports use the current V4.2 beginner selection.
@@ -223,7 +223,7 @@ describe("identity report config", () => {
       reportConfigVersion: "ziwei.comprehensive.report.v4",
       templateVersion: "ziwei-comprehensive-html.v1",
       contentVersion: "ziwei-comprehensive.v2",
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
     });
 
     expect(currentReportVersions("vi")).toEqual(v4_2BeginnerReportVersions("vi"));
@@ -241,7 +241,7 @@ describe("identity report config", () => {
       qualityVersion: "ziwei.comprehensive.quality.v1",
       templateVersion: "ziwei-comprehensive-html.v1",
       contentVersion: "ziwei-comprehensive.v2",
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
     });
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED)).toEqual({
       maximumWallClockMs: 3_600_000,
@@ -262,7 +262,7 @@ describe("identity report config", () => {
       contentVersion: "ziwei-comprehensive.v3",
       templateVersion: "ziwei-comprehensive-html.v2",
       renderVersion: "identity-report-pdf.v2",
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
     });
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
@@ -283,7 +283,7 @@ describe("identity report config", () => {
       contentVersion: "ziwei-comprehensive.v3",
       templateVersion: "ziwei-comprehensive-html.v2",
       renderVersion: "identity-report-pdf.v2",
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
     });
     expect(resolveReportRuntimePolicy(REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY)).toEqual({
       maximumWallClockMs: 3_600_000,
@@ -304,7 +304,7 @@ describe("identity report config", () => {
       contentVersion: "ziwei-comprehensive.v3",
       templateVersion: "ziwei-comprehensive-html.v2",
       renderVersion: "identity-report-pdf.v2",
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
     });
   });
 
@@ -327,8 +327,8 @@ describe("identity report config", () => {
     const lineage1 = deriveReportTimingLineage(newYearEveUtc);
     expect(lineage1).toEqual({
       asOfDate: "2027-01-01",
-      targetYear: 2027,
-      timingRuleVersion: "ziwei.timing.v1",
+      targetYear: 2026,
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
     });
 
@@ -338,7 +338,7 @@ describe("identity report config", () => {
     expect(lineage2).toEqual({
       asOfDate: "2026-12-31",
       targetYear: 2026,
-      timingRuleVersion: "ziwei.timing.v1",
+      timingRuleVersion: "ziwei.timing.lunar-year.v2",
       sensitivityRuleVersion: "ziwei.sensitivity.v1",
     });
   });

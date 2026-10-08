@@ -1,3 +1,4 @@
+import { matchesReportYearLineage } from "./report-year-lineage.js";
 import { z } from "zod";
 import {
   ZiweiReportSnapshotV1Schema,
@@ -20,7 +21,7 @@ export const ReportSourceSnapshotV1Schema = z
   .strict()
   .superRefine((data, ctx) => {
     const asOfDateYear = parseInt(data.asOfDate.slice(0, 4), 10);
-    if (data.targetYear !== asOfDateYear) {
+    if (!matchesReportYearLineage(data.asOfDate, data.targetYear, data.timingRuleVersion)) {
       ctx.addIssue({
         code: "custom",
         path: ["targetYear"],

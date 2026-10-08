@@ -155,6 +155,7 @@ export function resolveEntitlementScopeForSku(
 
   switch (sku) {
     case "ZIWEI-MONTHLY-P0":
+    case "ZIWEI-YEAR-P0":
     case "ZIWEI-YEAR-2026-P0":
       return { sections: ["periodReading"] };
     case "ZIWEI-RELATIONSHIP-P0":
@@ -243,6 +244,8 @@ export const PRODUCT_DISPLAY_NAMES: Record<string, Record<"vi" | "en", string>> 
     vi: "Tháng này của bạn",
     en: "Monthly reading",
   },
+  "ZIWEI-YEAR-P0": { vi: "Vận hạn năm", en: "Annual forecast" },
+  "ZIWEI-COMBO-P0": { vi: "Combo Tử Vi trọn đời + Vận hạn năm", en: "Lifetime Zi Wei + Annual Combo" },
   "ZIWEI-YEAR-2026-P0": {
     vi: "Vận hạn năm 2026",
     en: "Year 2026 forecast",

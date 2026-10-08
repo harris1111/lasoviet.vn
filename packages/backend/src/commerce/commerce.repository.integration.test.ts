@@ -2570,15 +2570,15 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(v4Entitlement?.scope.sections).toContain("currentDecadal");
     expect(v4Entitlement?.scope.sections).toContain("annualSnapshot");
 
-    // 1. Verify reservation has frozen Vietnam asOfDate (2027-01-01) and targetYear (2027)
+    // 1. Verify reservation has frozen Vietnam asOfDate (2027-01-01) and targetYear (2026)
     const [reservation] = await database
       .select()
       .from(reportReservations)
       .where(eq(reportReservations.chartVersionId, owner.versionId));
     expect(reservation).toBeDefined();
     expect(reservation?.asOfDate).toBe("2027-01-01");
-    expect(reservation?.targetYear).toBe(2027);
-    expect(reservation?.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(reservation?.targetYear).toBe(2026);
+    expect(reservation?.timingRuleVersion).toBe("ziwei.timing.lunar-year.v2");
     expect(reservation?.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
 
     // 2. Verify outbox event is V2
@@ -2593,8 +2593,8 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(outboxEvent?.schemaVersion).toBe(1);
     const payload = outboxEvent?.payload as Record<string, unknown>;
     expect(payload.asOfDate).toBe("2027-01-01");
-    expect(payload.targetYear).toBe(2027);
-    expect(payload.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(payload.targetYear).toBe(2026);
+    expect(payload.timingRuleVersion).toBe("ziwei.timing.lunar-year.v2");
     expect(payload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
 
     // 3. Mark terminal failure and recover under a completely different clock (mid 2027)
@@ -2613,7 +2613,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     });
     expect(recoveryResult.ok).toBe(true);
 
-    // 4. Verify recovery outbox event preserves original 2027-01-01 / 2027 lineage, NOT derived from recoveryClock
+    // 4. Verify recovery outbox event preserves original 2027-01-01 / 2026 lineage, NOT derived from recoveryClock
     const [recoveryOutboxEvent] = await database
       .select()
       .from(outbox)
@@ -2627,8 +2627,8 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(recoveryOutboxEvent).toBeDefined();
     const recoveryPayload = recoveryOutboxEvent?.payload as Record<string, unknown>;
     expect(recoveryPayload.asOfDate).toBe("2027-01-01");
-    expect(recoveryPayload.targetYear).toBe(2027);
-    expect(recoveryPayload.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(recoveryPayload.targetYear).toBe(2026);
+    expect(recoveryPayload.timingRuleVersion).toBe("ziwei.timing.lunar-year.v2");
     expect(recoveryPayload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
   });
 
@@ -2708,7 +2708,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
         reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
         asOfDate: expectedTiming.asOfDate,
         targetYear: expectedTiming.targetYear,
-        timingRuleVersion: "ziwei.timing.v1",
+        timingRuleVersion: "ziwei.timing.lunar-year.v2",
         sensitivityRuleVersion: "ziwei.sensitivity.v1",
         readingContextRevisionId,
       });
@@ -2719,7 +2719,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
         reportConfigVersion: "ziwei.comprehensive.report.v4.1-sectioned-sensitivity",
         asOfDate: expectedTiming.asOfDate,
         targetYear: expectedTiming.targetYear,
-        timingRuleVersion: "ziwei.timing.v1",
+        timingRuleVersion: "ziwei.timing.lunar-year.v2",
         sensitivityRuleVersion: "ziwei.sensitivity.v1",
         readingContextRevisionId,
       });
@@ -2753,7 +2753,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     expect(reservation).toBeDefined();
     expect(reservation?.asOfDate).toBe(expectedLineage.asOfDate);
     expect(reservation?.targetYear).toBe(expectedLineage.targetYear);
-    expect(reservation?.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(reservation?.timingRuleVersion).toBe("ziwei.timing.lunar-year.v2");
     expect(reservation?.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
     expect(reservation?.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V4);
     expect(reservation?.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_2_BEGINNER);
@@ -2773,7 +2773,7 @@ describe("commerce repository - library and order history (WP-03)", () => {
     const payload = outboxEvent?.payload as Record<string, unknown>;
     expect(payload.asOfDate).toBe(reservation?.asOfDate);
     expect(payload.targetYear).toBe(reservation?.targetYear);
-    expect(payload.timingRuleVersion).toBe("ziwei.timing.v1");
+    expect(payload.timingRuleVersion).toBe("ziwei.timing.lunar-year.v2");
     expect(payload.sensitivityRuleVersion).toBe("ziwei.sensitivity.v1");
     expect(payload.knowledgeVersionId).toBe(REPORT_KNOWLEDGE_VERSION_V4);
     expect(payload.promptVersion).toBe(REPORT_PROMPT_VERSION_V4_2_BEGINNER);
