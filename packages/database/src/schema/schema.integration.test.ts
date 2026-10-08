@@ -218,6 +218,8 @@ describe("database schema integration", () => {
       await removeGeminiFlashPricingForRewind(client);
       // This checkpoint also predates the durable compensation receipt.
       await client`ALTER TABLE ziwei_chart_versions DROP COLUMN IF EXISTS free_overview_cache`;
+      await client`DROP TABLE IF EXISTS recovery_outbound_daily_attempts`;
+      await client`DROP TABLE IF EXISTS recovery_outbound_control`;
       await client`ALTER TABLE commerce_payment_events DROP COLUMN IF EXISTS provider_provenance CASCADE`;
       await client`ALTER TABLE commerce_unmatched_payments DROP COLUMN IF EXISTS provider_provenance CASCADE`;
       await client`DROP FUNCTION IF EXISTS preserve_payment_provenance() CASCADE`;
@@ -574,6 +576,8 @@ describe("database schema integration", () => {
       await client`DROP TABLE IF EXISTS report_section_quality_candidates`;
       // This checkpoint also predates the durable compensation receipt.
       await client`ALTER TABLE ziwei_chart_versions DROP COLUMN IF EXISTS free_overview_cache`;
+      await client`DROP TABLE IF EXISTS recovery_outbound_daily_attempts`;
+      await client`DROP TABLE IF EXISTS recovery_outbound_control`;
       await client`ALTER TABLE commerce_payment_events DROP COLUMN IF EXISTS provider_provenance CASCADE`;
       await client`ALTER TABLE commerce_unmatched_payments DROP COLUMN IF EXISTS provider_provenance CASCADE`;
       await client`DROP FUNCTION IF EXISTS preserve_payment_provenance() CASCADE`;
@@ -3657,6 +3661,8 @@ describe("database schema integration", () => {
       ON commerce_entitlements
     `;
     await client`ALTER TABLE ziwei_chart_versions DROP COLUMN IF EXISTS free_overview_cache`;
+      await client`DROP TABLE IF EXISTS recovery_outbound_daily_attempts`;
+      await client`DROP TABLE IF EXISTS recovery_outbound_control`;
       await client`ALTER TABLE commerce_payment_events DROP COLUMN IF EXISTS provider_provenance CASCADE`;
       await client`ALTER TABLE commerce_unmatched_payments DROP COLUMN IF EXISTS provider_provenance CASCADE`;
       await client`DROP FUNCTION IF EXISTS preserve_payment_provenance() CASCADE`;
