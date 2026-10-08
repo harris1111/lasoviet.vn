@@ -40,7 +40,8 @@
     "palaces": "12 cung",
     "topics": "Chủ đề",
     "evidence": "Căn cứ",
-    "hanCountSuffix": "tháng hạn"
+    "hanCountSuffix": "tháng hạn",
+    "decade": "Đại vận"
   },
   "annual": {
     "title": "Năm {lunarYear} của bạn",
@@ -211,7 +212,24 @@
     "cardsSortStrength": "Theo độ mạnh",
     "cardsPreview": "Xem thử",
     "cardsDone": "Đã đọc đầy đủ",
-    "cardsOpen": "Xem thử {name}, {band}, {score} điểm"
+    "cardsOpen": "Xem thử {name}, {band}, {score} điểm",
+    "decadeTitle": "Đường đời 10 năm",
+    "decadeSubtitle": "Độ mạnh cấu trúc của cung ở mỗi chặng (không phải điểm may rủi).",
+    "decadeNote": "Điểm mỗi chặng chính là điểm cấu trúc của cung mà chặng đó đi qua.",
+    "decadeCurrent": "ĐANG Ở ĐÂY",
+    "decadeAges": "{start}–{end} tuổi",
+    "decadeCard": "{start} đến {end} tuổi, {palace}, {score} điểm, {band}",
+    "decadeCardCurrent": "{start} đến {end} tuổi, {palace}, {score} điểm, {band}, chặng hiện tại",
+    "layers": "Hai lớp đang chồng lên nhau",
+    "layersBody": "Chặng {start}–{end} tuổi đi qua {palace}, rồi năm {year} rơi vào {annual}.",
+    "monthsTitle": "12 tháng của năm",
+    "monthGood": "Thuận",
+    "monthNeutral": "Bình thường",
+    "monthWarn": "Cần chú ý (đã khoá)",
+    "monthLunar": "Theo tháng âm lịch",
+    "monthNone": "Lá số này chưa thấy tháng nào bị ép đặc biệt trong năm.",
+    "monthLabel": "Tháng {index}",
+    "monthWarnAria": "Tháng {index}, cần chú ý, nội dung đã khoá. Bấm để xem thử."
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

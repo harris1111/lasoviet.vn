@@ -32,8 +32,8 @@ describe("closing hook facts", () => {
       if ("starId" in fact) expect(ids.has(fact.starId)).toBe(true);
     }
   });
-  it("adds the month count only when it cannot be the forced single month", () => {
-    expect(buildClosingHook({ chart, lockedPalaceIds: locked, annual: { year: 2026, caution: 1 } })!.facts.some((f) => f.kind === "months")).toBe(false);
+  it("adds the month count when there is at least one caution month", () => {
+    expect(buildClosingHook({ chart, lockedPalaceIds: locked, annual: { year: 2026, caution: 0 } })!.facts.some((f) => f.kind === "months")).toBe(false);
     expect(buildClosingHook({ chart, lockedPalaceIds: locked, annual: { year: 2026, caution: 3 } })!.facts.at(-1)).toEqual({ kind: "months", year: 2026, count: 3 });
   });
   it("skips months for a provisional birth time and returns null with nothing locked", () => {

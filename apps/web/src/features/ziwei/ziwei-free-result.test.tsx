@@ -94,6 +94,10 @@ describe("free-result reader structure", () => {
       expect(hide).toBeGreaterThan(css.lastIndexOf("@media", hide) - 1);
       expect(css.slice(css.lastIndexOf("@media", hide), hide)).toContain("min-width: 1024px");
     });
+    it("shows the decade panel when it is the active tab", () => {
+      const css = readFileSync(fileURLToPath(new URL("../../styles/free-result-read-first.css", import.meta.url)), "utf8");
+      expect(css).toContain('.fd109[data-active-tab="decade"] [data-tab="decade"]');
+    });
     it("decorates the stage with ornaments that assistive tech ignores", () => {
       const html = render();
       expect(html.match(/fd109-corner fd109-corner-/g)).toHaveLength(4);

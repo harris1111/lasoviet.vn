@@ -492,7 +492,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     ).rejects.toThrow("NEXT_REDIRECT");
   });
 
-  it("renders aggregate year counts without serializing locked months or daily prose", async () => {
+  it("renders marker-only month tiles without serializing locked month text or daily prose", async () => {
     const chartId = "chart-test-123";
     const mockHoroscope = {
       version: 1,
@@ -548,9 +548,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const html = renderToStaticMarkup(page);
 
     expect(html).toContain("Năm nay");
-    expect(html).toContain("<strong>2</strong>tháng cần chú ý");
-    expect(html).toContain("<strong>3</strong>tháng thuận");
+    expect(html).toContain('data-testid="fd109-month-strip"');
+    expect(html.match(/fd109-month fd109-month-/g)).toHaveLength(12);
+    expect(html.match(/fd109-month fd109-month-warn/g)).toHaveLength(2);
+    expect(html).not.toContain('data-testid="fd109-month-none"');
     expect(html).not.toContain("Tháng hạn, mở để xem");
-    expect(html).not.toContain("Tháng 12");
     expect(html).not.toContain("Ngày Kỷ Hợi");
   });

@@ -318,7 +318,7 @@ html[data-theme="light"] .fd109-divider {
 @media (min-width: 1024px) {
 .fd109-main [data-tab] { display: none; }
 .fd109[data-active-tab="overview"] [data-tab="overview"], .fd109[data-active-tab="nam-nay"] [data-tab="nam-nay"],
-.fd109[data-active-tab="palaces"] [data-tab="palaces"], .fd109[data-active-tab="topics"] [data-tab="topics"],
+.fd109[data-active-tab="decade"] [data-tab="decade"], .fd109[data-active-tab="palaces"] [data-tab="palaces"], .fd109[data-active-tab="topics"] [data-tab="topics"],
 .fd109[data-active-tab="evidence"] [data-tab="evidence"] { display: block; }
 .fd109-completion { display: none; }
 .fd109[data-active-tab="overview"] .fd109-completion, .fd109[data-active-tab="topics"] .fd109-completion { display: block; }
@@ -401,3 +401,38 @@ html[data-theme="light"] .fd109-divider {
   .fd109 .fd109-card:hover { border-color: var(--gold-500); background: var(--surface-raised); }
 }
 @media (prefers-reduced-motion: reduce) { .fd109 .fd109-card { transition: none; } }
+
+/* Decade strip (Đường đời 10 năm) and month tiles */
+.fd109-decade { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; }
+.fd109 .fd109-decade button { width: 100%; position: relative; display: grid; grid-template-columns: 78px 1fr 34px; grid-template-areas: "age palace score" "track track track"; gap: 4px 10px; align-items: center; min-height: 56px; padding: 8px 12px; text-align: left; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-panel); transition: border-color 120ms ease, background-color 120ms ease; }
+.fd109-decade-age { grid-area: age; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fd109-decade-palace { grid-area: palace; font-size: 14px; opacity: 0.85; }
+.fd109-decade-score { grid-area: score; text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; }
+.fd109-decade-track { grid-area: track; height: 10px; border-radius: 5px; background: var(--border-soft); position: relative; }
+.fd109-decade-track i { position: absolute; inset: 0 auto 0 0; width: calc(var(--s) * 1%); border-radius: 5px; background: var(--c); }
+.fd109-decade-past button { opacity: 0.55; }
+.fd109 .fd109-decade-current button { border: 2px solid var(--gold-500); background: color-mix(in srgb, var(--gold-500) 10%, var(--surface-panel)); min-height: 72px; }
+.fd109-seal { position: absolute; top: -9px; right: 12px; background: var(--son); color: #fff; font-size: 10px; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+.fd109-months { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.fd109-month > button, .fd109-month-tile { width: 100%; min-height: 64px; padding: 8px 6px; display: grid; gap: 2px; justify-items: center; align-content: center; border: 1px solid var(--border-soft); border-radius: 12px; background: var(--surface-panel); font: inherit; }
+.fd109-month small { font-size: 11px; opacity: 0.8; }
+.fd109-month-glyph { line-height: 1; font-size: 18px; display: inline-flex; }
+.fd109-month-good .fd109-month-glyph { color: var(--gold-500); }
+.fd109-month-warn > button { border-color: color-mix(in srgb, var(--son) 70%, var(--border-soft)); color: inherit; }
+.fd109-month-warn .fd109-month-glyph { color: var(--son); }
+.fd109-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; margin: 12px 0 0; }
+.fd109-month-none { margin: 12px 0 0; padding: 12px 14px; border: 1px dashed var(--border-soft); border-radius: 12px; font-size: 15px; }
+.fd109-layers { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--border-soft); border-radius: 14px; background: var(--surface-panel); display: grid; gap: 6px; }
+@media (min-width: 1024px) {
+  .fd109-months { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .fd109-decade { grid-template-columns: repeat(9, minmax(0, 1fr)); align-items: end; margin-top: 34px; }
+  .fd109-decade li { height: 100%; }
+  .fd109 .fd109-decade button { height: 100%; grid-template-columns: 1fr; grid-template-rows: auto 150px auto auto; grid-template-areas: "age" "track" "palace" "score"; justify-items: center; text-align: center; padding: 12px 4px; min-height: 0; align-content: end; }
+  .fd109-decade-score { text-align: center; }
+  .fd109-decade-track { width: 100%; height: 150px; display: flex; align-items: flex-end; background: transparent; border-radius: 0; }
+  .fd109-decade-track i { position: relative; inset: auto; width: 100%; height: calc(var(--s) * 1%); border-radius: 6px 6px 2px 2px; }
+  .fd109 .fd109-decade-current button { min-height: 0; padding-block: 12px; }
+  .fd109-seal { top: -24px; right: 50%; transform: translateX(50%); }
+  .fd109 .fd109-decade button:hover, .fd109-month > button:hover { border-color: var(--gold-500); }
+}
+@media (prefers-reduced-motion: reduce) { .fd109 .fd109-decade button { transition: none; } }

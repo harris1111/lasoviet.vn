@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { CANONICAL_PALACE_SKU_MAP, type LaSku, type ZiweiPalaceId } from "@lasoviet/contracts";
@@ -11,6 +11,9 @@ import { createFreeResultAnalytics } from "./free-result-analytics";
 import { createEngagementReporter } from "./free-palace-engagement-reporter";
 import { FreePalaceGiftBlock } from "./free-palace-gift-block";
 import { ZiweiPalaceCards, type PalaceCard } from "./ziwei-palace-cards";
+import { ZiweiDecadeStrip } from "./ziwei-decade-strip";
+import { ZiweiMonthStrip } from "./ziwei-month-strip";
+import type { FreeResultDecadeCycle } from "./ziwei-free-result-model";
 import { buildClosingHook } from "./ziwei-closing-hook";
 import { ZiweiSupportPalaces, type SupportPalace } from "./ziwei-support-palaces";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
@@ -52,10 +55,11 @@ function subscribeDesktop(callback: () => void) {
 }
 function desktopSnapshot() { return window.matchMedia("(min-width: 1024px)").matches; }
 // The chart is the stage above the tabs, so it is no longer a tab; ?tab=chart (and the default) reads as overview.
-const STAGE_TABS = CANONICAL_RESULT_TABS.filter((tab) => tab !== "chart" && tab !== "evidence");
+const BASE_TABS: ZiweiResultTab[] = CANONICAL_RESULT_TABS.filter((tab) => tab !== "chart" && tab !== "evidence");
+const DECADE_TABS: ZiweiResultTab[] = ["overview", "nam-nay", "decade", "palaces", "topics"];
 const mobileAnchors: Record<ZiweiResultTab, string> = {
   chart: "free-result-board", overview: "panel-overview", "nam-nay": "panel-nam-nay",
-  palaces: "panel-palaces", topics: "panel-topics", evidence: "panel-overview",
+  palaces: "panel-palaces", topics: "panel-topics", evidence: "panel-overview", decade: "panel-decade",
 };
 const DRAWER_HINT_ID = "fd109-palace-drawer-title";
 
@@ -71,6 +75,8 @@ export function ZiweiFreeResult({
   // FE-3 / N7: tab, preview and sheet are local state (instant), the address bar is synced with the native
   // History API (no server round trip). popstate restores state for Back/Forward.
   const [view, setView] = useState<ResultView>(initialState);
+  const hasDecade = model.decade !== null;
+  const stageTabs = useMemo(() => hasDecade ? DECADE_TABS : BASE_TABS, [hasDecade]);
   const activeTab: ZiweiResultTab = view.tab === "chart" || view.tab === "evidence" ? "overview" : view.tab;
   const chartExpanded = view.sheet === "chart";
   const palaceDrawer = view.sheet === "palace";
@@ -167,7 +173,7 @@ export function ZiweiFreeResult({
   // Phone: the page is one scroll, so the chip of the section in view is highlighted.
   useEffect(() => {
     if (desktop) return;
-    const ids = STAGE_TABS.map((tab) => [tab, `panel-${tab}`] as const);
+    const ids = stageTabs.map((tab) => [tab, `panel-${tab}`] as const);
     let frame = 0;
     const update = () => {
       frame = 0;
@@ -182,7 +188,7 @@ export function ZiweiFreeResult({
     window.addEventListener("scroll", onScroll, { passive: true });
     update();
     return () => { window.removeEventListener("scroll", onScroll); if (frame) cancelAnimationFrame(frame); };
-  }, [desktop]);
+  }, [desktop, stageTabs]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -280,13 +286,13 @@ export function ZiweiFreeResult({
   }, [desktop]);
 
   function tabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    const count = STAGE_TABS.length;
+    const count = stageTabs.length;
     const next = event.key === "ArrowRight" ? (index + 1) % count
       : event.key === "ArrowLeft" ? (index + count - 1) % count
       : event.key === "Home" ? 0 : event.key === "End" ? count - 1 : null;
     if (next === null) return;
     event.preventDefault();
-    navigate(STAGE_TABS[next]!);
+    navigate(stageTabs[next]!);
     tabListRef.current?.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
   }
   function panel(tab: ZiweiResultTab) {
@@ -330,6 +336,21 @@ export function ZiweiFreeResult({
     preview: t("freeResult.cardsPreview"), done: t("freeResult.cardsDone"),
     band: (palace: PalaceCard) => reportT(`reader.score_band_${palace.band}`),
     open: (palace: PalaceCard) => t("freeResult.cardsOpen", { name: palace.name, band: reportT(`reader.score_band_${palace.band}`), score: palace.score }),
+  };
+  const currentCycle = model.decade?.cycles.find((cycle) => cycle.state === "current");
+  const decadeLabels = {
+    current: t("freeResult.decadeCurrent"),
+    ages: (cycle: FreeResultDecadeCycle) => t("freeResult.decadeAges", { start: cycle.startAge, end: cycle.endAge }),
+    band: (cycle: FreeResultDecadeCycle) => reportT(`reader.score_band_${cycle.band}`),
+    card: (cycle: FreeResultDecadeCycle) => t(cycle.state === "current" ? "freeResult.decadeCardCurrent" : "freeResult.decadeCard",
+      { start: cycle.startAge, end: cycle.endAge, palace: cycle.palaceName, score: cycle.score, band: reportT(`reader.score_band_${cycle.band}`) }),
+  };
+  const monthLabels = {
+    title: t("freeResult.monthsTitle"), legendGood: t("freeResult.monthGood"), legendNeutral: t("freeResult.monthNeutral"),
+    legendWarn: t("freeResult.monthWarn"), lunar: t("freeResult.monthLunar"), noneNote: t("freeResult.monthNone"),
+    month: (index: number) => t("freeResult.monthLabel", { index }),
+    state: (marker: "warn" | "good" | "neutral") => t(marker === "good" ? "freeResult.monthGood" : marker === "neutral" ? "freeResult.monthNeutral" : "freeResult.monthWarn"),
+    warnAria: (index: number) => t("freeResult.monthWarnAria", { index }),
   };
   const closingHook = buildClosingHook({
     chart, lockedPalaceIds: model.palaces.filter((palace) => palace.id !== model.selectedPalaceId).map((palace) => palace.id),
@@ -377,7 +398,7 @@ export function ZiweiFreeResult({
       </section>
       <div className="fd109-divider" aria-hidden="true" />
       <div className="fd109-tabs" role="tablist" aria-label={t("tabs.ariaLabel")} ref={tabListRef}>
-        {STAGE_TABS.map((tab, index) => (
+        {stageTabs.map((tab, index) => (
           <button key={tab} id={`tab-${tab}`} role="tab" aria-controls={`panel-${tab}`}
             aria-selected={tab === (desktop ? activeTab : spyTab ?? activeTab)} tabIndex={tab === activeTab ? 0 : -1}
             onClick={() => navigate(tab)} onKeyDown={(event) => tabKeyDown(event, index)} type="button">{t(`tabs.${tab}`)}</button>
@@ -427,16 +448,25 @@ export function ZiweiFreeResult({
           </section>
           <section {...panel("nam-nay")} className="fd109-block" data-free-result-block="year">
             <p className="eyebrow">04</p><h2 id="heading-nam-nay">{t("freeResult.year")}{model.annual ? ` ${model.annual.year}` : ""}</h2>
-            {model.annual ? <><div className="fd109-counts">
-              <p><strong>{model.annual.caution}</strong>{t("freeResult.cautionMonths")}</p>
-              <p><strong>{model.annual.favorable}</strong>{t("freeResult.favorableMonths")}</p>
-              <p><strong>{model.annual.neutral}</strong>{t("freeResult.neutralMonths")}</p>
-            </div><p>{t("freeResult.monthsMasked")}</p></> : <p>{t("freeResult.yearUnavailable")}</p>}
+            {currentCycle && model.decade?.annualPalaceId && model.annual && <div className="fd109-layers" data-testid="fd109-layers">
+              <strong>{t("freeResult.layers")}</strong>
+              <span>{t("freeResult.layersBody", { start: currentCycle.startAge, end: currentCycle.endAge, palace: lowerPalace(currentCycle.palaceId), year: model.annual.year, annual: lowerPalace(model.decade.annualPalaceId) })}</span>
+            </div>}
+            {model.months ? <ZiweiMonthStrip months={model.months} labels={monthLabels}
+              onOpenLocked={(trigger) => openSheet("period", trigger)} />
+              : model.annual ? <p>{t("freeResult.monthsMasked")}</p> : <p>{t("freeResult.yearUnavailable")}</p>}
             {model.periodTeaser && <div data-testid="fd109-period-teaser">
               <SecureLockedPreview title={t("freeResult.periodTitle")} locale={locale} clippedSentences={model.periodTeaser.sentences} lengthHint={5}
                 actionLabel={t("freeResult.periodPreview")} onAction={() => openSheet("period", document.querySelector<HTMLButtonElement>('[data-testid="fd109-period-teaser"] button'))} />
             </div>}
           </section>
+          {model.decade && <section {...panel("decade")} className="fd109-block" data-free-result-block="decade">
+            <p className="eyebrow">{t("tabs.decade")}</p><h2 id="heading-decade">{t("freeResult.decadeTitle")}</h2>
+            <p>{t("freeResult.decadeSubtitle")}</p>
+            <ZiweiDecadeStrip cycles={model.decade.cycles} labels={decadeLabels} onFocus={focusPalaceOnChart} />
+            <p className="fd109-support-note">{t("freeResult.decadeNote")}</p>
+            <ReportScoreExplainer t={reportT} />
+          </section>}
           <section {...panel("palaces")} className="fd109-block" data-free-result-block="palaces">
             <p className="eyebrow">07</p><h2 id="heading-palaces">{t("freeResult.palaces", { count: others.length })}</h2>
             <ZiweiPalaceCards cards={palaceCards} labels={cardLabels}

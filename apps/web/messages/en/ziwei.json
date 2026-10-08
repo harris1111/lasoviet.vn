@@ -40,7 +40,8 @@
     "palaces": "12 Palaces",
     "topics": "Topics",
     "evidence": "Evidence",
-    "hanCountSuffix": "caution months"
+    "hanCountSuffix": "caution months",
+    "decade": "Decades"
   },
   "annual": {
     "title": "Your Year {lunarYear}",
@@ -211,7 +212,24 @@
     "cardsSortStrength": "By strength",
     "cardsPreview": "Preview",
     "cardsDone": "Fully read",
-    "cardsOpen": "Preview {name}, {band}, {score} points"
+    "cardsOpen": "Preview {name}, {band}, {score} points",
+    "decadeTitle": "Your 10-year road",
+    "decadeSubtitle": "Structural strength of the palace in each decade (not a luck score).",
+    "decadeNote": "Each decade's score is the structural score of the palace it passes through.",
+    "decadeCurrent": "YOU ARE HERE",
+    "decadeAges": "Ages {start}–{end}",
+    "decadeCard": "Ages {start} to {end}, {palace}, {score} points, {band}",
+    "decadeCardCurrent": "Ages {start} to {end}, {palace}, {score} points, {band}, current decade",
+    "layers": "Two layers stack up",
+    "layersBody": "The age {start}–{end} decade runs through the {palace}, then {year} lands in the {annual}.",
+    "monthsTitle": "The 12 months",
+    "monthGood": "Favourable",
+    "monthNeutral": "Ordinary",
+    "monthWarn": "Needs care (locked)",
+    "monthLunar": "Lunar months",
+    "monthNone": "This chart shows no month under special pressure this year.",
+    "monthLabel": "Month {index}",
+    "monthWarnAria": "Month {index}, needs care, content locked. Select to preview."
   },
   "dailyReading": {
     "title": "Today’s personal reading",

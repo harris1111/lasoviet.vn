@@ -126,7 +126,7 @@ async function cell(browser, engine, locale, actor, width, theme) {
     const warm = await page.evaluate(() => ({...window.__qaPerformance, duration: performance.getEntriesByType("navigation")[0].duration}));
     if (width >= 1024) {
       await expect(result.getByRole("tablist")).toBeVisible();
-      await expect(result.getByRole("tab")).toHaveCount(4);
+      await expect(result.getByRole("tab")).toHaveCount(5);
       await page.locator("#tab-overview").focus(); await page.keyboard.press("End");
       await expect(page.locator("#tab-topics")).toBeFocused();
       await expect(result).toHaveAttribute("data-active-tab", "topics");

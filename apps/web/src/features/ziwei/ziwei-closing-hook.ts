@@ -34,7 +34,7 @@ export function buildClosingHook(input: {
     else candidates.push({ priority: 1, order, fact: { kind: "alone", palaceId, starId: major[0]!.id } });
   });
   const facts: ClosingFact[] = candidates.sort((a, b) => b.priority - a.priority || a.order - b.order).slice(0, 2).map((item) => item.fact);
-  // The month counter forces at least one caution month, so a count of 1 may not be a real finding.
-  if (annual && !chart.provisional && annual.caution >= 2) facts.push({ kind: "months", year: annual.year, count: annual.caution });
+  // Caution months are grounded in the engine now (no forced month), so any count above zero is a real finding.
+  if (annual && !chart.provisional && annual.caution >= 1) facts.push({ kind: "months", year: annual.year, count: annual.caution });
   return facts.length ? { facts, lockedCount: lockedPalaceIds.length } : null;
 }
