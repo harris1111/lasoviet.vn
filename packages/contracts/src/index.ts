@@ -942,3 +942,4 @@ export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1
 
 export { BAZI_STEM_IDS, BAZI_BRANCH_IDS, BaziFactsInputV1Schema, BaziFactsV1Schema } from "./bazi-facts-v1.js";
 export type { BaziFactsInputV1, BaziFactsV1 } from "./bazi-facts-v1.js";
+export { matchesReportYearLineage } from "./report-year-lineage.js";

@@ -1,4 +1,4 @@
-import { COMBO_SKU, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
+import { isComboSku, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
 import { createDatabaseReportQueryRepository } from "./report-query.repository.js";
 import { findLaProduct } from "@lasoviet/contracts";
 import { and, asc, eq, sql } from "drizzle-orm";
@@ -107,9 +107,9 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 }
 
 function validWalletPrice(sku: string, priceLa: number): boolean {
-  if (sku === COMBO_SKU) return isSupportedComboPrice(priceLa);
+  if (isComboSku(sku)) return isSupportedComboPrice(priceLa);
   const product = findLaProduct(sku);
-  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
   if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
   return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }
@@ -231,7 +231,7 @@ export function createDatabaseReportGenerationSourceRepository(dependencies: {
       ) {
         return contextMismatch();
       }
-      const comboAuthority = hasWalletAuthority && row.intent?.sku === COMBO_SKU && await hasCompleteComboAuthority(dependencies.database, {intent: row.intent, entitlement});
+      const comboAuthority = hasWalletAuthority && !!row.intent && isComboSku(row.intent.sku) && await hasCompleteComboAuthority(dependencies.database, {intent: row.intent, entitlement});
       if (
         hasWalletAuthority &&
         (

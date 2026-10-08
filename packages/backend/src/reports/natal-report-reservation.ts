@@ -76,7 +76,7 @@ export async function reserveNatalReport(database: Database, input: {
 /** Topic and period purchases keep independent generation provenance. */
 export async function reservePaidReport(database: Database, input: Parameters<typeof reserveNatalReport>[1]) {
   if (NATAL_REPORT_SKUS.includes(input.entitlement.sku)) return reserveNatalReport(database, input);
-  if (!["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"].includes(input.entitlement.sku)) throw new Error("REPORT_SKU_UNSUPPORTED");
+  if (!["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(input.entitlement.sku)) throw new Error("REPORT_SKU_UNSUPPORTED");
   return reserveDedicatedReport(database, input);
 }
 
@@ -89,7 +89,7 @@ async function reserveDedicatedReport(database: Database, input: Parameters<type
     chartVersionId: input.chartVersionId, evidenceVersionId: input.evidenceVersionId,
     knowledgeVersionId: versions.knowledgeVersion, promptVersion: versions.promptVersion,
     reportConfigVersion: versions.reportConfigVersion, locale: input.locale, sku: entitlement.sku,
-    asOfDate: timing?.asOfDate, targetYear: timing?.targetYear,
+    asOfDate: timing?.asOfDate, targetYear: ["ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(entitlement.sku) ? Number(entitlement.periodKey) : timing?.targetYear,
     timingRuleVersion: timing?.timingRuleVersion, sensitivityRuleVersion: timing?.sensitivityRuleVersion,
     readingContextRevisionId: input.readingContextRevisionId, createdAt: now, updatedAt: now,
   }).returning();
@@ -104,7 +104,7 @@ async function reserveDedicatedReport(database: Database, input: Parameters<type
       chartVersionId: reservation.chartVersionId, evidenceVersionId: reservation.evidenceVersionId,
       knowledgeVersionId: reservation.knowledgeVersionId, promptVersion: reservation.promptVersion,
       reportConfigVersion: reservation.reportConfigVersion, locale: input.locale, sku: reservation.sku,
-      ...(timing ? { ...timing, readingContextRevisionId: reservation.readingContextRevisionId } : {}),
+      ...(timing ? { ...timing, targetYear: reservation.targetYear!, readingContextRevisionId: reservation.readingContextRevisionId } : {}),
     },
   });
   if (!event) throw new Error("REPORT_OUTBOX_CREATE_FAILED");

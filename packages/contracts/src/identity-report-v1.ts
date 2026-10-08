@@ -185,7 +185,7 @@ export const ReportSafeProvenanceV1Schema = z.object({
 }).strict();
 export type ReportSafeProvenanceV1 = z.infer<typeof ReportSafeProvenanceV1Schema>;
 
-export const PaidReportSkuSchema = z.union([CommerceSkuSchema, z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"])]);
+export const PaidReportSkuSchema = z.union([CommerceSkuSchema, z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"])]);
 
 export const ReportPendingViewV1Schema = z.object({
   version: z.literal(1),
@@ -858,7 +858,7 @@ export type ReportTopicReadyViewV1 = z.infer<typeof ReportTopicReadyViewV1Schema
 
 export const ReportPeriodReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
   contentVersion: z.literal("ziwei.period-reading.v1"), locale: z.literal("vi"),
-  sku: z.enum(["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-2026-P0"]),
+  sku: z.enum(["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"]),
   content: ZiweiPeriodReadingPublicContentV1Schema,
 }).strict();
 export type ReportPeriodReadyViewV1 = z.infer<typeof ReportPeriodReadyViewV1Schema>;

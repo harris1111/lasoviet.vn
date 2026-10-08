@@ -135,6 +135,19 @@ describe("comprehensive report V4 assembler", () => {
     });
   });
 
+  it.each([2026, 2028])("preserves lunar v2 metadata for frozen annual %i", (targetYear) => {
+    const reportFacts = facts();
+    reportFacts.sourceSnapshot.asOfDate = "2027-01-15";
+    reportFacts.sourceSnapshot.timingRuleVersion = "ziwei.timing.lunar-year.v2";
+    reportFacts.timing.annual.targetYear = targetYear;
+    const sections = acceptedSections();
+    const annual = sections.find((section) => (section as { key: string }).key === "annualSnapshot") as { value: Record<string, unknown> };
+    Object.assign(annual.value, { asOfDate: "2027-01-15", targetYear, timingRuleVersion: "ziwei.timing.lunar-year.v2" });
+    const report = assembleComprehensiveReportV4(sections, reportFacts);
+    expect(ZiweiComprehensiveReportContentV2Schema.safeParse(report).success).toBe(true);
+    expect(report.annualSnapshot).toMatchObject({ targetYear, timingRuleVersion: "ziwei.timing.lunar-year.v2" });
+  });
+
   it("rejects timing state, value, range, and annual checkpoint mismatches", () => {
     const invalidState = acceptedSections("not_started");
     expect(() => assembleComprehensiveReportV4(invalidState, facts("active"))).toThrow(

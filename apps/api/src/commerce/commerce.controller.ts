@@ -76,7 +76,8 @@ function walletIntentRequest(body: unknown) {
   if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
   const value = body as Record<string, unknown>;
   if (
-    Object.keys(value).length !== 4 ||
+    Object.keys(value).some(key => !["chartId", "chartVersionId", "sku", "locale", "targetYear"].includes(key)) ||
+    (value.targetYear !== undefined && (typeof value.targetYear !== "number" || !Number.isInteger(value.targetYear) || value.targetYear < 1900 || value.targetYear > 2100)) ||
     typeof value.chartId !== "string" || value.chartId.trim().length === 0 ||
     typeof value.chartVersionId !== "string" || value.chartVersionId.trim().length === 0 ||
     typeof value.sku !== "string" ||
@@ -90,6 +91,7 @@ function walletIntentRequest(body: unknown) {
     chartId: value.chartId.trim(),
     chartVersionId: value.chartVersionId.trim(),
     sku: product.sku as LaSku,
+    ...(value.targetYear !== undefined ? { targetYear: value.targetYear as number } : {}),
     locale: value.locale as "vi" | "en",
   };
 }
@@ -111,6 +113,7 @@ function walletUnlockRequest(body: unknown) {
 }
 
 function customerWalletIntent(value: {
+  targetYear?: number;
   id: string;
   sku: string;
   locale: string;
@@ -142,7 +145,9 @@ function customerWalletIntent(value: {
   return {
     id: value.id,
     sku: value.sku,
-    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale as "vi" | "en"),
+    productTitle: resolveProductTitle(value.sku as CommerceSku, value.locale as "vi" | "en") +
+      (value.targetYear !== undefined ? ` ${value.targetYear}` : ""),
+    ...(value.targetYear !== undefined ? { targetYear: value.targetYear } : {}),
     locale: value.locale,
     amountLa: value.amountLa,
     status: value.status,
@@ -454,7 +459,9 @@ export class CommerceController {
 
   @Get("wallet/quotes")
   async walletQuotes(@Headers("authorization") authorization: string | undefined, @Query() query: unknown) {
-    const parsed = WalletQuoteRequestV1Schema.safeParse(query);
+    const raw = query as Record<string, unknown> | null;
+    const parsed = WalletQuoteRequestV1Schema.safeParse(raw && typeof raw === "object" && typeof raw.targetYear === "string" && /^\d{4}$/.test(raw.targetYear)
+      ? { ...raw, targetYear: Number(raw.targetYear) } : query);
     if (!parsed.success) throw new BadRequestException({ code: "WALLET_INTENT_INVALID" });
     const result = await this.repository().readWalletQuotes(await this.actor(authorization), parsed.data);
     if (!result.ok) walletError(result.code);
@@ -486,6 +493,7 @@ export class CommerceController {
       status: result.value.status,
       stateVersion: result.value.stateVersion,
       createdAt: result.value.createdAt,
+      ...("targetYear" in result.value ? { targetYear: result.value.targetYear } : {}),
     });
     return { ok: true, value: intent };
   }
@@ -510,6 +518,7 @@ export class CommerceController {
       status: result.value.intent.status,
       stateVersion: result.value.intent.stateVersion,
       createdAt: result.value.intent.createdAt,
+      ...("targetYear" in result.value.intent ? { targetYear: result.value.intent.targetYear } : {}),
     });
     return {
       ok: true,
