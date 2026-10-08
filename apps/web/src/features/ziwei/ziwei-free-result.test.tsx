@@ -20,7 +20,7 @@ const chart = {
   soulPalaceId: "ziwei.palace.life", bodyPalaceId: "ziwei.palace.career", transformations: [],
 } as unknown as NormalizedZiweiChartV1;
 const model = buildFreeResultModel({ chart, preview: {} as FreeIdentityPreviewV1, isGuest: true, locale: "vi" });
-function render(tab: "overview" | "topics" = "overview") {
+function render(tab: "chart" | "overview" | "topics" = "overview") {
   return renderToStaticMarkup(<ZiweiFreeResult chart={chart} chartId="fixture" chartVersionId="v1" basePath="/la-so/fixture" locale="vi"
     initialState={{ tab }} model={model} signInHref="/dang-nhap" loadEvidence={async () => ({ ok: false, error: { code: "EVIDENCE_NOT_FOUND" } })} />);
 }
@@ -47,6 +47,38 @@ describe("free-result reader structure", () => {
     expect(html.match(/Điểm này tính thế nào/g)?.length).toBeGreaterThanOrEqual(3);
     expect(html).toContain('id="free-result-board"');
     expect(html).toContain('data-free-result-block="scores"');
+  });
+  describe("chart stage (phase 2.5)", () => {
+    it("renders the chart once, outside the tab panels, in compact density", () => {
+      const html = render();
+      expect(html.match(/data-testid="ziwei-chart-grid"/g)).toHaveLength(1);
+      const stage = html.indexOf('id="free-result-board"');
+      expect(stage).toBeGreaterThan(-1);
+      expect(stage).toBeLessThan(html.indexOf('role="tablist"'));
+      expect(html.indexOf('data-testid="ziwei-chart-grid"')).toBeLessThan(html.indexOf('role="tablist"'));
+      expect(html).toContain('data-density="compact"');
+      expect(html).not.toMatch(/class="ziwei-palace [^"]*" data-density="full"/);
+      expect(html).not.toContain('data-testid="fd109-chart-tab-scores"');
+    });
+    it("places the inspector for the selected palace beside the stage and keeps the radar at the top of overview", () => {
+      const html = render();
+      expect(html).toContain('data-testid="fd109-stage-inspector"');
+      expect(html).toContain('data-testid="ziwei-detail-inspector"');
+      expect(html.indexOf('data-testid="fd109-radar"')).toBeGreaterThan(html.indexOf('data-tab="overview"'));
+      expect(html.indexOf('data-testid="fd109-radar"')).toBeLessThan(html.indexOf('data-overview-section'));
+      expect(html.match(/class="report-radar/g)?.length ?? 1).toBe(1);
+    });
+    it("keeps ?tab=chart working by reading it as the overview tab", () => {
+      const html = render("chart");
+      expect(html).toContain('data-active-tab="overview"');
+      expect(html).toContain('aria-selected="true"');
+      expect(html).not.toContain('id="tab-chart"');
+    });
+    it("decorates the stage with ornaments that assistive tech ignores", () => {
+      const html = render();
+      expect(html.match(/fd109-corner fd109-corner-/g)).toHaveLength(4);
+      expect(html).toMatch(/class="fd109-divider" aria-hidden="true"/);
+    });
   });
   describe("free palace gift", () => {
     const point = (text: string) => ({ text, evidenceKeys: ["fact:one"] });

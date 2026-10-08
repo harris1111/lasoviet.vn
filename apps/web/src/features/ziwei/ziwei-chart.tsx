@@ -25,6 +25,7 @@ export function ZiweiChart({
   onSelectPalace,
   hideBoard = false,
   hideInspector = false,
+  density = "full",
 }: {
   chart: NormalizedZiweiChartV1;
   birthSummary?: ZiweiBirthSummaryV1;
@@ -34,6 +35,7 @@ export function ZiweiChart({
   // The enlarged sheet draws the board and the palace detail in separate regions.
   hideBoard?: boolean;
   hideInspector?: boolean;
+  density?: "compact" | "full";
 }) {
   const presentation = ziweiPresentation(locale);
   const [localPalaceId, setLocalPalaceId] = useState<string>(chart.soulPalaceId);
@@ -80,7 +82,7 @@ export function ZiweiChart({
   const minorStars = selectedPalace.stars.filter((s) => s.category !== "major");
 
   return (
-    <section aria-label={presentation.chrome.chartAria} className="ziwei-chart-container">
+    <section aria-label={presentation.chrome.chartAria} className="ziwei-chart-container" data-density={density}>
       {hideBoard ? null : <div className="ziwei-board-wrapper">
         <div className="ziwei-traditional-board" data-testid="ziwei-chart-grid">
           {/* 12 Perimeter Palaces */}
@@ -90,6 +92,7 @@ export function ZiweiChart({
             return (
               <ZiweiPalace
                 bodyPalaceId={chart.bodyPalaceId}
+                density={density}
                 isSelected={palace.id === selectedPalace.id}
                 key={palace.id}
                 locale={locale}

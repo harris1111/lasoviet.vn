@@ -16,6 +16,7 @@ export type ZiweiPalaceProps = {
   relationType?: PalaceRelationType;
   onSelect?: () => void;
   style?: React.CSSProperties;
+  density?: "compact" | "full";
 };
 
 export function ZiweiPalace({
@@ -28,7 +29,9 @@ export function ZiweiPalace({
   relationType = "none",
   onSelect,
   style,
+  density = "full",
 }: ZiweiPalaceProps) {
+  const compact = density === "compact";
   const presentation = ziweiPresentation(locale);
 
   const isSoul = palace.id === soulPalaceId;
@@ -60,7 +63,8 @@ export function ZiweiPalace({
   return (
     <button
       type="button"
-      className={`ziwei-palace relation-${relationType} ${isSelected ? "is-selected" : ""}`}
+      className={`ziwei-palace relation-${relationType} ${isSelected ? "is-selected" : ""}${compact ? " is-compact" : ""}`}
+      data-density={density}
       data-testid="ziwei-palace"
       data-palace-id={palace.id}
       data-branch-id={palace.earthlyBranchId}
@@ -73,7 +77,7 @@ export function ZiweiPalace({
           <span className="palace-stem-branch">{stemBranchLabel}</span>
           <span className="palace-title">{presentation.palace(palace.id)}</span>
         </span>
-        <span className="palace-badges">
+        {compact ? null : <span className="palace-badges">
           {relationLabel ? (
             <span className={`palace-relation-tag tag-${relationType}`}>
               {relationLabel}
@@ -85,7 +89,7 @@ export function ZiweiPalace({
           {isBody ? (
             <span className="palace-role-tag tag-body">{presentation.chrome.bodyMarker}</span>
           ) : null}
-        </span>
+        </span>}
       </span>
 
       <span className="ziwei-palace-content">
@@ -98,8 +102,8 @@ export function ZiweiPalace({
               return (
                 <span className="palace-star-row major-row" key={star.id}>
                   <span className="star-name">{presentation.star(star.id)}</span>
-                  <span className="star-brightness">({presentation.brightness(star.brightness)})</span>
-                  {trans ? (
+                  {compact ? null : <span className="star-brightness">({presentation.brightness(star.brightness)})</span>}
+                  {trans && !compact ? (
                     <span className={`star-mutagen mutagen-${trans.id.split(".").at(-1)}`}>
                       {presentation.transformation(trans.id)}
                     </span>
@@ -110,7 +114,7 @@ export function ZiweiPalace({
           )}
         </span>
 
-        {otherStars.length > 0 ? (
+        {otherStars.length > 0 && !compact ? (
           <span className="palace-stars-section minor-stars">
             {otherStars.map((star) => {
               const trans = getTransformation(star.id);
@@ -129,7 +133,7 @@ export function ZiweiPalace({
         ) : null}
       </span>
 
-      {cycleStateText ? (
+      {cycleStateText && !compact ? (
         <span className="ziwei-palace-footer">
           <span className="palace-cycle-state">{cycleStateText}</span>
         </span>

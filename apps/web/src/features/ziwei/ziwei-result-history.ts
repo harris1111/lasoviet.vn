@@ -2,7 +2,7 @@ import { buildCanonicalTabUrl, parseResultTabState, type ParsedResultTabState } 
 
 // Sheets that have no URL of their own. They get a history entry carrying this marker so the
 // browser Back button closes them (FE-3 / N7: local state first, URL kept in sync client-side).
-export type ResultSheet = "chart" | "period";
+export type ResultSheet = "chart" | "period" | "palace";
 export type ResultView = ParsedResultTabState & { sheet?: ResultSheet };
 
 type HistoryWriter = Pick<History, "pushState" | "replaceState">;
@@ -11,7 +11,7 @@ const SHEET_KEY = "fd109Sheet";
 
 export function sheetFromState(state: unknown): ResultSheet | undefined {
   const value = typeof state === "object" && state !== null ? (state as Record<string, unknown>)[SHEET_KEY] : undefined;
-  return value === "chart" || value === "period" ? value : undefined;
+  return value === "chart" || value === "period" || value === "palace" ? value : undefined;
 }
 
 /** Rebuild the view from what the browser holds (used for popstate: Back, Forward, shared link). */

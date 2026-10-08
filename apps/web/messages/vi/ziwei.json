@@ -187,7 +187,8 @@
     "zoomFitLabel": "Vừa khung màn hình",
     "zoomLevel": "Mức phóng",
     "sheetTools": "Điều khiển phóng to",
-    "detailToggle": "Chi tiết cung đang chọn"
+    "detailToggle": "Chi tiết cung đang chọn",
+    "inspectorEvidence": "Xem căn cứ của lá số"
   },
   "dailyReading": {
     "title": "Hôm nay của bạn",

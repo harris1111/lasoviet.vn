@@ -187,7 +187,8 @@
     "zoomFitLabel": "Fit to screen width",
     "zoomLevel": "Zoom level",
     "sheetTools": "Zoom controls",
-    "detailToggle": "Selected palace details"
+    "detailToggle": "Selected palace details",
+    "inspectorEvidence": "See the chart evidence"
   },
   "dailyReading": {
     "title": "Today’s personal reading",

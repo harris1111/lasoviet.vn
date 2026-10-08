@@ -3,8 +3,7 @@
 .fd109 p { font-size: 16px; line-height: 1.7; overflow-wrap: anywhere; }
 .fd109 h2 { font-size: clamp(24px, 3vw, 34px); }
 .fd109 h3 { font-size: 20px; }
-.fd109-layout { display: grid; gap: 24px; }
-.fd109-tabs { display: none; }
+.fd109-layout { display: block; max-width: 720px; margin-inline: auto; padding-top: 16px; }
 .fd109-block { padding: 24px 0; border-bottom: 1px solid var(--border-soft); margin-bottom: 24px; }
 .fd109-gift { padding: 24px 0; margin-bottom: 24px; }
 .fd109-gift p { font-family: var(--font-source-serif-4), Georgia, serif; font-size: 17px; line-height: 1.78; }
@@ -23,7 +22,6 @@
 .fd109-row-heading { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .fd109-map-row strong { font-size: 20px; }
 .fd109-state { width: fit-content; border: 1px solid var(--border-soft); border-radius: 4px; padding: 3px 10px; font-size: 14px; }
-.fd109-enlarge { width: 100%; padding: 12px; margin-bottom: 16px; background: transparent; border: 1px solid var(--gold-500); border-radius: 4px; }
 .fd109-sheet-handle { display: block; width: 44px; height: 4px; margin: -8px auto 20px; background: var(--border-soft); border-radius: 4px; }
 .fd109-locked-region { margin: 24px 0; padding: 20px; border: 1px dashed var(--border-soft); }
 .fd109 .ziwei-detail-inspector { font-size: 16px; }
@@ -52,57 +50,18 @@
   .fd109 .fd109-block { scroll-margin-top: 16px; }
 }
 @media (min-width: 1024px) {
-  .fd109-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
-  .fd109-tabs button { background: transparent; border: 1px solid var(--border-soft); border-radius: 24px; padding: 10px 18px; font-size: 16px; }
-  .fd109-tabs button[aria-selected="true"] { border-color: var(--gold-500); color: var(--gold-500); }
-  /* Desktop: the full board gets a real column (cells >= 115px), the reading column keeps >= 640px from 1280. */
-  .fd109-layout { grid-template-columns: minmax(460px, 500px) minmax(0, 1fr); gap: 32px; align-items: start; }
-  /* No sticky/overflow on the column: the palace inspector flows under the board and is never clipped. */
-  .fd109-chart { max-height: none; overflow: visible; padding: 4px; }
-  .fd109 .ziwei-chart-container { gap: 24px; }
-  .fd109 .ziwei-palace { padding: 10px 10px; min-height: 120px; }
-  .fd109 .ziwei-traditional-board { grid-template-rows: repeat(4, minmax(120px, auto)); }
-  .fd109 .palace-stem-branch, .fd109 .star-brightness, .fd109 .palace-role-tag, .fd109 .palace-relation-tag,
-  .fd109 .star-mutagen, .fd109 .palace-stars-section.minor-stars, .fd109 .palace-empty-major, .fd109 .ziwei-palace-footer,
-  .fd109 .transformations-label, .fd109 .center-tag, .fd109 .center-instruction { font-size: 12px; }
-  .fd109 .palace-star-row { font-size: 14px; }
-  .fd109 .palace-title { font-size: 15px; }
-  .fd109 .ziwei-board-center { padding: 16px; gap: 10px; }
-  .fd109 .center-title { font-size: 20px; }
-  .fd109 .center-birth-data, .fd109 .center-axes { font-size: 13px; }
-  .fd109-main { max-width: 760px; }
-  /* Title block shares the tab bar/layout container: same left edge and width. */
-  .result-page .result-hero { max-width: none; width: min(1200px, calc(100% - 64px)); }
-  .fd109-chart-tab .report-radar { max-width: 480px; margin-inline: auto; }
-  .fd109-chart-tab > p { max-width: 70ch; }
-  .fd109-inspector-col { margin-top: 24px; }
   .fd109-main p, .fd109-main li, .fd109 .fd109-gift p { font-size: 18px; line-height: 1.7; }
-  .fd109-main p, .fd109-overview-prose p { max-width: 70ch; }
   .fd109-main .fd109-gift-conclusion { font-size: 21px; }
   .fd109 [id] { scroll-margin-top: 96px; }
-  .fd109-main [data-tab] { display: none; }
-  .fd109[data-active-tab="chart"] [data-tab="chart"],
-  .fd109[data-active-tab="overview"] [data-tab="overview"],
-  .fd109[data-active-tab="nam-nay"] [data-tab="nam-nay"],
-  .fd109[data-active-tab="palaces"] [data-tab="palaces"],
-  .fd109[data-active-tab="topics"] [data-tab="topics"],
-  .fd109[data-active-tab="evidence"] [data-tab="evidence"] { display: block; }
   .fd109-sticky { display: none; }
-  .fd109-completion { display: none; }
-  .fd109[data-active-tab="overview"] .fd109-completion,
-  .fd109[data-active-tab="topics"] .fd109-completion { display: block; }
   .fd109-preview { margin: 0 0 0 auto; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+  .fd109-preview.fd109-palace-drawer { margin: auto auto 0; height: auto; max-height: 85dvh; border-radius: 20px 20px 0 0; }
   .fd109-sheet-handle { display: none; }
-}
-@media (min-width: 1100px) {
-  /* Board-only column (inspector lives in the right column), so sticky is safe. */
-  .fd109-chart { position: sticky; top: 92px; }
+  /* Title block shares the stage container: same left edge and width. */
+  .result-page .result-hero { max-width: none; width: min(1200px, calc(100% - 64px)); }
 }
 @media (min-width: 1280px) {
   .fd109.container, .result-page .result-hero { width: min(1280px, calc(100% - 64px)); }
-  .fd109-layout { grid-template-columns: minmax(520px, 580px) minmax(640px, 1fr); gap: 40px; }
-  .fd109 .ziwei-palace { padding: 12px 12px; min-height: 135px; }
-  .fd109 .ziwei-traditional-board { grid-template-rows: repeat(4, minmax(135px, auto)); }
 }
 
 /* Free palace gift — mobile-first (360–430px single column), enhanced from 768px. */
@@ -138,7 +97,6 @@
 .fd109 [data-free-result-block="free-palace"] .fd109-gift-actions ul { padding-left: 20px; font-size: 17px; line-height: 1.7; }
 .fd109 [data-testid="fd109-period-teaser"] { margin: 24px 0; }
 
-@media (max-width: 1023px) { .fd109-chart-tab { display: none; } }
 
 /* ---- Phase 2 (LSV-75 follow-up): lacquer chart, compact desktop chart, enlarged sheet, states ---- */
 
@@ -185,20 +143,6 @@ html:not([data-theme="light"]) .fd109 .ziwei-board-center::after {
   .fd109 .center-title { font-size: 20px; }
   .fd109 .center-birth-data, .fd109 .center-axes { font-size: 13px; }
 }
-@media (min-width: 1024px) {
-  /* Compact left column: same density as the phone chart. Detail and minor stars live in the enlarged sheet. */
-  .fd109-chart .ziwei-traditional-board { grid-template-rows: repeat(4, minmax(96px, auto)); }
-  .fd109-chart .ziwei-palace { padding: 6px 5px; min-height: 0; gap: 4px; }
-  .fd109-chart .ziwei-palace-header { margin-bottom: 4px; gap: 3px; }
-  .fd109-chart .palace-title { font-size: 12px; line-height: 1.25; }
-  .fd109-chart .palace-stars-section.minor-stars, .fd109-chart .ziwei-palace-footer { display: none; }
-  .fd109-chart .ziwei-board-center { padding: 10px; gap: 6px; }
-  .fd109-chart .center-axes { grid-template-columns: 1fr; gap: 3px; padding: 5px 0; }
-  .fd109-chart .center-transformations, .fd109-chart .center-instruction { display: none; }
-  .fd109-chart .inspector-relations-grid, .fd109-chart .inspector-stars-breakdown { grid-template-columns: 1fr; }
-  .fd109-chart .ziwei-detail-inspector { padding: 18px 16px; gap: 14px; }
-}
-
 /* U4 / D5: enlarged chart sheet. Full-screen dialog; board scaled to the width, detail in its own region. */
 .fd109-preview.fd109-chart-fullscreen { width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; padding: 0; overflow: hidden; }
 .fd109-chart-fullscreen > div { display: flex; flex-flow: row wrap; align-content: flex-start; align-items: center; height: 100%; min-height: 0; padding: 12px 16px 0; }
@@ -312,3 +256,85 @@ html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .center-ins
 html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-stars-list li { color: var(--ink-800); }
 html[data-theme="light"]:has([data-light-ready]) .ziwei-detail-inspector .inspector-chip,
 html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .center-tag { background: var(--paper-100); border-color: var(--paper-300); color: var(--ink-800); }
+
+/* ---- Phase 2.5: chart stage above the tabs, one centred reading column ---- */
+.fd109-stage { position: relative; display: grid; gap: 16px; padding: 36px 15px; margin-top: 8px; }
+.fd109-stage-board { min-width: 0; }
+.fd109-stage-inspector { display: none; min-width: 0; }
+.fd109 .fd109-enlarge { width: 100%; padding: 12px; margin-bottom: 12px; background: transparent; border: 1px solid var(--gold-500); border-radius: 4px; }
+.fd109-stage .ziwei-chart-container { gap: 0; }
+.fd109-stage .ziwei-board-wrapper { overflow: visible; padding-bottom: 0; }
+.fd109-stage .ziwei-traditional-board { grid-template-rows: repeat(4, minmax(clamp(96px, 24vw, 190px), auto)); }
+.fd109-stage .ziwei-palace { padding: 6px 5px; min-height: 44px; gap: 4px; }
+.fd109-stage .ziwei-palace-header { margin-bottom: 2px; gap: 3px; }
+.fd109-stage .palace-name-group { display: grid; gap: 1px; }
+.fd109-stage .palace-title { font-size: 13px; line-height: 1.25; }
+.fd109-stage .palace-stem-branch { font-size: 12px; }
+.fd109-stage .palace-star-row { font-size: 12px; line-height: 1.3; }
+.fd109-stage .ziwei-board-center { padding: 10px; gap: 6px; }
+.fd109-stage .center-axes { grid-template-columns: 1fr; gap: 3px; padding: 5px 0; }
+.fd109-stage .center-transformations, .fd109-stage .center-instruction { display: none; }
+.fd109-evidence-link { margin-top: 12px; padding: 0 16px; border: 1px solid var(--gold-500); border-radius: 4px; background: transparent; font: inherit; font-size: 16px; }
+.fd109-palace-drawer .ziwei-detail-inspector { padding: 8px 0; border: 0; background: transparent; }
+.fd109-palace-drawer .inspector-relations-grid, .fd109-palace-drawer .inspector-stars-breakdown { grid-template-columns: 1fr; gap: 10px; }
+html[data-theme="light"]:has([data-light-ready]) .fd109-palace-drawer .ziwei-detail-inspector { background: transparent; border: 0; }
+
+.fd109-corner, .fd109-divider { pointer-events: none; background: var(--gold-500); opacity: 0.85;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
+html[data-theme="light"] .fd109-corner, html[data-theme="light"] .fd109-divider { background: var(--gold-800); }
+.fd109-corner { position: absolute; width: 34px; aspect-ratio: 1; z-index: 1;
+  -webkit-mask-image: url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet.png"); mask-image: url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet.png");
+  -webkit-mask-image: image-set(url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet.webp") type("image/webp"), url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet.png") type("image/png"));
+  mask-image: image-set(url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet.webp") type("image/webp"), url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet.png") type("image/png")); }
+.fd109-corner-tl { top: 0; left: 0; }
+.fd109-corner-tr { top: 0; right: 0; transform: scaleX(-1); }
+.fd109-corner-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+.fd109-corner-br { bottom: 0; right: 0; transform: scale(-1, -1); }
+.fd109-divider { width: min(600px, 80%); aspect-ratio: 2048 / 217; margin: 16px auto 8px; opacity: 0.7;
+  -webkit-mask-image: url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet.png"); mask-image: url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet.png");
+  -webkit-mask-image: image-set(url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet.webp") type("image/webp"), url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet.png") type("image/png"));
+  mask-image: image-set(url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet.webp") type("image/webp"), url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet.png") type("image/png")); }
+
+.fd109-tabs { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; margin: 0 -16px; padding: 8px 16px; overflow-x: auto; scrollbar-width: none;
+  background: var(--surface-raised); border-bottom: 1px solid var(--border-soft); -webkit-overflow-scrolling: touch; }
+.fd109-tabs::-webkit-scrollbar { display: none; }
+.fd109-tabs button { flex: 0 0 auto; background: transparent; border: 1px solid var(--border-soft); border-radius: 24px; padding: 10px 18px; font-size: 16px; white-space: nowrap; }
+.fd109-tabs button[aria-selected="true"] { border-color: var(--gold-500); color: var(--gold-500); }
+.fd109-main [data-tab] { display: none; }
+.fd109[data-active-tab="overview"] [data-tab="overview"], .fd109[data-active-tab="nam-nay"] [data-tab="nam-nay"],
+.fd109[data-active-tab="palaces"] [data-tab="palaces"], .fd109[data-active-tab="topics"] [data-tab="topics"],
+.fd109[data-active-tab="evidence"] [data-tab="evidence"] { display: block; }
+.fd109-completion { display: none; }
+.fd109[data-active-tab="overview"] .fd109-completion, .fd109[data-active-tab="topics"] .fd109-completion { display: block; }
+.fd109-main p, .fd109-main li, .fd109 .fd109-gift p { font-size: 18px; line-height: 1.7; }
+.fd109-main p, .fd109-overview-prose p { max-width: 70ch; }
+.fd109-radar .report-radar { max-width: 480px; margin: 0 auto 16px; }
+.fd109 [id] { scroll-margin-top: 72px; }
+
+.fd109-palace-drawer { width: min(100% - 0px, 560px); margin: auto auto 0; }
+
+@media (min-width: 768px) {
+  .fd109-stage .palace-title { font-size: 15px; }
+  .fd109-stage .palace-stem-branch, .fd109-stage .palace-star-row { font-size: 14px; }
+  .fd109-stage .palace-stem-branch { font-size: 12px; }
+}
+@media (min-width: 1024px) {
+  .fd109-stage { grid-template-columns: minmax(520px, 780px) minmax(280px, 1fr); gap: 32px; align-items: start; padding: 56px 40px; }
+  .fd109-stage-inspector { display: block; position: sticky; top: 96px; }
+  .fd109-stage .fd109-enlarge { width: auto; padding-inline: 20px; }
+  .fd109-stage .ziwei-palace { padding: 10px 12px; }
+  .fd109-stage .palace-title { font-size: 16px; }
+  .fd109-stage .palace-star-row { font-size: 15px; }
+  .fd109-stage .ziwei-board-center { padding: 16px; gap: 10px; }
+  .fd109-stage .center-title { font-size: 20px; }
+  .fd109-stage .center-transformations { display: flex; }
+  .fd109-corner { width: 56px; }
+  .fd109-tabs { top: 72px; margin: 0; padding-inline: 0; border-radius: 0; justify-content: center; }
+  .fd109-stage-inspector .ziwei-detail-inspector { overflow-wrap: anywhere; }
+  .fd109-stage-inspector .inspector-relations-grid, .fd109-stage-inspector .inspector-stars-breakdown { grid-template-columns: 1fr; }
+}
+.fd109 .fd109-evidence-link { transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease; }
+.fd109 .fd109-evidence-link:active { transform: scale(0.98); }
+.fd109 .ziwei-palace.is-compact:active { transform: scale(0.98); }
+@media (hover: hover) { .fd109 .fd109-evidence-link:hover { border-color: var(--gold-500); background: var(--gold-soft); color: var(--gold-500); } }
+@media (prefers-reduced-motion: reduce) { .fd109 .fd109-evidence-link:active, .fd109 .ziwei-palace.is-compact:active { transform: none; } }
