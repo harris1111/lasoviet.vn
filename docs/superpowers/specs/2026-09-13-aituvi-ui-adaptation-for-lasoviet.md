@@ -108,7 +108,6 @@ Vertical padding: 88px desktop, 56px mobile. Container max 1200px; reading 720px
 - Scaling the 12-palace chart down on mobile until text is unreadable (see ticket #8).
 - Comparison table whose columns get cut off on mobile.
 - Fake crossed-out reference prices, "Phổ biến nhất" without real sales data (legal line under FD-064; use "Gợi ý" or a mathematically true "Nhiều Lá nhất / Lá rẻ nhất").
-- Testimonials that are not real, consented user reviews (illegal as fake reviews).
 - Lottery/"trúng đậm" article titles, "khoa học/chính xác" claims.
 - Payment guide made of bank-logo walls.
 
