@@ -182,11 +182,15 @@ export function ZiweiFreeResult({
 
   const engagementRef = useRef(createEngagementReporter(recordEngagement));
   const viewRef = useRef(view);
-  viewRef.current = view;
-  // The server only decides the first view; later prop changes (e.g. a refresh) must not drop an open sheet.
-  useEffect(() => {
-    setView((current) => current.tab === initialState.tab && current.open === initialState.open ? current : initialState);
-  }, [initialState]);
+  useEffect(() => { viewRef.current = view; }, [view]);
+  // The server only decides the first view; a later prop change (e.g. a refresh) re-syncs tab/open
+  // but must not drop an open sheet.
+  const initialKey = `${initialState.tab}|${initialState.open ?? ""}`;
+  const [syncedKey, setSyncedKey] = useState(initialKey);
+  if (syncedKey !== initialKey) {
+    setSyncedKey(initialKey);
+    if (view.tab !== initialState.tab || view.open !== initialState.open) setView(initialState);
+  }
   useEffect(() => {
     // Back, Forward and shared links: rebuild the view from the address bar plus the sheet marker.
     const onPopState = () => setView(readResultView(window.location.search, window.history.state));

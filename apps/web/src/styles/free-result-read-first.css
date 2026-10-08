@@ -211,7 +211,7 @@ html:not([data-theme="light"]) .fd109 .ziwei-board-center::after {
 .fd109 .fd109-sheet-detail-toggle { width: 100%; min-height: 48px; border: 0; background: transparent; text-align: left; padding: 0 4px; font-weight: 600; font-size: 16px; display: flex; align-items: center; justify-content: space-between; }
 .fd109-sheet-detail-toggle::after { content: "▴"; font-size: 14px; }
 .fd109-sheet-detail[data-open="true"] .fd109-sheet-detail-toggle::after { content: "▾"; }
-.fd109-sheet-detail-body { display: none; max-height: 42dvh; overflow: auto; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.fd109-sheet-detail-body { display: none; max-height: 36dvh; overflow: auto; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
 .fd109-sheet-detail[data-open="true"] .fd109-sheet-detail-body { display: block; }
 .fd109-sheet-detail .ziwei-detail-inspector { padding: 14px 4px; border: 0; background: transparent; gap: 14px; }
 .fd109-sheet-detail .inspector-relations-grid, .fd109-sheet-detail .inspector-stars-breakdown { grid-template-columns: 1fr; gap: 10px; }
