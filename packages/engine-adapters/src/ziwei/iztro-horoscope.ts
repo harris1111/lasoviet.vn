@@ -14,6 +14,7 @@ import type {
 
 import { iztroGender, iztroTimeIndex } from "./iztro-adapter.js";
 import { branchIds, palaceIds } from "./iztro-mapping.js";
+import { computedMonthlyAttention } from "./monthly-attention.js";
 
 const STEM_NAMES_VI: Record<string, string> = {
   jia: "Giáp",
@@ -193,7 +194,7 @@ export function calculateZiweiHoroscope(
   const annualPalaceId = annualPalaceObj ? palaceIds[annualPalaceObj.name] : undefined;
   const annualPalaceName = annualPalaceObj ? PALACE_NAMES_VI[annualPalaceObj.name] : undefined;
   if (!annualPalaceId || !annualPalaceName) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
-  const monthlyList = astrolabe.monthlyList(targetYear);
+  const monthlyList = astrolabe.monthlyList(targetYear).filter(period => !period.isLeapMonth);
 
   // Lunar age (Tuổi âm)
   const birthYear = astrolabe.rawDates.lunarDate.lunarYear;
@@ -205,7 +206,7 @@ export function calculateZiweiHoroscope(
 
   for (let i = 0; i < monthlyList.length; i++) {
     const m = monthlyList[i]!;
-    const monthIndex = i + 1;
+    const monthIndex = m.month;
     const palaceObj = astrolabe.palaces[m.index];
     const palaceId = palaceObj ? palaceIds[palaceObj.name] : "ziwei.palace.life";
     const palaceName = palaceObj ? PALACE_NAMES_VI[palaceObj.name] : "Mệnh";
@@ -217,29 +218,13 @@ export function calculateZiweiHoroscope(
       `annual.month.${monthIndex}.branch.${branchIds[m.earthlyBranch] || m.earthlyBranch}`,
     ];
 
-    // Sát tinh & Kỵ tinh
-    const natalMajorAffliction = palaceObj?.majorStars.some((s) => {
-      const mutagenStr = s.mutagen as string | undefined;
-      const brightnessStr = s.brightness as string | undefined;
-      return mutagenStr === "obstacle" || mutagenStr === "忌" || brightnessStr === "trap" || brightnessStr === "陷";
+    if (!palaceObj || !palaceId || !palaceName) throw new Error("HOROSCOPE_MONTHLY_MAPPING_INVALID");
+    const attention = computedMonthlyAttention({
+      stars: [...palaceObj.majorStars, ...palaceObj.minorStars], monthlyMutagen: m.mutagen, annualMutagen: yearly.mutagen,
     });
-    const natalMinorSát = palaceObj?.minorStars.some((s) =>
-      ["driven", "tangled", "impulsive", "spark", "ideologue", "fickle", "擎羊", "陀罗", "火星", "铃星", "地空", "地劫"].includes(s.name)
-    );
-
-    // Monthly mutagen obstacle
-    const monthlyKỵStar = m.mutagen[3];
-    const isMonthlyKỵInPalace = palaceObj?.majorStars.some((s) => s.name === monthlyKỵStar);
-
-    // Yearly mutagen obstacle
-    const yearlyKỵStar = yearly.mutagen[3];
-    const isYearlyKỵInPalace = palaceObj?.majorStars.some((s) => s.name === yearlyKỵStar);
-
-    // Monthly stars in palace
-    const monthlyStarsInPalace = Array.isArray(m.stars) && m.stars[m.index] ? m.stars[m.index]! : [];
-    const hasMonthlySát = monthlyStarsInPalace.some((s) =>
-      ["driven(M)", "tangled(M)", "月羊", "月陀"].includes(s.name)
-    );
+    const natalMinorSát = palaceObj.minorStars.some(star =>
+      ["driven", "tangled", "impulsive", "spark", "ideologue", "fickle"].includes(star.name));
+    const monthlyStarsInPalace = m.stars?.[m.index] ?? [];
 
     // Auspicious stars
     const monthlyLộcStar = m.mutagen[0];
@@ -267,13 +252,13 @@ export function calculateZiweiHoroscope(
       primaryFocus = "công việc";
     }
 
-    if (isMonthlyKỵInPalace || isYearlyKỵInPalace || (hasMonthlySát && (natalMajorAffliction || natalMinorSát))) {
+    if (attention.warn) {
       marker = "warn";
       focusSet.add(primaryFocus);
       evidenceKeys.push(`annual.month.${monthIndex}.marker.warn`);
-      if (isMonthlyKỵInPalace) evidenceKeys.push(`annual.month.${monthIndex}.evidence.monthly-hua-ji`);
-      if (isYearlyKỵInPalace) evidenceKeys.push(`annual.month.${monthIndex}.evidence.yearly-hua-ji`);
-      if (hasMonthlySát) evidenceKeys.push(`annual.month.${monthIndex}.evidence.monthly-sat-star`);
+      for (const reason of attention.reasons) {
+        evidenceKeys.push(`annual.month.${monthIndex}.obstacle.${reason.scope}.${reason.starId}`);
+      }
 
       if (primaryFocus === "tiền bạc") {
         prepText = "Tháng cần đặc biệt chú ý chi tiêu và bảo toàn tài chính, tránh cho vay mượn hoặc đầu tư mạo hiểm.";
@@ -312,33 +297,13 @@ export function calculateZiweiHoroscope(
     });
   }
 
-  // Ensure realistic distribution if chart has no strict warnings (minimum 1 warn month)
-  const warnCount = months.filter((m) => m.marker === "warn").length;
-  if (warnCount === 0 && months.length === 12) {
-    const targetIdx = 6;
-    const m = months[targetIdx]!;
-    m.marker = "warn";
-    m.isLocked = !isUnlocked;
-    m.monthNumberDisplay = !isUnlocked ? "?" : String(m.monthIndex);
-    m.label = !isUnlocked ? "Tháng hạn, mở để xem" : `Tháng ${m.monthIndex}`;
-    m.primaryFocus = "tiền bạc";
-    focusSet.add("tiền bạc");
-    m.evidenceKeys.push(`annual.month.${m.monthIndex}.marker.warn`);
-    if (!m.isLocked) {
-      m.preparationText = "Tháng cần lưu ý cân đối tài chính và giữ bình tĩnh trước các quyết định phát sinh.";
-    }
-  }
-
   const finalWarnCount = months.filter((m) => m.marker === "warn").length;
   const favorableCount = months.filter((m) => m.marker === "good").length;
   const neutralCount = 12 - finalWarnCount - favorableCount;
 
   const focusAreas = Array.from(focusSet);
-  if (focusAreas.length === 0) {
-    focusAreas.push("tiền bạc", "giấy tờ");
-  }
-
-  const summary = `Năm nay có ${finalWarnCount} tháng cần chú ý và ${favorableCount} tháng thuận. Tháng hạn rơi vào chuyện ${focusAreas.join(" và ")}.`;
+  const summary = `Năm nay có ${finalWarnCount} tháng cần chú ý và ${favorableCount} tháng thuận.` +
+    (focusAreas.length ? ` Các tháng cần chú ý liên quan tới ${focusAreas.join(" và ")}.` : "");
 
   const yearlyHan: ZiweiYearlyHanV1 = {
     targetYear,
@@ -384,7 +349,7 @@ export function calculateZiweiHoroscope(
   const touchedPalaceId = (touchedPalaceObj ? palaceIds[touchedPalaceObj.name] : undefined) || "ziwei.palace.children";
   const touchedPalaceName = (touchedPalaceObj ? PALACE_NAMES_VI[touchedPalaceObj.name] : undefined) || "Tử Tức";
 
-  const headline = `Ngày ${dayStemBranch} chạm cung ${touchedPalaceName} của bạn. Mở mỗi sáng trong gói Hội viên.`;
+  const headline = `Ngày ${dayStemBranch} chạm cung ${touchedPalaceName} của bạn.`;
 
   const dailyHoroscope: ZiweiDailyHoroscopeV1 = {
     solarDate: asOfDate,
