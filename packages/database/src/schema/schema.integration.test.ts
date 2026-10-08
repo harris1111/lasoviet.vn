@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import postgres from "postgres";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -80,8 +80,23 @@ describe("database schema integration", () => {
     | undefined;
   let databaseUrl: string;
 
+  async function synchronizeWalletFixtureLots(transaction: Pick<ReturnType<typeof createDatabase>, "execute">, walletId: string): Promise<void> {
+    // Raw SQL fixtures post both the immutable events and their lot balance.
+    // Recognition inputs stay independently specified by each test.
+    await transaction.execute(sql`update wallet_credit_lots lot set remaining_la = granted_la - coalesce((
+      select sum(allocation.amount_la - case when restoration.id is null then 0
+        else coalesce(restoration.amount_la, allocation.amount_la) end)
+      from wallet_spend_allocations allocation left join wallet_restoration_allocations restoration
+        on restoration.spend_allocation_id = allocation.id where allocation.credit_lot_id = lot.id
+    ), 0) where lot.wallet_id = ${walletId}::uuid`);
+  }
+
   async function removeFrozenPurchaseTermsForRewind(client: ReturnType<typeof postgres>): Promise<void> {
     // Ephemeral historical-schema fixtures must remove later immutable authority.
+    await client`DROP FUNCTION IF EXISTS enforce_wallet_restoration_amounts() CASCADE`;
+    await client`DROP FUNCTION IF EXISTS enforce_wallet_lot_consumption() CASCADE`;
+    await client`ALTER TABLE wallet_restoration_allocations DROP COLUMN IF EXISTS amount_la CASCADE`;
+    await client`ALTER TABLE wallet_restoration_allocations DROP COLUMN IF EXISTS reversed_vnd CASCADE`;
     await client`DROP FUNCTION IF EXISTS protect_wallet_purchase_commercial_terms() CASCADE`;
     await client`ALTER TABLE wallet_purchase_intents DROP COLUMN IF EXISTS commercial_terms CASCADE`;
   }
@@ -778,6 +793,7 @@ describe("database schema integration", () => {
         purchasedLa: 240,
         recognizedVnd: 1,
       });
+      await synchronizeWalletFixtureLots(transaction, walletId);
     })).rejects.toBeDefined();
     await database.transaction(async (transaction) => {
       await transaction.insert(walletTransactions).values({
@@ -832,6 +848,7 @@ describe("database schema integration", () => {
         bucket: "purchased",
         amountLa: -240,
       });
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
     await expect(database.insert(walletCommandReceipts).values({
       walletId,
@@ -1009,6 +1026,7 @@ describe("database schema integration", () => {
         bucket: "purchased",
         amountLa: 240,
       });
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     await expect(database.insert(walletLedgerEntries).values({
@@ -1032,7 +1050,7 @@ describe("database schema integration", () => {
     }
     await expect(database.update(walletCreditLots).set({ remainingLa: 60 }).where(
       eq(walletCreditLots.id, lotId),
-    )).resolves.toBeDefined();
+    )).rejects.toBeDefined();
 
     const entries = await database.select({
       transactionId: walletLedgerEntries.transactionId,
@@ -1456,6 +1474,7 @@ describe("database schema integration", () => {
         bucket: "promotional",
         amountLa: 300,
       });
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     for (const [amountLa, intentId, spendId] of [
@@ -1493,7 +1512,8 @@ describe("database schema integration", () => {
           bucket: "promotional",
           amountLa: -amountLa,
         });
-      })).rejects.toBeDefined();
+        await synchronizeWalletFixtureLots(transaction, walletId);
+    })).rejects.toBeDefined();
     }
 
     const intentId = "40000000-0000-4000-8000-000000000007";
@@ -1538,6 +1558,7 @@ describe("database schema integration", () => {
         { transactionId: spendId, bucket: "promotional", amountLa: -60 },
         { transactionId: spendId, bucket: "purchased", amountLa: -180 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
   });
 
@@ -1596,7 +1617,8 @@ describe("database schema integration", () => {
           bucket: allocation.bucket,
           amountLa: -allocation.amountLa,
         })));
-      });
+        await synchronizeWalletFixtureLots(transaction, walletId);
+    });
       return spendId;
     };
 
@@ -1668,6 +1690,7 @@ describe("database schema integration", () => {
         { transactionId: purchasedGrantId, bucket: "promotional", amountLa: 2000 },
         { transactionId: controlledPromotionalGrantId, bucket: "promotional", amountLa: 160 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     for (let index = 0; index < 8; index += 1) {
@@ -1860,6 +1883,7 @@ describe("database schema integration", () => {
         { transactionId: purchasedGrantId, bucket: "promotional", amountLa: 2000 },
         { transactionId: promotionalGrantId, bucket: "promotional", amountLa: 720 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     const insertOneLaSpend = async (
@@ -1909,6 +1933,7 @@ describe("database schema integration", () => {
         { transactionId: spendId, bucket: "purchased", amountLa: -1 },
         { transactionId: spendId, bucket: "promotional", amountLa: -239 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     await insertOneLaSpend(firstIntentId, firstSpendId, 99, firstPurchasedAllocationId);
@@ -1937,6 +1962,7 @@ describe("database schema integration", () => {
         { transactionId: restorationId, bucket: "purchased", amountLa: 1 },
         { transactionId: restorationId, bucket: "promotional", amountLa: 239 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     const activeBeforeThirdSpend = await database.select({
@@ -1996,6 +2022,7 @@ describe("database schema integration", () => {
         { transactionId: thirdSpendId, bucket: "purchased", amountLa: -1 },
         { transactionId: thirdSpendId, bucket: "promotional", amountLa: -239 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     const purchasedAllocations = await database.select({
@@ -2144,6 +2171,7 @@ describe("database schema integration", () => {
         { transactionId: spendId, bucket: "purchased", amountLa: -180 },
         { transactionId: spendId, bucket: "promotional", amountLa: -60 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     await expect(database.transaction(async (transaction) => {
@@ -2164,6 +2192,7 @@ describe("database schema integration", () => {
         bucket: "promotional",
         amountLa: 60,
       });
+      await synchronizeWalletFixtureLots(transaction, walletId);
     })).rejects.toBeDefined();
     await expect(database.select().from(walletTransactions).where(
       eq(walletTransactions.id, partialRestorationId),
@@ -2192,6 +2221,7 @@ describe("database schema integration", () => {
         { transactionId: completeRestorationId, bucket: "purchased", amountLa: 180 },
         { transactionId: completeRestorationId, bucket: "promotional", amountLa: 60 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     const restorationEntries = await database.select({
@@ -2245,6 +2275,7 @@ describe("database schema integration", () => {
         { transactionId: respendId, bucket: "purchased", amountLa: -180 },
         { transactionId: respendId, bucket: "promotional", amountLa: -60 },
       ]);
+      await synchronizeWalletFixtureLots(transaction, walletId);
     });
 
     const activePurchasedAllocations = await database.select({
