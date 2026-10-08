@@ -75,7 +75,8 @@ button { cursor: pointer; }
 /* Whole-card click area: put .stretched-target on the card's single primary control and .stretched-card on the card.
    Secondary controls inside the card get .stretched-above so they stay clickable. */
 .stretched-card { position: relative; }
-.stretched-target::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+/* :not([aria-busy]) keeps this overlay from colliding with the busy spinner, which also uses .button::after. */
+.stretched-target:not([aria-busy])::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 .stretched-above { position: relative; z-index: 1; }
 .button-small { min-height: 44px; padding-inline: 19px; font-size: 14px; }
 .mobile-menu { display: none; }
@@ -201,6 +202,14 @@ html[data-theme="light"]:has([data-light-ready]) .button-secondary {
 html[data-theme="light"]:has([data-light-ready]) .button-secondary:hover {
   border-color: var(--gold-800);
   color: var(--gold-800);
+}
+
+/* Locked controls must stay visibly locked in the light theme: this outranks the light .button-secondary rules above. */
+html[data-theme="light"]:has([data-light-ready]) .button:disabled,
+html[data-theme="light"]:has([data-light-ready]) .button[aria-disabled="true"] {
+  background: var(--lacquer-700);
+  color: var(--pearl-300);
+  border: 1px dashed var(--pearl-500);
 }
 
 html[data-theme="light"]:has([data-light-ready]) .result-paid-report-cta,
