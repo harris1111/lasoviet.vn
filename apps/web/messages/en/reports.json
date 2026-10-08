@@ -132,6 +132,7 @@
     "ladderDescription": "Buy one palace or the full chart reading. Eligible individual purchases count toward your upgrade within 7 days.",
     "ladderScore": "Structural strength: {score}/100",
     "ladderSelect": "Select this reading",
+    "ladderSelected": "Selected",
     "ladderBalance": "Balance: {balance} Lá",
     "inlinePackLabel": "Choose a Lá pack",
     "inlinePackBonus": "+{bonus} bonus Lá",

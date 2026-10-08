@@ -73,6 +73,8 @@
   transition: all var(--motion-standard) ease;
 }
 
+.seg3 button:active { transform: scale(.98); }
+
 .seg3 button:hover {
   color: var(--pearl-50);
 }
@@ -280,6 +282,8 @@
   text-align: left;
   transition: border-color var(--motion-standard), box-shadow var(--motion-standard);
 }
+
+.pack-card:active { transform: scale(.99); }
 
 .pack-card:hover {
   border-color: var(--pearl-600);

@@ -27,9 +27,9 @@ export function MembershipPanel({ locale }: { locale: "vi" | "en" }) {
     return () => { active = false; };
   }, [revision]);
   return <div className="pack-note" aria-label={t("title")}>
-    <p role="status">{failed ? t("error") : !status ? (signedOut ? t("signIn") : t("loading")) : status.active && status.expiresAt ? t("activeUntil", { date: new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium" }).format(new Date(status.expiresAt)) }) : t("inactive")}</p>
+    {!(signedOut && !status && !failed) && <p role="status">{failed ? t("error") : !status ? t("loading") : status.active && status.expiresAt ? t("activeUntil", { date: new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "medium" }).format(new Date(status.expiresAt)) }) : t("inactive")}</p>}
     <p>{t("manualRenewal")}</p><p>{t(status?.benefits?.monthly ? "benefitsMonthlyEnabled" : "benefitsPending")}</p>
-    {signedOut && <a href={`${locale === "en" ? "/en" : ""}/dang-nhap?callbackURL=${encodeURIComponent(`${locale === "en" ? "/en" : ""}/nap-la?tab=hoi-vien`)}`}>{t("signIn")}</a>}
+    {signedOut && !status && <a className="button" href={`${locale === "en" ? "/en" : ""}/dang-nhap?callbackURL=${encodeURIComponent(`${locale === "en" ? "/en" : ""}/nap-la?tab=hoi-vien`)}`}>{t("signIn")}</a>}
     {status?.plans.filter((plan) => plan.available).map((plan) => <button type="button" className="button" key={plan.sku} onClick={() => setSelected(plan)}>{t(status.active ? "renew" : "purchase", { price: plan.priceLa, days: plan.days })}</button>)}
     {selected && <WalletUnlockDialog open chartId="membership" chartVersionId="membership" sku={selected.sku} locale={locale}
       itemName={t(selected.sku === "MEMBERSHIP-MONTHLY-P0" ? "monthly" : "yearly")}
