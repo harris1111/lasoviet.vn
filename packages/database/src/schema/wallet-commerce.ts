@@ -89,10 +89,13 @@ export const walletRestorationAllocations = pgTable("wallet_restoration_allocati
   id: uuid("id").defaultRandom().primaryKey(),
   restorationTransactionId: uuid("restoration_transaction_id").notNull().references(() => walletTransactions.id, { onDelete: "restrict" }),
   spendAllocationId: uuid("spend_allocation_id").notNull().references(() => walletSpendAllocations.id, { onDelete: "restrict" }),
+  amountLa: integer("amount_la"),
+  reversedVnd: integer("reversed_vnd"),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex("wallet_restoration_allocations_restoration_allocation_unique").on(table.restorationTransactionId, table.spendAllocationId),
   uniqueIndex("wallet_restoration_allocations_spend_allocation_unique").on(table.spendAllocationId),
+  check("wallet_restoration_allocations_amounts_valid", sql`(${table.amountLa} IS NULL AND ${table.reversedVnd} IS NULL) OR (${table.amountLa} IS NOT NULL AND ${table.reversedVnd} IS NOT NULL AND ${table.amountLa} > 0 AND ${table.reversedVnd} >= 0)`),
 ]);
 
 export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
