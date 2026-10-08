@@ -32,7 +32,7 @@ Allowed files: the pending-top-up capture service, a new recovery email renderer
 
 A durable outbound queue/claim-cap adapter, consent/ownership recheck immediately before SMTP, operator stop wiring and the controlled SMTP acceptance remain to be implemented/reviewed. This patch only completes reusable template/capture preparation. The owner does not need to revisit model/API/pricing decisions.
 
-## Evidence
+## Previous-session evidence
 
 - Focused renderer/preference/SMTP-adapter/disabled-mode verification: **36 tests passed** across four files. The SMTP adapter tests use injected transport doubles; no real email was sent.
 - Independent reviewer: **GO for local template/capture preparation**, with 29 independently rerun renderer/preference/SMTP tests passing. This is not a merge/deployment GO.
@@ -40,3 +40,10 @@ A durable outbound queue/claim-cap adapter, consent/ownership recheck immediatel
 - Isolated PostgreSQL regression: **not run** because Docker API access was denied at `/var/run/docker.sock`; the capture regression now asserts both text and HTML links, but those integration assertions still require execution before merge.
 - The compiled renderer produced a standalone VI/EN preview with synthetic data and disabled clickable actions: `/tmp/lsv79-recovery-email-preview-20261007.html`. No provider call, queue delivery or customer data was used.
 - GitHub API access is unavailable and Kaneo refuses even reads under the current approval policy. Branch publication, PR/CI, deployment, published smoke and task updates remain pending. No task closure is claimed.
+
+## Restored-session evidence (2026-10-08)
+
+- Restored the portable patch onto dedicated branch `feature/lsv79-email-preparation-20261008`, based on refreshed master `220c76e3ab86c0d7fe3ddfc6106199dc5d56be5a`. GitHub push access, Docker and Kaneo task reads/writes now work. The previous access failures above are historical.
+- Producer builds passed. Renderer, signed preference and isolated PostgreSQL capture regression: **59 tests passed across three files**, including text/HTML link assertions, atomic capture/replay, opt-out, deletion, locks and caps. PostgreSQL used the test-owned `postgres:17-alpine` container; no production data or SMTP provider was used.
+- Independent reviewer repeated renderer/preference/SMTP-adapter tests: **29 passed**, with code/decision GO for this bounded milestone. Final CI, deployment and published-image smoke remain separate release gates.
+- LSV-85 (`g6cfpphfhrmhsfci2s9vpvsr`) retains actual outbound/annual/revenue acceptance and is blocked by LSV-79 preparation plus LSV-63 quality. LSV-79 remains In Progress; this patch does not complete its durable send queue, pre-send recheck, caps or emergency-stop implementation.
