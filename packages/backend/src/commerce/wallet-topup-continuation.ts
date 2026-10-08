@@ -1,3 +1,4 @@
+import { readPurchaseCommercialTerms } from "./purchase-commercial-terms.js";
 import { enqueueCommittedTopUpUnlock } from "./wallet-topup-unlock-event.js";
 import { and, eq, isNull } from "drizzle-orm";
 import {
@@ -17,7 +18,7 @@ export async function validateTopUpContinuation(database: Database, ownerId: str
   const parsed = WalletTopUpContinuationRequestV1Schema.safeParse(value);
   if (!parsed.success) return null;
   const request = parsed.data;
-  const [intent] = await database.select({ id: walletPurchaseIntents.id }).from(walletPurchaseIntents)
+  const [intent] = await database.select({ intent: walletPurchaseIntents }).from(walletPurchaseIntents)
     .innerJoin(ziweiCharts, eq(ziweiCharts.id, walletPurchaseIntents.chartId))
     .innerJoin(birthProfiles, and(eq(birthProfiles.id, ziweiCharts.profileId), eq(birthProfiles.userId, ownerId), isNull(birthProfiles.deletedAt)))
     .where(and(
@@ -25,7 +26,7 @@ export async function validateTopUpContinuation(database: Database, ownerId: str
       eq(walletPurchaseIntents.locale, locale), eq(walletPurchaseIntents.status, "pending"),
       eq(walletPurchaseIntents.stateVersion, request.expectedIntentVersion), eq(walletPurchaseIntents.priceLa, request.confirmedPriceLa),
     )).limit(1);
-  return intent ? request : null;
+  return intent && readPurchaseCommercialTerms(intent.intent) ? request : null;
 }
 
 export function matchesTopUpContinuation(row: typeof walletTopUpContinuations.$inferSelect | undefined, request: WalletTopUpContinuationRequestV1 | undefined) {
@@ -49,7 +50,7 @@ export async function completeTopUpContinuation(database: Database, orderId: str
       const [deletion] = await transaction.select({status: deletionRequests.status}).from(deletionRequests).where(eq(deletionRequests.userId, ownerId)).limit(1);
       if (deletion?.status === "purged") throw new ContinuationBlocked("WALLET_ACCOUNT_INELIGIBLE");
       const [intent] = await transaction.select().from(walletPurchaseIntents).where(and(eq(walletPurchaseIntents.id, continuation.purchaseIntentId), eq(walletPurchaseIntents.ownerId, ownerId))).limit(1);
-      if (!intent || intent.status !== "pending" || intent.stateVersion !== continuation.intentStateVersion || intent.priceLa !== continuation.confirmedPriceLa) throw new ContinuationBlocked("INTENT_TERMS_CHANGED");
+      if (!intent || !readPurchaseCommercialTerms(intent) || intent.status !== "pending" || intent.stateVersion !== continuation.intentStateVersion || intent.priceLa !== continuation.confirmedPriceLa) throw new ContinuationBlocked("INTENT_TERMS_CHANGED");
       const [account] = await transaction.select().from(walletAccounts).where(eq(walletAccounts.ownerId, ownerId)).limit(1);
       if (!account) throw new ContinuationBlocked("WALLET_UNAVAILABLE");
       const service = createWalletUnlockService(transaction, createWalletService(createDatabaseWalletRepository(transaction, { now })), options);

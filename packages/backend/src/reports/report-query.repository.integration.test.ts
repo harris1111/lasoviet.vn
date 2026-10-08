@@ -642,9 +642,9 @@ describe("report query repository wallet authority", () => {
       .where(eq(ziweiCharts.id, owner.chartId));
 
     const alternate = await addAlternateChart(owner);
-    await database.update(walletPurchaseIntents).set({
+    await expect(database.update(walletPurchaseIntents).set({
       chartVersionId: alternate.chartVersionId,
-    }).where(eq(walletPurchaseIntents.id, wallet.intentId));
+    }).where(eq(walletPurchaseIntents.id, wallet.intentId))).rejects.toThrow();
     await database.update(reportReservations).set({
       chartVersionId: alternate.chartVersionId,
       evidenceVersionId: alternate.evidenceId,

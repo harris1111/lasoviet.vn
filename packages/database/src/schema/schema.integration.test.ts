@@ -80,6 +80,12 @@ describe("database schema integration", () => {
     | undefined;
   let databaseUrl: string;
 
+  async function removeFrozenPurchaseTermsForRewind(client: ReturnType<typeof postgres>): Promise<void> {
+    // Ephemeral historical-schema fixtures must remove later immutable authority.
+    await client`DROP FUNCTION IF EXISTS protect_wallet_purchase_commercial_terms() CASCADE`;
+    await client`ALTER TABLE wallet_purchase_intents DROP COLUMN IF EXISTS commercial_terms CASCADE`;
+  }
+
   async function removeClaudePricingForRewind(
     client: ReturnType<typeof postgres>,
   ): Promise<void> {
@@ -210,6 +216,7 @@ describe("database schema integration", () => {
     const checkpointId = "62000000-0000-4000-8000-000000000001";
     const candidateId = "62000000-0000-4000-8000-000000000002";
     try {
+      await removeFrozenPurchaseTermsForRewind(client);
       await client`
         ALTER TABLE report_section_quality_candidates
         DROP COLUMN terminal_findings
@@ -538,6 +545,7 @@ describe("database schema integration", () => {
     });
 
     try {
+      await removeFrozenPurchaseTermsForRewind(client);
       await client`
         ALTER TABLE wallet_purchase_intents
         DROP CONSTRAINT wallet_purchase_intents_valid
@@ -3487,6 +3495,7 @@ describe("database schema integration", () => {
     const eventId = "checkpoint-upgrade-event";
 
     try {
+    await removeFrozenPurchaseTermsForRewind(client);
     await database.insert(authUsers).values({
       id: userId,
       name: "Checkpoint Upgrade User",
