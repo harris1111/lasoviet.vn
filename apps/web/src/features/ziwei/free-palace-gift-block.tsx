@@ -33,7 +33,7 @@ export function FreePalaceGiftBlock({ gift, chartId, locale, remainingPalaces, s
   );
   return (
     <section className="fd109-gift fd109-palace-gift" data-free-result-block="gift" data-palace-id={gift.palaceId} data-testid="fd109-palace-gift">
-      <p className="eyebrow">06 · {t("freeResult.giftEyebrow")} · {gift.palaceName}</p>
+      <p className="eyebrow">{t("freeResult.giftEyebrow")} · {gift.palaceName}</p>
       <h2>{gift.title}</h2>
       {score}
       <p className="fd109-gift-conclusion">{gift.conclusion}</p>
