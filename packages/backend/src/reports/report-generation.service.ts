@@ -1367,7 +1367,8 @@ export function createReportGenerationService(
       if (!isPeriodReportTuple(payload) || job.name !== "report.generate.v2" || !facts ||
           facts.kind !== periodKind || facts.chartVersionId !== payload.chartVersionId ||
           facts.asOfDate !== ("asOfDate" in payload ? payload.asOfDate : null) || facts.periodKey !== source.paidPeriodKey ||
-          (periodKind === "annual" && (facts.targetYear !== 2026 || facts.periodKey !== "2026"))) {
+          (periodKind === "annual" && (facts.targetYear !== ("targetYear" in payload ? payload.targetYear : null) || facts.periodKey !== String(facts.targetYear) ||
+            (payload.sku === "ZIWEI-YEAR-2026-P0" && facts.targetYear !== 2026)))) {
         return failAttempt("REPORT_EVIDENCE_INVALID", false);
       }
       let blocked: Awaited<ReturnType<typeof lifecycleFence>> = null;
