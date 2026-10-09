@@ -96,6 +96,11 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi"], category: "topic", qualifiesForRollover: false, availability: "reserved",
   },
   {
+    sku: "ZIWEI-FAMILY-CHILDREN-P0", priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
+    name: {vi: "Gia đạo và con cái", en: "Family and children"},
+    locales: ["vi"], category: "topic", qualifiesForRollover: false, availability: "reserved",
+  },
+  {
     sku: "ZIWEI-CAREER-P0",
     priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
     name: { vi: "Công việc và tài lộc", en: "Career and wealth" },
@@ -345,6 +350,7 @@ export const LaSkuSchema = z.enum([
   "ZIWEI-CAREER-P0",
   "ZIWEI-BUSINESS-P0",
   "ZIWEI-CAREER-TRANSITION-P0",
+  "ZIWEI-FAMILY-CHILDREN-P0",
   "ZIWEI-PALACE-LIFE-P0",
   "ZIWEI-PALACE-SIBLINGS-P0",
   "ZIWEI-PALACE-SPOUSE-P0",

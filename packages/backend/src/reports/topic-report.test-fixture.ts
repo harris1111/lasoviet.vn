@@ -352,3 +352,35 @@ export function makeCareerTransitionContentFixture(facts: ReturnType<typeof buil
   content.thematicDimensions[1]={...content.thematicDimensions[1]!,key:"transition_resources",title:"Chuẩn bị nguồn lực cho thay đổi"};
   return content;
 }
+
+/** Synthetic family mechanics with literal scoped facts, not interpretation acceptance. */
+export function makeFamilyChildrenContentFixture(facts: ReturnType<typeof buildFactsFixture>): ZiweiTopicDeepDiveContentV1 {
+  const keyFor = (palace: string) => {
+    const key = facts.evidence.items.find(item => item.dimension === "natal" && item.sourceKeys.includes(palace))?.key;
+    if (!key) throw new Error("Missing actual family palace evidence"); return key;
+  };
+  const children = keyFor("ziwei.palace.children"), property = keyFor("ziwei.palace.property"), fortune = keyFor("ziwei.palace.fortune");
+  const decadal = facts.evidence.items.find(item => item.dimension === "decadal")?.key;
+  const wenqu = facts.evidence.items.find(item => item.dimension === "natal" && item.sourceKeys.includes("ziwei.star.wenqu"))?.key;
+  if (!decadal || !wenqu) throw new Error("Missing actual family star/decadal evidence");
+  const childText = "cung Tử Tức không có chính tinh và có Văn Khúc trong bộ dữ kiện này. Khi suy nghĩ về trách nhiệm chăm sóc, bạn có thể bắt đầu bằng cách trao đổi rõ điều mình có thể hỗ trợ và điều cần thêm thời gian chuẩn bị. Hãy lắng nghe nhu cầu của người thân, tách mong đợi của mình khỏi điều người khác muốn và thống nhất cách hỏi lại khi chưa hiểu. Cung này là một điểm nhìn để cân nhắc sự phối hợp, không xác định hoàn cảnh gia đình thực tế của bạn.";
+  const propertyText = "cung Điền Trạch không có chính tinh và có Văn Khúc trong phần dữ kiện được cung cấp. Không gian sống có thể được xem như nơi cần sự rõ ràng về cách dùng đồ chung, giữ riêng tư và chia sẻ việc thường ngày. Nếu bạn đang cân nhắc ở cùng người thân, hãy ghi ra các điều kiện về thời gian, trách nhiệm và chỗ nghỉ ngơi trước khi bàn phương án. Những câu hỏi này giúp việc trao đổi có điểm tựa thực tế; cung Điền Trạch không cung cấp một lịch chuyển nhà hay dự báo giá nhà.";
+  const shared = "cung Phúc Đức có Văn Khúc trong dữ kiện hiện có, còn cung Tử Tức và cung Điền Trạch gợi hai điểm nhìn khác nhau về việc chăm sóc và không gian sống. Bạn có thể chọn một việc chung cần làm rõ, hỏi người liên quan xem điều gì đang thuận và điều gì cần điều chỉnh. Sau đó ghi lại cách phân chia trách nhiệm phù hợp với nguồn lực thực tế. Đây là đề nghị để trao đổi khi tình huống phù hợp, không khẳng định rằng gia đình bạn đã trải qua một sự kiện cụ thể.";
+  return { topicId: "family_children", title: "Luận giải chuyên sâu Gia đạo và con cái",
+    overview: {title: "Chăm sóc và không gian sống chung", narrative: `${childText} ${propertyText}`, evidenceKeys: [children, property, wenqu]},
+    palaceAnchors: [
+      {palaceId: "ziwei.palace.children", title: "Cung Tử Tức: phối hợp trách nhiệm chăm sóc", narrative: childText, evidenceKeys: [children]},
+      {palaceId: "ziwei.palace.property", title: "Cung Điền Trạch: không gian và việc chung", narrative: propertyText, evidenceKeys: [property]},
+    ],
+    thematicDimensions: [
+      {key: "caregiving_communication", title: "Trao đổi về cách hỗ trợ", narrative: shared, evidenceKeys: [children, property, fortune]},
+      {key: "household_boundaries", title: "Thống nhất ranh giới trong không gian chung", narrative: `${propertyText} ${shared}`, evidenceKeys: [children, property, fortune]},
+    ],
+    decadalTiming: {title: "Chặng hiện hành và cách chuẩn bị", state: "active", index: 2, ageRange: [24, 33], yearRange: [2024, 2033],
+      palaceId: "ziwei.palace.fortune", narrative: `Đại vận 24–33 tuổi, từ năm 2024 đến năm 2033, đang ở cung Phúc Đức trong bộ dữ kiện. Khoảng thời gian này là mốc của chặng được tính, không phải lịch của một sự kiện gia đình. ${shared}`, evidenceKeys: [decadal, fortune, children, property]},
+    actions: [
+      {recommendation: "Chọn một việc chăm sóc cần trao đổi và hỏi rõ người liên quan đang cần hỗ trợ thế nào.", rationale: "Đặt câu hỏi cụ thể giúp tách mong đợi cá nhân khỏi trách nhiệm có thể thực hiện.", avoid: "Tránh tự xác định nhu cầu của người khác khi chưa hỏi lại.", evidenceKeys: [children]},
+      {recommendation: "Ghi lại cách dùng không gian và đồ chung trước khi thống nhất một phương án ở cùng.", rationale: "cung Điền Trạch là điểm nhìn về không gian sống; điều kiện thực tế cần được kiểm tra riêng.", avoid: "Tránh nhận trách nhiệm vượt thời gian hoặc nguồn lực mình có.", evidenceKeys: [property]},
+      {recommendation: "Dành một buổi trao đổi ngắn để hỏi điều nào trong việc chung cần điều chỉnh.", rationale: "Thỏa thuận có thể được cập nhật theo nhu cầu thực tế, thay vì suy đoán hoàn cảnh của nhau.", avoid: "Tránh dùng một nhận định từ lá số thay cho cuộc trao đổi trực tiếp.", evidenceKeys: [fortune]},
+    ] };
+}

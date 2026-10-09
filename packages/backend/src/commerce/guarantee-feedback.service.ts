@@ -347,7 +347,7 @@ export function createGuaranteeFeedbackService(
 
       const isPeriod = periodKindForSku(parsed.data.partId.toUpperCase()) !== null;
       const topicId = topicIdForSku(parsed.data.partId.toUpperCase());
-      const requiresTopicReport = topicId === "business_enterprise" || topicId === "career_transition";
+      const requiresTopicReport = ["business_enterprise", "career_transition", "family_children"].includes(topicId ?? "");
       const isReportScoped = isPeriod || requiresTopicReport ||
         (Boolean(parsed.data.reportId) && (topicId !== null || parsed.data.partId.toLowerCase().replace(/^section-/, "") === "topicdeepdive"));
       if ((isPeriod || requiresTopicReport) && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
@@ -442,7 +442,7 @@ export function createGuaranteeFeedbackService(
       const normalizedPartId = parsed.data.partId.toLowerCase();
       const matched = entitlements.find((candidate) => {
         if (isReportScoped && candidate.entitlement.id !== reportEntitlementId) return false;
-        if (["ZIWEI-BUSINESS-P0", "ZIWEI-CAREER-TRANSITION-P0"].includes(candidate.entitlement.sku) && !parsed.data.reportId) return false;
+        if (["ZIWEI-BUSINESS-P0", "ZIWEI-CAREER-TRANSITION-P0", "ZIWEI-FAMILY-CHILDREN-P0"].includes(candidate.entitlement.sku) && !parsed.data.reportId) return false;
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
         if (candidate.entitlement.sku === "ZIWEI-TODAY-P0") {

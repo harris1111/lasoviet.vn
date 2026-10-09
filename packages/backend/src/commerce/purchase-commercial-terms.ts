@@ -33,7 +33,7 @@ const historicalBasePrices: Readonly<Record<string, number>> = {
   ...Object.fromEntries(SINGLE_PALACE_SKUS.map(sku => [sku, 120])),
 };
 export type PurchaseCommercialPolicy = "pre-fd119" | "fd119";
-const postFd119BasePrices: Readonly<Record<string, number>> = {...historicalBasePrices, "ZIWEI-IDENTITY-P0": 1200, "ZIWEI-BUSINESS-P0": 480, "ZIWEI-CAREER-TRANSITION-P0": 480};
+const postFd119BasePrices: Readonly<Record<string, number>> = {...historicalBasePrices, "ZIWEI-IDENTITY-P0": 1200, "ZIWEI-BUSINESS-P0": 480, "ZIWEI-CAREER-TRANSITION-P0": 480, "ZIWEI-FAMILY-CHILDREN-P0": 480};
 
 function guaranteeFor(policy: PurchaseCommercialPolicy, chargedLa: number): "none" | "full" | "half" {
   return chargedLa === 0 ? "none" : chargedLa < 500 ? "full" : policy === "fd119" ? "half" : "none";
