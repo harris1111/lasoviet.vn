@@ -23,12 +23,19 @@ export function ZiweiChart({
   locale,
   selectedPalaceId: controlledPalaceId,
   onSelectPalace,
+  hideBoard = false,
+  hideInspector = false,
+  density = "full",
 }: {
   chart: NormalizedZiweiChartV1;
   birthSummary?: ZiweiBirthSummaryV1;
   locale: ZiweiPresentationLocale;
   selectedPalaceId?: string;
   onSelectPalace?: (palaceId: string) => void;
+  // The enlarged sheet draws the board and the palace detail in separate regions.
+  hideBoard?: boolean;
+  hideInspector?: boolean;
+  density?: "compact" | "full";
 }) {
   const presentation = ziweiPresentation(locale);
   const [localPalaceId, setLocalPalaceId] = useState<string>(chart.soulPalaceId);
@@ -75,8 +82,8 @@ export function ZiweiChart({
   const minorStars = selectedPalace.stars.filter((s) => s.category !== "major");
 
   return (
-    <section aria-label={presentation.chrome.chartAria} className="ziwei-chart-container">
-      <div className="ziwei-board-wrapper">
+    <section aria-label={presentation.chrome.chartAria} className="ziwei-chart-container" data-density={density}>
+      {hideBoard ? null : <div className="ziwei-board-wrapper">
         <div className="ziwei-traditional-board" data-testid="ziwei-chart-grid">
           {/* 12 Perimeter Palaces */}
           {chart.palaces.map((palace) => {
@@ -85,6 +92,7 @@ export function ZiweiChart({
             return (
               <ZiweiPalace
                 bodyPalaceId={chart.bodyPalaceId}
+                density={density}
                 isSelected={palace.id === selectedPalace.id}
                 key={palace.id}
                 locale={locale}
@@ -158,10 +166,10 @@ export function ZiweiChart({
             </p>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Deterministic Detail Inspector */}
-      <div className="ziwei-detail-inspector" data-testid="ziwei-detail-inspector">
+      {hideInspector ? null : <div className="ziwei-detail-inspector" data-testid="ziwei-detail-inspector">
         <div className="inspector-head">
           <p className="eyebrow">{locale === "vi" ? "Chi tiết cung vị đang chọn" : "Selected palace inspection"}</p>
           <h3 className="inspector-title">{selectedFullName}</h3>
@@ -249,7 +257,7 @@ export function ZiweiChart({
             ? "Căn cứ được trích xuất hoàn toàn từ các yếu tố tính toán của lá số. Bấm chọn các cung vị khác trên sơ đồ để đối chiếu tam phương tứ chính tương ứng."
             : "Derived deterministically from chart calculations. Select other palaces on the board to inspect corresponding relations."}
         </p>
-      </div>
+      </div>}
     </section>
   );
 }

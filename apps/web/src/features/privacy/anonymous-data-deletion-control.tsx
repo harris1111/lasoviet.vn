@@ -10,7 +10,6 @@ type AnonymousDataDeletionControlProps = {
   labels: {
     title: string;
     description: string;
-    begin: string;
     confirmation: string;
     cancel: string;
     confirm: string;
@@ -58,17 +57,17 @@ export function AnonymousDataDeletionControl({
     }
   }
 
+  // One small link line (U8). The two-step confirmation stays: link, then explicit confirm.
   return (
-    <section aria-labelledby="anonymous-deletion-title" className="anonymous-deletion">
-      <p className="eyebrow">{labels.title}</p>
-      <h2 id="anonymous-deletion-title">{labels.description}</h2>
+    <section aria-label={labels.title} className="anonymous-deletion anonymous-deletion-line">
       {!confirming ? (
         <button
-          className="button button-secondary"
+          aria-describedby={error ? "anonymous-deletion-error" : undefined}
+          className="anonymous-deletion-link"
           onClick={() => setConfirming(true)}
           type="button"
         >
-          {labels.begin}
+          {labels.description}
         </button>
       ) : (
         <>
@@ -83,6 +82,7 @@ export function AnonymousDataDeletionControl({
               {labels.cancel}
             </button>
             <button
+              aria-busy={pending}
               className="button button-danger"
               disabled={pending}
               onClick={deleteData}
@@ -93,7 +93,7 @@ export function AnonymousDataDeletionControl({
           </div>
         </>
       )}
-      {error ? <p className="form-error" role="alert">{labels.error}</p> : null}
+      {error ? <p className="form-error" id="anonymous-deletion-error" role="alert">{labels.error}</p> : null}
     </section>
   );
 }

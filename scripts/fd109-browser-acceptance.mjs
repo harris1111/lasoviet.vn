@@ -126,12 +126,12 @@ async function cell(browser, engine, locale, actor, width, theme) {
     const warm = await page.evaluate(() => ({...window.__qaPerformance, duration: performance.getEntriesByType("navigation")[0].duration}));
     if (width >= 1024) {
       await expect(result.getByRole("tablist")).toBeVisible();
-      await expect(result.getByRole("tab")).toHaveCount(6);
-      await page.locator("#tab-chart").focus(); await page.keyboard.press("End");
-      await expect(page.locator("#tab-evidence")).toBeFocused();
-      await expect(result).toHaveAttribute("data-active-tab", "evidence");
-      await page.keyboard.press("Home"); await expect(page.locator("#tab-chart")).toBeFocused();
-      await expect(result).toHaveAttribute("data-active-tab", "chart");
+      await expect(result.getByRole("tab")).toHaveCount(5);
+      await page.locator("#tab-overview").focus(); await page.keyboard.press("End");
+      await expect(page.locator("#tab-topics")).toBeFocused();
+      await expect(result).toHaveAttribute("data-active-tab", "topics");
+      await page.keyboard.press("Home"); await expect(page.locator("#tab-overview")).toBeFocused();
+      await expect(result).toHaveAttribute("data-active-tab", "overview");
       await page.locator("#tab-palaces").click();
       await expect(result).toHaveAttribute("data-active-tab", "palaces");
       await expect(page.locator("#panel-palaces")).toHaveAttribute("role", "tabpanel");

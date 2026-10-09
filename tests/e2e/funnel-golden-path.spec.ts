@@ -224,7 +224,7 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
     test("paid excerpt → reader → real quoted lifetime difference → upgrade", async ({page}) => {
       const owner = await account(page.context()); fixture("fund", owner.ownerId); const chart = await createChart(page);
       await page.goto(`/la-so/${chart.chartId}/chon-luan-giai?offer=ziwei-natal-excerpt`);
-      await page.locator('.offer-ladder-summary .button-primary').click();
+      await page.locator('article[data-sku="ZIWEI-NATAL-EXCERPT-P0"] button.offer-card-open').click();
       const dialog = page.locator("dialog.unlock-sheet"); await expect(dialog).toContainText("240 Lá");
       await dialog.getByRole("button", {name: "Xác nhận mở", exact: true}).click();
       await expect(page.locator(".offer-ladder-summary [role=status]")).toBeVisible();
@@ -251,18 +251,19 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       const ladder = page.getByTestId("offer-ladder"); await expect(ladder).toBeVisible();
       for (const sku of ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-IDENTITY-P0"]) {
         const card = ladder.locator(`article[data-sku="${sku}"]`); await card.getByRole("button").click();
-        await expect(page.locator(".offer-ladder-summary")).toContainText(sku.includes("WEALTH") ? "120" : sku.includes("EXCERPT") ? "240" : "960");
+        await expect(page.locator("dialog.unlock-sheet")).toContainText(sku.includes("WEALTH") ? "120" : sku.includes("EXCERPT") ? "240" : "960");
+        await page.keyboard.press("Escape");
       }
       const picker = ladder.locator(".palace-picker");
       await expect(picker.getByRole("button")).toHaveCount(12);
       for (const button of await picker.getByRole("button").all()) {
         await button.click(); await expect(button).toHaveAttribute("aria-pressed", "true");
-        await expect(page.locator(".offer-ladder-summary")).toContainText("120");
+        await expect(ladder.locator('article[data-sku^="ZIWEI-PALACE-"] .offer-ladder-price')).toContainText("120");
       }
       for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) {
-        await expect(ladder.locator(`article[data-sku="${sku}"]`).getByRole("button")).toHaveCount(0);
+        await expect(ladder.locator(`article[data-sku="${sku}"]`).locator("button:not([disabled])")).toHaveCount(0);
       }
-      await page.locator('.offer-ladder-summary .button-primary').click();
+      await ladder.locator('article[data-sku^="ZIWEI-PALACE-"] button.offer-card-open').click();
       const sheet = page.locator("dialog.unlock-sheet"); await expect(sheet.getByTestId("inline-topup")).toBeVisible();
       await expect(sheet.locator(".inline-topup-other-packs")).not.toHaveAttribute("open");
       await sheet.locator(".inline-topup-other-packs summary").click();

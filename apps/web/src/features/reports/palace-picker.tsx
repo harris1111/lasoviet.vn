@@ -11,8 +11,9 @@ export function PalacePicker({ locale, selectedSku, onSelect, scores, quotes }: 
     <div>{Object.entries(CANONICAL_PALACE_SKU_MAP).map(([palaceId, sku]) => {
       const product = findLaProduct(sku)!;
       const owned = quotes?.find(item => item.sku === sku)?.state === "owned";
-      return <button key={sku} type="button" aria-pressed={selectedSku === sku} onClick={() => onSelect(sku as LaSku)}>
-        <strong>{product.name[locale]}</strong>
+      const pressed = selectedSku === sku;
+      return <button key={sku} type="button" className="stretched-above" aria-pressed={pressed} onClick={() => onSelect(sku as LaSku)}>
+        <strong>{pressed && <span aria-hidden="true">✓ </span>}{product.name[locale]}</strong>
         {scores[palaceId] !== undefined && <span>{t("selection.ladderScore", { score: scores[palaceId] })}</span>}
         {owned && <span>{t("selection.ladderOwned")}</span>}
       </button>;

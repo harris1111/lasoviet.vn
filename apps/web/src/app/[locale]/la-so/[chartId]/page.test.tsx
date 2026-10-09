@@ -287,7 +287,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     });
     const html = renderToStaticMarkup(page);
 
-    expect(html).toContain("Bạn đã xem phần miễn phí");
+    expect(html).toContain("Mới là phần đầu");
     expect(html).not.toContain("Bạn đã đọc xong phần miễn phí");
     expect(html).toContain("Xem các gói luận giải");
     expect(html).toContain("Bạn đang xem các sao và điểm cấu trúc của lá số");
@@ -403,7 +403,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const page = await ZiweiChartResultPage({ params: Promise.resolve({ chartId, locale: "vi" }) });
     const html = renderToStaticMarkup(page);
     expect(html).toContain('data-testid="fd109-free-result"');
-    expect(html).toContain("Bạn đã xem phần miễn phí");
+    expect(html).toContain("Mới là phần đầu");
   });
 
   it("uses structural fallback for malformed optional preview responses", async () => {
@@ -492,7 +492,7 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     ).rejects.toThrow("NEXT_REDIRECT");
   });
 
-  it("renders aggregate year counts without serializing locked months or daily prose", async () => {
+  it("renders marker-only month tiles without serializing locked month text or daily prose", async () => {
     const chartId = "chart-test-123";
     const mockHoroscope = {
       version: 1,
@@ -548,9 +548,10 @@ describe("ZiweiChartResultPage (WP-05 offer promise alignment)", () => {
     const html = renderToStaticMarkup(page);
 
     expect(html).toContain("Năm nay");
-    expect(html).toContain("<strong>2</strong>tháng cần chú ý");
-    expect(html).toContain("<strong>3</strong>tháng thuận");
+    expect(html).toContain('data-testid="fd109-month-strip"');
+    expect(html.match(/fd109-month fd109-month-/g)).toHaveLength(12);
+    expect(html.match(/fd109-month fd109-month-warn/g)).toHaveLength(2);
+    expect(html).not.toContain('data-testid="fd109-month-none"');
     expect(html).not.toContain("Tháng hạn, mở để xem");
-    expect(html).not.toContain("Tháng 12");
     expect(html).not.toContain("Ngày Kỷ Hợi");
   });
