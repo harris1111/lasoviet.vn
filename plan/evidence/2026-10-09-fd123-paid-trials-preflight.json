@@ -1,0 +1,22 @@
+{
+  "campaign": "FD123-paid-nine-v1",
+  "status": "dry_run_not_acceptance",
+  "originalJournalSha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+  "originalLedgerSha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+  "originalHeldExposureVnd": 33368,
+  "manualAccepted": false,
+  "physicalDispatches": 0,
+  "maxNewPhysicalAttempts": 18,
+  "slots": [
+    "relationship_marriage:1",
+    "career_wealth:0",
+    "career_wealth:1",
+    "monthly:0",
+    "monthly:1",
+    "current_annual:0",
+    "current_annual:1",
+    "next_annual:0",
+    "next_annual:1"
+  ],
+  "sourceHashesMatch": true
+}

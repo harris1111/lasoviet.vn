@@ -66,13 +66,14 @@ export function captureNativeAccountingEvidence(payload, { responseSha256, reque
     metadataRedacted: !usageMetadata, ...(usageMetadata ? { usageMetadata } : {}), settlementAuthorized: false, continuationAuthorized: false };
 }
 
-export function inspectNativeAccountingEvidence(proof, { requestSha256, outputText, receipt, conflictingUsage }) {
+export function inspectNativeAccountingEvidence(proof, { requestSha256, outputText, outputSha256, receipt, conflictingUsage }) {
+  const expectedOutputSha256 = typeof outputText === "string" ? hash(outputText) : outputSha256;
   const allowed = ["version", "httpStatus", "requestSha256", "responseSha256", "visibleOutputSha256", "modelVersion", "completionVerified",
     "conflictingUsage", "envelopeComplete", "billingCountersComplete", "metadataRedacted", "usageMetadata", "settlementAuthorized", "continuationAuthorized"];
   const usageMetadata = safeUsage(proof?.usageMetadata);
   if (!keysAllowed(proof, allowed) || proof.version !== "native.accounting.evidence.v1" || proof.httpStatus !== 200 ||
       proof.requestSha256 !== requestSha256 || typeof proof.responseSha256 !== "string" || !/^[a-f0-9]{64}$/.test(proof.responseSha256) ||
-      typeof outputText !== "string" || proof.visibleOutputSha256 !== hash(outputText) ||
+      typeof expectedOutputSha256 !== "string" || !/^[a-f0-9]{64}$/.test(expectedOutputSha256) || proof.visibleOutputSha256 !== expectedOutputSha256 ||
       proof.modelVersion !== receipt?.modelVersion || !["gemini-3.8-flash", "gemini-3.8-flash-medium", "unsupported"].includes(proof.modelVersion) ||
       ["completionVerified", "conflictingUsage", "envelopeComplete", "billingCountersComplete", "metadataRedacted"].some(key => typeof proof[key] !== "boolean") ||
       proof.conflictingUsage !== conflictingUsage || proof.settlementAuthorized !== false || proof.continuationAuthorized !== false ||
