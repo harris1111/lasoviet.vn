@@ -91,6 +91,17 @@ test("FD109 retains the private-route 404 boundary before query redirects", asyn
 test("FD109 URL history and direct preview links restore modal and keyboard state", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   const chartPath = new URL(await createAnonymousChart(page, "vi")).pathname;
+  // Back and Forward must restore client-side. A document load would drop the window marker and shows up
+  // as a main-frame navigation request (same-document history moves never do).
+  const documentRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentRequests.push(request.url());
+  });
+  await page.evaluate(() => { (window as unknown as { __fd109NoReload?: boolean }).__fd109NoReload = true; });
+  const expectNoDocumentNavigation = async () => {
+    expect(await page.evaluate(() => (window as unknown as { __fd109NoReload?: boolean }).__fd109NoReload)).toBe(true);
+    expect(documentRequests).toEqual([]);
+  };
   await page.locator("#tab-topics").click();
   await page.locator("#panel-topics button").first().click();
   await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=topics&open=(?:career_wealth|relationship_marriage|[a-z]+)$`));
@@ -98,8 +109,10 @@ test("FD109 URL history and direct preview links restore modal and keyboard stat
   await page.goBack();
   await expect(page.getByTestId("fd109-preview-dialog")).toBeHidden();
   await expect(page.locator("#panel-topics button").first()).toBeFocused();
+  await expectNoDocumentNavigation();
   await page.goForward();
   await expect(page.getByTestId("fd109-preview-dialog")).toBeVisible();
+  await expectNoDocumentNavigation();
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("fd109-preview-dialog")).toBeHidden();
   const selectedId = await page.locator('[data-free-result-block="free-palace"]').getAttribute("data-palace-id");
