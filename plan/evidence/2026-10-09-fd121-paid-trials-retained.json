@@ -1,0 +1,72 @@
+{
+  "campaign": "FD121-paid-manual-trials-v1",
+  "status": "stopped",
+  "manualAccepted": false,
+  "asOfDate": "2026-10-09",
+  "capVnd": 180000,
+  "accountingBasis": "FD114_owner_approved_API_reference_not_provider_invoice",
+  "reports": [
+    {
+      "slot": "relationship_marriage:0",
+      "group": "relationship_marriage",
+      "index": 0,
+      "snapshotHash": "05e3ac3abef0ff987914ccc37ea154ec0126896d0da1d79b86db8e56c329df73",
+      "factsSha256": "e562eba840ef862bb4ae83d98fba4f8f6c67b5f59d04cce60edc47beb340d1c9",
+      "targetYear": 2026,
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "sourceKind": "synthetic_actual_iztro",
+      "status": "failed",
+      "attempts": [
+        {
+          "attemptKey": "b771c87233dbdef34a06c51e01ce687b8996e6c2b0b78f453239c0c7d2bb343f",
+          "status": "stopped",
+          "trace": {
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "pricingSnapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "requestedAlias": "ag/gemini-3.8-flash",
+            "wireModel": "gemini-3.8-flash-medium",
+            "requestId": "agent/31fb6ff0-67bd-41b6-b210-8ca3ada9f0a7/1791563396045/311e5a82-c7cd-4bdf-9d48-1dee5f85caed/1",
+            "effectiveMaxOutputTokens": 16384,
+            "requestSha256": "12673a63af3c79c01f1dc408eec433e95783547c3cdfffcc234b8960b0d4e4ff"
+          },
+          "reserveVnd": 33368,
+          "errorCode": "NATIVE_API_PRICING_USAGE_UNVERIFIED",
+          "usageDiagnostic": {
+            "modelVersion": "gemini-3.8-flash",
+            "counterPresence": {
+              "promptTokenCount": true,
+              "candidatesTokenCount": true,
+              "cachedContentTokenCount": false,
+              "thoughtsTokenCount": true,
+              "totalTokenCount": true
+            },
+            "counters": {
+              "promptTokenCount": 8143,
+              "candidatesTokenCount": 3253,
+              "thoughtsTokenCount": 1951,
+              "totalTokenCount": 13347
+            }
+          },
+          "visibleUnacceptedOutput": "```json\n{\n  \"topicId\": \"relationship_marriage\",\n  \"title\": \"Luận giải chuyên sâu Tình duyên & Hôn nhân\",\n  \"overview\": {\n    \"title\": \"Tổng quan đường tình duyên và cấu trúc gắn kết lứa đôi\",\n    \"narrative\": \"Xem xét phương diện tình cảm và đời sống vợ chồng đòi hỏi sự kết hợp chặt chẽ giữa trục bản thân tại cung Mệnh và cung đối ứng Phu Thê. Cung Mệnh an tại Thân có phụ tinh Hồng Loan, Thiên Khôi, Thiên Việt hội tụ cùng Văn Khúc hóa thành trở ngại qua Hóa Kỵ. Nét phối hợp này chỉ ra bạn là người có sức hút tự nhiên, giàu rung cảm và coi trọng sự thấu hiểu tinh thần, nhưng con đường tìm kiếm sự đồng điệu thường trải qua những khúc quanh về mặt tâm lý. Sự hiện diện của Cô Thần tại Mệnh tạo nên xu hướng khép kín chiều sâu nội tâm, khiến việc bộc lộ cảm xúc đôi khi gặp rào cản vô hình. Trong khi đó, cung Phu Thê đóng tại Ngọ đón nhận chính tinh Thiên Cơ miếu ngự cùng Lộc Tồn và Văn Xương. Thiên Cơ tượng trưng cho trí tuệ, sự linh hoạt và mưu lược, biểu thị người bạn đồng hành là người nhanh nhạy, tính toán chu toàn trong công việc gia đình nhưng cũng rất dễ suy tư lo lắng. Sự kết hợp giữa bộ đôi Thiên Cơ và Văn Xương hãm tại Ngọ phản ánh mối quan hệ hôn nhân được xây dựng trên nền tảng trân trọng học vấn và phẩm hạnh, song sự so sánh tiêu chuẩn và những bất đồng trong đối thoại hằng ngày có thể trở thành áp lực ngầm. Mối dây liên kết vợ chồng tuy có độ bền chặt về nghĩa vụ gia đình nhưng cần liên tục làm mới bằng sự cảm thông để không rơi vào trạng thái xa cách tinh thần.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.life\",\n      \"natal.ziwei.star.hongluan\",\n      \"natal.ziwei.star.wenqu\",\n      \"natal.ziwei.transformation.obstacle\",\n      \"natal.ziwei.star.guchen\",\n      \"natal.ziwei.palace.spouse\",\n      \"natal.ziwei.star.tianji\",\n      \"natal.ziwei.star.lucun\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.spouse\",\n      \"title\": \"Trọng điểm cung Phu Thê tại Ngọ: Sự giao thoa giữa trí tuệ và nghĩa vụ\",\n      \"narrative\": \"Cung Phu Thê an ngự tại Ngọ mang thiên can Canh, hội tụ chính tinh Thiên Cơ ở trạng thái Miếu cùng các phụ tinh Văn Xương hãm, Lộc Tồn, Ân Quang, Phong Cáo và Kiếp Sát. Thiên Cơ thủ cung Phu Thê biểu lộ người bạn đời sở hữu đầu óc tính toán linh hoạt, có năng lực chuyên môn và xử lý tình huống khéo léo. Sự hiện diện của Lộc Tồn đem lại nền tảng tương đối vững chắc về trách nhiệm gìn giữ sản nghiệp gia đình, giúp người phối ngẫu trở thành điểm tựa kinh tế thực tế. Tuy nhiên, Văn Xương ngộ hãm địa đi cùng Thiên Cơ lại là dấu hiệu của sự quá nhạy cảm với ngôn từ, dễ dẫn đến những cuộc tranh biện kéo dài khi cả hai không chịu nhường nhịn lý lẽ. Ân Quang và Phong Cáo củng cố tính cam kết bền vững, hướng hai bên về sự trân trọng danh dự và đạo nghĩa vợ chồng, xem sự gắn kết là bổn phận thiêng liêng. Dẫu vậy, sự xuất hiện của sao Bệnh Phù và Âm Sát tại bản cung nhắc nhở về những mối nghi ngại tiềm ẩn hoặc tình trạng mệt mỏi thể chất của đối phương, đòi hỏi bạn phải quan tâm sâu sát đến sức khỏe cũng như chia sẻ bớt gánh nặng quản lý thường nhật.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.branch.horse\",\n        \"natal.ziwei.stem.geng\",\n        \"natal.ziwei.star.tianji\",\n        \"natal.ziwei.brightness.exalted\",\n        \"natal.ziwei.star.wenchang\",\n        \"natal.ziwei.brightness.weak\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.star.enguang\",\n        \"natal.ziwei.star.fenggao\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"tinh_cach_ban_doi\",\n      \"title\": \"Đặc điểm nhận diện và xu hướng ứng xử của người bạn đời\",\n      \"narrative\": \"Người bạn đồng hành của bạn thể hiện rõ nét hình mẫu tri thức thông qua cách ứng xử văn minh và giàu lòng tự trọng. Với chính tinh Thiên Cơ đắc thế, người này thường có phản ứng tư duy rất nhanh, ưa lập kế hoạch chi tiết cho tương lai gia đình và không chấp nhận sự bừa bộn hay thiếu tổ chức. Bộ sao Ân Quang, Phong Cáo giúp họ gìn giữ chuẩn mực đạo đức, luôn coi trọng vị thế xã hội và uy tín cá nhân trước gia tộc hai bên. Mặt khác, vì sao Văn Xương ở trạng thái hãm địa, người này đôi khi có thói quen suy diễn quá mức lời nói của đối phương, tự tạo áp lực tinh thần cho chính mình rồi biến thành sự khắt khe đối với bạn đời. Trong các tình huống tranh luận thường nhật, họ có xu hướng dùng lập luận logic sắc bén để bảo vệ quan điểm hơn là chịu lắng nghe cảm xúc đơn thuần. Ngoài ra, việc đồng cung với Lộc Tồn khiến bạn đời rất cẩn trọng trong chi tiêu và tích lũy, đôi khi trở nên quá nguyên tắc trong việc phân bổ tài chính chung, dễ tạo cảm giác ngột ngạt nếu đôi bên thiếu sự thảo luận cởi mở ngay từ đầu.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.star.tianji\",\n        \"natal.ziwei.star.wenchang\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.star.enguang\",\n        \"natal.ziwei.star.fenggao\",\n        \"natal.ziwei.branch.horse\"\n      ]\n    },\n    {\n      \"key\": \"thach_thuc_va_gan_ket\",\n      \"title\": \"Điểm nghẽn đối thoại và cách thức củng cố liên kết tình cảm\",\n      \"narrative\": \"Sự giằng co trong hôn nhân bắt nguồn từ sự đối lập giữa tính chất suy tưởng của Thiên Cơ tại cung Phu Thê và Văn Khúc đi cùng Hóa Kỵ tại cung Mệnh. Bạn có xu hướng chất chứa tâm sự bên trong, dễ cảm thấy bị tổn thương khi lời nói không được lắng nghe trọn vẹn, trong khi người phối ngẫu lại đòi hỏi câu trả lời rành mạch, dứt khoát. Sự lệch nhịp trong biểu đạt này dễ dẫn đến những khoảng lặng kéo dài sau bất đồng. Thêm vào đó, sao Cô Thần ngụ tại Mệnh làm gia tăng khoảng cách cô đơn, khiến bạn cảm thấy đối phương không thực sự chạm tới thế giới riêng của mình. Tuy vậy, thế tam hợp của cung Phu Thê nhận được ánh chiếu nâng đỡ từ Thiên Đồng và Thiên Lương ở Dần cùng Thái Âm sáng tỏ ở Tuất, mở ra cơ chế hòa giải dựa trên sự bao dung và nền nếp gia đạo. Để tháo gỡ điểm nghẽn, hai người cần chủ động giảm bớt việc dùng lý lẽ đúng sai để phân định trong đời sống vợ chồng, thay vào đó tạo điều kiện để đối phương bày tỏ tâm tư một cách an toàn mà không sợ bị phán xét.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.star.wenqu\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.guchen\",\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.star.tianji\",\n        \"natal.ziwei.palace.fortune\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.palace.travel\",\n        \"natal.ziwei.star.tiantong\",\n        \"natal.ziwei.star.tianliang\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Đại vận 44 - 53 tuổi (2022 - 2031): Thử thách thử lửa lứa đôi và tái cân bằng hôn nhân\",\n    \"state\": \"active\",\n    \"index\": 2,\n    \"ageRange\": [\n      44,\n      53\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Giai đoạn 10 năm từ tuổi 44 đến 53, tương ứng với các năm từ 2022 đến 2031, đại vận vận hành vào cung Thìn đóng tại vị trí Tài Bạch gốc của lá số. Trong chu kỳ mười năm này, cung Phúc Đức của đại vận an tại Ngọ, trùng khớp với cung Phu Thê gốc của bạn. Tại đây xuất hiện tổ hợp sao Kình Dương cùng Văn Khúc và đặc biệt là Thiên Cơ nhận tác động của Hóa Kỵ vận hạn. Đây là tín hiệu chỉ ra những biến động đáng kể về đời sống nội tâm, tinh thần suy nghĩ nhiều và sự xuất hiện của các xung đột quan điểm rõ rệt giữa hai vợ chồng. Thiên Cơ ngộ Kỵ mang lại trạng thái bế tắc tư duy, nghi ngờ lẫn nhau hoặc nảy sinh những kế hoạch gia đình không đồng thuận. Thêm vào đó, cung Phu Thê của đại vận an tại Dần có phụ tinh Thiên Mã tọa thủ, phản ánh sự dịch chuyển, bận rộn công việc bên ngoài hoặc thời gian hai vợ chồng phải đi lại công tác nhiều khiến sự gần gũi thực tế giảm sút. Sự can thiệp của Kình Dương tại Ngọ đòi hỏi bạn phải hết sức mềm mỏng, tránh để những bức xúc tích tụ bộc phát thành tranh cãi gay gắt làm xói mòn lòng tin lâu năm.\",\n    \"evidenceKeys\": [\n      \"decadal.state.active\",\n      \"decadal.age-range.44-53\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.fortune.branch.ziwei.branch.horse\",\n      \"decadal.palace.ziwei.palace.fortune.star.ziwei.star.qingyang\",\n      \"decadal.palace.ziwei.palace.fortune.star.ziwei.star.wenqu\",\n      \"decadal.palace.ziwei.palace.fortune.transformation.ziwei.transformation.obstacle.ziwei.star.tianji\",\n      \"decadal.palace.ziwei.palace.spouse.branch.ziwei.branch.tiger\",\n      \"decadal.palace.ziwei.palace.spouse.star.ziwei.star.tianma\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Thiết lập quy chế trao đổi thông tin định kỳ và minh bạch hóa các mục tiêu quản lý tài chính chung.\",\n      \"rationale\": \"Cung Phu Thê có Lộc Tồn kết hợp Thiên Cơ đòi hỏi sự rõ ràng tuyệt đối về tiền bạc và trách nhiệm, trong khi Văn Xương hãm dễ khiến những mập mờ nhỏ tích tụ thành hiểu lầm lớn.\",\n      \"avoid\": \"Không nên tự ý quyết định các vấn đề kinh tế lớn của gia đình mà không hỏi ý kiến đối phương, đồng thời tránh dùng thái độ mỉa mai khi thảo luận tiền bạc.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.star.tianji\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.star.wenchang\"\n      ]\n    },\n    {\n      \"recommendation\": \"Thực hành lắng nghe tích cực và chủ động tạm hoãn các cuộc tranh luận căng thẳng trước khi tìm ra tiếng nói chung.\",\n      \"rationale\": \"Bản Mệnh có Văn Khúc Hóa Kỵ phối chiếu cùng Thiên Cơ tại Ngọ dễ tạo ra phản ứng bảo vệ quan điểm thái quá, biến những bất đồng nhỏ thành căng thẳng đối thoại kéo dài.\",\n      \"avoid\": \"Tránh thói quen im lặng né tránh để đối phương rơi vào tình trạng suy diễn, hoặc dùng từ ngữ mang tính chỉ trích trình độ và năng lực của bạn đời.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.star.wenqu\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tianji\"\n      ]\n    },\n    {\n      \"recommendation\": \"Duy trì sự đồng hành và thấu hiểu lẫn nhau qua các chuyến đi chung ngắn ngày khi công việc phát sinh di chuyển.\",\n      \"rationale\": \"Trong chu kỳ 44 đến 53 tuổi, cung Phu Thê đại vận có Thiên Mã xuất hiện tại Dần phản ánh sự cơ động công việc, nếu không khéo léo kết nối sẽ tạo khoảng cách địa lý và cảm xúc.\",\n      \"avoid\": \"Không nên để áp lực công việc bên ngoài lấn át hoàn toàn thời gian dành cho gia đình, và tuyệt đối không đem sự bực dọc từ môi trường xã hội trút lên người phối ngẫu.\",\n      \"evidenceKeys\": [\n        \"decadal.age-range.44-53\",\n        \"decadal.palace.ziwei.palace.spouse.star.ziwei.star.tianma\",\n        \"decadal.palace.ziwei.palace.fortune.transformation.ziwei.transformation.obstacle.ziwei.star.tianji\"\n      ]\n    }\n  ]\n}\n```"
+        }
+      ],
+      "manualAccepted": false,
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "AI_PROVIDER_REQUEST_FAILED",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "stopSlot": "relationship_marriage:0",
+  "budget": {
+    "totalVnd": 33368,
+    "byCampaign": {
+      "v4.2-report": 33368
+    },
+    "openReservations": 1,
+    "capVnd": 180000
+  }
+}

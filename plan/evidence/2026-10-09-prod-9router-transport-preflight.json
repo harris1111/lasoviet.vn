@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-09T16:24:31.878Z",
+  "status": "prepared_without_dispatch",
+  "version": "0.5.99",
+  "image": "sha256:edb54b1be50b4c4e518b138c859e957cf16f80539e88731928d1a4e918fe33e3",
+  "sourceHashes": {
+    "executors/antigravity.js": "ee6c7f02113e4d1c474662b3e7cde3f55b14088c4688fef3a7d5dc531db98d90",
+    "executors/base.js": "ff76f5fc9be0103b847b864ce831859ec17e5da73fdbef30d4404c3bae3db717",
+    "translator/concerns/thinkingUnified.js": "24899d8f9fdad837353584b0c18bc2ce3deca524346ea2367190144556cb0519",
+    "config/providerModels.js": "7dc5c2b19b8775c907e0dbb9ccaef47976b25708f845b28a8b79536aef43e9d0",
+    "providers/capabilities.js": "311187e32476742a18a6731fb35beef3c752b6949673bd9e7fb6fe7b38d813e1"
+  },
+  "trace": {
+    "requestedAlias": "ag/gemini-3.8-flash",
+    "wireModel": "gemini-3.8-flash-medium",
+    "requestId": "agent/f3eda2e7-d38c-4d2a-8263-3770ed880484/1791563071745/c7e5db96-a7aa-4c7d-8323-d9ec17613385/1",
+    "effectiveMaxOutputTokens": 16384,
+    "requestSha256": "9e1b02eb860ba1d1bde2581f1627f620f7bf8f2178458fb22c1c18d7dfdae68f"
+  },
+  "bounds": {
+    "inputTokens": 1048576,
+    "outputTokens": 65536,
+    "reasoningTokens": 65536
+  },
+  "credentialValidAtPreparation": true,
+  "physicalDispatches": 0,
+  "liveAcceptance": false,
+  "manualAccepted": false
+}
