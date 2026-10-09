@@ -887,3 +887,5 @@ export { buildDecadalReadingSource } from "./reports/decadal-reading-source.js";
 export * from "./reports/decadal-reading-writer.js";
 export * from "./reports/decadal-report-config.js";
 export { createDatabaseBaziTwoPersonRepository } from "./bazi/bazi-two-person.repository.js";
+
+export * from "./reports/decadal-purchase-source.repository.js";
