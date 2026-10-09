@@ -883,3 +883,5 @@ export { createFreeReadingPrivateRunner } from "./ziwei/free-reading-private-run
 export { createFreeReadingRequestService, type FreeReadingRequestOptions } from "./ziwei/free-reading-request.service.js";
 
 export { buildDecadalReadingSource } from "./reports/decadal-reading-source.js";
+
+export { createDatabaseBaziTwoPersonRepository } from "./bazi/bazi-two-person.repository.js";
