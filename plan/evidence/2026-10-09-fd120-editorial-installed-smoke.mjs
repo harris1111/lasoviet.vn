@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { existsSync } from "node:fs";
 
 const root = process.argv[2] ?? process.cwd();
-const backend = await import(pathToFileURL(resolve(root, "packages/backend/dist/index.js")));
-const fixture = await import(pathToFileURL(resolve(root, "packages/backend/dist/reports/topic-report.test-fixture.js")));
+const deployedDist = resolve(root, "node_modules/@lasoviet/backend/dist");
+const backendDist = existsSync(resolve(deployedDist, "index.js")) ? deployedDist : resolve(root, "packages/backend/dist");
+const backend = await import(pathToFileURL(resolve(backendDist, "index.js")));
+const fixture = await import(pathToFileURL(resolve(backendDist, "reports/topic-report.test-fixture.js")));
 const facts = fixture.buildFactsFixture();
 const report = fixture.makeValidRelationshipContent(facts);
 report.actions[0].recommendation += " Bản mệnh có thể cân nhắc.";

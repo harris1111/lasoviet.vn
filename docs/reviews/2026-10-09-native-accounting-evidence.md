@@ -1,0 +1,11 @@
+# Native accounting evidence capture
+
+Future private attempts retain the original response-byte fingerprint, request and visible-output hashes, safe original usage metadata and completion/envelope flags before strict parsing or settlement. Envelope completeness is separate from billing-counter completeness: a missing cached-input counter remains absent and still stops strict settlement. Unsupported/redacted/conflicting metadata or invalid completion cannot authorize settlement. The fixed FD121 campaign, UID, budget, reservation and restart fences remain binding.
+
+Independent working review found the legacy receipt branch still exported raw metadata despite safe proof redaction. The corrected HTTPS/bridge path derives both receipt and proof from the same closed projection. Unsafe model names become a closed sentinel; unsupported string fields and all thought/signature/header secrets remain absent from emitted or persisted records. The parent validates request/output/receipt linkage and durably checkpoints evidence before rejecting incomplete responses. Hashes alone do not prove authenticity; the reviewed pinned child and verified TLS/native endpoint are the observation boundary.
+
+Local producer builds, i18n, lint and typecheck pass (four existing frontend warnings). All107 script checks pass, including20 focused transport/evidence/reference checks. Independent corrected working GO replayed20/20. Exact-head review and fresh CI remain required before merge.
+
+Composition includes already reviewed FD120 master5d42c2d1. Its portable evidence smoke now resolves the actual pnpm-deploy backend layout instead of assuming monorepo package directories in the worker image; the installed paths were verified read-only before deployment. This evidence-only correction adds no product runtime change.
+
+No real call, source credential refresh, production application DB/customer write or ledger mutation occurs during this preparation. The historical first33368VND reservation cannot be repaired or released from these new functions. Retaining it does not waive FD121's unknown-cost stop: any later continuation requires a narrowly scoped owner exception and separately reviewed recovery implementation. No such exception or settlement/continuation authority is added here.

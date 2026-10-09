@@ -8,7 +8,7 @@ import { mkdtempSync, readFileSync, writeFileSync, openSync, closeSync } from "n
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createCampaignBudget } from "./lib/campaign-budget.mjs";
-import { runBridge, dispatchOnce } from "./lib/prod-9router-child.mjs";
+import { runBridge, dispatchOnce, captureNativeAccountingEvidence, inspectNativeAccountingEvidence } from "./lib/prod-9router-child.mjs";
 import { runProdRouterAttempt, paidTrialAttemptKey, conservativeTrialReserve } from "./lib/prod-9router-attempt.mjs";
 import { makePaidTrialInput, assertTrialResume, runTrialSequence } from "./run-paid-manual-trials.mjs";
 
@@ -27,6 +27,9 @@ function fresh() {
   return { ledgerPath, options, budget: createCampaignBudget(options) };
 }
 function childFactory({ reply = result(), onAck = () => {}, preparedValue = prepared } = {}) {
+  const payload = { ...reply.receipt, candidates: [{ finishReason: "STOP", content: { role: "model", parts: [{ text: reply.outputText }] } }] };
+  reply = { ...reply, accountingEvidence: reply.accountingEvidence ?? captureNativeAccountingEvidence(payload, {
+    responseSha256: createHash("sha256").update(JSON.stringify(payload)).digest("hex"), requestSha256: preparedValue.trace.requestSha256, outputText: reply.outputText }) };
   let physical = 0;
   return { physical: () => physical, factory() {
     const child = new EventEmitter(); child.stdin = new PassThrough(); child.stdout = new PassThrough();
@@ -66,10 +69,93 @@ test("FD121 actual settlement releases only verified unused reservation and repl
 test("missing zero counter preserves full unknown exposure and fences the next report", async () => {
   const { budget, options } = fresh(), bad = result(); delete bad.receipt.usageMetadata.cachedContentTokenCount;
   const fixture = childFactory({ reply: bad });
-  await assert.rejects(attempt(budget, () => fixture.factory()), { code: "NATIVE_API_PRICING_USAGE_UNVERIFIED" });
+  await assert.rejects(attempt(budget, () => fixture.factory()), error => {
+    assert.equal(error.code, "NATIVE_API_PRICING_USAGE_UNVERIFIED");
+    assert.equal(error.accountingEvidence.envelopeComplete, true);
+    assert.equal(error.accountingEvidence.billingCountersComplete, false);
+    assert.equal(Object.hasOwn(error.accountingEvidence.usageMetadata, "cachedContentTokenCount"), false);
+    return true;
+  });
   assert.equal(budget.status().openReservations, 1); assert.equal(budget.status().totalVnd, conservativeTrialReserve(bounds, now()));
   await assert.rejects(attempt(createCampaignBudget(options), () => fixture.factory(), "career_wealth:0"), { code: "BUDGET_ATTEMPT_UNRESOLVED" });
   assert.equal(fixture.physical(), 1);
+});
+
+test("original accounting proof is checkpointed before parser failure and a failed checkpoint keeps the hold", async () => {
+  for (const failedCheckpoint of [false, true]) {
+    const { budget, options } = fresh(), bad = result(); delete bad.receipt.usageMetadata.cachedContentTokenCount;
+    bad.receipt.usageMetadata.serviceTier = "STANDARD";
+    bad.receipt.usageMetadata.promptTokensDetails = [{ modality: "TEXT", tokenCount: 100 }];
+    const fixture = childFactory({ reply: bad }); let saved;
+    await assert.rejects(attempt(budget, () => fixture.factory(), undefined, { onReceipt(value) {
+      saved = structuredClone(value); assert.equal(budget.status().openReservations, 1);
+      if (failedCheckpoint) throw Object.assign(new Error("synthetic checkpoint failure"), { code: "PROOF_CHECKPOINT_FAILED" });
+    } }), { code: failedCheckpoint ? "PROOF_CHECKPOINT_FAILED" : "NATIVE_API_PRICING_USAGE_UNVERIFIED" });
+    assert.equal(saved.attemptKey, paidTrialAttemptKey("relationship_marriage:0", "report"));
+    assert.deepEqual(saved.accountingEvidence.usageMetadata, bad.receipt.usageMetadata);
+    assert.equal(saved.accountingEvidence.settlementAuthorized, false);
+    assert.equal(saved.accountingEvidence.continuationAuthorized, false);
+    assert.equal(budget.status().totalVnd, conservativeTrialReserve(bounds, now()));
+    await assert.rejects(attempt(createCampaignBudget(options), () => fixture.factory(), "career_wealth:0"), { code: "BUDGET_ATTEMPT_UNRESOLVED" });
+    assert.equal(fixture.physical(), 1);
+  }
+});
+
+test("native evidence marks unsafe, unsupported, conflicting and invalid envelopes incomplete without secrets", () => {
+  const make = () => ({ ...result().receipt, candidates: [{ finishReason: "STOP", content: { role: "model", parts: [
+    { text: "SYNTHETIC_SECRET_THOUGHT", thought: true, thoughtSignature: "SYNTHETIC_SECRET_SIGNATURE" }, { text: result().outputText }] } }] });
+  const capture = payload => captureNativeAccountingEvidence(payload, { requestSha256: trace.requestSha256,
+    responseSha256: createHash("sha256").update(JSON.stringify(payload)).digest("hex"), outputText: result().outputText });
+  const valid = capture(make()); assert.equal(valid.envelopeComplete, true);
+  assert.equal(valid.billingCountersComplete, true);
+  assert.ok(!JSON.stringify(valid).includes("SYNTHETIC_SECRET"));
+  for (const mutate of [
+    p => { p.secret = "SYNTHETIC_SECRET_TOKEN"; },
+    p => { p.usageMetadata.unverifiedCharge = "SYNTHETIC_SECRET_TOKEN"; },
+    p => { p.usageMetadata.serviceTier = "SYNTHETIC_SECRET_TOKEN"; },
+    p => { p.candidates[0].finishReason = "MAX_TOKENS"; },
+    p => { p.candidates[0].index = "SYNTHETIC_SECRET_TOKEN"; },
+  ]) {
+    const payload = make(); mutate(payload); const proof = capture(payload);
+    assert.equal(proof.envelopeComplete, false); assert.ok(!JSON.stringify(proof).includes("SYNTHETIC_SECRET"));
+  }
+  const conflicting = capture({ response: make(), usageMetadata: make().usageMetadata });
+  assert.equal(conflicting.conflictingUsage, true); assert.equal(conflicting.envelopeComplete, false);
+  const absent = make(); delete absent.usageMetadata.cachedContentTokenCount;
+  assert.equal(capture(absent).billingCountersComplete, false);
+  assert.equal(Object.hasOwn(capture(absent).usageMetadata, "cachedContentTokenCount"), false);
+});
+
+test("parent rejects inconsistent request, output, metadata and authority proof before persistence", async () => {
+  for (const mutate of [
+    p => { p.requestSha256 = "b".repeat(64); }, p => { p.visibleOutputSha256 = "b".repeat(64); },
+    p => { p.usageMetadata.promptTokenCount++; }, p => { p.httpStatus = 201; },
+    p => { p.settlementAuthorized = true; }, p => { p.secret = "SYNTHETIC_SECRET_TOKEN"; },
+    p => { p.responseSha256 = [p.responseSha256]; },
+  ]) {
+    const { budget } = fresh(), reply = result();
+    const payload = { ...reply.receipt, candidates: [{ finishReason: "STOP", content: { role: "model", parts: [{ text: reply.outputText }] } }] };
+    reply.accountingEvidence = captureNativeAccountingEvidence(payload, { requestSha256: trace.requestSha256,
+      responseSha256: createHash("sha256").update(JSON.stringify(payload)).digest("hex"), outputText: reply.outputText });
+    mutate(reply.accountingEvidence); const fixture = childFactory({ reply }); let saves = 0;
+    await assert.rejects(attempt(budget, () => fixture.factory(), undefined, { onReceipt: () => saves++ }), error => {
+      assert.equal(error.code, "ROUTER_ACCOUNTING_EVIDENCE_INVALID");
+      assert.ok(!JSON.stringify(error).includes("SYNTHETIC_SECRET")); return true;
+    });
+    assert.equal(saves, 0); assert.equal(budget.status().openReservations, 1); assert.equal(fixture.physical(), 1);
+  }
+});
+
+test("nonstandard tier and modality retain evidence but cannot settle or dispatch another report", async () => {
+  for (const usage of [{ serviceTier: "PRIORITY" }, { promptTokensDetails: [{ modality: "IMAGE", tokenCount: 100 }] }, { toolUsePromptTokenCount: 1 }]) {
+    const { budget, options } = fresh(), reply = result(); Object.assign(reply.receipt.usageMetadata, usage);
+    const fixture = childFactory({ reply }); let saved;
+    await assert.rejects(attempt(budget, () => fixture.factory(), undefined, { onReceipt: value => { saved = value; } }), { code: "NATIVE_API_PRICING_USAGE_UNVERIFIED" });
+    assert.deepEqual(saved.accountingEvidence.usageMetadata, reply.receipt.usageMetadata);
+    assert.equal(budget.status().totalVnd, conservativeTrialReserve(bounds, now()));
+    await assert.rejects(attempt(createCampaignBudget(options), () => fixture.factory(), "next"), { code: "BUDGET_ATTEMPT_UNRESOLVED" });
+    assert.equal(fixture.physical(), 1);
+  }
 });
 test("checkpoint failure and wire mismatch cannot acknowledge dispatch", async () => {
   const { budget } = fresh(); const fixture = childFactory();
@@ -125,8 +211,46 @@ test("single native HTTPS dispatch strips thought text and never retries errors 
       const response = await dispatchOnce(nativePrepared, { requestImpl, now });
       assert.equal(response.outputText, '{"synthetic":true}'); assert.ok(!JSON.stringify(response).includes("SYNTHETIC_PRIVATE_THOUGHT"));
       assert.ok(!JSON.stringify(response).includes("SYNTHETIC_TOKEN"));
+      assert.equal(response.accountingEvidence.envelopeComplete, true);
+      assert.equal(response.accountingEvidence.requestSha256, requestSha256);
+      assert.equal(response.accountingEvidence.visibleOutputSha256, createHash("sha256").update(response.outputText).digest("hex"));
+      assert.deepEqual(inspectNativeAccountingEvidence(response.accountingEvidence, { requestSha256,
+        outputText: response.outputText, receipt: response.receipt, conflictingUsage: response.conflictingUsage }), response.accountingEvidence);
     } else await assert.rejects(dispatchOnce(nativePrepared, { requestImpl, now }), { code: "ROUTER_HTTP_STATUS", httpStatus: status });
     assert.equal(sends, 1);
+  }
+});
+
+test("actual HTTPS and bridge emit only safe receipts and preserve redacted proof with the full hold", async () => {
+  for (const unsafeModel of [false, true]) {
+    const payload = { response: { ...result().receipt, candidates: [{ finishReason: "STOP", content: { role: "model", parts: [
+      { text: "SYNTHETIC_SECRET_THOUGHT", thought: true, thoughtSignature: "SYNTHETIC_SECRET_SIGNATURE" }, { text: result().outputText }] } }] } };
+    if (unsafeModel) payload.response.modelVersion = "SYNTHETIC_SECRET_MODEL";
+    else payload.response.usageMetadata.privateExtra = "SYNTHETIC_SECRET_TOKEN";
+    const raw = Buffer.from(JSON.stringify(payload)), body = "{}", requestSha256 = createHash("sha256").update(body).digest("hex");
+    const p = { ...prepared, body, endpoint: "https://daily-cloudcode-pa.googleapis.com/v1internal:generateContent",
+      headers: { Authorization: "Bearer SYNTHETIC_SECRET_HEADER" }, trace: { ...trace, requestSha256 } };
+    let sends = 0;
+    const requestImpl = (_url, _options, callback) => {
+      const req = new EventEmitter(); req.destroy = () => {};
+      req.end = () => { sends++; const response = Readable.from([raw]); response.statusCode = 200; callback(response); };
+      return req;
+    };
+    const input = new PassThrough(), rows = [];
+    const running = runBridge({ input, prepare: async () => p,
+      send: value => dispatchOnce(value, { requestImpl, now }),
+      emit: row => { rows.push(row); if (row.type === "prepared") input.end(JSON.stringify({ type: "dispatch", requestSha256 }) + "\n"); } });
+    input.write(JSON.stringify({ system: "synthetic", user: "synthetic", maxOutputTokens: 16384 }) + "\n");
+    await running; assert.equal(sends, 1);
+    assert.ok(!JSON.stringify(rows).includes("SYNTHETIC_SECRET"));
+    const reply = rows.at(-1); assert.equal(reply.type, "result"); assert.equal(reply.accountingEvidence.envelopeComplete, false);
+    assert.equal(reply.accountingEvidence.responseSha256, createHash("sha256").update(raw).digest("hex"));
+    const { budget } = fresh(); let saved;
+    const fixture = childFactory({ reply, preparedValue: { ...prepared, trace: p.trace } });
+    await assert.rejects(attempt(budget, () => fixture.factory(), undefined, { onReceipt: value => { saved = value; } }), { code: "ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE" });
+    assert.equal(saved.accountingEvidence.envelopeComplete, false);
+    assert.ok(!JSON.stringify(saved).includes("SYNTHETIC_SECRET"));
+    assert.equal(budget.status().openReservations, 1); assert.equal(budget.status().totalVnd, conservativeTrialReserve(bounds, now()));
   }
 });
 
