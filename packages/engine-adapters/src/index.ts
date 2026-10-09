@@ -40,3 +40,5 @@ export { calculateBaziFacts } from "./bazi/lunar-bazi-facts.js";
 export { buildBaziStructure, baziTenGod, baziStemElement, baziBranchElement } from "./bazi/lunar-bazi-structure.js";
 export { calculateNormalizedBaziChart, validateNormalizedBaziChart, baziCalculationKey, BAZI_NORMALIZED_CONFIG_HASH_V1 } from "./bazi/normalized-bazi-chart.js";
 export { resolveBaziBirthProfileInput, calculateBaziBirthProfile, type BaziProfileMappingError } from "./bazi/birth-profile-bazi.js";
+
+export { buildBaziDecadalSource } from "./bazi/bazi-decadal-source.js";
