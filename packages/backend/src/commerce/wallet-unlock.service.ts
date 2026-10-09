@@ -1,6 +1,6 @@
 import { freezePurchaseCommercialTerms, readPurchaseCommercialTerms, matchesPurchaseCreditProof } from "./purchase-commercial-terms.js";
 import { creditProofSchema, enqueueCommittedWalletUpgrade, projectCommittedWalletUpgrade, type CreditProof } from "./wallet-upgrade-event.js";
-import { isComboSku, comboComponentSkus, comboAnnualSku, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
+import { isComboSku, comboComponentSkus, comboAnnualSku, hasCompleteComboAuthority, isComboReleaseReady } from "./combo-purchase-authority.js";
 import { reserveComboReports } from "./combo-report-reservation.js";
 import { membershipPrice, readActiveMembership } from "./membership.service.js";
 import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
@@ -383,6 +383,9 @@ async function price(
         or(eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"), and(inArray(commerceEntitlements.sku, annualSkuAliases(comboAnnualSku(sku), periodKey)), eq(commerceEntitlements.periodKey, periodKey))), isNull(commerceEntitlements.revokedAt),
         or(isNotNull(commerceEntitlements.orderId), and(eq(walletTransactions.kind, "spend"), activeSpendCondition(database))))).limit(1);
     if (ownedComponent) return {ok: false, code: "WALLET_ENTITLEMENT_EXISTS"};
+    // Pending terms keep their frozen authority; changing the selected year creates
+    // new terms. Keep this after ownership checks to preserve owned projections.
+    if (!frozenIntent && !isComboReleaseReady(sku)) return {ok: false, code: "WALLET_INTENT_INVALID"};
   }
 
   // Freeze the catalog basis, while rechecking the original membership/rollover eligibility.
@@ -621,6 +624,7 @@ export function createWalletUnlockService(
           eq(walletPurchaseIntents.locale, input.locale), eq(walletPurchaseIntents.periodKey, periodKey),
           eq(walletPurchaseIntents.status, "pending"))).limit(1);
         let selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey, pending);
+        const retainedPendingPrice = selectedPrice.ok;
         const usedPending = pending;
         if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && pending && validIntentTerms(pending)) {
           // Expired or refunded credit cannot authorize settlement; a fresh read can offer new terms.
@@ -655,6 +659,12 @@ export function createWalletUnlockService(
             }
             quotes.push({ ...row, state: "owned", ...projection });
           } else quotes.push(row);
+          continue;
+        }
+        // A changed benefit/price offers replacement terms rather than reuse.
+        if (isComboSku(sku) && !isComboReleaseReady(sku) && !(pending && retainedPendingPrice &&
+            pending.priceLa === selectedPrice.amountLa && matchesPurchaseCreditProof(pending, selectedPrice.creditProof))) {
+          quotes.push(row);
           continue;
         }
         const creditLa = selectedPrice.creditLa ?? 0;
@@ -725,6 +735,9 @@ export function createWalletUnlockService(
           ) {
             return { ok: true as const, value: projectIntent(pending), reused: true };
           }
+          // Repricing the same scope also creates new immutable terms. Refuse
+          // before cancelling the original or touching any bound top-up.
+          if (isComboSku(sku) && !isComboReleaseReady(sku)) return failed("WALLET_INTENT_INVALID");
           // Locale, price, period or chart version changed. Replace unpaid terms with a
           // new immutable intent; a bound top-up keeps the cancelled original authority.
           // Concurrency-safe cancel the stale pending intent to avoid permanent pending-row lockout.
