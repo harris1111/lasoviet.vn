@@ -50,3 +50,48 @@ describe("paid period delivery", () => {
     expect((await service.generate({...input,job:{...input.job,payload:{...payload,asOfDate:"2026-01-15",targetYear:2026}}})).ok).toBe(true);
   });
 });
+
+// Synthetic writer fixtures exercise real dispatch/quality/read guards; no live provider call.
+function annualFixture(year: number) {
+  const annualFacts = {...facts, kind: "annual" as const, targetYear: year, periodKey: String(year),
+    periods: Array.from({length: 12}, (_, index) => ({...facts.periods[0]!, year, month: index + 1,
+      id: `${year}-${index + 1}-regular-normal`, evidenceKeys: [`period.${year}.${index + 1}.life`]}))};
+  annualFacts.evidenceKeys = annualFacts.periods.flatMap(period => period.evidenceKeys);
+  const base = content();
+  const annualContent = {...base, kind: "annual" as const, targetYear: year, periodKey: String(year), title: `Năm ${year}`,
+    overview: {...base.overview, evidenceKeys: annualFacts.evidenceKeys},
+    periods: annualFacts.periods.map(period => ({...base.periods[0]!, periodId: period.id, title: `Tháng ${period.month}`,
+      evidenceKeys: period.evidenceKeys}))};
+  return {annualFacts, annualContent};
+}
+it.each([2026, 2027, 2028])("generates and reads the frozen generic annual year%s with all12 periods", async year => {
+  const {annualFacts, annualContent} = annualFixture(year); const {service, dependencies, commit} = setup();
+  const annualPayload = {...payload, sku: "ZIWEI-YEAR-P0", targetYear: year};
+  dependencies.sourceRepository.loadSource.mockResolvedValue({ok: true, value: {periodReadingFacts: annualFacts, paidPeriodKey: String(year), knowledgePacks: []}});
+  dependencies.provider.generateStructured.mockResolvedValue({ok: true, value: {value: annualContent, providerId: "synthetic", modelId: "synthetic"}});
+  expect((await service.generate({...input, job: {...input.job, payload: annualPayload}})).ok).toBe(true);
+  expect(dependencies.provider.generateStructured).toHaveBeenCalledTimes(1);
+  expect(commit).toHaveBeenCalledWith(expect.objectContaining({sku: "ZIWEI-YEAR-P0", structuredContent: annualContent}));
+  const record = {source: "ledger_spend", chartId: "chart", wallet: {spendId: "spend", purchaseIntentId: "intent"}, evidenceItems: [],
+    sourceSnapshot: {periodReading: annualFacts}, reservation: {...annualPayload, status: "html_ready"},
+    version: {...annualPayload, structuredContent: annualContent, templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion},
+    entitlements: [{id: "ent", chartId: "chart", sku: "ZIWEI-YEAR-P0", scope: {sections: ["periodReading"]}, periodKey: String(year), active: true, source: "ledger_spend"}]} as unknown as AuthorizedReportQueryRecord;
+  const query = createReportQueryService({repository: {readAuthorizedReport: async () => record}, now: () => new Date("2029-03-01T00:00:00Z")});
+  const actor = {kind: "account" as const, userId: "owner", sessionId: "session", requestId: "request"};
+  expect(await query.getReport(actor, reportId)).toMatchObject({ok: true, value: {state: "ready", content: {targetYear: year, periods: expect.any(Array)}}});
+  const view = await query.getReport(actor, reportId); expect(JSON.stringify(view)).not.toMatch(/evidenceKeys|periodId/);
+  record.entitlements[0]!.periodKey = String(year + 1);
+  await expect(query.getReport(actor, reportId)).rejects.toBeInstanceOf(ReportQueryDataError);
+});
+it("rejects annual source/job mismatch before a provider call and preserves the closed legacy2026 SKU", async () => {
+  for (const [sku, factsYear, jobYear] of [["ZIWEI-YEAR-P0", 2027, 2026], ["ZIWEI-YEAR-2026-P0", 2027, 2027]] as const) {
+    const {annualFacts} = annualFixture(factsYear); const {service, dependencies, commit} = setup();
+    dependencies.sourceRepository.loadSource.mockResolvedValue({ok: true, value: {periodReadingFacts: annualFacts, paidPeriodKey: String(factsYear), knowledgePacks: []}});
+    expect((await service.generate({...input, job: {...input.job, payload: {...payload, sku, targetYear: jobYear}}})).ok).toBe(false);
+    expect(dependencies.provider.generateStructured).not.toHaveBeenCalled(); expect(commit).not.toHaveBeenCalled();
+  }
+  const {annualFacts, annualContent} = annualFixture(2026); const {service, dependencies} = setup();
+  dependencies.sourceRepository.loadSource.mockResolvedValue({ok: true, value: {periodReadingFacts: annualFacts, paidPeriodKey: "2026", knowledgePacks: []}});
+  dependencies.provider.generateStructured.mockResolvedValue({ok: true, value: {value: annualContent, providerId: "synthetic", modelId: "synthetic"}});
+  expect((await service.generate({...input, job: {...input.job, payload: {...payload, sku: "ZIWEI-YEAR-2026-P0"}}})).ok).toBe(true);
+});

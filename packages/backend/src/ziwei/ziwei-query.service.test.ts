@@ -109,6 +109,35 @@ function repository(overrides: Partial<ZiweiQueryRepository> = {}) {
 }
 
 describe("Zi Wei query service", () => {
+  it.each([
+    [{source: "offset", offsetMinutes: 420}, 2027, "2027-02-06"],
+    [{source: "offset", offsetMinutes: -300}, 2026, "2027-02-05"],
+    [{source: "iana", ianaZone: "Asia/Ho_Chi_Minh", runtime: "Intl"}, 2027, "2027-02-06"],
+  ] as const)("reads purchase context in the authorized local calendar %j", async (timezone, expectedYear, expectedDate) => {
+    const stored = record({ normalizedInput: {...profileNormalizedInput, timezoneProvenance: timezone} });
+    const service = createZiweiQueryService({ repository: repository({readAuthorizedChart: vi.fn().mockResolvedValue(stored)}),
+      now: () => new Date("2027-02-05T18:00:00Z"), calculateHoroscope: calculateZiweiHoroscope });
+    const result = await service.readHoroscope(account, "chart-1", {targetYear: 2027});
+    expect(result.ok).toBe(true); if (!result.ok) return;
+    expect(result.value.asOfDate).toBe(expectedDate);
+    expect(result.value.purchaseFacts?.lunarYear).toBe(expectedYear);
+    expect(result.value.purchaseFacts?.annualPalaces.map(item => item.year)).toEqual([expectedYear, expectedYear + 1]);
+    expect(result.value.yearly.targetYear).toBe(2027);
+    expect(result.value.isUnlocked).toBe(false);
+  });
+
+  it("denies purchase context before engine evaluation for unowned or expired charts", async () => {
+    const calculate = vi.fn().mockReturnValue({});
+    const store = repository({readAuthorizedChart: vi.fn().mockResolvedValue(null)});
+    const service = createZiweiQueryService({repository: store, now: () => now, calculateHoroscope: calculate});
+    expect(await service.readHoroscope(account, "other-chart")).toMatchObject({ok: false, error: {code: "CHART_NOT_FOUND"}});
+    const expired: CurrentActor = {kind: "anonymous", anonymousActorId: "expired", sessionId: "expired-session",
+      requestId: "expired-request", expiresAt: "2026-09-01T00:00:00Z"};
+    expect(await service.readHoroscope(expired, "chart-1")).toMatchObject({ok: false, error: {code: "ANONYMOUS_EXPIRED"}});
+    expect(calculate).not.toHaveBeenCalled();
+    expect(store.readAuthorizedChart).toHaveBeenCalledTimes(1);
+  });
+
   it.each(["offset", "iana"])("uses the authorized profile %s timezone and injected clock for the temporal layer", async kind => {
     const calculate = vi.fn().mockReturnValue({});
     const stored=record({normalizedInput:{...profileNormalizedInput, timezoneProvenance:kind==="iana"?{source:"iana",ianaZone:"Asia/Ho_Chi_Minh",runtime:"Intl"}:{source:"offset",offsetMinutes:420}}});

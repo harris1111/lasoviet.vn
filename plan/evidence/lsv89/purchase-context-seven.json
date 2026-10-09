@@ -1,0 +1,334 @@
+{
+  "version": 1,
+  "synthetic": true,
+  "providerCalls": 0,
+  "evaluationDate": "2026-09-22",
+  "timezoneOffsetMinutes": 420,
+  "currentMonthExcluded": true,
+  "futureLeapMonthCountsSeparately": true,
+  "ownerManualAccepted": false,
+  "samples": [
+    {
+      "id": "synthetic-01",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 5,
+            "palaceId": "ziwei.palace.health",
+            "startAge": 52,
+            "endAge": 61,
+            "startYear": 2020,
+            "endYear": 2029
+          },
+          "yearInCycle": 7,
+          "remainingYears": 3
+        },
+        "nextDecade": {
+          "ordinal": 6,
+          "palaceId": "ziwei.palace.travel",
+          "startAge": 62,
+          "endAge": 71,
+          "startYear": 2030,
+          "endYear": 2039
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.travel"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.health"
+          }
+        ]
+      }
+    },
+    {
+      "id": "synthetic-02",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 5,
+            "palaceId": "ziwei.palace.friends",
+            "startAge": 55,
+            "endAge": 64,
+            "startYear": 2025,
+            "endYear": 2034
+          },
+          "yearInCycle": 2,
+          "remainingYears": 8
+        },
+        "nextDecade": {
+          "ordinal": 6,
+          "palaceId": "ziwei.palace.travel",
+          "startAge": 65,
+          "endAge": 74,
+          "startYear": 2035,
+          "endYear": 2044
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.friends"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.travel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "synthetic-03",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 5,
+            "palaceId": "ziwei.palace.friends",
+            "startAge": 53,
+            "endAge": 62,
+            "startYear": 2024,
+            "endYear": 2033
+          },
+          "yearInCycle": 3,
+          "remainingYears": 7
+        },
+        "nextDecade": {
+          "ordinal": 6,
+          "palaceId": "ziwei.palace.travel",
+          "startAge": 63,
+          "endAge": 72,
+          "startYear": 2034,
+          "endYear": 2043
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.travel"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.health"
+          }
+        ]
+      }
+    },
+    {
+      "id": "synthetic-04",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 5,
+            "palaceId": "ziwei.palace.friends",
+            "startAge": 54,
+            "endAge": 63,
+            "startYear": 2026,
+            "endYear": 2035
+          },
+          "yearInCycle": 1,
+          "remainingYears": 9
+        },
+        "nextDecade": {
+          "ordinal": 6,
+          "palaceId": "ziwei.palace.travel",
+          "startAge": 64,
+          "endAge": 73,
+          "startYear": 2036,
+          "endYear": 2045
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.friends"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.travel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "synthetic-05",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 5,
+            "palaceId": "ziwei.palace.friends",
+            "startAge": 52,
+            "endAge": 61,
+            "startYear": 2025,
+            "endYear": 2034
+          },
+          "yearInCycle": 2,
+          "remainingYears": 8
+        },
+        "nextDecade": {
+          "ordinal": 6,
+          "palaceId": "ziwei.palace.travel",
+          "startAge": 62,
+          "endAge": 71,
+          "startYear": 2035,
+          "endYear": 2044
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.friends"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.travel"
+          }
+        ]
+      }
+    },
+    {
+      "id": "synthetic-06",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 4,
+            "palaceId": "ziwei.palace.career",
+            "startAge": 46,
+            "endAge": 55,
+            "startYear": 2020,
+            "endYear": 2029
+          },
+          "yearInCycle": 7,
+          "remainingYears": 3
+        },
+        "nextDecade": {
+          "ordinal": 5,
+          "palaceId": "ziwei.palace.friends",
+          "startAge": 56,
+          "endAge": 65,
+          "startYear": 2030,
+          "endYear": 2039
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.travel"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.health"
+          }
+        ]
+      }
+    },
+    {
+      "id": "synthetic-07",
+      "asOfDate": "2026-09-22",
+      "purchaseFacts": {
+        "version": 1,
+        "lunarYear": 2026,
+        "lunarMonth": {
+          "number": 8,
+          "isLeap": false
+        },
+        "remainingLunarMonths": 4,
+        "nearYearEndThreshold": 3,
+        "nearYearEnd": false,
+        "provisional": false,
+        "currentDecade": {
+          "span": {
+            "ordinal": 4,
+            "palaceId": "ziwei.palace.career",
+            "startAge": 45,
+            "endAge": 54,
+            "startYear": 2020,
+            "endYear": 2029
+          },
+          "yearInCycle": 7,
+          "remainingYears": 3
+        },
+        "nextDecade": {
+          "ordinal": 5,
+          "palaceId": "ziwei.palace.friends",
+          "startAge": 55,
+          "endAge": 64,
+          "startYear": 2030,
+          "endYear": 2039
+        },
+        "annualPalaces": [
+          {
+            "year": 2026,
+            "palaceId": "ziwei.palace.friends"
+          },
+          {
+            "year": 2027,
+            "palaceId": "ziwei.palace.travel"
+          }
+        ]
+      }
+    }
+  ]
+}
