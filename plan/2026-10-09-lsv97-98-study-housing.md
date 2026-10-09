@@ -39,3 +39,7 @@ asserting student status.
 Physical native attempts0; customer sends0; sale activation0. Mechanical lexical
 checks do not prove semantic truth. Exact-head review and fresh CI follow; all
 inherited FE/commercial release holds, native/manual/deployment gates stay open.
+
+## Unapplied migration reconciliation (2026-10-09)
+
+Bounded maintenance: rename only this unapplied migration from0070_study_housing_topics to0071_study_housing_topics/index71, preserving its SQL body. Inherit the reviewed private Bazi source migration0066 and the corrected commercial parent order. Applied migrations≤0065 remain byte-identical. Previous receipts describe earlier heads; rerun actual PostgreSQL/schema replay, producer/required gates, independent exact-head review and fresh CI. Draft status and FE/manual/native/commercial release holds remain binding. No public/provider/price activation.
