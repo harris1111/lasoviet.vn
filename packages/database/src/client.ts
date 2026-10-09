@@ -5,6 +5,7 @@ import * as auth from "./schema/auth.js";
 import * as audit from "./schema/audit.js";
 import * as adminAccess from "./schema/admin-access.js";
 import * as birthProfile from "./schema/birth-profile.js";
+import * as bazi from "./schema/bazi.js";
 import * as commerce from "./schema/commerce.js";
 import * as knowledge from "./schema/knowledge.js";
 import * as outbox from "./schema/outbox.js";
@@ -20,6 +21,7 @@ import * as membership from "./schema/membership.js";
 import * as freeAi from "./schema/free-ai.js";
 
 const schema = {
+  ...bazi,
   ...freeAi,
   ...membership,
   ...auth,
