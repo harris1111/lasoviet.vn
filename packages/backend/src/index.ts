@@ -1,4 +1,6 @@
 export { linkAnonymousActorToAccount } from "./identity/identity.module.js";
+export { createDatabaseBaziSourceRepository, BAZI_PROFILE_MAPPING_VERSION,
+  type AuthorizedBaziSource, type BaziSourceResult } from "./bazi/bazi-source.repository.js";
 export type {
   AnonymousLinkErrorCode,
   AnonymousLinkResult,

@@ -42,3 +42,7 @@ remain required. Physical native attempts0; customer emails0; sale activation0.
 This is private backend preparation. PR335/346/352 frontend and commercial
 release hold applies; no independent merge/deploy or Done claim. Exact-head
 review and fresh CI follow this local receipt.
+
+## Unapplied migration reconciliation (2026-10-09)
+
+Bounded maintenance: rename only this unapplied migration from0069_family_children_topic to0070_family_children_topic/index70, preserving its SQL body. Inherit the reviewed private Bazi source migration0066 and the corrected commercial parent order. Applied migrations≤0065 remain byte-identical. Previous receipts describe earlier heads; rerun actual PostgreSQL/schema replay, producer/required gates, independent exact-head review and fresh CI. Draft status and FE/manual/native/commercial release holds remain binding. No public/provider/price activation.

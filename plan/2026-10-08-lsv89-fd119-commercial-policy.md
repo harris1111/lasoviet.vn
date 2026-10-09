@@ -101,3 +101,14 @@ a stale ungrouped1200 expectation: the actual new unlock sheet renders1.200 La.
 Only the independent displayed-price expectation is corrected; actual wallet,
 frozen-price, once-only replay and eleven durable-event checks stay intact.
 A fresh isolated golden run, exact-head review and CI remain required.
+
+## Unapplied migration reconciliation (2026-10-09)
+
+Bounded maintenance: reserve0066 for the reviewed private Bazi source PR365.
+Rename only this unapplied FD119 migration to0067/index67 with a later timestamp,
+preserving its SQL body and all applied≤0065 byte-for-byte. Merge the reviewed
+Bazi source dependency, then run real schema replay/FD119 commerce regression,
+producer and required gates, independent exact-head review and fresh CI.
+Previous validation receipts describe their original heads; they are not fresh
+evidence for this migration head. Public FE/manual/native/price-release holds
+remain binding; this draft is not deployed or merged.

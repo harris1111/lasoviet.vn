@@ -35,3 +35,7 @@ Required final i18n/lint/producer-dependent typechecks pass; four existing lint
 warnings, no errors. Independent working-source review found no financial/privacy
 blocker; committed-head review/fresh CI remain mandatory. No provider activation,
 customer send, production financial write, default-depth or manual acceptance.
+
+## Unapplied migration reconciliation (2026-10-09)
+
+Bounded maintenance: rename only this unapplied migration from0068_career_transition_topic to0069_career_transition_topic/index69, preserving its SQL body. Inherit the reviewed private Bazi source migration0066 and the corrected commercial parent order. Applied migrations≤0065 remain byte-identical. Previous receipts describe earlier heads; rerun actual PostgreSQL/schema replay, producer/required gates, independent exact-head review and fresh CI. Draft status and FE/manual/native/commercial release holds remain binding. No public/provider/price activation.
