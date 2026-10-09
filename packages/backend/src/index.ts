@@ -881,3 +881,5 @@ export { createFreeReadingAdmission } from "./ziwei/free-reading-admission.js";
 export { createFreeReadingPrivateCache } from "./ziwei/free-reading-private-cache.js";
 export { createFreeReadingPrivateRunner } from "./ziwei/free-reading-private-runner.js";
 export { createFreeReadingRequestService, type FreeReadingRequestOptions } from "./ziwei/free-reading-request.service.js";
+
+export { buildDecadalReadingSource } from "./reports/decadal-reading-source.js";
