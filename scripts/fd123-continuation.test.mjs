@@ -10,7 +10,8 @@ import { createCampaignBudget } from "./lib/campaign-budget.mjs";
 import { captureNativeAccountingEvidence } from "./lib/prod-9router-child.mjs";
 import { runProdRouterAttempt, paidTrialAttemptKey } from "./lib/prod-9router-attempt.mjs";
 import { FD123_POLICY, FD123_MODEL_BOUND_MODE, FD123_TECHNICAL_CAP_VND, FD123_SLOTS, fd123AttemptKey, quoteFd123ReferenceSettlement } from "./lib/fd123-reference-continuation.mjs";
-import { assertFd123OutputPath, normalizeTrialJson, assertFd123Original, assertFd123Resume, buildFd123Inputs, prepareFd123RetainedRecovery } from "./continue-paid-manual-trials.mjs";
+import { assertFd123OutputPath, normalizeTrialJson, assertFd123Original, assertFd123Resume, buildFd123Inputs, prepareFd123RetainedRecovery,
+  prepareFd123RetainedFormatRecovery, paidTrialSchemaInstruction } from "./continue-paid-manual-trials.mjs";
 import { API_REFERENCE_PRICING } from "./lib/native-campaign-api-pricing.mjs";
 
 const now = () => new Date("2026-10-09T18:00:00Z");
@@ -254,4 +255,69 @@ test("narrow retained recovery validates original source and default quality and
   await runTrialSequence({ inputs: FD123_SLOTS.slice(1).map(slot => { const [group, index] = slot.split(":"); return { group, index: Number(index), facts: {} }; }),
     manifest, save() {}, generate: async (_, row) => { dispatched.push(row.slot); return { ok: true, value: { quality: { ok: true } } }; } });
   assert.deepEqual(dispatched, FD123_SLOTS.slice(1)); assert.equal(manifest.reports.length, 9);
+});
+
+test("only the exact root schema-document annotation normalizes; nested annotations and other extra content fields still reject", async () => {
+  const modules = { contracts: await import("../packages/contracts/dist/index.js") };
+  const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-monthly-retained-stop.json", import.meta.url), "utf8"));
+  const raw = stopped.reports[3].attempts[0].outputText;
+  assert.equal(modules.contracts.ZiweiPeriodReadingContentV1Schema.safeParse(JSON.parse(raw)).success, false);
+  const normalized = normalizeTrialJson(raw);
+  assert.equal(normalized.rawSha256, digest(raw)); assert.equal(normalized.normalization, "root_json_schema_annotation");
+  assert.equal(modules.contracts.ZiweiPeriodReadingContentV1Schema.safeParse(normalized.value).success, true);
+  assert.equal(Object.hasOwn(normalized.value, "$schema"), false);
+  assert.equal(normalizeTrialJson(`\`\`\`json\n${raw}\n\`\`\``).normalization, "single_json_fence_and_root_json_schema_annotation");
+  for (const uri of ["https://json-schema.org/draft/other/schema", "https://untrusted.invalid/schema", null, {}, 1]) {
+    const value = JSON.parse(raw); value.$schema = uri;
+    assert.throws(() => normalizeTrialJson(JSON.stringify(value)), { code: "FD123_JSON_SCHEMA_ANNOTATION_INVALID" });
+  }
+  for (const mutate of [v => { v.$id = "extra"; }, v => { v.overview.$schema = v.$schema; },
+    v => { v.periods[0].$schema = v.$schema; }, v => { v.periods[0].unknown = "content"; }, v => { v.version = 2; }]) {
+    const value = JSON.parse(raw); mutate(value);
+    assert.equal(modules.contracts.ZiweiPeriodReadingContentV1Schema.safeParse(normalizeTrialJson(JSON.stringify(value)).value).success, false);
+  }
+  const document = modules.contracts.z.toJSONSchema(modules.contracts.ZiweiPeriodReadingContentV1Schema), before = JSON.stringify(document);
+  const instruction = paidTrialSchemaInstruction(document);
+  const projected = JSON.parse(instruction.split("Authoritative JSON output schema: ")[1]);
+  assert.equal(projected.additionalProperties, false); assert.equal(Object.hasOwn(projected, "$schema"), false);
+  const expected = structuredClone(document); delete expected.$schema; assert.deepEqual(projected, expected);
+  assert.equal(JSON.stringify(document), before); assert.match(instruction, /never schema-document annotations/u);
+});
+
+test("four-row format recovery validates each source/default quality/settlement, preserves bytes and continues only five unrun slots", async () => {
+  const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-monthly-retained-stop.json", import.meta.url), "utf8"));
+  const original = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-retained.json", import.meta.url), "utf8"));
+  const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
+  const modules = { backend: await import("../packages/backend/dist/index.js"), contracts: await import("../packages/contracts/dist/index.js"), engine: await import("../packages/engine-adapters/dist/index.js") };
+  const inputs = await buildFd123Inputs(original, modules, preflight);
+  const lineage = { originalJournalSha256: stopped.originalJournalSha256, originalLedgerSha256: stopped.originalLedgerSha256 };
+  const { budget, ledgerPath } = fresh();
+  for (const row of stopped.reports) {
+    const attempt = row.attempts[0];
+    const id = budget.reserveAttempt("v4.2-report", 33368, { attemptKey: attempt.attemptKey, trace: attempt.trace }); budget.markDispatched(id);
+    budget.settleAttempt(id, { receipt: attempt.receipt, outputSha256: attempt.outputSha256, accountingEvidence: attempt.accountingEvidence, referenceMode: FD123_MODEL_BOUND_MODE });
+  }
+  assert.equal(budget.status().totalVnd, 133472); assert.equal(budget.status().openReservations, 0);
+  const ledgerBefore = digest(readFileSync(ledgerPath)), before = JSON.stringify(stopped);
+  const recover = value => prepareFd123RetainedFormatRecovery(value, lineage, inputs, modules, budget.status(), { at: now() });
+  const recovered = recover(stopped); assert.equal(recovered.quality.ok, true); assert.equal(recovered.normalization, "root_json_schema_annotation");
+  assert.equal(recovered.rawSha256, stopped.reports[3].attempts[0].rawSha256);
+  assert.notEqual(recovered.parsedSha256, stopped.reports[3].attempts[0].parsedSha256);
+  assert.equal(JSON.stringify(stopped), before); assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
+  for (const mutate of [m => { m.status = "format_recovery_prepared"; }, m => { m.formatRecoveryEvents = [{status: "prepared"}]; },
+    m => { m.reports[3].status = "quality_passed_pending_manual_review"; }, m => { m.reports[3].attempts[0].parsedSha256 = "b".repeat(64); },
+    m => { m.reports[2].factsSha256 = "b".repeat(64); }, m => { m.reports[3].attempts[0].quote.quoteVnd = "1"; },
+    m => { m.reports[3].attempts[0].accountingEvidence.envelopeComplete = true; }, m => { m.reports[3].attempts[0].outputText += " "; },
+    m => { m.reports[0].result.value.content.title = "changed"; }, m => { m.manualAccepted = true; }]) {
+    const value = structuredClone(stopped); mutate(value); assert.throws(() => recover(value));
+  }
+  const unsafe = { ...modules, backend: { ...modules.backend, validatePeriodReading: () => ({ok: false}) } };
+  assert.throws(() => prepareFd123RetainedFormatRecovery(stopped, lineage, inputs, unsafe, budget.status(), { at: now() }), { code: "FD123_FORMAT_RECOVERY_CONTENT_OR_REFERENCE_INVALID" });
+  const manifest = structuredClone(stopped); manifest.reports[3].status = "quality_passed_pending_manual_review";
+  const dispatched = []; const { runTrialSequence } = await import("./run-paid-manual-trials.mjs");
+  await runTrialSequence({ inputs: inputs.slice(4), manifest, save() {}, generate: async (_, row) => {
+    dispatched.push(row.slot); return {ok: true, value: {quality: {ok: true}}};
+  } });
+  assert.deepEqual(dispatched, FD123_SLOTS.slice(4)); assert.equal(manifest.reports.length, 9);
+  assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
 });

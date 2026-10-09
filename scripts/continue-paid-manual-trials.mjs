@@ -11,6 +11,7 @@ import { makePaidTrialInput, acquireTrialRunnerLock, runTrialSequence } from "./
 
 const ROOT = join(FD121_ROOT, "fd123-continuation");
 const JOURNAL = join(ROOT, "reports.json");
+const SCHEMA_ANNOTATION = "https://json-schema.org/draft/2020-12/schema";
 const hash = text => createHash("sha256").update(text).digest("hex");
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 export function assertFd123OutputPath(path, authorityRoot = FD121_ROOT) {
@@ -32,7 +33,18 @@ export function normalizeTrialJson(raw) {
   const json = wrapper ? wrapper[1] : text;
   let value;
   try { value = JSON.parse(json); } catch { fail("FD123_JSON_INVALID"); }
-  return { value, rawSha256: hash(raw), parsedSha256: hash(JSON.stringify(value)), normalization: wrapper ? "single_json_fence" : "none" };
+  let annotation = false;
+  if (value && typeof value === "object" && !Array.isArray(value) && Object.hasOwn(value, "$schema")) {
+    if (value.$schema !== SCHEMA_ANNOTATION) fail("FD123_JSON_SCHEMA_ANNOTATION_INVALID");
+    delete value.$schema; annotation = true;
+  }
+  const normalization = [wrapper ? "single_json_fence" : "", annotation ? "root_json_schema_annotation" : ""].filter(Boolean).join("_and_") || "none";
+  return { value, rawSha256: hash(raw), parsedSha256: hash(JSON.stringify(value)), normalization };
+}
+export function paidTrialSchemaInstruction(schemaDocument) {
+  const document = structuredClone(schemaDocument);
+  delete document.$schema;
+  return `Return only product data fields, never schema-document annotations such as $schema. Authoritative JSON output schema: ${JSON.stringify(document)}`;
 }
 export function assertFd123Original(manifest) {
   const first = manifest?.reports?.[0];
@@ -75,6 +87,35 @@ export function prepareFd123RetainedRecovery(manifest, lineage, input, modules, 
   return { settlement, quote, content, quality, rawSha256: normalized.rawSha256,
     parsedSha256: normalized.parsedSha256, normalization: normalized.normalization };
 }
+export function prepareFd123RetainedFormatRecovery(manifest, lineage, inputs, modules, state, { at = new Date() } = {}) {
+  const observed = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-monthly-retained-stop.json", import.meta.url), "utf8"));
+  if (hash(JSON.stringify(manifest)) !== hash(JSON.stringify(observed)) || manifest.status !== "stopped" || manifest.manualAccepted !== false ||
+      manifest.originalJournalSha256 !== lineage.originalJournalSha256 || manifest.originalLedgerSha256 !== lineage.originalLedgerSha256 ||
+      manifest.referenceMode !== FD123_MODEL_BOUND_MODE || manifest.reports.length !== 4 || manifest.stopSlot !== "monthly:0" ||
+      state.openReservations !== 0 || state.totalVnd !== 133472 || state.capVnd !== 600624) fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+  let recovered;
+  for (const [index, row] of manifest.reports.entries()) {
+    const input = inputs[index], attempt = row.attempts.at(-1);
+    if (!input || row.slot !== FD123_SLOTS[index] || row.manualAccepted !== false || row.snapshotHash !== input.snapshotHash ||
+        row.factsSha256 !== hash(JSON.stringify(input.facts))) fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+    const normalized = normalizeTrialJson(attempt.outputText);
+    const topic = ["relationship_marriage", "career_wealth"].includes(input.group);
+    const content = (topic ? modules.contracts.ZiweiTopicDeepDiveContentV1Schema : modules.contracts.ZiweiPeriodReadingContentV1Schema).parse(normalized.value);
+    const quality = topic ? modules.backend.validateZiweiTopicDeepDiveQualityV4(content, input.facts) : modules.backend.validatePeriodReading(content, input.facts);
+    const quote = quoteFd123ReferenceSettlement({ receipt: attempt.receipt, outputSha256: normalized.rawSha256,
+      accountingEvidence: attempt.accountingEvidence, referenceMode: FD123_MODEL_BOUND_MODE }, attempt.trace, { at });
+    if (!quality.ok || JSON.stringify(quote) !== JSON.stringify(attempt.quote)) fail("FD123_FORMAT_RECOVERY_CONTENT_OR_REFERENCE_INVALID");
+    if (index < 3) {
+      if (row.status !== "quality_passed_pending_manual_review" || !row.result.ok ||
+          JSON.stringify(content) !== JSON.stringify(row.result.value.content)) fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+    } else {
+      if (row.status !== "failed" || row.result.error?.code !== "AI_OUTPUT_INVALID" || row.attempts.length !== 1 ||
+          attempt.purpose !== "report" || attempt.status !== "reference_settled" || normalized.normalization !== "root_json_schema_annotation") fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+      recovered = { content, quality, rawSha256: normalized.rawSha256, parsedSha256: normalized.parsedSha256, normalization: normalized.normalization };
+    }
+  }
+  return recovered;
+}
 function privateRead(path) {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
@@ -106,9 +147,9 @@ export async function buildFd123Inputs(original, modules, preflight) {
 }
 async function main(args) {
   const { values } = parseArgs({ args, options: { live: { type: "boolean", default: false }, dryRun: { type: "boolean", default: false },
-    locked: { type: "boolean", default: false }, resumeReference: { type: "boolean", default: false }, output: { type: "string" } } });
+    locked: { type: "boolean", default: false }, resumeReference: { type: "boolean", default: false }, resumeFormat: { type: "boolean", default: false }, output: { type: "string" } } });
   if (values.live === values.dryRun || process.getuid() !== 1000) fail("FD123_MODE_OR_IDENTITY_INVALID");
-  if (values.resumeReference && !values.live) fail("FD123_MODE_OR_IDENTITY_INVALID");
+  if (((values.resumeReference || values.resumeFormat) && !values.live) || (values.resumeReference && values.resumeFormat)) fail("FD123_MODE_OR_IDENTITY_INVALID");
   const output = assertFd123OutputPath(values.output ?? "plan/evidence/2026-10-09-fd123-paid-trials.json");
   const originalText = privateRead(join(FD121_ROOT, "reports.json"));
   const ledgerText = privateRead(join(FD121_ROOT, "budget.jsonl"));
@@ -147,8 +188,30 @@ async function main(args) {
   if (existsSync(JOURNAL)) {
     const priorText = privateRead(JOURNAL);
     manifest = JSON.parse(priorText);
-    if (!values.resumeReference) { assertFd123Resume(manifest, lineage); pendingInputs = []; }
-    else {
+    if (!values.resumeReference && !values.resumeFormat) { assertFd123Resume(manifest, lineage); pendingInputs = []; }
+    else if (values.resumeFormat) {
+      const state = budget.status();
+      const ledgerSha256 = hash(privateRead(join(ROOT, "budget.jsonl")));
+      const recovered = prepareFd123RetainedFormatRecovery(manifest, lineage, inputs, modules, state);
+      const row = manifest.reports[3], attempt = row.attempts[0]; unchanged();
+      manifest.formatRecoveryEvents = [{ status: "prepared", ownerDecision: "FD-123", priorManifestSha256: hash(priorText),
+        previousStatus: manifest.status, previousStopSlot: manifest.stopSlot, previousRowStatus: row.status,
+        previousResult: row.result, previousNormalization: attempt.normalization, previousParsedSha256: attempt.parsedSha256,
+        rawOutputSha256: recovered.rawSha256, ledgerSha256, noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() }];
+      manifest.status = "format_recovery_prepared"; durableSave(JOURNAL, manifest);
+      // The existing settled proof/receipt/quote and original output stay intact.
+      // Only the parsed view removes the exact schema-document annotation.
+      Object.assign(attempt, { rawSha256: recovered.rawSha256, parsedSha256: recovered.parsedSha256, normalization: recovered.normalization });
+      row.result = { ok: true, value: { content: recovered.content, quality: recovered.quality,
+        providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium" } };
+      row.status = "quality_passed_pending_manual_review";
+      manifest.formatRecoveryEvents.push({ status: "completed", noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() });
+      manifest.status = "running"; delete manifest.stopSlot; durableSave(JOURNAL, manifest); unchanged();
+      const after = budget.status(); if (JSON.stringify(after) !== JSON.stringify(state) ||
+        hash(privateRead(join(ROOT, "budget.jsonl"))) !== ledgerSha256) fail("FD123_FORMAT_RECOVERY_LEDGER_CHANGED");
+      pendingInputs = inputs.slice(4);
+      console.log(JSON.stringify({ slot: row.slot, status: "retained_format_recovered", physicalProviderCalls: 0, ledgerWrites: 0, manualAccepted: false }));
+    } else {
       const recovered = prepareFd123RetainedRecovery(manifest, lineage, inputs[0], modules, budget.status());
       const row = manifest.reports[0], attempt = row.attempts[0];
       unchanged();
@@ -174,7 +237,7 @@ async function main(args) {
         heldReferenceVnd: recovered.quote.quoteVnd, actualUsageVerified: false, manualAccepted: false }));
     }
   } else {
-    if (values.resumeReference) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
+    if (values.resumeReference || values.resumeFormat) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
     const state = budget.status();
     if (state.totalVnd !== 0 || state.openReservations !== 0) fail("FD123_LEDGER_REQUIRES_RECONCILIATION");
     manifest = { campaign: FD123_POLICY, ownerDecision: "FD-123", status: "running", manualAccepted: false, asOfDate: original.asOfDate,
@@ -193,7 +256,7 @@ async function main(args) {
           const attempt = { attemptKey: fd123AttemptKey(slot, purpose), purpose, status: "preparing" };
           row.attempts.push(attempt); durableSave(JOURNAL, manifest);
           try {
-            const native = await runProdRouterAttempt({ system: `${request.system}\nAuthoritative JSON schema: ${JSON.stringify(modules.contracts.z.toJSONSchema(request.schema))}`,
+            const native = await runProdRouterAttempt({ system: `${request.system}\n${paidTrialSchemaInstruction(modules.contracts.z.toJSONSchema(request.schema))}`,
               user: request.user, maxOutputTokens: request.maxOutputTokens, attemptKey: attempt.attemptKey, budget, referenceContinuation: true,
               referenceMode: manifest.referenceMode,
               onPrepared: trace => { unchanged(); Object.assign(attempt, trace, { status: "dispatch_pending" }); durableSave(JOURNAL, manifest); },
