@@ -872,3 +872,5 @@ export { createPendingTopUpRecoveryRunner } from "./notifications/pending-topup-
 export type { RecoveryOutboundClaim } from "./notifications/pending-topup-recovery-runner.js";
 export { createRecoveryOutboundControlTool } from "./notifications/recovery-outbound-control.js";
 export { createRecoveryOutboundMaintenance } from "./notifications/recovery-outbound-maintenance.js";
+export { createFreeReadingWriter, freezeFreeReadingCall } from "./ziwei/free-reading-writer.js";
+export type { FreeReadingFrozenCallV2, FreeReadingWriterOutcome } from "./ziwei/free-reading-writer.js";
