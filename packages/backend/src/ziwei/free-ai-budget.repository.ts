@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import {
-  FreePalaceGiftFrozenCallV1Schema,
+  FreePalaceGiftFrozenCallV1Schema, FreeReadingFrozenCallV2Schema, type FreeReadingFrozenCallV2,
   FreePalaceGiftOutboxPayloadV1Schema,
   type FreePalaceGiftFrozenCallV1,
 } from "@lasoviet/contracts";
@@ -25,6 +25,7 @@ import {
   type FreeAiSubjectKind,
   type FreeAiTransaction,
 } from "./free-ai-admission.service.js";
+import { validFreeReadingCall, freeReadingLineageHash } from "./free-reading-lineage.js";
 import { FREE_PALACE_GENERATION_REQUESTED_EVENT } from "./free-palace-outbox.js";
 import type { FreePalaceCostContext } from "./free-palace-cost-context.js";
 import { freePalaceArtifactKey, resolveFreePalaceSlot, type FreePalaceArtifactLineage } from "./free-palace-selection.js";
@@ -61,17 +62,23 @@ export type FreePalaceReservationInput = Readonly<{
   traceId: string;
   authorizeSource: FreeAiSourceAuthorizer;
   requestId?: string;
+  // Server-only v2 preparation. Shares the legacy chart slot/ledger and isolates its event.
+  wholeReadingCall?: FreeReadingFrozenCallV2;
   // Test seam for midnight behaviour; always sampled AFTER the coordination lock is held.
   clock?: FreeAiClock;
+}>;
+
+export type FreeAiDailyBudgetRefusal = Readonly<{
+  utcDay: string; exposureMicroVnd: string; requestedMicroVnd: string;
 }>;
 
 export type FreePalaceReservationResult =
   | Readonly<{ kind: "admitted"; requestId: string; admissionDay: string; reservedMicroVnd: bigint }>
   | Readonly<{ kind: "cache" | "fallback"; requestId: string; status: string }>
-  | Readonly<{ kind: "refused"; reason: FreePalaceRefusalReason }>;
+  | Readonly<{ kind: "refused"; reason: FreePalaceRefusalReason; budgetRefusal?: FreeAiDailyBudgetRefusal }>;
 
 class Refusal extends Error {
-  constructor(readonly reason: FreePalaceRefusalReason) { super(reason); }
+  constructor(readonly reason: FreePalaceRefusalReason, readonly budgetRefusal?: FreeAiDailyBudgetRefusal) { super(reason); }
 }
 
 export const utcDay = (at: Date) => at.toISOString().slice(0, 10);
@@ -131,7 +138,18 @@ export function createFreeAiBudgetRepository(database: Database) {
       if (cost.reservedMicroVnd <= 0n || cost.provider !== lineage.provider || cost.model !== lineage.model) {
         return { kind: "refused", reason: "invalid_reservation" };
       }
-      const requestId = input.requestId ?? randomUUID();
+      const whole = input.wholeReadingCall ? FreeReadingFrozenCallV2Schema.safeParse(input.wholeReadingCall) : null;
+      if (whole && (!whole.success || !validFreeReadingCall(whole.data) || freeReadingLineageHash(whole.data) !== freePalaceArtifactKey(lineage) || whole.data.chartVersionId !== lineage.chartVersionId ||
+          whole.data.source.locale !== lineage.locale || whole.data.source.focusPalaceId !== lineage.palaceId ||
+          whole.data.tariff.id !== cost.pricingSnapshotId || whole.data.tariff.providerId !== cost.provider ||
+          whole.data.tariff.modelId !== cost.model || whole.data.serializedPrompt !== cost.finalSerializedRequest ||
+          cost.maxOutputTokens !== whole.data.maxOutputTokens || cost.maxInputTokens > 16_000 ||
+          BigInt(whole.data.tariff.inputPricePerMillion) !== cost.inputPricePerMillion ||
+          BigInt(whole.data.tariff.outputPricePerMillion) !== cost.outputPricePerMillion ||
+          (input.requestId !== undefined && input.requestId !== whole.data.requestId))) {
+        return {kind: "refused", reason: "invalid_reservation"};
+      }
+      const requestId = whole?.success ? whole.data.requestId : input.requestId ?? randomUUID();
       const artifactKey = freePalaceArtifactKey(lineage);
       try {
         return await database.transaction(async (tx): Promise<FreePalaceReservationResult> => {
@@ -175,7 +193,10 @@ export function createFreeAiBudgetRepository(database: Database) {
           await tx.select().from(freeAiDailyBudgets).where(eq(freeAiDailyBudgets.utcDay, admissionDay)).for("update");
           const bound = cost.reservedMicroVnd;
           if (chartTotal + bound > FREE_AI_CHART_CEILING_MICRO_VND) throw new Refusal("chart_budget_exhausted");
-          if ((await readDailyGateTotal(tx, admissionDay)) + bound > FREE_AI_DAILY_CEILING_MICRO_VND) throw new Refusal("daily_budget_exhausted");
+          const dailyExposure = await readDailyGateTotal(tx, admissionDay);
+          if (dailyExposure + bound > FREE_AI_DAILY_CEILING_MICRO_VND) throw new Refusal("daily_budget_exhausted", whole?.success ? {
+            utcDay: admissionDay, exposureMicroVnd: dailyExposure.toString(), requestedMicroVnd: bound.toString(),
+          } : undefined);
 
           const subject = await resolveLockedFreeAiSubject(tx, freeAiQuotaAlias(input.actor.kind, input.actor.id), input.actor.kind);
           if (!(await readLockedFreeAiQuota(tx, subject, now))) throw new Refusal("quota_exhausted");
@@ -191,7 +212,7 @@ export function createFreeAiBudgetRepository(database: Database) {
           }).onConflictDoNothing().returning({ id: freeAiRequests.id });
           if (!request) throw new Refusal("invalid_reservation");
           await tx.insert(freeAiAdmissions).values({ requestId, subjectId: subject.id, admittedAt: now });
-          const frozenCall: FreePalaceGiftFrozenCallV1 = FreePalaceGiftFrozenCallV1Schema.parse({
+          const frozenCall: FreePalaceGiftFrozenCallV1 | FreeReadingFrozenCallV2 = whole?.success ? whole.data : FreePalaceGiftFrozenCallV1Schema.parse({
             version: 1, requestId, chartVersionId: lineage.chartVersionId, palaceId: lineage.palaceId, locale: lineage.locale,
             provider: cost.provider, model: cost.model, promptVersion: lineage.promptVersion, rulesVersion: lineage.rulesVersion,
             knowledgeVersion: lineage.knowledgeVersion, scorerVersion: lineage.scorerVersion, schemaVersion: lineage.schemaVersion,
@@ -202,15 +223,15 @@ export function createFreeAiBudgetRepository(database: Database) {
             requestId, deletionGeneration: chart.deletionGeneration, frozenCall, expiresAt: source.expiresAt,
           });
           await enqueueOutbox(tx, {
-            schemaVersion: 1, type: FREE_PALACE_GENERATION_REQUESTED_EVENT, eventId: `free-palace-gift:${requestId}`,
+            schemaVersion: 1, type: whole?.success ? "free_reading.generation.requested.v2" : FREE_PALACE_GENERATION_REQUESTED_EVENT, eventId: `${whole?.success ? "free-reading" : "free-palace-gift"}:${requestId}`,
             occurredAt: now.toISOString(), traceId: input.traceId, actorId: null, aggregateType: "chart",
-            aggregateId: lineage.chartVersionId, idempotencyKey: `free-palace-gift:${requestId}`,
+            aggregateId: lineage.chartVersionId, idempotencyKey: `${whole?.success ? "free-reading" : "free-palace-gift"}:${requestId}`,
             payload: FreePalaceGiftOutboxPayloadV1Schema.parse({ requestId }),
           });
           return { kind: "admitted", requestId, admissionDay, reservedMicroVnd: bound };
         });
       } catch (error) {
-        if (error instanceof Refusal) return { kind: "refused", reason: error.reason };
+        if (error instanceof Refusal) return { kind: "refused", reason: error.reason, ...(error.budgetRefusal ? {budgetRefusal: error.budgetRefusal} : {}) };
         throw error;
       }
     },

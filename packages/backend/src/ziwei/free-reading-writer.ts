@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import {
-  FreeReadingCandidateV2Schema, FreeReadingContentV2Schema, FreeReadingFactsV2Schema,
-  validateFreeReadingReferences, z, type FreeReadingCandidateV2, type FreeReadingFactsV2,
+  FreeReadingCandidateV2Schema, FreeReadingContentV2Schema, FreeReadingFactsV2Schema, FreeReadingFrozenCallV2Schema, FreeReadingTariffV2Schema,
+  validateFreeReadingReferences, z, type FreeReadingCandidateV2, type FreeReadingFactsV2, type FreeReadingFrozenCallV2,
 } from "@lasoviet/contracts";
 import { calculateTokenCostMicroVnd, type AiCostRecorder, type CompleteAttemptInput } from "../ai/ai-cost.js";
 import type { AiProvider } from "../ai/ai-provider.js";
@@ -10,30 +10,19 @@ import { buildFreeReadingPrompt } from "./free-reading-prompt.js";
 import { compileFreeReadingFallback } from "./free-reading-fallback.js";
 import { checkFreeReadingQuality } from "./free-reading-quality.js";
 
-const integer = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
-const TariffSchema = z.object({
-  id: z.string().uuid(), pricingVersion: z.string().min(1),
-  providerId: z.string().min(1), modelId: z.string().min(1),
-  inputPricePerMillion: integer, outputPricePerMillion: integer, cachedInputPricePerMillion: integer,
-}).strict();
-const FrozenCallSchema = z.object({
-  version: z.literal(2), requestId: z.string().min(1), chartVersionId: z.string().min(1),
-  source: FreeReadingFactsV2Schema, sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
-  serializedPrompt: z.string().min(1), tariff: TariffSchema,
-  maxOutputTokens: z.literal(10_000),
-}).strict();
-export type FreeReadingFrozenCallV2 = z.infer<typeof FrozenCallSchema>;
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 
 /** Private preparation only. Durable chart/day admission and native bound proof precede dispatch. */
 export function freezeFreeReadingCall(input: {
   requestId: string; chartVersionId: string; source: FreeReadingFactsV2;
-  tariff: z.infer<typeof TariffSchema>;
+  tariff: z.infer<typeof FreeReadingTariffV2Schema>;
 }): FreeReadingFrozenCallV2 {
   const source = FreeReadingFactsV2Schema.parse(input.source);
-  return FrozenCallSchema.parse({ ...input, source, version: 2, sourceHash: hash(source),
+  return FreeReadingFrozenCallV2Schema.parse({ ...input, source, version: 2, sourceHash: hash(source),
     serializedPrompt: JSON.stringify(buildFreeReadingPrompt(source)), maxOutputTokens: 10_000 });
 }
+
+export type { FreeReadingFrozenCallV2 };
 
 export type FreeReadingWriterOutcome = {
   settlement: FreeAiAttemptSettlement;
@@ -145,7 +134,7 @@ export function createFreeReadingWriter(deps: {
     async run(input: FreeReadingFrozenCallV2): Promise<FreeReadingWriterOutcome> {
       const unsent = (diagnostic: string): FreeReadingWriterOutcome => ({
         settlement: { kind: "resolved", actualMicroVnd: 0n, disposition: "failed" }, diagnostic });
-      const parsed = FrozenCallSchema.safeParse(input);
+      const parsed = FreeReadingFrozenCallV2Schema.safeParse(input);
       if (!parsed.success) return unsent("frozen_call_invalid");
       const call = parsed.data;
       let prompt: ReturnType<typeof buildFreeReadingPrompt>;
