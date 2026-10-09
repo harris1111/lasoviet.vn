@@ -1,0 +1,15 @@
+# Production 9Router manual trial preparation
+
+Owner authorizes the existing production connection under FD122. FD114 reference accounting and FD121's separate ten-report, 180,000 VND aggregate allowance remain unchanged. This receipt initially records preparation, not completed paid trials or ticket closure.
+
+- Existing `9router` 0.5.99 main instance, pinned image/source; active configuration comes from read-only SQLite, not its retained historical JSON file.
+- Actual installed transformer/resolver prepare the expected native `gemini-3.8-flash-medium` body, medium thinking, one candidate and 16,384 output floor. A no-acknowledgment preflight sends zero provider requests: [transport evidence](../../plan/evidence/2026-10-09-prod-9router-transport-preflight.json).
+- Actual Iztro calculation creates ten synthetic source inputs, two each relationship/career/monthly/current lunar annual/next lunar annual: [source evidence](../../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json). Frozen Tet tests independently distinguish current 2026 and next 2027 on 2027-01-15.
+- Fixed absolute FD121 campaign authority and UID; runner flock plus durable slot checkpoints; reservation/dispatch fsync before acknowledgment; one native HTTPS call; no refresh, redirect, fallback or network retry. Two unused source imports fail closed in the isolated child without server changes.
+- Conservative reserve is 33,368 VND per outstanding attempt. Only a complete verified native receipt releases unused reserve; missing counters retain exposure and block continuation. Thinking is charged once. Existing FD112 settlement behavior is preserved.
+- Primary technical references: [model limits](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash), [thinking/output limits](https://ai.google.dev/gemini-api/docs/generate-content/thinking), checked 2026-10-09. They support the conservative bounds; no provider invoice or private billing equivalence is claimed.
+- Local verification: producer builds, i18n, lint and typecheck pass. Lint reports four existing frontend warnings. All 98 script checks pass, including 11 new transport/ledger/sequence/Tet tests and prior real TLS/concurrency/crash accounting regressions.
+
+Independent plan review permits implementation. Working/exact-head review and actual trial evidence will be recorded in the PR before claiming live completion. The runner stops at the first unknown-cost or quality failure; no automatic rewrite or duplicate attempt is permitted. Visible synthetic outputs remain pending owner manual review.
+
+No SePay/customer email/product activation, production application DB mutation or frontend change occurs. LSV58/63/82/89 remain open for their individual quality, integration, purchase/delivery, deployment and manual acceptance gates.

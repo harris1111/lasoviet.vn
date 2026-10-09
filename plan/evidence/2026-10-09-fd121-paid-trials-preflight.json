@@ -1,0 +1,109 @@
+{
+  "campaign": "FD121-paid-manual-trials-v1",
+  "status": "dry_run_not_acceptance",
+  "manualAccepted": false,
+  "physicalDispatches": 0,
+  "asOfDate": "2026-10-09",
+  "inputs": [
+    {
+      "group": "relationship_marriage",
+      "index": 0,
+      "snapshotHash": "05e3ac3abef0ff987914ccc37ea154ec0126896d0da1d79b86db8e56c329df73",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-0",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "e562eba840ef862bb4ae83d98fba4f8f6c67b5f59d04cce60edc47beb340d1c9"
+    },
+    {
+      "group": "relationship_marriage",
+      "index": 1,
+      "snapshotHash": "560773f5a1a343176f97ed89c1a3a53628a87874a6eae945013d20f634ff31e6",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "5893da190ddfe945689d9edc425c5062632c8b0d28d37c7f072bd34f846a526b"
+    },
+    {
+      "group": "career_wealth",
+      "index": 0,
+      "snapshotHash": "05e3ac3abef0ff987914ccc37ea154ec0126896d0da1d79b86db8e56c329df73",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-0",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "b46e542d4c96edc43092c346ed2ddc39c8037282e5a2ad6a1de0a695fd9875bc"
+    },
+    {
+      "group": "career_wealth",
+      "index": 1,
+      "snapshotHash": "560773f5a1a343176f97ed89c1a3a53628a87874a6eae945013d20f634ff31e6",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "d7eead203c3480b7e36b414850f9acce1c1040e2e41af20e1bab630a507d1368"
+    },
+    {
+      "group": "monthly",
+      "index": 0,
+      "snapshotHash": "d1d9bfbe7827f53acb92a12c4ff46d51fe7074517428854a5eee4a7c18d289a0",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-0",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "d12e146e8941a368dfa8a6e5665857a7495af81f434acf6d172f238c5b915043"
+    },
+    {
+      "group": "monthly",
+      "index": 1,
+      "snapshotHash": "a49303226813fcb0f7e823013c1ca451886b4a81814e5bc6e141e108dd0ef494",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "a7c067e9131ef5060ba7b0a0d041c1375d7b5818e4911531d56873a75a69108a"
+    },
+    {
+      "group": "current_annual",
+      "index": 0,
+      "snapshotHash": "1564629b9fa826455fa3ddb291097185df073aeed051e46c468ceeb846f8cbd8",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-0",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "5e82316515994aaf89b7ed563f556c72509151ee54ad692d27aadf9a968d3c5b"
+    },
+    {
+      "group": "current_annual",
+      "index": 1,
+      "snapshotHash": "af0497b6000a536097b646f2f687aeb6c1c3246d87841a727248f6b9cdebc3ff",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "98a0057b055693d5a695a9a781e02f2d476c36a65d140bd2b613a8690cad8c02"
+    },
+    {
+      "group": "next_annual",
+      "index": 0,
+      "snapshotHash": "a8b9ff8610864c9eb650aa7291204455869a1c8e7068a41783300d7416bc8ea8",
+      "targetYear": 2027,
+      "chartVersionId": "fd121-synthetic-chart-0",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "1af565de78e00c3ed044b120c918322f415d90baee81c181efdeb809b3971371"
+    },
+    {
+      "group": "next_annual",
+      "index": 1,
+      "snapshotHash": "02a470405b4286ee60f8e797ec1095d4981d6fcd37a7da70f3633ca77f93edee",
+      "targetYear": 2027,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "factsSha256": "fe4ee3bbf7245a3b4db361cca8acb3dceb1e2a6f333a2f5c1d569e39a4f2d1b2"
+    }
+  ]
+}

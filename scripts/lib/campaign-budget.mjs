@@ -34,14 +34,15 @@ function prepareDirectory(path) {
 
 const worker = fileURLToPath(new URL("./campaign-budget-ledger-worker.mjs", import.meta.url));
 export function createCampaignBudget({ ledgerPath = defaultLedgerPath(), totalCapVnd = TOTAL_CAP_VND,
-  allocationsVnd = DEFAULT_ALLOCATIONS_VND, now = () => new Date() } = {}) {
+  allocationsVnd = DEFAULT_ALLOCATIONS_VND, now = () => new Date(), settleActualUsage = false } = {}) {
   if (!Number.isSafeInteger(totalCapVnd) || totalCapVnd <= 0 || totalCapVnd > TOTAL_CAP_VND ||
       !allocationsVnd || Object.keys(allocationsVnd).length !== 1 ||
       !Object.hasOwn(allocationsVnd, "v4.2-report") || !Number.isSafeInteger(allocationsVnd["v4.2-report"]) ||
       allocationsVnd["v4.2-report"] <= 0 || allocationsVnd["v4.2-report"] > totalCapVnd ||
-      typeof ledgerPath !== "string" || !ledgerPath.trim()) throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
+      typeof ledgerPath !== "string" || !ledgerPath.trim() || typeof settleActualUsage !== "boolean") throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
   const path = resolve(ledgerPath);
-  const config = { totalCapVnd, allocationVnd: allocationsVnd["v4.2-report"] };
+  // Opt-in is journal-bound and cannot reinterpret an existing FD112 ledger.
+  const config = { totalCapVnd, allocationVnd: allocationsVnd["v4.2-report"], ...(settleActualUsage ? { settleActualUsage: true } : {}) };
   function command(action, fields = {}) {
     let fd;
     try {

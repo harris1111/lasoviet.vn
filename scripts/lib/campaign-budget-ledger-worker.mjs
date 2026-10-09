@@ -17,6 +17,7 @@ function validateSettlement(value, item, at) {
   let quote;
   try { quote = quoteNativeApiReference(value.receipt, { at: new Date(at) }); } catch { fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID"); }
   if (quote.pricingVersion !== item.trace.pricingVersion || quote.snapshotSha256 !== item.trace.pricingSnapshotSha256 || BigInt(quote.quoteVnd) > BigInt(item.vnd)) fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID");
+  return Number(quote.quoteVnd);
 }
 const uuid = value => typeof value === "string" && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/.test(value);
 try {
@@ -79,7 +80,8 @@ try {
   try { rows = source.slice(0, -1).split("\n").map(line => JSON.parse(line)); }
   catch { fail("BUDGET_LEDGER_CORRUPT"); }
   const first = rows.shift();
-  if (first.type !== "config" || first.version !== 2 || first.totalCapVnd !== config.totalCapVnd || first.allocationVnd !== config.allocationVnd) {
+  if (first.type !== "config" || first.version !== 2 || first.totalCapVnd !== config.totalCapVnd || first.allocationVnd !== config.allocationVnd ||
+      first.settleActualUsage !== config.settleActualUsage) {
     fail("BUDGET_LEDGER_CONFIG_MISMATCH");
   }
   const reservations = new Map();
@@ -100,7 +102,9 @@ try {
       else if (row.type === "release" && item.state === "reserved") { item.state = "released"; total -= item.vnd; }
       else if (row.type === "settle" && item.state === "dispatched" && !item.attemptKey) item.state = "settled";
       else if (row.type === "settle-attempt" && item.state === "dispatched" && item.attemptKey) {
-        validateSettlement(row.settlement, item, row.at); item.state = "settled";
+        const actualVnd = validateSettlement(row.settlement, item, row.at);
+        if (config.settleActualUsage === true) total -= item.vnd - actualVnd;
+        item.state = "settled";
       }
       else fail("BUDGET_LEDGER_CORRUPT");
     }
