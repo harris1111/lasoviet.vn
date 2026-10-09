@@ -6,6 +6,7 @@ import { localizedPath } from "../homepage/homepage-utilities";
 import { HomepageV3GoWizard } from "./homepage-v3-go-wizard";
 import { HomepageV3Marquee } from "./homepage-v3-marquee";
 import { HOMEPAGE_V3_IMAGE_ROOT, LA_PACKS } from "./homepage-v3-data";
+import { LaMark } from "../../components/la-icons";
 
 type Locale = "en" | "vi";
 
@@ -184,6 +185,7 @@ export function HomepageV3Value({ locale, showPacks = false }: { locale: Locale;
           <div className="hv3-pack-row">
             {LA_PACKS.map((pack) => (
               <div key={pack.id} className="hv3-pack">
+                <LaMark name={`pack-${pack.id}`} size={72} />
                 <span className="hv3-subtle">{pack.name}</span>
                 <span className="hv3-pack-la">{format(pack.base + pack.bonus)} Lá</span>
                 <span className="hv3-accent hv3-strong">{format(pack.vnd)} đ</span>

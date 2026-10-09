@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { LaGlyph } from "../../components/la-icons";
 import { useTranslations } from "next-intl";
 import type { WalletTopUpContinuationRequestV1, WalletTopUpModeV1 } from "@lasoviet/contracts";
 import { findSmallestCoveringPack } from "./la-packs";
@@ -156,9 +157,9 @@ export function InlineTopUp({ locale, itemName, balance, priceLa, continuation, 
   </div>;
   return <div className="inline-topup" data-testid="inline-topup">
     <dl className="inline-topup-summary">
-      <div><dt>{t("selection.inlinePrice")}</dt><dd>{priceLa.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
-      <div><dt>{t("selection.inlineBalance")}</dt><dd>{balance.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
-      <div><dt>{t("selection.inlineGap")}</dt><dd>{(priceLa - balance).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
+      <div><dt>{t("selection.inlinePrice")}</dt><dd><LaGlyph />{priceLa.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
+      <div><dt>{t("selection.inlineBalance")}</dt><dd><LaGlyph />{balance.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
+      <div><dt>{t("selection.inlineGap")}</dt><dd><LaGlyph />{(priceLa - balance).toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} Lá</dd></div>
     </dl>
     {topUpMode === "test" && <div className="inline-topup-mode" role="note"><strong>{t("selection.inlineTestTitle")}</strong><p>{t("selection.inlineTestBody")}</p></div>}
     {topUpMode === "unavailable" && <p role="status">{t("selection.inlineUnavailable")}</p>}

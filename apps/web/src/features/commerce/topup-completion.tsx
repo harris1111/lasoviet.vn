@@ -6,6 +6,7 @@ import type { CurrentActor, WalletTopUpContinuationViewV1 } from "@lasoviet/cont
 import { privateApiClient } from "../../api/private-api-client";
 import { safeParseCheckoutStatus } from "./checkout-status";
 import { residualBalanceSuggestion } from "./residual-balance";
+import { LaMark } from "../../components/la-icons";
 
 export async function loadTopUpCompletion(actor: CurrentActor, orderId: unknown, chartPath: string): Promise<WalletTopUpContinuationViewV1 | null> {
   if (actor.kind !== "account" || typeof orderId !== "string" || !/^[0-9a-f-]{36}$/i.test(orderId)) return null;
@@ -28,7 +29,7 @@ export async function TopUpCompletionNotice({ continuation, locale, chartId }: {
   const orderId = new URL(continuation.returnPath, "https://lasoviet.net").searchParams.get("topupOrder");
   return <section className="container" role="status">
     {orderId && <TopUpPresence orderId={orderId} />}
-    <p>{t("unlockCompletedBalance", { balance: continuation.remainingLa ?? 0 })}</p>
+    <p className="la-balance-row"><LaMark name="medal" size={72} />{t("unlockCompletedBalance", { balance: continuation.remainingLa ?? 0 })}</p>
     {continuation.reportId && <Link className="button button-primary" href={`${prefix}/bao-cao/${encodeURIComponent(continuation.reportId)}`}>{t("unlockReadPart")}</Link>}
     {(continuation.remainingLa ?? 0) > 0 && <>
       <p>{suggestion ? t(suggestion.key, { cost: suggestion.cost }) : t("unlockResidualSuggestion")}</p>

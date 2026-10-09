@@ -78,15 +78,19 @@ export function parseFreePalacePrompt(serialized: string): FreePalaceFrozenPromp
 // before any request leaves the process. It also captures usage even when the output is invalid,
 // because invalid output is still billed.
 export function createFreePalaceAttemptRecorder(inner: AiCostRecorder, reservedPricingSnapshotId: string) {
-  const state: { begun: number; refused: string | null; completed: CompleteAttemptInput | null } = { begun: 0, refused: null, completed: null };
+  const state: { begun: number; refused: string | null; completed: CompleteAttemptInput | null; actualMicroVnd: bigint | null } = { begun: 0, refused: null, completed: null, actualMicroVnd: null };
+  let claimed = false, completionClaimed = false;
+  let authorizedAttemptId: string | null = null;
   const recorder: AiCostRecorder = {
     async beginAttempt(input) {
       const refuse = (message: string, code: "AI_PROVIDER_NOT_APPROVED" | "AI_COST_RECORDING_FAILED") => {
         state.refused ??= message;
         return { ok: false as const, error: { code, retryable: false, message } };
       };
-      if (state.begun >= 1) return refuse("second physical attempt refused", "AI_COST_RECORDING_FAILED");
       if (input.purpose !== "free_preview") return refuse("free palace gift may only record free_preview", "AI_PROVIDER_NOT_APPROVED");
+      if (claimed) return refuse("second physical attempt refused", "AI_COST_RECORDING_FAILED");
+      // Claim before persistence yields, so concurrent retries cannot authorize two sends.
+      claimed = true;
       const began = await inner.beginAttempt(input);
       if (!began.ok) return refuse(began.error.message, began.error.code);
       if (began.value.pricing.id !== reservedPricingSnapshotId) {
@@ -94,12 +98,25 @@ export function createFreePalaceAttemptRecorder(inner: AiCostRecorder, reservedP
         await inner.completeAttempt({ attemptId: began.value.attemptId, errorCode: "AI_PROVIDER_NOT_APPROVED", inputTokens: 0, outputTokens: 0, cachedTokens: 0, totalTokens: 0 });
         return refuse("reserved pricing snapshot is no longer the active tariff", "AI_PROVIDER_NOT_APPROVED");
       }
+      authorizedAttemptId = began.value.attemptId;
       state.begun = 1;
       return began;
     },
     async completeAttempt(input) {
-      state.completed = input;
-      return inner.completeAttempt(input);
+      if (authorizedAttemptId === null || completionClaimed || input.attemptId !== authorizedAttemptId) {
+        state.refused ??= "unexpected or repeated outcome";
+        return {ok: false, error: {code: "AI_COST_RECORDING_FAILED", retryable: false, message: "unexpected or repeated outcome"}};
+      }
+      completionClaimed = true;
+      const captured = structuredClone(input);
+      const result = await inner.completeAttempt(captured);
+      // A local capture is insufficient: durable accounting must acknowledge a resolved bill.
+      if (result.ok && result.value.costStatus === "resolved" &&
+          result.value.costMicroVnd !== undefined && /^[0-9]+$/u.test(result.value.costMicroVnd)) {
+        state.completed = captured;
+        state.actualMicroVnd = BigInt(result.value.costMicroVnd);
+      }
+      return result;
     },
   };
   return { recorder, snapshot: () => ({ ...state }) };
@@ -150,14 +167,15 @@ export function createFreePalaceWriter(deps: FreePalaceWriterDeps) {
       if (seen.begun === 0) return unsent(seen.refused ? "refused_before_send" : "not_sent");
 
       const usage = seen.completed;
-      if (!usage || usage.tokensUnknown || usage.inputTokens === undefined || usage.outputTokens === undefined) {
+      if (!usage || seen.actualMicroVnd === null || usage.tokensUnknown || usage.inputTokens === undefined || usage.outputTokens === undefined) {
         return { settlement: { kind: "unknown" }, diagnostic: "usage_unknown" };
       }
-      // No cached-input discount: cached tokens are priced as ordinary input.
-      const actualMicroVnd = BigInt(usage.inputTokens) * tariff.inputPricePerMillion + BigInt(usage.outputTokens) * tariff.outputPricePerMillion;
+      // Admission remains conservatively reserved; settlement uses the persisted true bill.
+      const actualMicroVnd = seen.actualMicroVnd;
       const billedFailure = (diagnostic: string): FreePalaceWriterOutcome => ({ settlement: { kind: "resolved", actualMicroVnd, disposition: "failed" }, diagnostic });
       if (!result || !result.ok) return billedFailure(result ? result.error.code.toLowerCase() : "provider_threw");
 
+      if (seen.refused) return billedFailure("recorder_protocol_refused");
       const parsedContent = FreePalaceGiftContentV1Schema.safeParse(result.value.value);
       if (!parsedContent.success) return billedFailure("quality:schema_invalid");
       const content = parsedContent.data;
