@@ -812,6 +812,7 @@ export {
   REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1,
   REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1,
   REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V2,
+  REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V3,
   writeZiweiTopicDeepDiveV4,
   generateZiweiTopicDeepDiveWithQualityLoopV4,
 } from "./reports/topic-deep-dive-writer-v4.js";

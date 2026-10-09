@@ -284,7 +284,7 @@ test("only the exact root schema-document annotation normalizes; nested annotati
   assert.equal(JSON.stringify(document), before); assert.match(instruction, /never schema-document annotations/u);
 });
 
-test("four-row format recovery validates each source/default quality/settlement, preserves bytes and continues only five unrun slots", async () => {
+test("historical four-row format stop refuses the new source finding while exact annotation normalization preserves bytes", async () => {
   const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-monthly-retained-stop.json", import.meta.url), "utf8"));
   const original = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-retained.json", import.meta.url), "utf8"));
   const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
@@ -300,7 +300,10 @@ test("four-row format recovery validates each source/default quality/settlement,
   assert.equal(budget.status().totalVnd, 133472); assert.equal(budget.status().openReservations, 0);
   const ledgerBefore = digest(readFileSync(ledgerPath)), before = JSON.stringify(stopped);
   const recover = value => prepareFd123RetainedFormatRecovery(value, lineage, inputs, modules, budget.status(), { at: now() });
-  const recovered = recover(stopped); assert.equal(recovered.quality.ok, true); assert.equal(recovered.normalization, "root_json_schema_annotation");
+  assert.throws(() => recover(stopped), { code: "FD123_FORMAT_RECOVERY_CONTENT_OR_REFERENCE_INVALID" });
+  const recovered = normalizeTrialJson(stopped.reports[3].attempts[0].outputText);
+  assert.equal(modules.backend.validatePeriodReading(modules.contracts.ZiweiPeriodReadingContentV1Schema.parse(recovered.value), inputs[3].facts).ok, true);
+  assert.equal(recovered.normalization, "root_json_schema_annotation");
   assert.equal(recovered.rawSha256, stopped.reports[3].attempts[0].rawSha256);
   assert.notEqual(recovered.parsedSha256, stopped.reports[3].attempts[0].parsedSha256);
   assert.equal(JSON.stringify(stopped), before); assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
@@ -323,7 +326,7 @@ test("four-row format recovery validates each source/default quality/settlement,
 });
 
 
-test("six-row quality recovery validates seven settled responses without edits or replay and leaves only three unrun slots", async () => {
+test("six-row reconciliation retains seven proofs, rejects the known source claim and bounds one correction before three unrun slots", async () => {
   const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-annual-retained-stop.json", import.meta.url), "utf8"));
   const original = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-retained.json", import.meta.url), "utf8"));
   const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
@@ -340,6 +343,26 @@ test("six-row quality recovery validates seven settled responses without edits o
   const recover = value => prepareFd123RetainedQualityRecovery(value, lineage, inputs, modules, budget.status(), { at: now() });
   const recovered = recover(stopped);
   assert.equal(recovered.quality.ok, true);
+  assert.equal(recovered.topicRepair.quality.ok, false);
+  assert.deepEqual(recovered.topicRepair.quality.findings.map(f => f.code), ["PALACE_FACTS"]);
+  assert.deepEqual(recovered.topicRepair.content, stopped.reports[2].result.value.content);
+  // Synthetic corrected provider fixture; retained traffic is never edited.
+  const correctedFixture = structuredClone(recovered.topicRepair.content);
+  correctedFixture.overview.narrative = correctedFixture.overview.narrative.replace("không có chính tinh trực chiếu", "không có chính tinh tọa thủ");
+  let correctiveCalls = 0;
+  const corrected = await modules.backend.writeZiweiTopicDeepDiveV4({ topicId: inputs[2].group, facts: inputs[2].facts, knowledgePacks: [],
+    rewrite: { priorContent: recovered.topicRepair.content, findings: recovered.topicRepair.quality.findings },
+    provider: { async generateStructured(request) {
+      assert.equal(request.purpose, "rewrite"); correctiveCalls++;
+      assert.match(request.user, /Opposing major-star absence/u);
+      assert.match(request.system, /Nếu đối cung không có/u);
+      return { ok: true, value: { value: correctedFixture, providerId: "fixture", modelId: "fixture" } };
+    } } });
+  assert.equal(corrected.ok && corrected.value.quality.ok, true); assert.equal(correctiveCalls, 1);
+  const rejected = await modules.backend.writeZiweiTopicDeepDiveV4({ topicId: inputs[2].group, facts: inputs[2].facts, knowledgePacks: [],
+    rewrite: { priorContent: recovered.topicRepair.content, findings: recovered.topicRepair.quality.findings },
+    provider: { async generateStructured(request) { assert.equal(request.purpose, "rewrite"); return {ok: true, value: {value: recovered.topicRepair.content, providerId: "fixture", modelId: "fixture"}}; } } });
+  assert.equal(rejected.ok && rejected.value.quality.ok, false);
   assert.equal(recovered.rawSha256, stopped.reports[5].attempts[1].rawSha256);
   assert.equal(recovered.parsedSha256, stopped.reports[5].attempts[1].parsedSha256);
   assert.equal(JSON.stringify(stopped), before); assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
