@@ -15,12 +15,13 @@ test("quality failure is not counted as a successful provider response", async (
     generate: async () => ({ ok: true, value: { quality: { ok: false }, content: {}, providerId: "fixture", modelId: "fixture" } }), record: async () => {} });
   assert.equal(result.status, "failed"); assert.equal(result.evidence.length, 1);
 });
-test("short diagnostic campaign cannot satisfy the twenty-run gate", async () => {
+test("two successful samples still require owner manual acceptance", async () => {
   const result = await runPeriodCampaign({ selectedPeriods: ["annual"], runs: 2, makeInput, generate: good, record: async () => {} });
   assert.equal(result.status, "diagnostic"); assert.deepEqual(result.acceptedPeriods, []);
 });
-test("each selected period requires twenty consecutive successes and distinct charts", async () => {
+test("twenty-run historical diagnostics no longer award automatic period acceptance", async () => {
   const result = await runPeriodCampaign({ selectedPeriods: ["monthly", "annual"], runs: 20, makeInput, generate: good, record: async () => {} });
-  assert.equal(result.status, "passed"); assert.equal(result.evidence.length, 40);
-  for (const topic of result.acceptedPeriods) assert.equal(new Set(result.evidence.filter(row => row.kindId === topic).map(row => row.chartVersionId)).size, 20);
+  assert.equal(result.status, "diagnostic"); assert.equal(result.evidence.length, 40);
+  assert.deepEqual(result.acceptedPeriods, []);
+  for (const topic of ["monthly", "annual"]) assert.equal(new Set(result.evidence.filter(row => row.kindId === topic).map(row => row.chartVersionId)).size, 20);
 });
