@@ -14,6 +14,40 @@ import { buildFactsFixture, makeValidRelationshipContent, makeValidCareerContent
 describe("ZiweiTopicDeepDiveWriterV4", () => {
   const facts = buildFactsFixture();
 
+  it("does not rewrite or make a second provider call for editorial-only advice", async () => {
+    const content = makeValidRelationshipContent(facts);
+    content.actions[0]!.recommendation += " Bản mệnh nên cân nhắc.";
+    const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: content, providerId: "fixture", modelId: "fixture" } });
+    const result = await generateZiweiTopicDeepDiveWithQualityLoopV4({
+      topicId: "relationship_marriage", facts, knowledgePacks: [], provider: { generateStructured },
+      qualityConfig: { minOverviewSyllables: 10, minPalaceAnchorSyllables: 10, minThematicDimensionSyllables: 10,
+        minDecadalTimingSyllables: 10, minActionItemSyllables: 10, minTotalSyllables: 50 },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.quality.findings).toEqual([]);
+      expect(result.value.quality.advisory).toEqual(expect.arrayContaining([expect.objectContaining({ code: "DISCOURAGED_TERM" })]));
+    }
+    expect(generateStructured).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a mixed editorial and ritual recommendation after the bounded corrective call", async () => {
+    const content = makeValidRelationshipContent(facts);
+    content.actions[0]!.recommendation += " Bản mệnh nên mua bùa để giải hạn.";
+    const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: content, providerId: "fixture", modelId: "fixture" } });
+    const result = await generateZiweiTopicDeepDiveWithQualityLoopV4({
+      topicId: "relationship_marriage", facts, knowledgePacks: [], provider: { generateStructured },
+      qualityConfig: { minOverviewSyllables: 10, minPalaceAnchorSyllables: 10, minThematicDimensionSyllables: 10,
+        minDecadalTimingSyllables: 10, minActionItemSyllables: 10, minTotalSyllables: 50 },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.quality.ok).toBe(false);
+      expect(result.value.quality.findings).toEqual(expect.arrayContaining([expect.objectContaining({ code: "CONTENT_LINE_VIOLATION" })]));
+    }
+    expect(generateStructured).toHaveBeenCalledTimes(2);
+  });
+
   it("successfully generates relationship deep dive with mocked provider", async () => {
     const validContent = makeValidRelationshipContent(facts);
     let capturedRequest: any = null;

@@ -794,7 +794,7 @@ export { acknowledgeTopUpPresence, createDelayedUnlockCompletionService, DELAYED
 export * from "./commerce/membership.service.js";
 
 export * from "./notifications/membership-expiry.service.js";
-export { PERIOD_READING_TUPLE, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
+export { PERIOD_READING_TUPLE, PERIOD_READING_QUALITY_VERSION_V1, PERIOD_READING_QUALITY_VERSION_V2, validatePeriodReading, writePeriodReading } from "./reports/period-reading-writer.js";
 export {
   DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG,
   TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES,
@@ -811,6 +811,7 @@ export {
   REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1,
   REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1,
   REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1,
+  REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V2,
   writeZiweiTopicDeepDiveV4,
   generateZiweiTopicDeepDiveWithQualityLoopV4,
 } from "./reports/topic-deep-dive-writer-v4.js";

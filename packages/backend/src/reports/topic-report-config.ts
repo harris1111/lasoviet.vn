@@ -8,6 +8,7 @@ import {
 export const REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1 = "ziwei.topic-deep-dive.report.v1" as const;
 export const REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1 = "ziwei.topic-deep-dive.prompt.v1" as const;
 export const REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1 = "ziwei.topic-deep-dive.quality.v1" as const;
+export const REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V2 = "ziwei.topic-deep-dive.quality.v2" as const;
 export const REPORT_TEMPLATE_VERSION_TOPIC_DEEP_DIVE_V1 = "ziwei.topic-deep-dive.html.v1" as const;
 
 export function topicIdForSku(sku: string): ZiweiTopicDeepDiveId | null {
@@ -22,7 +23,7 @@ export function topicReportVersions() {
     knowledgeVersion: REPORT_KNOWLEDGE_VERSION_V4,
     promptVersion: REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1,
     reportConfigVersion: REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1,
-    qualityVersion: REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1,
+    qualityVersion: REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V2,
     contentVersion: "ziwei.topic-deep-dive.v1" as const,
     templateVersion: REPORT_TEMPLATE_VERSION_TOPIC_DEEP_DIVE_V1,
     renderVersion: CURRENT_REPORT_RENDER_VERSION,

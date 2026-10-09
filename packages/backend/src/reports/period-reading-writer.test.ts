@@ -6,6 +6,20 @@ const facts: ZiweiPeriodReadingFactsV1 = { version: 1, kind: "monthly", targetYe
 const prose = (count: number) => "Cân nhắc kế hoạch thực tế và trao đổi rõ ràng với người đồng hành. ".repeat(count);
 function content(): ZiweiPeriodReadingContentV1 { return { version: 1, contentVersion: "ziwei.period-reading.v1", locale: "vi", kind: "monthly", targetYear: 2026, calendar: "lunar", periodKey: facts.periodKey, title: "Tháng tám âm lịch", overview: { narrative: prose(15), evidenceKeys: [evidenceKey] }, periods: [{ periodId: facts.periods[0]!.id, title: "Tháng tám", narrative: prose(55), recommendations: ["Lập kế hoạch.", "Ghi lại ưu tiên."], cautions: ["Tránh nhận quá nhiều việc."], evidenceKeys: [evidenceKey] }] }; }
 describe("period writer fail-closed quality", () => {
+  it("returns editorial advice after one provider call without corrective billing", async () => {
+    const report = content(); report.overview.narrative += " Bản mệnh có thể cân nhắc.";
+    const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: report, providerId: "fixture", modelId: "fixture" } });
+    const result = await writePeriodReading({ facts, provider: { generateStructured } });
+    expect(result).toMatchObject({ ok: true, value: { quality: { ok: true, findings: [], advisory: ["EDITORIAL_TERM"] } } });
+    expect(generateStructured).toHaveBeenCalledTimes(1);
+  });
+  it.each(["Nên mua bùa để giải hạn.", "Hãy cúng giải hạn.", "Số xổ số phù hợp là 12.", "Ngày 12 có biến động.", "Giải hạn bằng cách mua lễ dâng sao.", "Hóa giải vận hạn bằng lễ dâng sao.", "Hãy mua vòng phong thủy để cải vận.", "Hãy hóa giải vận hạn.", "Không nên lo lắng, hãy mua bùa chú."])("rejects mixed editorial and hard failures: %s", text => {
+    const report = content(); report.overview.narrative += ` Bản mệnh. ${text}`;
+    const quality = validatePeriodReading(report, facts);
+    expect(quality.ok).toBe(false);
+    expect(quality.advisory).toContain("EDITORIAL_TERM");
+    expect(quality.findings).toContain(text.startsWith("Ngày") ? "UNCOMPUTED_DAY" : "CONTENT_LINE_VIOLATION");
+  });
   it("accepts only matching period lineage/evidence and adequate depth", () => {
     expect(validatePeriodReading(content(), facts).ok).toBe(true);
     const wrong = content(); wrong.periods[0]!.evidenceKeys = ["foreign-period"];
@@ -44,5 +58,12 @@ describe("period writer fail-closed quality", () => {
     expect(generateStructured.mock.calls[1]?.[0].purpose).toBe("rewrite");
     expect(generateStructured.mock.calls[0]?.[0].costContext.idempotencyKey).toBe("report-1:report");
     expect(generateStructured.mock.calls[1]?.[0].costContext.idempotencyKey).toBe("report-1:rewrite");
+  });
+  it("never returns mixed editorial and ritual failures as a publishable result", async () => {
+    const wrong = content(); wrong.overview.narrative += " Bản mệnh nên mua bùa để giải hạn.";
+    const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: wrong, providerId: "fixture", modelId: "fixture" } });
+    const result = await writePeriodReading({ facts, provider: { generateStructured } });
+    expect(result).toMatchObject({ ok: false, error: { code: "PERIOD_QUALITY_REJECTED" }, findings: ["CONTENT_LINE_VIOLATION"] });
+    expect(generateStructured).toHaveBeenCalledTimes(2);
   });
 });
