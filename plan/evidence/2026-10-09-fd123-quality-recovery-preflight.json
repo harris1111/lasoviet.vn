@@ -1,0 +1,47 @@
+{
+  "checkedAt": "2026-10-09T20:06:51.660Z",
+  "sourceHead": "e958c1ed47048002a06e9c4ff946ee07e620f3b3",
+  "status": "quality_recovery_preflight_passed",
+  "retainedSlot": "current_annual:0",
+  "retainedResponsesRevalidated": 7,
+  "frozenSourcesMatch": 9,
+  "qualityVersion": "ziwei.period-reading.quality.v3",
+  "schemaPassed": true,
+  "defaultAnnualQuality": {
+    "ok": true,
+    "findings": [],
+    "advisory": [
+      "EDITORIAL_TERM"
+    ]
+  },
+  "topicRepairRequired": {
+    "slot": "career_wealth:1",
+    "currentQuality": {
+      "ok": false,
+      "findings": [
+        {
+          "sectionKey": "overview",
+          "code": "PALACE_FACTS",
+          "note": "Opposing major-star absence for ziwei.palace.wealth is not supported by ziwei.palace.fortune. Resident-star absence is a separate fact."
+        }
+      ],
+      "advisory": []
+    },
+    "unusedRewriteLimit": 1
+  },
+  "rawOutputSha256": "9696e968d0d7e0fbb25a9ac7fe1fcf127a3c0377cc384363589eeee54938a9be",
+  "parsedSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb",
+  "pendingSlots": [
+    "current_annual:1",
+    "next_annual:0",
+    "next_annual:1"
+  ],
+  "authorityFilesUnchanged": 4,
+  "originalJournalSha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+  "originalLedgerSha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+  "retainedJournalSha256": "3189341636596baa74272174d64303f59a9c8882bd3a72e1d3bf70f7d3b7af67",
+  "retainedLedgerSha256": "b53bdd99c25dfee44ee3b52350eed39bd7d005587653a6035f225426542d7ee8",
+  "physicalProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false
+}

@@ -1,0 +1,60 @@
+{
+  "checkedAt": "2026-10-09T20:29:23.175694+00:00",
+  "executionHead": "e958c1ed47048002a06e9c4ff946ee07e620f3b3",
+  "status": "stopped_unknown_response",
+  "logicalSlotsObserved": 6,
+  "dispatchPermissions": 8,
+  "knownCompletedNativeResponses": 7,
+  "stopSlot": "career_wealth:1",
+  "errorCode": "ROUTER_RESPONSE_INVALID",
+  "correctedCareerContentAvailable": false,
+  "remainingSlotsUnrun": [
+    "current_annual:1",
+    "next_annual:0",
+    "next_annual:1"
+  ],
+  "annualRetainedReuse": {
+    "physicalCalls": 0,
+    "ledgerWrites": 0,
+    "defaultQualityPassed": true
+  },
+  "freshCareerRewrite": {
+    "physicalDispatchPermissions": 1,
+    "settled": false,
+    "proofOrVisibleOutputRetained": false,
+    "retryAuthorized": false
+  },
+  "continuationExposureVnd": 266944,
+  "continuationOpenReservations": 1,
+  "originalHeldExposureVnd": 33368,
+  "providerBillingVerified": false,
+  "manualAccepted": false,
+  "originalAuthorityUnchanged": true,
+  "originalHashes": {
+    "reports.json": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+    "budget.jsonl": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5"
+  },
+  "journalSha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+  "ledgerSha256": "1496236a197afb8e3362113cf45d093d69d495b41c1eed6ec8b8690189367b14",
+  "technicalRowsPassed": 5,
+  "technicalPassMeaning": "Historical automatic-validator pass only; independent source findings and manual acceptance remain separate",
+  "independentFactualHolds": [
+    {
+      "slot": "career_wealth:1",
+      "finding": "Resident-major absence does not establish opposing-major absence",
+      "correctedOutputAvailable": false
+    },
+    {
+      "slot": "relationship_marriage:1",
+      "finding": "Natal Fortune at Monkey conflated with decadal Fortune role at Dragon",
+      "proseUnchanged": true
+    }
+  ],
+  "independentStructuralAudit": {
+    "distinctAssertions": 101,
+    "matches": 99,
+    "materialMismatches": 2,
+    "fullSemanticAcceptance": false,
+    "artifact": "2026-10-09-fd123-expanded-factual-audit.md"
+  }
+}

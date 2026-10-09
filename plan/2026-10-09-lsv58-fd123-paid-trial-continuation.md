@@ -32,3 +32,7 @@ An explicit `--resumeFormat` binds only the reviewed four-row stopped snapshot, 
 ## Observed certainty false positive
 
 The six-row annual stop and both retained responses are now bound by [the period certainty recovery brief](2026-10-09-lsv63-period-certainty-recovery.md). This observed validator correction introduces period quality v3 and a separate exclusive no-replay recovery; the historical v2 result remains in the immutable Git snapshot and recovery history. Only three original unrun slots remain. No generated prose, settled quote or ledger exposure is edited.
+
+## Recorded execution outcome
+
+Exact e958c1ed source passed independent review and both fresh CI runs before the actual quality recovery. The retained annual rewrite passed with zero POSTs and ledger writes. Career 1's sole unused rewrite was dispatched separately and stopped with ROUTER_RESPONSE_INVALID before visible output/proof retention. The continuation remains stopped at six slots, eight dispatch permissions, seven known completed responses, five technical passes, 266,944 VND reference exposure and one unresolved reservation. Three original slots remain unrun. No further rewrite/replay, settlement/release or automatic continuation is supported; original FD121 bytes and its separate unresolved hold remain unchanged. See [the final execution receipt](evidence/2026-10-09-fd123-final-execution-receipt.json) and [available review packet](evidence/2026-10-09-fd123-manual-review-request.md). Runtime v3 still requires the final merge/deployment/smoke gate.
