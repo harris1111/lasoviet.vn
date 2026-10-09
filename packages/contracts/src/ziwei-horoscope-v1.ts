@@ -89,6 +89,40 @@ export const ZiweiDecadalCycleV1Schema = z.object({
 
 export type ZiweiDecadalCycleV1 = z.infer<typeof ZiweiDecadalCycleV1Schema>;
 
+const purchaseDecade = z.object({
+  ordinal: z.number().int().min(0).max(11), palaceId: PalaceIdSchema,
+  startAge: z.number().int().positive(), endAge: z.number().int().positive(),
+  startYear: z.number().int(), endYear: z.number().int(),
+}).strict().refine(span => span.endAge === span.startAge + 9 && span.endYear === span.startYear + 9);
+
+export const ZiweiPurchaseFactsV1Schema = z.object({
+  version: z.literal(1), lunarYear: z.number().int(),
+  lunarMonth: z.object({ number: z.number().int().min(1).max(12), isLeap: z.boolean() }).strict(),
+  // Complete calendar month intervals strictly after the current interval.
+  // A future leap month counts separately; the current partial month is excluded.
+  remainingLunarMonths: z.number().int().min(0).max(12),
+  nearYearEndThreshold: z.number().int().min(0).max(12), nearYearEnd: z.boolean(),
+  provisional: z.boolean(),
+  currentDecade: z.object({ span: purchaseDecade,
+    yearInCycle: z.number().int().min(1).max(10), remainingYears: z.number().int().min(0).max(9),
+  }).strict().nullable(),
+  nextDecade: purchaseDecade.nullable(),
+  annualPalaces: z.array(z.object({ year: z.number().int(), palaceId: PalaceIdSchema }).strict()).length(2),
+}).strict().superRefine((value, ctx) => {
+  const current = value.currentDecade;
+  if (value.nearYearEnd !== (value.remainingLunarMonths <= value.nearYearEndThreshold) ||
+      value.annualPalaces.some((annual, i) => annual.year !== value.lunarYear + i) ||
+      (current && (current.yearInCycle !== value.lunarYear - current.span.startYear + 1 ||
+        current.remainingYears !== 10 - current.yearInCycle)) ||
+      (value.nextDecade && (value.nextDecade.startYear <= value.lunarYear ||
+        (current && (value.nextDecade.ordinal !== current.span.ordinal + 1 ||
+          value.nextDecade.startYear !== current.span.endYear + 1 ||
+          value.nextDecade.startAge !== current.span.endAge + 1))))) {
+    ctx.addIssue({ code: "custom", message: "Purchase context must retain computed calendar and cycle relationships" });
+  }
+});
+export type ZiweiPurchaseFactsV1 = z.infer<typeof ZiweiPurchaseFactsV1Schema>;
+
 export const ZiweiHoroscopeResultV1Schema = z
   .object({
     version: z.literal(1),
@@ -98,6 +132,7 @@ export const ZiweiHoroscopeResultV1Schema = z
     isUnlocked: z.boolean(),
     yearly: ZiweiYearlyHanV1Schema,
     daily: ZiweiDailyHoroscopeV1Schema,
+    purchaseFacts: ZiweiPurchaseFactsV1Schema.optional(),
     decadalCycles: z.array(ZiweiDecadalCycleV1Schema).length(12).optional(),
     currentDecadalOrdinal: z.number().int().min(0).max(11).nullable().optional(),
     decadalDirection: z.enum(["forward", "reverse"]).optional(),

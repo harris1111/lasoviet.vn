@@ -166,15 +166,25 @@ test("cancel restores entry focus; errors and reserved choices cannot buy", asyn
   await expect(page.getByTestId("contextual-lifetime-unlock")).toBeFocused();
   await page.keyboard.press("Escape");
   for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-COMBO-2026-P0"]) {
-    const card = page.locator(`[data-sku="${sku}"]`); await expect(card).toContainText("Sắp mở"); await expect(card.getByRole("button")).toHaveCount(0);
+    // Held products are not shown at all (no "coming soon" cards).
+    await expect(page.locator(`[data-sku="${sku}"]`)).toHaveCount(0);
   }
   await mountFixture(page, "vi", { quoteStatus: 503 }); await page.locator("#preview-trigger").click();
   await expect(page.getByTestId("contextual-palace-unlock")).toBeDisabled();
   await expect(page.getByTestId("contextual-unlock").getByRole("alert")).toBeVisible();
 });
+test("clicking the card body (away from the button text) opens its confirmation, even after hover and press feedback", async ({ page }) => {
+  await mountFixture(page);
+  const ladder = page.getByTestId("offer-ladder");
+  const card = ladder.locator('[data-sku="ZIWEI-IDENTITY-P0"]');
+  // Hover first: hover/active filter or transform on the button would shrink its ::after overlay and swallow this click.
+  await card.hover({ position: { x: 12, y: 12 } });
+  await card.click({ position: { x: 12, y: 12 } });
+  await expect(page.locator("dialog.unlock-sheet")).toContainText("720 Lá");
+});
 test("server intent updates stale displayed rollover before confirmation", async ({ page }) => {
   const { commands } = await mountFixture(page, "vi", { intentPrice: 840 });
-  await page.getByTestId("offer-ladder").getByRole("button", { name: "Mở luận giải — 720 Lá" }).click();
+  await page.getByTestId("offer-ladder").locator('[data-sku="ZIWEI-IDENTITY-P0"]').getByRole("button").click();
   const dialog = page.locator("dialog.unlock-sheet"); await expect(dialog).toContainText("840 Lá"); await expect(dialog).toContainText("1160 Lá");
   await dialog.getByRole("button", { name: "Xác nhận mở", exact: true }).click();
   expect(commands).toHaveLength(1); expect(commands[0]).toMatchObject({ expectedIntentVersion: 1, expectedWalletVersion: 7 });

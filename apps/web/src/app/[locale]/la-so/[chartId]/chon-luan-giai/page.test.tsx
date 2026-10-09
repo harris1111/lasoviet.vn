@@ -106,20 +106,27 @@ describe("authorized offer ladder page", () => {
     vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({ ok: true, value: { version: 1, items: [], groups: [], totalCount: 0 } as never });
     vi.mocked(loadWalletQuotes).mockResolvedValue(available() as never);
   });
-  it("renders all ladder tiers, twelve scored palaces, reserved labels and lifetime default", async () => {
+  it("renders only sellable ladder cards in time tiers, twelve scored palaces and the lifetime default", async () => {
     const html = await render();
     expect(html).toContain("Luận giải cho lá số của Minh An");
-    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) expect(html).toContain(`data-sku="${sku}"`);
-    expect(html).toContain("Đáng nhất"); expect(html).toContain("Độ mạnh cấu trúc:"); expect(html).toContain("Sắp mở");
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-TODAY-P0"]) expect(html).toContain(`data-sku="${sku}"`);
+    // Products the catalog still holds back never appear, and nothing says "coming soon".
+    for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0", "ZIWEI-MONTHLY-P0"]) expect(html).not.toContain(`data-sku="${sku}"`);
+    expect(html).not.toContain("Sắp mở");
+    expect(html).toContain("Bạn sẽ biết"); expect(html).toContain("Đáng nhất"); expect(html).toContain("Độ mạnh cấu trúc:");
+    expect(html).toContain('id="offer-tier-today"'); expect(html).toContain('id="offer-tier-life"');
     const ladder = html.slice(html.indexOf('data-testid="offer-ladder"'), html.indexOf('id="hoi-vien"'));
     expect(ladder).not.toMatch(/VND|VNĐ|₫/);
+  });
+  it("flags the card that matches the visitor's question only when they arrived with one", async () => {
+    expect(await render()).not.toContain("Hợp với câu bạn vừa hỏi");
   });
   it("shows API rollover rather than a fixed upgrade price", async () => {
     const value = available();
     const lifetime = value.quotes.find(item => item.sku === "ZIWEI-IDENTITY-P0")!;
     Object.assign(lifetime, { basePriceLa: 960, priceLa: 840, creditLa: 120, creditExpiresAt: "2026-10-10T00:00:00Z", creditSourceSkus: ["ZIWEI-PALACE-LIFE-P0"] });
     vi.mocked(loadWalletQuotes).mockResolvedValue(value as never);
-    const html = await render(); expect(html).toContain("chỉ thêm 840 Lá"); expect(html).toContain("Mở luận giải — 840 Lá");
+    const html = await render(); expect(html).toContain("chỉ thêm 840 Lá"); expect(html).toContain("Mở – 840 Lá");
   });
   it("preserves authoritative pending, failed and readable ownership without purchase", async () => {
     for (const reportState of ["ready", "processing", "unavailable"] as const) {
@@ -128,19 +135,20 @@ describe("authorized offer ladder page", () => {
       vi.mocked(loadWalletQuotes).mockResolvedValue(value as never);
       const html = await render();
       expect(html).toContain(reportState === "ready" ? "Đọc lại" : "Xem tiến trình");
-      expect(html).not.toContain("Mở luận giải — 960 Lá"); expect(html).toContain("/bao-cao/report-owned");
+      expect(html).not.toContain("Mở – 960 Lá"); expect(html).toContain("/bao-cao/report-owned");
     }
   });
   it("allows guest sign-in entry but fails closed when authenticated quote loading fails", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
-    expect(await render()).toContain("Mở luận giải — 1200 Lá"); expect(loadWalletQuotes).not.toHaveBeenCalled();
+    expect(await render()).toContain("Mở – 1200 Lá"); expect(loadWalletQuotes).not.toHaveBeenCalled();
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor); vi.mocked(loadWalletQuotes).mockResolvedValue(null);
-    const html = await render(); expect(html).toContain("Chưa thể kiểm tra giá hiện tại"); expect(html).not.toContain("Mở luận giải — 960 Lá");
+    const html = await render(); expect(html).toContain("Chưa thể kiểm tra giá hiện tại"); expect(html).not.toContain('data-state="openable"'); expect(html).toContain('data-state="locked"');
   });
   it("accepts closed palace deep links and keeps English unsupported palace sales disabled", async () => {
     expect(await render({ offer: "ziwei-palace", palace: "ziwei.palace.spouse" })).toContain('data-sku="ZIWEI-PALACE-SPOUSE-P0"');
     mockLocale = "en"; vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
     const html = await render({ offer: "ziwei-palace", palace: "ziwei.palace.spouse" });
-    expect(html).toContain("This choice is not supported yet"); expect(html).not.toContain("Mở luận giải");
+    // English cannot sell a single palace, so that card is not shown at all and nothing offers to open it.
+    expect(html).not.toContain('data-sku="ZIWEI-PALACE-SPOUSE-P0"'); expect(html).not.toContain("Mở – 120 Lá");
   });
 });

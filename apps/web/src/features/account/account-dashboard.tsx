@@ -6,6 +6,7 @@ import type {
 } from "@lasoviet/contracts";
 import Link from "next/link";
 import React from "react";
+import { LaGlyph, LaMark } from "../../components/la-icons";
 
 import {
   AccountPageShell,
@@ -201,10 +202,10 @@ export function AccountDashboard({
             {walletBalance && (
               <div className="account-stat-item account-stat-item-wallet">
                 <span className="account-stat-label">
-                  {isVi ? "Số dư Lá" : "Lá balance"}
+                  <LaMark name="wallet" size={32} /> {isVi ? "Số dư Lá" : "Lá balance"}
                 </span>
                 <span className="account-stat-value">
-                  {walletBalance.totalLa.toLocaleString(isVi ? "vi-VN" : "en-US")}
+                  <LaGlyph />{walletBalance.totalLa.toLocaleString(isVi ? "vi-VN" : "en-US")}
                 </span>
                 <Link href={topUpPath} className="account-stat-action">
                   {isVi ? "Nạp thêm Lá" : "Top up Lá"}

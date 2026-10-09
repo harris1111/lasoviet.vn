@@ -813,6 +813,7 @@ export {
   ZiweiDailyHoroscopeV1Schema,
   ZiweiHoroscopeResultV1Schema,
   ZiweiDecadalCycleV1Schema,
+  ZiweiPurchaseFactsV1Schema,
 } from "./ziwei-horoscope-v1.js";
 export type {
   ZiweiMonthMarker,
@@ -821,6 +822,7 @@ export type {
   ZiweiDailyHoroscopeV1,
   ZiweiHoroscopeResultV1,
   ZiweiDecadalCycleV1,
+  ZiweiPurchaseFactsV1,
 } from "./ziwei-horoscope-v1.js";
 
 
@@ -945,6 +947,12 @@ export { FreeStructuralOverviewCacheV1Schema, type FreeStructuralOverviewCacheV1
 export { BAZI_STEM_IDS, BAZI_BRANCH_IDS, BaziFactsInputV1Schema, BaziFactsV1Schema } from "./bazi-facts-v1.js";
 export type { BaziFactsInputV1, BaziFactsV1 } from "./bazi-facts-v1.js";
 export * from "./free-reading-v2.js";
+export * from "./free-reading-candidate-v2.js";
 export { matchesReportYearLineage } from "./report-year-lineage.js";
 
 export { RecoveryControlCommandSchema } from "./recovery-outbound-control-v1.js";
+
+export * from "./bazi-structure-v1.js";
+
+export * from "./free-reading-frozen-call-v2.js";
+export * from "./normalized-bazi-chart-v1.js";
