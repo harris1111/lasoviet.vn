@@ -106,13 +106,20 @@ describe("authorized offer ladder page", () => {
     vi.mocked(accountDataLoader.loadLibrary).mockResolvedValue({ ok: true, value: { version: 1, items: [], groups: [], totalCount: 0 } as never });
     vi.mocked(loadWalletQuotes).mockResolvedValue(available() as never);
   });
-  it("renders all ladder tiers, twelve scored palaces, reserved labels and lifetime default", async () => {
+  it("renders only sellable ladder cards in time tiers, twelve scored palaces and the lifetime default", async () => {
     const html = await render();
     expect(html).toContain("Luận giải cho lá số của Minh An");
-    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"]) expect(html).toContain(`data-sku="${sku}"`);
-    expect(html).toContain("Đáng nhất"); expect(html).toContain("Độ mạnh cấu trúc:"); expect(html).toContain("Sắp mở");
+    for (const sku of ["ZIWEI-PALACE-LIFE-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-TODAY-P0"]) expect(html).toContain(`data-sku="${sku}"`);
+    // Products the catalog still holds back never appear, and nothing says "coming soon".
+    for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0", "ZIWEI-MONTHLY-P0"]) expect(html).not.toContain(`data-sku="${sku}"`);
+    expect(html).not.toContain("Sắp mở");
+    expect(html).toContain("Bạn sẽ biết"); expect(html).toContain("Đáng nhất"); expect(html).toContain("Độ mạnh cấu trúc:");
+    expect(html).toContain('id="offer-tier-today"'); expect(html).toContain('id="offer-tier-life"');
     const ladder = html.slice(html.indexOf('data-testid="offer-ladder"'), html.indexOf('id="hoi-vien"'));
     expect(ladder).not.toMatch(/VND|VNĐ|₫/);
+  });
+  it("flags the card that matches the visitor's question only when they arrived with one", async () => {
+    expect(await render()).not.toContain("Hợp với câu bạn vừa hỏi");
   });
   it("shows API rollover rather than a fixed upgrade price", async () => {
     const value = available();

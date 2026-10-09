@@ -166,7 +166,8 @@ test("cancel restores entry focus; errors and reserved choices cannot buy", asyn
   await expect(page.getByTestId("contextual-lifetime-unlock")).toBeFocused();
   await page.keyboard.press("Escape");
   for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-COMBO-2026-P0"]) {
-    const card = page.locator(`[data-sku="${sku}"]`); await expect(card).toContainText("Sắp mở"); await expect(card.getByRole("button")).toBeDisabled();
+    // Held products are not shown at all (no "coming soon" cards).
+    await expect(page.locator(`[data-sku="${sku}"]`)).toHaveCount(0);
   }
   await mountFixture(page, "vi", { quoteStatus: 503 }); await page.locator("#preview-trigger").click();
   await expect(page.getByTestId("contextual-palace-unlock")).toBeDisabled();

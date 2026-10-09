@@ -11,10 +11,13 @@ export type OfferCardState = "available" | "owned" | "coming_soon" | "unavailabl
  * select it and only one element takes Tab. Locked cards render a disabled button plus a
  * visible reason and never call onSelect. Minimal patch: Phase 5 rebuilds these cards.
  */
-export function OfferCard({ sku, name, price, state, locked, selected, lifetime, quote, onSelect, children }: {
+export type OfferCardCopy = { pitch: string; learn: string[]; parts: string; learnLabel: string };
+
+export function OfferCard({ sku, name, price, state, locked, selected, lifetime, quote, onSelect, children, copy, fitLabel }: {
   sku: LaSku; name: string; price: number; state: OfferCardState; locked: boolean;
   selected: boolean; lifetime: boolean; quote?: WalletQuoteV1;
   onSelect: (sku: LaSku) => void; children?: ReactNode;
+  copy?: OfferCardCopy; fitLabel?: string;
 }) {
   const t = useTranslations("reports");
   const comingSoon = state === "coming_soon" || locked;
@@ -22,10 +25,17 @@ export function OfferCard({ sku, name, price, state, locked, selected, lifetime,
   const reasonId = `offer-reason-${sku}`;
   const headingId = `offer-name-${sku}`;
   const buttonId = `offer-select-${sku}`;
-  return <article className={`stretched-card${lifetime ? " offer-ladder-best" : ""}`} data-sku={sku}
+  return <article className={`stretched-card${lifetime ? " offer-ladder-best" : ""}${fitLabel ? " offer-ladder-fit" : ""}`} data-sku={sku}
     data-state={selectable ? "selectable" : "locked"} data-selected={selectable && selected ? "true" : "false"}>
+    {fitLabel && <span className="offer-fit-flag">{fitLabel}</span>}
     {lifetime && <span className="fd109-state">{t("selection.ladderBestValue")}</span>}
     <h3 id={headingId}>{name}</h3>
+    {copy && <>
+      <p className="offer-pitch">{copy.pitch}</p>
+      <p className="offer-learn-label">{copy.learnLabel}</p>
+      <ul className="offer-learn">{copy.learn.map((line) => <li key={line}>{line}</li>)}</ul>
+      <p className="offer-parts">{copy.parts}</p>
+    </>}
     <p className="offer-ladder-price">{t("selection.ladderPrice", { price })}</p>
     {lifetime && <p>{t("selection.ladderLifetimeComparison")}</p>}
     {quote && quote.creditLa > 0 && <p>{t("selection.ladderCredit", { credit: quote.creditLa, price })}</p>}

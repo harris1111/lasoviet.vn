@@ -84,3 +84,15 @@ html .offer-ladder-cards article[data-selected="true"] .offer-card-select { back
 .inline-topup-consent { font-size: 14px; line-height: 1.6; color: var(--text-body); }
 .inline-topup-after { font-weight: 600; }
 .inline-topup-other-packs summary:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 3px; }
+
+/* Phase 5 ladder: time tiers, pitch and what-you-learn lines, fit flag with a two-layer gold edge */
+.offer-ladder-tier { display: grid; gap: 12px; margin-top: 28px; }
+.offer-ladder-tier > h3 { font-size: 19px; }
+.offer-pitch { margin: 6px 0 0; }
+.offer-learn-label { margin: 10px 0 2px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-500); }
+.offer-learn { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.offer-learn li { font-size: 15px; }
+.offer-parts { margin: 8px 0 0; font-size: 13px; opacity: 0.75; }
+.offer-fit-flag { justify-self: start; display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 999px; background: var(--gold-500); color: var(--lacquer-900); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.offer-ladder-cards article.offer-ladder-fit { border-color: var(--gold-500); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--gold-500) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--gold-500) 55%, transparent); }
+@media (min-width: 900px) { .offer-ladder-tier .offer-ladder-cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }

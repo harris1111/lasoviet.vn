@@ -128,8 +128,8 @@
     "ladderPrice": "{price} Lá",
     "ladderOpen": "Unlock reading — {price} Lá",
     "ladderOwned": "Unlocked",
-    "ladderHeading": "Choose what you want to read next",
-    "ladderDescription": "Buy one palace or the full chart reading. Eligible individual purchases count toward your upgrade within 7 days.",
+    "ladderHeading": "Which part of your chart do you want to read?",
+    "ladderDescription": "Every part below is written for your own chart, starting from what you care about most. Eligible single purchases are credited when you upgrade within 7 days.",
     "ladderScore": "Structural strength: {score}/100",
     "ladderSelect": "Select this reading",
     "ladderSelected": "Selected",
@@ -168,7 +168,82 @@
     "contextualSignInAgain": "Your session has ended. Sign in again to check your reading.",
     "contextualSignIn": "Sign in again",
     "contextualCheckError": "We could not check the reading status. Retry to update it.",
-    "contextualUnverified": "The status of your selection could not be verified. Check again to continue."
+    "contextualUnverified": "The status of your selection could not be verified. Check again to continue.",
+    "tierToday": "Today",
+    "tierMonthly": "Month",
+    "tierYear": "Year",
+    "tierPalace": "Palace",
+    "tierTopic": "Topic",
+    "tierLife": "Lifetime",
+    "tierBundle": "Bundles",
+    "ladderFit": "Fits what you just asked",
+    "ladderIntro": "What you have read for free is on the chart page. Here is what you can read next.",
+    "ladderLearn": "You will learn",
+    "copy": {
+      "today": {
+        "pitch": "Today touches exactly one palace of yours. Open it to see which, and what to do.",
+        "l1": "Which of your palaces today touches",
+        "l2": "What suits today and what to slow down",
+        "l3": "One small thing worth doing today",
+        "parts": "1 day"
+      },
+      "monthly": {
+        "pitch": "Each month passes through a palace of its own. This reads the month you are living.",
+        "l1": "Which palace this month passes through",
+        "l2": "What to speed up and what to wait on",
+        "l3": "Dates worth watching",
+        "parts": "1 lunar month"
+      },
+      "year": {
+        "pitch": "This year stands before a palace of yours. The reading covers each month and what to prepare.",
+        "l1": "Why this year lands on that palace",
+        "l2": "Each month to watch and what to prepare",
+        "l3": "What to do before the year ends",
+        "parts": "12 months and the annual palace"
+      },
+      "palace": {
+        "pitch": "Pick the palace you keep wondering about and read it from start to finish.",
+        "l1": "The palace you choose, star by star",
+        "l2": "How its opposite and trine palaces act on it",
+        "l3": "What to do and avoid for this palace",
+        "parts": "1 palace"
+      },
+      "natal": {
+        "pitch": "Who you are before you think, and where you put your effort at work: read both closely.",
+        "l1": "How your Life and Body palaces pull on each other",
+        "l2": "Strengths and the cost that comes with them",
+        "l3": "Three things to do",
+        "parts": "Life and Body"
+      },
+      "career": {
+        "pitch": "Work is what you care about. Read the related palaces together instead of one by one.",
+        "l1": "Which direction suits your staying power",
+        "l2": "How you keep and use money",
+        "l3": "One concrete step for the next 3 months",
+        "parts": "Related palaces"
+      },
+      "relationship": {
+        "pitch": "The Spouse palace is the place to read closely for love. This reads it with the palaces beside it.",
+        "l1": "How you stand in a close relationship",
+        "l2": "What keeps a relationship lasting",
+        "l3": "A conversation worth having",
+        "parts": "Related palaces"
+      },
+      "identity": {
+        "pitch": "Read the whole chart once: every palace, every 10-year stretch and the year you are living.",
+        "l1": "All 12 palaces, in full",
+        "l2": "The decade stretches",
+        "l3": "The current stretch and year in summary",
+        "parts": "12 palaces, decades, current year in summary"
+      },
+      "combo": {
+        "pitch": "Read the whole chart and the year in motion together.",
+        "l1": "The full lifetime reading",
+        "l2": "The current year, month by month",
+        "l3": "A bundle price below buying each part",
+        "parts": "Lifetime and 12 months"
+      }
+    }
   },
   "checkout": {
     "eyebrow": "Payment",

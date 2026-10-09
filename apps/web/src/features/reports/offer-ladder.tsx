@@ -12,11 +12,11 @@ import { sendBrowserAnalyticsEvent } from "../../analytics/browser-analytics";
 import { claimLadderViewEvents } from "./offer-ladder-analytics";
 import { PalacePicker } from "./palace-picker";
 import { OfferCard } from "./offer-ladder-card";
+import { visibleLadder } from "./offer-ladder-config";
 
-const FIXED_SKUS: LaSku[] = ["ZIWEI-TODAY-P0", "ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"];
-export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, initialResume = false, balance, scores }: {
+export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, initialResume = false, initialIntent = false, balance, scores }: {
   chartId: string; chartVersionId: string; locale: "vi" | "en"; initialSku: LaSku;
-  initialQuotes: InitialWalletQuotes; initialResume?: boolean; balance: number; scores: Record<string, number>;
+  initialQuotes: InitialWalletQuotes; initialResume?: boolean; initialIntent?: boolean; balance: number; scores: Record<string, number>;
 }) {
   const t = useTranslations("reports");
   const router = useRouter();
@@ -67,6 +67,7 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     const guestSupported = product.locales.includes(locale) && !(locale === "en" && product.category === "palace");
     return { product, quote: result, state: result?.state ?? (quote.status !== "guest" ? "unavailable" : !guestSupported ? "unavailable" : product.availability === "active" ? "available" : "coming_soon"), price: result?.priceLa ?? product.priceLa };
   }
+  const tiers = visibleLadder(locale, palaceSku);
   const selected = terms(selectedSku);
   const canBuy = selected.state === "available" && (quote.status === "ready" || quote.status === "guest");
   const shortfall = Math.max(0, selected.price - balance);
@@ -74,15 +75,23 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     <h2>{t("selection.ladderHeading")}</h2><p>{t("selection.ladderDescription")}</p>
     {quote.status === "loading" && <p role="status">{t("selection.ladderLoading")}</p>}
     {quote.status === "error" && <div role="alert"><p>{t("selection.ladderQuoteError")}</p><button type="button" className="button" onClick={quote.retry}>{t("selection.retry")}</button></div>}
-    <div className="offer-ladder-cards">{[palaceSku, ...FIXED_SKUS.filter(sku => findLaProduct(sku)?.locales.includes(locale))].map(sku => {
-      const item = terms(sku);
-      const palace = isSinglePalaceSku(sku);
-      return <OfferCard key={palace ? "palace" : sku} sku={sku} name={palace ? t("selection.ladderPalace") : item.product.name[locale]}
-        price={item.price} state={item.state} locked={item.product.availability !== "active"} quote={item.quote}
-        selected={selectedSku === sku} lifetime={sku === "ZIWEI-IDENTITY-P0"} onSelect={select}>
-        {palace && <PalacePicker locale={locale} selectedSku={selectedSku} onSelect={select} scores={scores} quotes={quote.quotes} />}
-      </OfferCard>;
-    })}</div>
+    <p>{t("selection.ladderIntro")}</p>
+    {tiers.map(({ tier, entries }) => <section key={tier} className="offer-ladder-tier" aria-labelledby={`offer-tier-${tier}`}>
+      <h3 id={`offer-tier-${tier}`}>{t(`selection.tier${tier[0]!.toUpperCase()}${tier.slice(1)}`)}</h3>
+      <div className="offer-ladder-cards">{entries.map(({ sku: entrySku, resolved: sku, copy }) => {
+        const item = terms(sku);
+        const palace = entrySku === "palace";
+        const fits = initialIntent && (palace ? isSinglePalaceSku(selectedSku) && isSinglePalaceSku(initialSku) : sku === initialSku);
+        return <OfferCard key={palace ? "palace" : sku} sku={sku} name={palace ? t("selection.ladderPalace") : item.product.name[locale]}
+          price={item.price} state={item.state} locked={item.product.availability !== "active"} quote={item.quote}
+          selected={selectedSku === sku} lifetime={sku === "ZIWEI-IDENTITY-P0"} onSelect={select}
+          fitLabel={fits ? t("selection.ladderFit") : undefined}
+          copy={{ pitch: t(`selection.copy.${copy}.pitch`), parts: t(`selection.copy.${copy}.parts`), learnLabel: t("selection.ladderLearn"),
+            learn: [t(`selection.copy.${copy}.l1`), t(`selection.copy.${copy}.l2`), t(`selection.copy.${copy}.l3`)] }}>
+          {palace && <PalacePicker locale={locale} selectedSku={selectedSku} onSelect={select} scores={scores} quotes={quote.quotes} />}
+        </OfferCard>;
+      })}</div>
+    </section>)}
     <div className="offer-ladder-summary" aria-label={t("selection.ladderHeading")}>
       <p><strong>{selected.product.name[locale]}</strong> · {t("selection.ladderPrice", { price: selected.price })}</p>
       <p>{t("selection.ladderBalance", { balance })}{canBuy && shortfall > 0 ? ` · ${t("selection.insufficientBalance", { gap: shortfall })}` : ""}</p>

@@ -128,8 +128,8 @@
     "ladderPrice": "{price} Lá",
     "ladderOpen": "Mở luận giải — {price} Lá",
     "ladderOwned": "Đã mở",
-    "ladderHeading": "Chọn phần bạn muốn đọc tiếp",
-    "ladderDescription": "Mua một cung hoặc đọc trọn lá số. Các phần mua lẻ đủ điều kiện được khấu trừ khi nâng cấp trong 7 ngày.",
+    "ladderHeading": "Bạn muốn đọc phần nào của lá số?",
+    "ladderDescription": "Mỗi phần dưới đây được viết riêng cho lá số của bạn, bắt đầu từ chỗ bạn quan tâm nhất. Các phần mua lẻ đủ điều kiện được khấu trừ khi nâng cấp trong 7 ngày.",
     "ladderScore": "Độ mạnh cấu trúc: {score}/100",
     "ladderSelect": "Chọn phần này",
     "ladderSelected": "Đã chọn",
@@ -168,7 +168,82 @@
     "contextualSignInAgain": "Phiên đăng nhập đã hết. Đăng nhập lại để xem trạng thái luận giải.",
     "contextualSignIn": "Đăng nhập lại",
     "contextualCheckError": "Chưa kiểm tra được trạng thái luận giải. Thử lại để cập nhật.",
-    "contextualUnverified": "Chưa xác minh được trạng thái phần bạn chọn. Kiểm tra lại để tiếp tục."
+    "contextualUnverified": "Chưa xác minh được trạng thái phần bạn chọn. Kiểm tra lại để tiếp tục.",
+    "tierToday": "Hôm nay",
+    "tierMonthly": "Tháng",
+    "tierYear": "Năm",
+    "tierPalace": "Cung",
+    "tierTopic": "Chủ đề",
+    "tierLife": "Trọn đời",
+    "tierBundle": "Gói gộp",
+    "ladderFit": "Hợp với câu bạn vừa hỏi",
+    "ladderIntro": "Phần đã đọc miễn phí nằm ở trang lá số. Dưới đây là những gì đọc tiếp được.",
+    "ladderLearn": "Bạn sẽ biết",
+    "copy": {
+      "today": {
+        "pitch": "Ngày hôm nay chạm đúng một cung của bạn. Mở ra để biết cung nào và nên làm gì.",
+        "l1": "Ngày hôm nay chạm cung nào của bạn",
+        "l2": "Điều hợp làm và điều nên chậm lại",
+        "l3": "Một việc nhỏ đáng làm trong ngày",
+        "parts": "1 ngày"
+      },
+      "monthly": {
+        "pitch": "Mỗi tháng đi qua một cung riêng của bạn. Bài này đọc đúng tháng bạn đang sống.",
+        "l1": "Tháng này đi qua cung nào",
+        "l2": "Việc nên đẩy nhanh và việc nên chờ",
+        "l3": "Các mốc ngày đáng để ý",
+        "parts": "1 tháng âm lịch"
+      },
+      "year": {
+        "pitch": "Năm này đứng trước một cung riêng của bạn. Bài đọc cho biết từng tháng và điều nên chuẩn bị trước.",
+        "l1": "Vì sao năm nay rơi vào cung đó của bạn",
+        "l2": "Từng tháng cần chú ý và nên chuẩn bị gì",
+        "l3": "Việc nên làm trước khi hết năm",
+        "parts": "12 tháng và cung lưu niên"
+      },
+      "palace": {
+        "pitch": "Chọn đúng cung bạn đang thắc mắc và đọc trọn từ đầu đến cuối.",
+        "l1": "Cung bạn chọn nhìn theo từng sao",
+        "l2": "Cung đối và tam hợp tác động ra sao",
+        "l3": "Việc nên làm và nên tránh riêng cho cung này",
+        "parts": "1 cung"
+      },
+      "natal": {
+        "pitch": "Con người bạn lúc chưa kịp nghĩ và nơi bạn dồn sức khi vào việc: đọc kỹ cả hai.",
+        "l1": "Mệnh và Thân kéo nhau thế nào",
+        "l2": "Điểm mạnh và cái giá đi cùng",
+        "l3": "Ba việc nên làm",
+        "parts": "Mệnh và Thân"
+      },
+      "career": {
+        "pitch": "Công việc là điều bạn quan tâm. Đọc cùng lúc các cung liên quan thay vì từng cung.",
+        "l1": "Hướng nào hợp sức bền của bạn",
+        "l2": "Cách giữ tiền và dùng tiền",
+        "l3": "Một bước cụ thể cho 3 tháng tới",
+        "parts": "Các cung liên quan"
+      },
+      "relationship": {
+        "pitch": "Cung Phu Thê là chỗ đáng đọc kỹ nhất trong chuyện tình cảm. Bài này đọc nó cùng các cung đi kèm.",
+        "l1": "Cách bạn đứng trong quan hệ gần",
+        "l2": "Điều giữ mối quan hệ bền",
+        "l3": "Một cuộc nói chuyện đáng có",
+        "parts": "Các cung liên quan"
+      },
+      "identity": {
+        "pitch": "Đọc trọn lá số một lần: từng cung, từng chặng 10 năm và năm bạn đang sống.",
+        "l1": "Cả 12 cung, đọc trọn",
+        "l2": "Các chặng đại vận",
+        "l3": "Chặng và năm hiện tại ở dạng tóm tắt",
+        "parts": "12 cung, các chặng đại vận, năm hiện tại tóm tắt"
+      },
+      "combo": {
+        "pitch": "Đọc trọn lá số và năm đang chạy cùng lúc.",
+        "l1": "Toàn bộ Tử Vi trọn đời",
+        "l2": "Năm hiện tại theo từng tháng",
+        "l3": "Giá gộp thấp hơn mua lẻ từng phần",
+        "parts": "Trọn đời và 12 tháng"
+      }
+    }
   },
   "checkout": {
     "eyebrow": "Thanh toán",
