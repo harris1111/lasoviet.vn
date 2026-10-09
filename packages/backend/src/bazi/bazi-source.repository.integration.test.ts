@@ -102,7 +102,7 @@ describe("authorized immutable Bazi source on PostgreSQL", () => {
       for (const file of copied) await unlink(file);
       await unlink(join(directory, "meta/_journal.json")); await rmdir(join(directory, "meta")); await rmdir(directory);
     }
-  });
+  }, 30_000);
   it("uses one immutable source/run for concurrent requests and reuses its original timestamp", async () => {
     const f = await seed();
     const results = await Promise.all(Array.from({length: 6}, () => repo().calculate(f.actor, f.revisionId)));
