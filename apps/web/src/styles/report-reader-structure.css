@@ -128,7 +128,7 @@ button.cell:hover { background: var(--surface-panel); }
 .rd-ring, .rd-axis { fill: none; stroke: var(--border-hairline); stroke-width: 1; }
 .rd-shape { fill: var(--chart-mark-soft); stroke: var(--accent-gold); stroke-width: 1.5; }
 .rd-dot { fill: var(--accent-seal); }
-.rd-lb { fill: var(--text-muted); font: 500 11px var(--font-ui); }
+.rd-lb { fill: var(--text-muted); font: 500 12px var(--font-ui); }
 .report-radar figcaption { margin: 0; font-size: 13px; color: var(--text-muted); text-align: center; max-width: 46ch; }
 
 .report-sc { display: inline-grid; place-items: center; min-width: 30px; height: 26px; padding: 0 7px; margin-left: 10px; border-radius: 999px; font: 600 13.5px/1 var(--font-mono); vertical-align: 2px; }

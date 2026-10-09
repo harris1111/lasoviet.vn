@@ -438,3 +438,6 @@ html[data-theme="light"] .fd109-divider {
   .fd109 .fd109-decade button:hover, .fd109-month > button:hover { border-color: var(--gold-500); }
 }
 @media (prefers-reduced-motion: reduce) { .fd109 .fd109-decade button { transition: none; } }
+
+/* Labels that carry content are never below 12px (the radar's palace names, the relation and transformation labels, the "ĐANG Ở ĐÂY" seal). */
+.fd109 .transformations-label, .fd109 .relation-tag-title, .fd109-seal { font-size: 12px; }
