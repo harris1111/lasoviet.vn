@@ -92,10 +92,10 @@ describe("database schema integration", () => {
   }
 
   async function removeFrozenPurchaseTermsForRewind(client: ReturnType<typeof postgres>): Promise<void> {
-    // 0067's SKU validity depends on frozen terms. Restore the exact versioned
+    // 0068's SKU validity depends on frozen terms. Restore the exact versioned
     // pre-business validity before dropping that column, so historical 0045 can
     // still replace the constraint. Final replay restores every current guard.
-    const preBusiness = await readFile(new URL("../../drizzle/0066_fd119_commercial_policy.sql", import.meta.url), "utf8");
+    const preBusiness = await readFile(new URL("../../drizzle/0067_fd119_commercial_policy.sql", import.meta.url), "utf8");
     for (const statement of preBusiness.split("--> statement-breakpoint").slice(0, 2)) {
       await client.unsafe(statement);
     }
