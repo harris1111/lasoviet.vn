@@ -102,3 +102,4 @@ html .offer-ladder-cards article[data-selected="true"] .offer-card-select { back
 .offer-open-arrow { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: color-mix(in srgb, currentColor 18%, transparent); }
 .offer-card-short { border-style: dashed; }
 .offer-ladder-cards article[data-state="openable"], .offer-ladder-cards article[data-state="short"], .offer-ladder-cards article[data-state="owned"] { cursor: pointer; }
+.offer-ladder-summary a { display: inline-flex; align-items: center; min-height: 44px; }
