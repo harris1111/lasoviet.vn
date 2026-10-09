@@ -8,10 +8,11 @@ import { createDatabaseZiweiQueryRepository } from "./ziwei-query.repository.js"
 export function createFreePalaceRequestRepository(database: Database) {
   const sources = createDatabaseZiweiQueryRepository(database);
   return {
-    async readAuthorizedSlot(actor: CurrentActor, chartId: string, now: Date) {
-      const source = await sources.readAuthorizedChart(actor, chartId, now);
+    async readAuthorizedSlot(actor: CurrentActor, chartId: string, now: Date, transaction?: Pick<Database, "select">) {
+      const reader = transaction ?? database;
+      const source = await sources.readAuthorizedChart(actor, chartId, now, reader);
       if (!source) return null;
-      const [slot] = await database.select({ request: freeAiRequests, artifact: freeAiArtifacts })
+      const [slot] = await reader.select({ request: freeAiRequests, artifact: freeAiArtifacts })
         .from(freeAiRequests)
         .innerJoin(freeAiChartBudgets, eq(freeAiChartBudgets.chartVersionId, freeAiRequests.chartVersionId))
         .leftJoin(freeAiArtifacts, and(

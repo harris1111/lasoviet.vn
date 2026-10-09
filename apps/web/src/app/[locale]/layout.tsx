@@ -17,6 +17,7 @@ import { GuaranteeNoticeProvider } from "../../features/reports/guarantee-notice
 import "../../styles/global.css";
 import "../../styles/free-result-read-first.css";
 import "../../styles/contextual-unlock.css";
+import "../../styles/la-icons.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["vietnamese"],

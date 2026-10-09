@@ -1,0 +1,211 @@
+<meta charset="utf-8">
+<title>Trang chọn luận giải v3</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:wght@500;600&display=swap">
+<style>
+/* Layout: gợi ý theo người ở trên, dải sản phẩm theo tầng thời gian, bảng so sánh, tấm xác nhận. Giá chỉ bằng Lá; tiền đồng chỉ hiện ở tấm xác nhận khi cần nạp. */
+:root{--bg:#0f0d0a;--panel:#1c1813;--raised:#221d16;--line:#3a3227;--fg:#f3ecdd;--muted:#c9bea8;--subtle:#a89d88;--gold:#c9a44d;--gold-hi:#f2dca0;--gold-ink:#c9a44d;--son:#ce5b45;--ok:#8fbf8a;--on-gold:#1a1408;--shadow:0 12px 40px rgba(0,0,0,.45);--f1:"Source Serif 4",Georgia,serif;--f2:"Be Vietnam Pro",system-ui,sans-serif;--fm:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f7f1e5;--panel:#fffdf7;--raised:#ffffff;--line:#d7cdbd;--fg:#1d1812;--muted:#4f4538;--subtle:#6b604f;--gold:#a8842f;--gold-hi:#755718;--gold-ink:#755718;--son:#b3402c;--ok:#3f7a3b;--on-gold:#fffdf7;--shadow:0 12px 40px rgba(60,40,10,.18);color-scheme:light}}
+:root[data-theme="dark"]{--bg:#0f0d0a;--panel:#1c1813;--raised:#221d16;--line:#3a3227;--fg:#f3ecdd;--muted:#c9bea8;--subtle:#a89d88;--gold:#c9a44d;--gold-hi:#f2dca0;--gold-ink:#c9a44d;--son:#ce5b45;--ok:#8fbf8a;--on-gold:#1a1408;--shadow:0 12px 40px rgba(0,0,0,.45);color-scheme:dark}
+:root[data-theme="light"]{--bg:#f7f1e5;--panel:#fffdf7;--raised:#ffffff;--line:#d7cdbd;--fg:#1d1812;--muted:#4f4538;--subtle:#6b604f;--gold:#a8842f;--gold-hi:#755718;--gold-ink:#755718;--son:#b3402c;--ok:#3f7a3b;--on-gold:#fffdf7;--shadow:0 12px 40px rgba(60,40,10,.18);color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 var(--f2);padding-inline:16px;padding-block:0 80px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:var(--f1);font-weight:600;margin:0;text-wrap:balance}
+p{margin:0}
+.eyebrow{font:600 11px var(--fm);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink)}
+.wrap{max-width:1100px;margin:0 auto}
+.proto{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding-block:10px;border-bottom:1px dashed var(--line);font-size:13px;color:var(--subtle)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:8px 12px;min-height:40px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--gold);color:var(--on-gold);font-weight:600}
+.bar{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:10px;margin-inline:-16px;padding-inline:16px}
+.bal{font:600 14px var(--fm);border:1px solid var(--line);border-radius:999px;padding:6px 14px}
+.head{padding-block:28px 8px;display:grid;gap:8px;max-width:62ch}
+.head h1{font-size:clamp(28px,5vw,40px);line-height:1.15}
+.head p{color:var(--muted)}
+.sec{margin-top:36px;display:grid;gap:14px}
+.sec>h2{font-size:clamp(21px,3vw,26px)}
+.sec>p.lede{color:var(--muted);max-width:62ch}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+.card{position:relative;display:grid;gap:10px;align-content:start;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--panel);cursor:pointer;transition:border-color .12s,background-color .12s,transform .12s}
+.card:hover{border-color:var(--gold);background:var(--raised)}
+.card:active{transform:scale(.995)}
+.card.feat{border-color:var(--gold);box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--gold) 14%,transparent),0 0 0 1px color-mix(in srgb,var(--gold) 55%,transparent)}
+.flag{justify-self:start;font:600 11px var(--fm);letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:var(--on-gold);padding:3px 10px;border-radius:999px}
+.card h3{font-size:21px;line-height:1.25}
+.pitch{color:var(--muted);font-size:15px}
+.learn{margin:0;padding-left:20px;display:grid;gap:4px;font-size:15px}
+.parts{font-size:13px;color:var(--subtle)}
+.trial{font-size:15px;border-left:2px solid var(--gold);padding-left:12px;color:var(--fg)}
+.trial small{display:block;font:600 10px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:13px}
+.chip[aria-pressed="true"]{border-color:var(--gold);color:var(--gold-ink);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.chip[aria-pressed="true"]::before{content:"✓ "}
+.buy{margin-top:4px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between}
+.price{font:600 15px var(--fm);color:var(--gold-ink)}
+.cta{min-height:48px;padding:0 20px;border-radius:999px;border:1px solid var(--gold);background:var(--gold);color:var(--on-gold);font-weight:600;display:inline-flex;gap:12px;align-items:center;justify-content:center;transition:filter .12s,transform .12s}
+.cta:hover{filter:brightness(1.08)}.cta:active{transform:scale(.97)}
+.cta .ar{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--on-gold) 18%,transparent);display:grid;place-items:center}
+.cta.locked{background:transparent;color:var(--fg);border-style:dashed}
+.cta.locked .ar{background:color-mix(in srgb,var(--fg) 12%,transparent)}
+.cta.busy{opacity:.7;pointer-events:none}
+.why{font-size:12px;color:var(--son);width:100%}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.tier{display:grid;gap:10px}
+.tier>h3{font-size:18px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tier>h3 small{font:500 13px var(--f2);color:var(--subtle)}
+.free{font-size:14px;color:var(--muted);padding:10px 14px;border:1px dashed var(--line);border-radius:12px}
+.note{padding:12px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:15px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font:600 12px var(--fm);letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink)}
+.assure{display:grid;gap:8px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);font-size:15px;color:var(--muted)}
+.assure b{color:var(--fg)}
+/* tấm */
+.back{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50}
+.sheet{position:fixed;z-index:60;inset:auto 0 0 0;max-height:90dvh;overflow:auto;background:var(--panel);border:1px solid var(--gold);border-radius:20px 20px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow);display:grid;gap:14px;align-content:start;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+.sheet .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.sheet h3{font-size:22px}
+.x{min-height:44px;min-width:44px;border-radius:999px;border:1px solid var(--line);background:transparent}
+.sum{display:grid;gap:6px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--raised);font-size:15px}
+.sum div{display:flex;justify-content:space-between;gap:12px}
+.sum .em{font-weight:600;color:var(--gold-ink)}
+.pack{display:grid;gap:6px;padding:14px;border:1px solid var(--gold);border-radius:12px}
+.final{font-size:13px;color:var(--subtle)}
+.ok{display:grid;gap:8px;padding:14px;border:1px solid var(--ok);border-radius:12px;color:var(--fg)}
+.link{background:none;border:0;color:var(--gold-ink);text-decoration:underline;min-height:44px}
+@media (min-width:900px){
+  .grid{grid-template-columns:repeat(3,1fr)}
+  .grid.two{grid-template-columns:repeat(2,1fr)}
+  .sheet{inset:0 0 0 auto;width:480px;max-height:none;border-radius:0;border-width:0 0 0 1px;padding:24px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+ <div class="proto" aria-label="Điều khiển bản mẫu">
+  <span>Điều khiển bản mẫu:</span>
+  <span class="seg" role="group" aria-label="Khách đến từ đâu"><button data-arr="year-long" aria-pressed="true">Từ "Năm nay"</button><button data-arr="year-end" aria-pressed="false">Từ "Năm nay", gần hết năm</button><button data-arr="palace" aria-pressed="false">Từ một cung</button><button data-arr="direct" aria-pressed="false">Vào thẳng</button></span>
+  <span class="seg" role="group" aria-label="Bộ câu"><button data-w="A" aria-pressed="true">Bộ câu A: gọn</button><button data-w="B" aria-pressed="false">Bộ câu B: ấm</button></span>
+  <span class="seg" role="group" aria-label="Số dư"><button data-bal="3000" aria-pressed="true">Đủ Lá</button><button data-bal="300" aria-pressed="false">Thiếu Lá (300)</button></span>
+  <span class="seg" role="group" aria-label="Thời điểm phát hành"><button data-rel="full" aria-pressed="true">Sau khi qua cổng: đủ món</button><button data-rel="now" aria-pressed="false">Hôm nay: chỉ món bán ngay</button></span>
+  <span class="seg" role="group" aria-label="Giao diện"><button id="t-auto" aria-pressed="true">Theo máy</button><button id="t-dark" aria-pressed="false">Tối</button><button id="t-light" aria-pressed="false">Sáng</button></span>
+ </div>
+ <div class="bar"><span class="eyebrow">Lá số của Lãm · Mệnh Dần</span><span class="bal" id="bal"></span></div>
+ <header class="head" id="head"></header>
+ <main id="main"></main>
+</div>
+<div id="layer"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const S={arr:"year-long",w:"A",bal:3000,rel:"full",palace:"Thiên Di"};
+const PACKS=[{n:"Nhập Môn",la:300,vnd:"29.000đ"},{n:"Khởi Đọc",la:1100,vnd:"99.000đ"},{n:"Khám Phá",la:3000,vnd:"249.000đ"},{n:"Tàng Thư",la:8000,vnd:"599.000đ"}];
+const fmt=n=>n.toLocaleString("vi-VN");
+/* gate: now = bán ngay, gate = bật khi qua cổng chất lượng */
+const P=[
+ {id:"today",tier:"Hôm nay",name:"Hôm nay của bạn",price:60,gate:"now",parts:"1 ngày",learn:["Ngày hôm nay chạm cung nào của bạn","Điều hợp làm và điều nên chậm lại","Một việc nhỏ đáng làm trong ngày"],trial:"Hôm nay, ngày chạm cung Tật Ách của bạn, nơi không có chính tinh nào ngồi.",A:"Một trang đọc cho riêng ngày hôm nay.",B:"Ngày hôm nay chạm đúng một cung của bạn. Mở ra để biết cung nào và nên làm gì."},
+ {id:"month",tier:"Tháng",name:"Tháng này của bạn",price:300,gate:"gate",parts:"1 tháng âm lịch",learn:["Tháng này đi qua cung nào","Việc nên đẩy nhanh và việc nên chờ","Các mốc ngày đáng để ý"],trial:"Mỗi tháng đi qua một cung khác nhau của bạn, và trong năm có ba tháng cần chú ý.",A:"Đọc riêng cho tháng âm lịch đang chạy.",B:"Mỗi tháng đi qua một cung riêng của bạn. Bài này đọc đúng tháng bạn đang sống."},
+ {id:"year",tier:"Năm",name:"Vận hạn năm Bính Ngọ 2026",price:480,gate:"gate",parts:"12 tháng + cung lưu niên",learn:["Vì sao năm Bính Ngọ rơi vào cung Quan Lộc","Từng tháng cần chú ý và nên chuẩn bị gì","Việc nên làm trước khi hết năm"],trial:"Năm Bính Ngọ, lưu niên của bạn đi vào cung Quan Lộc, nơi Thất Sát ngồi ở thế sáng.",A:"Đọc năm theo từng tháng: tháng nào cần chú ý và chuẩn bị gì.",B:"Năm này đứng trước cung Quan Lộc của bạn. Bài đọc cho biết từng tháng và điều nên chuẩn bị trước."},
+ {id:"year27",tier:"Năm",name:"Vận hạn năm Đinh Mùi 2027",price:480,gate:"gate",parts:"12 tháng + cung lưu niên",learn:["Năm Đinh Mùi rơi vào cung nào của bạn","Từng tháng cần chú ý","Việc nên bắt đầu sớm"],trial:"Năm Đinh Mùi, lưu niên của bạn chuyển sang một cung khác với năm nay.",A:"Đọc năm kế tiếp theo từng tháng.",B:"Năm Bính Ngọ đến 06/02/2027, sau đó là Đinh Mùi. Đọc sớm để biết mình đang đi tới đâu."},
+ {id:"pair",tier:"Năm",name:"Năm nay và năm sau",price:780,gate:"gate",parts:"2 năm · 24 tháng",learn:["Cả hai năm, từng tháng","Cách năm này nối sang năm sau","Việc nên làm theo hai giai đoạn"],trial:"Hai năm liền đi qua hai cung khác nhau của bạn, và có chỗ chúng nối vào nhau.",A:"Hai năm đọc liền một mạch, tiết kiệm hơn mua lẻ.",B:"Năm nay sắp khép lại. Đọc cả hai năm để thấy năm này nối sang năm sau ra sao."},
+ {id:"decade",tier:"Chặng 10 năm",name:"Chặng 25–34 tuổi của bạn",price:480,gate:"gate",parts:"10 năm · 1 cung",learn:["Chặng này nằm ở cung Phúc Đức","Từng giai đoạn trong chặng","Điều nên đầu tư trong 10 năm này"],trial:"Chặng 25–34 tuổi của bạn đi qua cung Phúc Đức, nơi Tử Vi và Thiên Tướng cùng ngồi.",A:"Đọc cả chặng 10 năm bạn đang đi.",B:"Bạn đang ở năm cuối của chặng này. Đọc để biết chặng này để lại gì và nên khép lại thế nào."},
+ {id:"decade2",tier:"Chặng 10 năm",name:"Chặng kế tiếp 35–44 tuổi",price:480,gate:"gate",parts:"10 năm · 1 cung",learn:["Chặng kế bắt đầu năm 2027 ở cung Điền Trạch","Điều khác chặng hiện tại","Việc nên chuẩn bị từ bây giờ"],trial:"Chặng kế tiếp của bạn bắt đầu năm 2027, ở cung Điền Trạch, nơi Thiên Lương đứng một mình.",A:"Đọc trước chặng 10 năm sắp tới.",B:"Chặng hiện tại của bạn kết thúc năm 2026. Đọc trước chặng sắp tới để không bị bất ngờ."},
+ {id:"palace",tier:"Cung",name:"Một cung",price:120,gate:"now",parts:"1 cung",pick:true,learn:["Cung bạn chọn nhìn theo từng sao","Cung đối và tam hợp tác động ra sao","Việc nên làm và nên tránh riêng cho cung này"],trial:"Cung Thiên Di của bạn chỉ có Liêm Trinh đứng một mình.",A:"Chọn một cung và đọc trọn.",B:"Chọn đúng cung bạn đang thắc mắc và đọc trọn từ A đến Z."},
+ {id:"menh",tier:"Cung",name:"Bản mệnh",price:240,gate:"now",parts:"Mệnh + Thân",learn:["Mệnh và Thân kéo nhau thế nào","Điểm mạnh và cái giá đi cùng","Ba việc nên làm"],trial:"Bản mệnh đặt Mệnh ở cung Dần với Tham Lang, còn Thân ở cung Phu Thê.",A:"Đọc sâu Mệnh và Thân của bạn.",B:"Con người bạn lúc chưa kịp nghĩ và nơi bạn dồn sức khi vào việc: đọc kỹ cả hai."},
+ {id:"career",tier:"Chủ đề",name:"Công việc",price:480,gate:"gate",parts:"3 cung liên quan",learn:["Hướng nào hợp sức bền của bạn","Cách giữ tiền và dùng tiền","Một bước cụ thể cho 3 tháng tới"],trial:"Công việc của bạn đi qua Quan Lộc có Thất Sát và Tài Bạch có Phá Quân mang Hóa Lộc.",A:"Đọc riêng chuyện công việc và tiền bạc.",B:"Công việc là điều bạn quan tâm. Đọc cùng lúc ba cung liên quan thay vì từng cung."},
+ {id:"love",tier:"Chủ đề",name:"Tình duyên",price:480,gate:"gate",parts:"3 cung liên quan",learn:["Cách bạn đứng trong quan hệ gần","Điều giữ mối quan hệ bền","Một cuộc nói chuyện đáng có"],trial:"Cung Phu Thê của bạn là nơi Thân cư ngụ, có Vũ Khúc và Thiên Phủ cùng ngồi.",A:"Đọc riêng chuyện tình cảm và hôn nhân.",B:"Cung Phu Thê là nơi Thân của bạn cư ngụ. Đây là chỗ đáng đọc kỹ nhất."},
+ {id:"duo",tier:"Hai người",name:"Tình duyên đôi ta (tên tạm)",price:960,gate:"gate",parts:"2 lá số",learn:["Hai lá số đặt cạnh nhau","Chỗ hợp và chỗ cần nói rõ","Việc nên cùng làm"],trial:"Bản đọc này đặt hai lá số cạnh nhau, và chỉ cần thêm ngày sinh của người kia.",A:"Đọc hai người cùng lúc.",B:"Thêm ngày sinh của người kia, và đọc hai lá số đặt cạnh nhau."},
+ {id:"bazi",tier:"Hai người",name:"Bát Tự trọn đời",price:840,gate:"gate",parts:"Hệ thứ hai",learn:["Bát Tự đọc bạn qua bốn trụ","Chỗ khớp và chỗ khác với Tử Vi","Điều nên giữ, điều nên đổi"],trial:"Bát Tự là một lối nhìn khác với Tử Vi, dựa trên bốn trụ ngày giờ sinh của bạn.",A:"Đọc trọn đời theo Bát Tự.",B:"Một hệ khác đọc cùng ngày giờ sinh của bạn, để đối chiếu với Tử Vi."},
+ {id:"life",tier:"Trọn đời",name:"Tử Vi trọn đời",price:1200,gate:"now",parts:"12 cung · 10 chặng · năm hiện tại",learn:["Cả 12 cung, đọc trọn","Mười chặng đại vận","Chặng và năm hiện tại ở dạng tóm tắt"],trial:"Đọc cả 12 cung, các chặng đại vận và năm hiện tại cho lá số này.",A:"Bản đầy đủ: 12 cung và các chặng đại vận.",B:"Đọc trọn lá số một lần: từng cung, từng chặng 10 năm và năm bạn đang sống."},
+ {id:"combo",tier:"Gói gộp",name:"Trọn đời + Năm Bính Ngọ",price:1300,gate:"gate",parts:"Trọn đời + 12 tháng",learn:["Toàn bộ Tử Vi trọn đời","Năm Bính Ngọ theo từng tháng","Rẻ hơn mua lẻ khoảng 23% khi kèm Chặng"],trial:"Gộp bản đầy đủ với năm bạn đang sống.",A:"Trọn đời và năm hiện tại trong một gói.",B:"Đọc trọn lá số và năm đang chạy cùng lúc."},
+ {id:"double",tier:"Gói gộp",name:"Trọn đời kép",price:1500,gate:"gate",parts:"Tử Vi + Bát Tự",learn:["Tử Vi trọn đời","Bát Tự trọn đời","Phần đối chiếu hai hệ"],trial:"Hai hệ đọc cùng một người, để thấy chỗ chúng đồng ý và chỗ chúng khác.",A:"Hai hệ đọc trọn đời trong một gói.",B:"Tử Vi và Bát Tự đọc cùng một bạn, rồi đối chiếu."}
+];
+const TIERS=["Hôm nay","Tháng","Năm","Chặng 10 năm","Cung","Chủ đề","Hai người","Trọn đời","Gói gộp"];
+const FREEDONE={"Hôm nay":"Đã đọc miễn phí: dòng ngày và cung bị chạm.","Tháng":"Đã đọc miễn phí: 12 ô tháng, có đánh dấu.","Năm":"Đã đọc miễn phí: cung lưu niên và tóm tắt năm.","Chặng 10 năm":"Đã đọc miễn phí: Đường đời 10 năm, có điểm.","Cung":"Đã đọc miễn phí: 12 điểm và 1 cung được tặng.","Chủ đề":"Đã đọc miễn phí: câu hỏi và cung liên quan."};
+const avail=p=>S.rel==="full"||p.gate==="now";
+const byId=id=>P.find(p=>p.id===id);
+
+function featured(){
+  const a=S.arr;let ids=[],intro="",note="";
+  if(a==="year-long")ids=["year","decade"];
+  else if(a==="year-end")ids=["pair","year27"];
+  else if(a==="palace")ids=["palace","life"];
+  else ids=["life"];
+  ids=ids.filter(id=>avail(byId(id)));
+  if((a==="year-long"||a==="year-end")&&!ids.length){ids=["life"];note="Trọn đời có phần chặng hiện tại và năm hiện tại ở dạng tóm tắt. Muốn đọc 12 tháng của năm thì có bản Vận hạn năm, chưa mở bán.";}
+  return {ids,note};
+}
+function headText(){
+  const A=S.w==="A";
+  const m={
+   "year-long":[A?"Chọn phần luận giải cho năm Bính Ngọ":"Năm Bính Ngọ của bạn đang chạy, đọc nó cho kỹ",A?"Năm Bính Ngọ rơi vào cung Quan Lộc của bạn, năm thứ 10 trong chặng 25–34 tuổi.":"Năm Bính Ngọ rơi vào cung Quan Lộc của bạn, và cũng là năm cuối của chặng 25–34 tuổi. Hai lớp ấy gặp nhau ở đây."],
+   "year-end":[A?"Chọn phần luận giải cho năm nay và năm sau":"Năm nay sắp khép lại, năm sau đã ở phía trước",A?"Năm Bính Ngọ kéo dài đến 06/02/2027. Bạn có thể đọc năm nay, năm sau hoặc cả hai.":"Năm Bính Ngọ kéo dài đến 06/02/2027. Bạn có thể đọc năm nay, đọc năm sau, hoặc đọc cả hai một lượt."],
+   "palace":[A?"Đọc cung Thiên Di của bạn":"Cung Thiên Di đang làm bạn thắc mắc",A?"Bạn vừa xem cung Thiên Di. Bài đọc trọn cung này nằm ở bên dưới.":"Bạn vừa dừng ở cung Thiên Di. Có thể đọc riêng cung này, hoặc đọc cả lá số để thấy nó nằm ở đâu."],
+   "direct":[A?"Chọn phần luận giải":"Bạn muốn đọc phần nào của lá số?",A?"Mỗi phần dưới đây đọc riêng theo lá số của bạn.":"Mỗi phần dưới đây được viết riêng cho lá số của bạn, bắt đầu từ chỗ bạn quan tâm nhất."]}[S.arr];
+  return m;
+}
+function cardHTML(p,feat,flag){
+  const need=Math.max(0,p.price-S.bal);const lock=need>0;
+  const chip=p.pick?`<div class="chips" role="group" aria-label="Chọn cung">${["Thiên Di","Tài Bạch","Phụ Mẫu","Tật Ách"].map(c=>`<button class="chip" data-pal="${c}" aria-pressed="${c===S.palace}">${c}</button>`).join("")}<button class="chip" data-pal="more">Cung khác…</button></div>`:"";
+  return `<article class="card ${feat?"feat":""}" data-card="${p.id}">${flag?`<span class="flag">${flag}</span>`:""}<span class="eyebrow">${p.tier}</span><h3>${p.name}${p.pick?` · ${S.palace}`:""}</h3><p class="pitch">${p[S.w]}</p><ul class="learn">${p.learn.map(x=>`<li>${x}</li>`).join("")}</ul><p class="parts">${p.parts}</p><div class="trial"><small>Đọc thử từ lá số của bạn</small>${p.pick?`Cung ${S.palace} của bạn ${S.palace==="Thiên Di"?"chỉ có Liêm Trinh đứng một mình.":S.palace==="Tài Bạch"?"có Phá Quân mang Hóa Lộc.":S.palace==="Phụ Mẫu"?"có Cự Môn mang Hóa Quyền, cạnh Thiên Cơ.":"không có chính tinh nào ngồi."}`:p.trial}</div>${chip}<div class="buy"><span class="price">${fmt(p.price)} Lá</span><button class="cta ${lock?"locked":""}" data-buy="${p.id}" aria-label="Mở ${p.name}, ${fmt(p.price)} Lá${lock?`, cần thêm ${fmt(need)} Lá`:""}">Mở – ${fmt(p.price)} Lá<span class="ar" aria-hidden="true">→</span></button>${lock?`<span class="why">Cần ${fmt(need)} Lá nữa. Bấm để nạp ngay trong tấm.</span>`:""}</div></article>`;
+}
+function render(){
+  $("#bal").textContent="Số dư: "+fmt(S.bal)+" Lá";
+  const [h,i]=headText();$("#head").innerHTML=`<span class="eyebrow">Chọn luận giải</span><h1>${h}</h1><p>${i}</p>`;
+  const {ids,note}=featured();
+  const flagFor=id=>S.arr==="direct"?"":"Hợp với câu bạn vừa hỏi";
+  let html=`<section class="sec"><h2>Dành cho bạn lúc này</h2>${note?`<p class="note">${note}</p>`:""}<div class="grid two">${ids.map(id=>cardHTML(byId(id),true,flagFor(id))).join("")}</div></section>`;
+  html+=`<section class="sec"><h2>Theo vòng thời gian của bạn</h2><p class="lede">Từ ngày hôm nay đến cả cuộc đời. Phần đã đọc miễn phí ghi ở đầu mỗi tầng.</p>`;
+  for(const t of TIERS){
+    const items=P.filter(p=>p.tier===t&&avail(p)&&!ids.includes(p.id));
+    if(!items.length)continue;
+    html+=`<div class="tier"><h3>${t}${FREEDONE[t]?`<small>${FREEDONE[t]}</small>`:""}</h3><div class="grid">${items.map(p=>cardHTML(p,false,"")).join("")}</div></div>`;
+  }
+  html+=`</section>`;
+  html+=`<section class="sec"><h2>So sánh nhanh</h2><div class="tbl"><table><thead><tr><th></th><th>Một cung</th><th>Bản mệnh</th><th>Chặng 10 năm</th><th>Năm</th><th>Trọn đời</th></tr></thead><tbody>
+  <tr><td>Gồm</td><td>1 cung, đọc trọn</td><td>Mệnh và Thân</td><td>1 chặng, 10 năm</td><td>12 tháng và cung lưu niên</td><td>12 cung, các chặng, năm hiện tại tóm tắt</td></tr>
+  <tr><td>Giá</td><td>120 Lá</td><td>240 Lá</td><td>480 Lá</td><td>480 Lá</td><td>1.200 Lá</td></tr>
+  <tr><td>Đã trả được trừ khi nâng lên Trọn đời trong 7 ngày</td><td>Có</td><td>Cần xác nhận với An</td><td>Chưa</td><td>Chưa</td><td>—</td></tr></tbody></table></div></section>`;
+  html+=`<section class="sec"><div class="assure">${S.w==="A"?`<p><b>Đọc thử trước khi mở.</b> Mỗi thẻ có đoạn đọc thử từ chính lá số của bạn.</p><p><b>Hoàn Lá nếu thấy không đúng.</b> Đánh dấu "Không đúng" trong 24 giờ: món dưới 500 Lá hoàn đủ, món từ 500 Lá hoàn 50%, mỗi tài khoản một lần.</p>`:`<p><b>Bạn xem thử rồi mới quyết.</b> Đoạn đọc thử trên mỗi thẻ viết từ lá số của bạn, không phải câu chung cho mọi người.</p><p><b>Đọc xong thấy không đúng thì cứ nói.</b> Đánh dấu "Không đúng" trong 24 giờ, Lá Số Việt hoàn lại: món dưới 500 Lá hoàn đủ, món từ 500 Lá hoàn 50%, mỗi tài khoản một lần.</p>`}<p><b>Mua một cung rồi muốn đọc trọn lá số?</b> Phần đã trả được trừ nếu nâng lên Trọn đời trong 7 ngày.</p></div></section>`;
+  $("#main").innerHTML=html;
+}
+function sheet(inner,title){
+  $("#layer").innerHTML=`<div class="back" data-close></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh"><div class="top"><h3 id="sh">${title}</h3><button class="x" data-close aria-label="Đóng">✕</button></div>${inner}</div>`;
+  document.body.style.overflow="hidden";$(".sheet .x").focus();
+}
+function close(){$("#layer").innerHTML="";document.body.style.overflow=""}
+function confirmSheet(id){
+  const p=byId(id);const need=Math.max(0,p.price-S.bal);
+  const nm=p.pick?`${p.name} · ${S.palace}`:p.name;
+  const learn=`<ul class="learn">${p.learn.map(x=>`<li>${x}</li>`).join("")}</ul>`;
+  if(need===0){
+    sheet(`${learn}<div class="sum"><div><span>Giá</span><b>${fmt(p.price)} Lá</b></div><div><span>Số dư hiện tại</span><span>${fmt(S.bal)} Lá</span></div><div class="em"><span>Còn lại sau khi mở</span><span>${fmt(S.bal-p.price)} Lá</span></div></div><button class="cta" id="go" data-go="${id}">Xác nhận mở – ${fmt(p.price)} Lá<span class="ar" aria-hidden="true">→</span></button><p class="final">Một lần bấm, một lần trừ. Bạn có 24 giờ để đánh dấu "Không đúng" nếu muốn hoàn Lá.</p>`,nm);
+  }else{
+    const pk=PACKS.find(x=>x.la>=need)||PACKS[3];
+    sheet(`${learn}<div class="sum"><div><span>Giá</span><b>${fmt(p.price)} Lá</b></div><div><span>Số dư hiện tại</span><span>${fmt(S.bal)} Lá</span></div><div class="em"><span>Cần thêm</span><span>${fmt(need)} Lá</span></div></div><div class="pack"><b>Gói nạp nhỏ nhất đủ dùng: ${pk.n}</b><span>${fmt(pk.la)} Lá, ${pk.vnd}</span><span class="final">Sau khi nạp bạn có ${fmt(S.bal+pk.la)} Lá, mở xong còn ${fmt(S.bal+pk.la-p.price)} Lá.</span></div><button class="cta" id="go" data-topup="${id}|${pk.la}">Nạp ${pk.vnd} và mở<span class="ar" aria-hidden="true">→</span></button><p class="final">Đây là bước cuối trước khi thanh toán. Số tiền đồng chỉ hiện ở đây.</p>`,nm);
+  }
+}
+document.addEventListener("click",e=>{
+  const t=e.target;
+  if(t.closest("[data-close]")){close();return}
+  const pal=t.closest("[data-pal]");if(pal){e.stopPropagation();if(pal.dataset.pal==="more"){return}S.palace=pal.dataset.pal;render();return}
+  const buy=t.closest("[data-buy]");if(buy){e.stopPropagation();confirmSheet(buy.dataset.buy);return}
+  const card=t.closest("[data-card]");if(card){confirmSheet(card.dataset.card);return}
+  const go=t.closest("[data-go]");if(go){go.classList.add("busy");go.innerHTML='<span class="spin"></span>Đang mở…';setTimeout(()=>{const p=byId(go.dataset.go);S.bal-=p.price;render();sheet(`<div class="ok"><b>Đã mở.</b><span>Bài đọc nằm trong Thư viện của bạn. Còn lại ${fmt(S.bal)} Lá.</span></div><button class="link" data-close>Đóng</button>`,p.name)},900);return}
+  const tu=t.closest("[data-topup]");if(tu){const [id,la]=tu.dataset.topup.split("|");tu.classList.add("busy");tu.innerHTML='<span class="spin"></span>Đang nạp…';setTimeout(()=>{S.bal+=+la;render();confirmSheet(id)},900);return}
+  const a=t.closest("[data-arr]");if(a){S.arr=a.dataset.arr;$$("[data-arr]").forEach(b=>b.setAttribute("aria-pressed",b===a));render();return}
+  const w=t.closest("[data-w]");if(w){S.w=w.dataset.w;$$("[data-w]").forEach(b=>b.setAttribute("aria-pressed",b===w));render();return}
+  const b=t.closest("[data-bal]");if(b){S.bal=+b.dataset.bal;$$("[data-bal]").forEach(x=>x.setAttribute("aria-pressed",x===b));render();return}
+  const r=t.closest("[data-rel]");if(r){S.rel=r.dataset.rel;$$("[data-rel]").forEach(x=>x.setAttribute("aria-pressed",x===r));render();return}
+  if(t.id==="t-auto"||t.id==="t-dark"||t.id==="t-light"){const v=t.id.slice(2);if(v==="auto")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",v);["auto","dark","light"].forEach(k=>$("#t-"+k).setAttribute("aria-pressed",k===v))}
+});
+addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#layer").firstChild)close()});
+render();
+</script>

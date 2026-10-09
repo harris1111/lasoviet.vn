@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { authClient } from "../../auth/auth-client";
 import { deterministicAnalyticsKey, trackWelcomeGrant } from "../analytics/funnel-analytics";
+import { LaMark } from "../../components/la-icons";
 
 export function WelcomeGrantNotice({ locale }: { locale: "vi" | "en" }) {
   const { data: session } = authClient.useSession();
@@ -32,6 +33,7 @@ export function WelcomeGrantNotice({ locale }: { locale: "vi" | "en" }) {
   if (!ownerId || visibleFor !== ownerId) return null;
   return (
     <aside role="status" className="welcome-grant-notice">
+      <LaMark name="gift" size={40} />
       <span>{locale === "vi" ? "Bạn đã nhận 60 Lá chào mừng vào ví." : "Your wallet has received 60 welcome Lá."}</span>
       <button type="button" onClick={() => setVisibleFor(undefined)} aria-label={locale === "vi" ? "Đóng thông báo" : "Dismiss notification"}>×</button>
     </aside>

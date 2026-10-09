@@ -874,3 +874,8 @@ export { createRecoveryOutboundControlTool } from "./notifications/recovery-outb
 export { createRecoveryOutboundMaintenance } from "./notifications/recovery-outbound-maintenance.js";
 export { createFreeReadingWriter, freezeFreeReadingCall } from "./ziwei/free-reading-writer.js";
 export type { FreeReadingFrozenCallV2, FreeReadingWriterOutcome } from "./ziwei/free-reading-writer.js";
+export { buildAnnualRomanceSource, ANNUAL_ROMANCE_SCOPE, type AnnualRomanceSource } from "./reports/annual-romance-source.js";
+export { createFreeReadingAdmission } from "./ziwei/free-reading-admission.js";
+export { createFreeReadingPrivateCache } from "./ziwei/free-reading-private-cache.js";
+export { createFreeReadingPrivateRunner } from "./ziwei/free-reading-private-runner.js";
+export { createFreeReadingRequestService, type FreeReadingRequestOptions } from "./ziwei/free-reading-request.service.js";
