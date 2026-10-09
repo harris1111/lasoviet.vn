@@ -411,7 +411,7 @@ export function ZiweiFreeResult({
               <ReportPalaceRadar snapshot={{ palaces: model.palaces.map((palace) => ({ palaceId: palace.id })) }} scores={scoreMap} t={reportT} locale={locale} />
             </section>
             <section className="fd109-gift" data-free-result-block="insights">
-              <p className="eyebrow">02</p><h2 id="heading-overview">{t("freeResult.insights")}</h2>
+              <h2 id="heading-overview">{t("freeResult.insights")}</h2>
               {chart.provisional && <p role="status">{t("provisional.insightsDisclaimer")}</p>}
               <p className="fd109-source-note">{t("freeResult.structuralOverview")}</p>
               <div className="fd109-overview-prose" data-testid="fd109-long-overview">
@@ -424,7 +424,7 @@ export function ZiweiFreeResult({
                 <Link className="button button-secondary" href={signInHref}>{t("freeResult.save")}</Link></div>}
             </section>
             <section className="fd109-block" data-free-result-block="scores">
-            <p className="eyebrow">03</p><h2 id="heading-scores">{t("freeResult.scores")}</h2>
+            <h2 id="heading-scores">{t("freeResult.scores")}</h2>
             <p>{t("freeResult.scoreDescription")}</p>
             <ZiweiSupportPalaces palaces={supportPalaces} labels={supportLabels} onFocus={focusPalaceOnChart} />
             <ReportScoreExplainer t={reportT} />
@@ -435,7 +435,7 @@ export function ZiweiFreeResult({
               </>
             ) : (
               <section className="fd109-gift" data-free-result-block="free-palace" data-palace-id={selected.id}>
-                <p className="eyebrow">06 · {t("freeResult.structuralPreview")}</p><h2>{selected.name}</h2>
+                <h2>{t("freeResult.structuralPreview", { name: selected.name })}</h2>
                 {score(selected)}<p>{t("freeResult.fallback")}</p>
                 <p className="fd109-gift-conclusion">{model.structuralPalace.conclusion}</p>
                 <h3>{t("freeResult.giftKeyPoints")}</h3><ol className="fd109-gift-points">{model.structuralPalace.keyPoints.map((point,index) => <li key={index}>{point}</li>)}</ol>
@@ -447,7 +447,7 @@ export function ZiweiFreeResult({
             )}
           </section>
           <section {...panel("nam-nay")} className="fd109-block" data-free-result-block="year">
-            <p className="eyebrow">04</p><h2 id="heading-nam-nay">{t("freeResult.year")}{model.annual ? ` ${model.annual.year}` : ""}</h2>
+            <h2 id="heading-nam-nay">{model.annual ? t("freeResult.yearTitle", { year: model.annual.year }) : t("freeResult.year")}</h2>
             {currentCycle && model.decade?.annualPalaceId && model.annual && <div className="fd109-layers" data-testid="fd109-layers">
               <strong>{t("freeResult.layers")}</strong>
               <span>{t("freeResult.layersBody", { start: currentCycle.startAge, end: currentCycle.endAge, palace: lowerPalace(currentCycle.palaceId), year: model.annual.year, annual: lowerPalace(model.decade.annualPalaceId) })}</span>
@@ -468,13 +468,13 @@ export function ZiweiFreeResult({
             <ReportScoreExplainer t={reportT} />
           </section>}
           <section {...panel("palaces")} className="fd109-block" data-free-result-block="palaces">
-            <p className="eyebrow">07</p><h2 id="heading-palaces">{t("freeResult.palaces", { count: others.length })}</h2>
+            <h2 id="heading-palaces">{t("freeResult.palaces")}</h2>
             <ZiweiPalaceCards cards={palaceCards} labels={cardLabels}
               onOpen={(palace, trigger) => openPreview(palace.id.split(".").pop()!, trigger, "palaces")}
               onOpenDone={() => navigate("overview")} />
           </section>
           <section {...panel("topics")} className="fd109-block" data-free-result-block="topics">
-            <p className="eyebrow">08</p><h2 id="heading-topics">{t("tabs.topics")}</h2><p>{t("freeResult.topicDescription")}</p>
+            <h2 id="heading-topics">{t("freeResult.topicsTitle")}</h2><p>{t("freeResult.topicDescription")}</p>
             <div className="fd109-map">{model.topics.map((topic) => <button key={topic.id} className="fd109-map-row"
               data-topic-id={topic.id} type="button" onClick={(event) => openPreview(topic.id, event.currentTarget, "topics")}>
               <strong>{topic.title}</strong><span>{topic.question}</span>
