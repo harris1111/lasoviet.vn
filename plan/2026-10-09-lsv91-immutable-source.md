@@ -104,3 +104,10 @@ Replayed54 checks/5 suites PASS19.16s; reviewer approved the test-only correctio
 Logs:/tmp/lasoviet-bazi-immutable-isolated-regression-20261009.log and
 /tmp/lasoviet-bazi-immutable-isolated-required-20261009.log. Required checks on this
 correction and fresh updated-head CI remain gates until successfully completed.
+
+The full inherited Study/Property run passed176 checks but the historical prefix
+migration test exceeded Vitest's default5-second harness timeout under concurrent
+PostgreSQL load. Set only that test to30seconds, matching the existing historical
+migration suite convention. Its injected clocks, SQL, financial/source assertions
+and all remaining test timeouts are unchanged. Revalidate on the updated head;
+the timed-out run is not counted as successful.
