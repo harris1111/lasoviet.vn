@@ -15,12 +15,13 @@ test("quality failure is not counted as a successful provider response", async (
     generate: async () => ({ ok: true, value: { quality: { ok: false }, content: {}, providerId: "fixture", modelId: "fixture" } }), record: async () => {} });
   assert.equal(result.status, "failed"); assert.equal(result.evidence.length, 1);
 });
-test("short diagnostic campaign cannot satisfy the twenty-run gate", async () => {
+test("two successful samples still require owner manual acceptance", async () => {
   const result = await runTopicCampaign({ selectedTopics: ["career_wealth"], runs: 2, makeInput, generate: good, record: async () => {} });
   assert.equal(result.status, "diagnostic"); assert.deepEqual(result.acceptedTopics, []);
 });
-test("each selected topic requires twenty consecutive successes and distinct charts", async () => {
+test("twenty-run historical diagnostics no longer award automatic topic acceptance", async () => {
   const result = await runTopicCampaign({ selectedTopics: ["relationship_marriage", "career_wealth"], runs: 20, makeInput, generate: good, record: async () => {} });
-  assert.equal(result.status, "passed"); assert.equal(result.evidence.length, 40);
-  for (const topic of result.acceptedTopics) assert.equal(new Set(result.evidence.filter(row => row.topicId === topic).map(row => row.chartVersionId)).size, 20);
+  assert.equal(result.status, "diagnostic"); assert.equal(result.evidence.length, 40);
+  assert.deepEqual(result.acceptedTopics, []);
+  for (const topic of ["relationship_marriage", "career_wealth"]) assert.equal(new Set(result.evidence.filter(row => row.topicId === topic).map(row => row.chartVersionId)).size, 20);
 });
