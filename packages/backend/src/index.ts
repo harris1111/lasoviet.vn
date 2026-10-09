@@ -1,4 +1,6 @@
 export { linkAnonymousActorToAccount } from "./identity/identity.module.js";
+export { createDatabaseBaziSourceRepository, BAZI_PROFILE_MAPPING_VERSION,
+  type AuthorizedBaziSource, type BaziSourceResult } from "./bazi/bazi-source.repository.js";
 export type {
   AnonymousLinkErrorCode,
   AnonymousLinkResult,
@@ -879,3 +881,5 @@ export { createFreeReadingAdmission } from "./ziwei/free-reading-admission.js";
 export { createFreeReadingPrivateCache } from "./ziwei/free-reading-private-cache.js";
 export { createFreeReadingPrivateRunner } from "./ziwei/free-reading-private-runner.js";
 export { createFreeReadingRequestService, type FreeReadingRequestOptions } from "./ziwei/free-reading-request.service.js";
+
+export { buildDecadalReadingSource } from "./reports/decadal-reading-source.js";

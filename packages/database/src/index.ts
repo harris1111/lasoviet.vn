@@ -1,5 +1,6 @@
 export { createDatabase } from "./client.js";
 export type { Database } from "./client.js";
+export { baziSources } from "./schema/bazi.js";
 
 export { MigrationError, runMigrations } from "./migrate.js";
 export type { MigrationResult } from "./migrate.js";

@@ -47,6 +47,28 @@ describe("free-result long overview text", () => {
   });
 });
 
+describe("free-result headings", () => {
+  const texts = (html: string, pattern: RegExp) => [...html.matchAll(pattern)].map((match) => match[1]!.replace(/<[^>]+>/g, "").trim());
+  it("never shows a bare number or a numbered prefix as a heading or eyebrow on any tab", () => {
+    for (const tab of ["chart", "overview", "topics"] as const) {
+      const html = render(tab);
+      const labels = [...texts(html, /<h[1-4][^>]*>([\s\S]*?)<\/h[1-4]>/g), ...texts(html, /class="eyebrow">([\s\S]*?)<\/p>/g)];
+      expect(labels.length).toBeGreaterThan(5);
+      for (const label of labels) {
+        expect(label, `heading "${label}" on tab ${tab}`).not.toMatch(/^\d+\s*(·|$)/);
+      }
+    }
+  });
+  it("uses the plain-language headings agreed with the founder", () => {
+    const html = render();
+    for (const heading of ["Lá số này nói gì về bạn", "Cung nào đỡ bạn, cung nào cần để ý", "Từng cung trong lá số", "Những câu hỏi thường gặp", "Lá số này dựa vào đâu", "Ba cung đỡ bạn nhất", "Ba cung cần để ý"]) {
+      expect(html, heading).toContain(heading);
+    }
+    expect(html).toContain("Một cung đọc trọn: ");
+    for (const old of ["Điều lá số nói riêng về bạn", "Mười hai cung mạnh yếu", "cung còn lại</h2>", "Một cung được đọc đầy đủ"]) expect(html).not.toContain(old);
+  });
+});
+
 describe("free-result reader structure", () => {
   it("places the evidence row in the overview, then one completion", () => {
     const html = render();
