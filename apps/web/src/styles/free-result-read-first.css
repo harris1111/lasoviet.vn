@@ -269,7 +269,7 @@ html[data-theme="light"]:has([data-light-ready]) .ziwei-board-center .center-tag
 .fd109-stage .ziwei-palace-header { margin-bottom: 2px; gap: 3px; }
 .fd109-stage .palace-name-group { display: grid; gap: 1px; }
 .fd109-stage .palace-title { font-size: 13px; line-height: 1.25; }
-.fd109-stage .palace-stem-branch { font-size: 12px; white-space: nowrap; }
+.fd109-stage .palace-stem-branch { font-size: 12px; overflow-wrap: anywhere; }  /* English labels such as "Gui Rooster" are wider than a 360px cell: wrap instead of spilling out */
 .fd109-stage .palace-star-row { font-size: 12px; line-height: 1.3; }
 .fd109-stage .ziwei-board-center { padding: 10px; gap: 6px; }
 .fd109-stage .center-axes { grid-template-columns: 1fr; gap: 3px; padding: 5px 0; }

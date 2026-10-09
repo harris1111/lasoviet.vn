@@ -78,7 +78,9 @@ export function EvidenceDrawer({
     } else {
       setUncontrolledOpen(true);
     }
-    await fetchEvidence(evidenceId);
+    // Already loaded for this id: reopen from memory. Refetching disables the trigger while it runs, so closing the
+    // drawer right away could not hand focus back to it.
+    if (evidence?.id !== evidenceId) await fetchEvidence(evidenceId);
   }
 
   function handleClose() {
@@ -90,11 +92,16 @@ export function EvidenceDrawer({
     triggerButtonRef.current?.focus();
   }
 
-  // Accessible Escape key, focus initial close button, and trap Tab/Shift+Tab
+  // The panel only renders once the evidence has loaded, so move focus to its close button when it actually appears
+  // (running this on open alone found no button yet and left focus on the page behind the modal).
+  const drawerVisible = isDrawerOpen && Boolean(evidence);
+  useEffect(() => {
+    if (drawerVisible) closeButtonRef.current?.focus();
+  }, [drawerVisible]);
+
+  // Accessible Escape key and trap Tab/Shift+Tab
   useEffect(() => {
     if (!isDrawerOpen) return;
-
-    closeButtonRef.current?.focus();
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
