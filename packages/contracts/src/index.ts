@@ -956,3 +956,5 @@ export * from "./bazi-structure-v1.js";
 
 export * from "./free-reading-frozen-call-v2.js";
 export * from "./normalized-bazi-chart-v1.js";
+
+export { ZiweiDecadalReadingSourceV1Schema, type ZiweiDecadalReadingSourceV1 } from "./ziwei-decadal-reading-source-v1.js";
