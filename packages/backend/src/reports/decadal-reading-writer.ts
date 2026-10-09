@@ -55,9 +55,9 @@ export function validateDecadalReading(content: ZiweiDecadalReadingContentV1, so
     if (/(?:mắc|bị|chẩn\s+đoán|nguy\s+cơ)[^.!?\n]{0,80}(?:ung\s+thư|tiểu\s+đường|đái\s+tháo\s+đường|cao\s+huyết\s+áp|trầm\s+cảm|đột\s+quỵ|nhồi\s+máu)/iu.test(text)) findings.push("NAMED_DISEASE_DIAGNOSIS");
     if (/\d+(?:[.,]\d+)?\s*%|\d+\s*(?:điểm|(?:trên|\/)\s*100)|(?:điểm\s+(?:số|(?:của\s+)?năm|vận|may\s+mắn)|(?:tỷ|tỉ)\s+lệ)[^.!?\n]{0,60}(?:là|đạt|bằng|:)\s*\d+/iu.test(text)) findings.push("UNCOMPUTED_SCORE");
     if (/(?:ngày|tháng)\s+(?:\d+|giêng|chạp|một|hai|ba|tư|bốn|năm|sáu|bảy|tám|chín|mười)(?![\p{L}\p{N}])|\b\d{1,2}[/-]\d{1,2}\b/iu.test(text)) findings.push("UNCOMPUTED_DAY_OR_MONTH");
-    if ([...text.matchAll(/(?<![\p{L}\p{N}])([12]\d{3})(?![\p{L}\p{N}])/gu)]
+    if ([...text.matchAll(/(?<![\p{L}\p{N}])(?:năm\s*)?([12]\d{3})(?![\p{L}\p{N}])/giu)]
       .some(match => !years.includes(Number(match[1])))) findings.push("UNCOMPUTED_YEAR");
-    for (const match of text.matchAll(/(?<![\p{L}\p{N}])(?:(?:từ\s+)?(\d{1,3})(?:\s*(?:[-–—]|đến|tới)\s*(\d{1,3}))?\s+tuổi|tuổi\s+(?:(?:âm|mụ|âm\s+lịch)\s+)?(?:(?:hiện\s+tại\s+)?là\s+)?(?:từ\s+)?(\d{1,3})(?:\s*(?:[-–—]|đến|tới)\s*(\d{1,3}))?)(?![\p{L}\p{N}])/giu)) {
+    for (const match of text.matchAll(/(?<![\p{L}\p{N}])(?:(?:từ\s+)?(\d{1,3})(?:\s*(?:[-–—]|đến|tới)\s*(\d{1,3}))?\s*tuổi|tuổi\s*(?:(?:âm|mụ|âm\s+lịch)\s+)?(?:(?:hiện\s+tại\s+)?là\s*)?(?:từ\s+)?(\d{1,3})(?:\s*(?:[-–—]|đến|tới)\s*(\d{1,3}))?)(?![\p{L}\p{N}])/giu)) {
       if (match.slice(1).filter(Boolean).some(value => !ages.includes(Number(value)))) findings.push("UNCOMPUTED_AGE");
     }
     if (config.discouragedTerms.some(term => hasDiscouragedTerm(text, term))) advisory.push("EDITORIAL_TERM");

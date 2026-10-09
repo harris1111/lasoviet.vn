@@ -74,6 +74,8 @@ describe("private decadal writer and hard factual/content gates", () => {
   });
   it.each([
     ["Năm 2099 cần chuẩn bị.", "UNCOMPUTED_YEAR"], ["Tuổi 125 cần chú ý.", "UNCOMPUTED_AGE"],
+    ["Năm2099 cần chuẩn bị.", "UNCOMPUTED_YEAR"], ["Tuổi125 cần chú ý.", "UNCOMPUTED_AGE"],
+    ["125tuổi cần chú ý.", "UNCOMPUTED_AGE"],
     ["Tuổi là 125.", "UNCOMPUTED_AGE"], ["Tuổi âm lịch hiện tại là 125.", "UNCOMPUTED_AGE"],
     ["Chặng 1–2 tuổi.", "UNCOMPUTED_AGE"], ["Tháng mười một cần chú ý.", "UNCOMPUTED_DAY_OR_MONTH"],
     ["Ngày 12 có việc mới.", "UNCOMPUTED_DAY_OR_MONTH"], ["Ngày 12/3.", "UNCOMPUTED_DAY_OR_MONTH"],

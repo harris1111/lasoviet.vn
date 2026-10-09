@@ -57,3 +57,11 @@ pair source PR368. Append-only package-export conflicts retain both modules;
 the writer implementation and contract are unchanged, and FE files are identical
 to master. Repeat producer/required checks and include actual pair-source
 PostgreSQL regressions before the reconciled head is released.
+
+The final lexical correction also recognizes qualified year/age claims without
+a separator (NFC/NFD), such as Năm2099 and Tuổi125. Final combined regressions
+pass77 tests across four suites; independent writer replay passes41. Rebuilt
+producers and repeated i18n/lint/typecheck pass. Compiled smoke includes two
+synthetic provider invocations proving missing/invalid recorded amounts stop
+before rewriting; physical provider calls, DB/financial writes and sends remain
+zero. Earlier60/74-test receipts describe their historical heads.
