@@ -69,6 +69,17 @@ function durableSave(path, value) {
   const directory = openSync(dirname(path), "r"); try { fsyncSync(directory); } finally { closeSync(directory); }
 }
 
+export function acquireTrialRunnerLock(descriptor, path) {
+  const opened = fstatSync(descriptor), lock = lstatSync(path);
+  if (!opened.isFile() || opened.dev !== lock.dev || opened.ino !== lock.ino || opened.uid !== 1000 ||
+      opened.nlink !== 1 || (opened.mode & 0o077)) fail("PAID_TRIAL_LOCK_REQUIRED");
+  try {
+    // Numeric-FD flock locks this inherited open file description. The helper
+    // exits, but the caller retains the lock until it closes its descriptor.
+    execFileSync("flock", ["--exclusive", "--nonblock", "3"], { stdio: ["ignore", "ignore", "ignore", descriptor] });
+  } catch { fail("PAID_TRIAL_RUNNER_BUSY"); }
+}
+
 async function main(args) {
   const { values } = parseArgs({ args, options: { live: { type: "boolean", default: false },
     dryRun: { type: "boolean", default: false }, output: { type: "string" }, locked: { type: "boolean", default: false } } });
@@ -80,15 +91,14 @@ async function main(args) {
     if (!root.isDirectory() || root.uid !== 1000 || (root.mode & 0o077)) fail("PAID_TRIAL_STORAGE_UNSAFE");
     const fd = openSync(join(ROOT, "runner.lock"), constants.O_CREAT | constants.O_RDWR | constants.O_NOFOLLOW, 0o600);
     try {
-      execFileSync("flock", ["--exclusive", "--nonblock", "/proc/self/fd/3", process.execPath, resolve(process.argv[1]), ...args, "--locked"],
+      acquireTrialRunnerLock(fd, join(ROOT, "runner.lock"));
+      execFileSync(process.execPath, [resolve(process.argv[1]), ...args, "--locked"],
         { stdio: ["inherit", "inherit", "inherit", fd] });
     } finally { closeSync(fd); }
     return;
   }
   if (values.live) {
-    const descriptor = fstatSync(3), lock = lstatSync(join(ROOT, "runner.lock"));
-    if (!descriptor.isFile() || descriptor.dev !== lock.dev || descriptor.ino !== lock.ino || descriptor.uid !== 1000 ||
-        descriptor.nlink !== 1 || (descriptor.mode & 0o077)) fail("PAID_TRIAL_LOCK_REQUIRED");
+    acquireTrialRunnerLock(3, join(ROOT, "runner.lock"));
   }
   const modules = { backend: await import("../packages/backend/dist/index.js"),
     contracts: await import("../packages/contracts/dist/index.js"), engine: await import("../packages/engine-adapters/dist/index.js") };

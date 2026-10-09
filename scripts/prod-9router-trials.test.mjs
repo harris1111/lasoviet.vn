@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { EventEmitter } from "node:events";
+import { EventEmitter, once } from "node:events";
 import { createHash } from "node:crypto";
+import { spawn, execFileSync } from "node:child_process";
 import { PassThrough, Readable } from "node:stream";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync, openSync, closeSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createCampaignBudget } from "./lib/campaign-budget.mjs";
@@ -161,4 +162,28 @@ test("actual engine uses current/next lunar years with stable distinct source id
   assert.equal(current.facts.targetYear, 2026); assert.equal(next.facts.targetYear, 2027);
   assert.notEqual(current.facts.periodKey, next.facts.periodKey);
   assert.deepEqual(current, replay); assert.notEqual(current.snapshotHash, next.snapshotHash);
+});
+
+test("unlocked matching FD3 must acquire the real lock and excludes a competing process", { timeout: 10000 }, async t => {
+  const path = join(mkdtempSync(join(tmpdir(), "fd121-runner-lock-")), "runner.lock");
+  writeFileSync(path, "", { mode: 0o600 });
+  const url = new URL("./run-paid-manual-trials.mjs", import.meta.url).href;
+  const descriptor = openSync(path, "r+");
+  const first = spawn(process.execPath, ["--input-type=module", "-e", `
+    import{acquireTrialRunnerLock}from${JSON.stringify(url)};
+    acquireTrialRunnerLock(3,${JSON.stringify(path)});
+    process.stdin.resume();console.log('ACQUIRED');await new Promise(resolve=>process.stdin.once('end',resolve));
+  `], { stdio: ["pipe", "pipe", "pipe", descriptor] });
+  closeSync(descriptor); t.after(() => first.kill());
+  const [ready] = await once(first.stdout, "data"); assert.equal(ready.toString().trim(), "ACQUIRED");
+  const competing = openSync(path, "r+");
+  try {
+    const output = execFileSync(process.execPath, ["--input-type=module", "-e", `
+      import{acquireTrialRunnerLock}from${JSON.stringify(url)};
+      try{acquireTrialRunnerLock(3,${JSON.stringify(path)});console.log('BYPASSED')}
+      catch(e){console.log(e.code)}
+    `], { stdio: ["ignore", "pipe", "pipe", competing], encoding: "utf8" });
+    assert.equal(output.trim(), "PAID_TRIAL_RUNNER_BUSY");
+  } finally { closeSync(competing); }
+  const exited = once(first, "exit"); first.stdin.end(); assert.equal((await exited)[0], 0);
 });
