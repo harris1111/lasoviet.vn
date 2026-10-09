@@ -11,6 +11,7 @@ import { buildFreeReadingFacts } from "./free-reading-facts.js";
 import { createFreeReadingWriter, freezeFreeReadingCall } from "./free-reading-writer.js";
 import { freeReadingLineage } from "./free-reading-lineage.js";
 import { createFreeReadingAdmission, recordFreeAiGrowthAlert, FREE_AI_GROWTH_ALERT_ACTION, FREE_READING_GENERATION_REQUESTED_EVENT } from "./free-reading-admission.js";
+import { createFreeReadingRequestService } from "./free-reading-request.service.js";
 import { createFreeReadingPrivateRunner } from "./free-reading-private-runner.js";
 import { createFreeReadingPrivateCache } from "./free-reading-private-cache.js";
 import { createFreeAiBudgetRepository } from "./free-ai-budget.repository.js";
@@ -81,6 +82,63 @@ describe("private whole-reading admission/cache with actual PostgreSQL", () => {
       }})});
     return {writer: result, sends: () => sends};
   }
+  function requestService(over: Partial<Parameters<typeof createFreeReadingRequestService>[0]> = {}) {
+    return createFreeReadingRequestService({database, sources: createDatabaseZiweiQueryRepository(database), flagEnabled: () => true,
+      provider: tariff.providerId, model: tariff.modelId, now: () => fixed,
+      loadActiveTariff: async () => ({...tariff, currency: "VND", status: "active", effectiveFrom: fixed}),
+      boundProofFor: ({serializedRequest, maxOutputTokens}) => ({serializedRequestHash: awaitHash(serializedRequest), maxInputTokens: 16000,
+        enforcedMaxOutputTokens: maxOutputTokens, semanticsVersion: "synthetic-not-native-proof"}), ...over});
+  }
+  it("derives a redacted frozen source from the actual owned chart and consumes one slot", async () => {
+    const o = await owner(), service = requestService();
+    const admitted = await service.request(o.actor, o.chartId, "vi"); expect(admitted.kind).toBe("admitted");
+    const artifact = (await database.select().from(freeAiArtifacts))[0]!, frozen = artifact.frozenCall!;
+    expect(frozen).toMatchObject({version: 2, chartVersionId: o.chartVersionId, source: {locale: "vi"}});
+    expect(JSON.stringify(frozen)).not.toContain("1992-06-15"); expect(JSON.stringify(frozen)).not.toContain("08:30");
+    expect((await service.request(o.actor, o.chartId, "en")).kind).toBe("existing");
+    expect(await database.select().from(freeAiRequests)).toHaveLength(1);
+  });
+  it("does not reserve without actual-wire proof, owner authority or verified identity", async () => {
+    const o = await owner(), other = await owner(), guest = await owner("guest");
+    expect(await requestService({boundProofFor: () => null}).request(o.actor, o.chartId, "vi")).toEqual({kind: "skipped", reason: "unproven_bound"});
+    expect(await requestService().request(other.actor, o.chartId, "vi")).toEqual({kind: "skipped", reason: "source_unavailable"});
+    expect(await requestService().request({...o.actor, emailVerified: false} as CurrentActor, o.chartId, "vi")).toEqual({kind: "skipped", reason: "identity_unverified"});
+    expect(await requestService().request(guest.actor, guest.chartId, "vi")).toEqual({kind: "skipped", reason: "identity_unverified"});
+    expect(await database.select().from(freeAiRequests)).toHaveLength(0);
+  });
+  it("refuses a stored provenance mutation between projection and locked authorization", async () => {
+    const o = await owner();
+    const service = requestService({loadActiveTariff: async () => {
+      await database.update(ziweiChartVersions).set({normalizedOutput: {...chart, provenance: {...chart.provenance, configHash: "d".repeat(64)}}}).where(eq(ziweiChartVersions.id, o.chartVersionId));
+      return {...tariff, currency: "VND", status: "active", effectiveFrom: fixed};
+    }});
+    expect(await service.request(o.actor, o.chartId, "vi")).toEqual({kind: "refused", reason: "source_unavailable"});
+    expect(await database.select().from(freeAiRequests)).toHaveLength(0);
+  });
+  it("refuses changed authorized facts and a disabled flag after the initial read", async () => {
+    const o = await owner(), repository = createDatabaseZiweiQueryRepository(database);
+    const changed = {...chart, palaces: chart.palaces.map(p => ({...p, stars: p.stars.map(star => star.category === "major" ? {...star, brightness: "ziwei.brightness.neutral"} : star)}))};
+    const service = requestService({loadActiveTariff: async () => {
+      await database.update(ziweiChartVersions).set({normalizedOutput: changed}).where(eq(ziweiChartVersions.id, o.chartVersionId));
+      return {...tariff, currency: "VND", status: "active", effectiveFrom: fixed};
+    }});
+    expect(await service.request(o.actor, o.chartId, "vi")).toEqual({kind: "refused", reason: "source_unavailable"});
+    let enabled = true;
+    expect((await requestService({flagEnabled: () => enabled, sources: {readAuthorizedChart: async (...args) => {
+      const result = await repository.readAuthorizedChart(...args); enabled = false; return result;
+    }}}).request(o.actor, o.chartId, "vi")).kind).toBe("refused");
+    expect(await database.select().from(freeAiRequests)).toHaveLength(0);
+  });
+  it("rejects unsafe cached tariffs and expires a vouched guest after lock-time sampling", async () => {
+    const o = await owner(), guest = await owner("guest");
+    expect(await requestService({loadActiveTariff: async () => ({...tariff, cachedInputPricePerMillion: tariff.inputPricePerMillion + 1,
+      currency: "VND", status: "active", effectiveFrom: fixed})}).request(o.actor, o.chartId, "vi")).toEqual({kind: "skipped", reason: "unapproved_pricing"});
+    let samples = 0;
+    expect(await requestService({isTrustedGuest: () => true, now: () => ++samples === 1 ? fixed : guest.expiresAt}).request(guest.actor, guest.chartId, "vi"))
+      .toEqual({kind: "refused", reason: "source_unavailable"});
+    expect(await database.select().from(freeAiRequests)).toHaveLength(0);
+  });
+
   it("admits one chart slot across concurrent v2/locales and isolates legacy outbox claims", async () => {
     const o = await owner(), admission = createFreeReadingAdmission(database);
     const results = await Promise.all([admission.reserve(input(o)), admission.reserve(input(o, "en"))]);

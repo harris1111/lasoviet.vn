@@ -878,3 +878,4 @@ export type { FreeReadingFrozenCallV2, FreeReadingWriterOutcome } from "./ziwei/
 export { createFreeReadingAdmission } from "./ziwei/free-reading-admission.js";
 export { createFreeReadingPrivateCache } from "./ziwei/free-reading-private-cache.js";
 export { createFreeReadingPrivateRunner } from "./ziwei/free-reading-private-runner.js";
+export { createFreeReadingRequestService, type FreeReadingRequestOptions } from "./ziwei/free-reading-request.service.js";
