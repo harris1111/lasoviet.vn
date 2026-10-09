@@ -961,3 +961,5 @@ export { ZiweiDecadalReadingSourceV1Schema, type ZiweiDecadalReadingSourceV1 } f
 
 export * from "./ziwei-decadal-reading-v1.js";
 export { BaziTwoPersonSourceV1Schema, type BaziTwoPersonSourceV1 } from "./bazi-two-person-source-v1.js";
+
+export { BaziDecadalSourceV1Schema, type BaziDecadalSourceV1 } from "./bazi-decadal-source-v1.js";
