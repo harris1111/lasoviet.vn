@@ -8,8 +8,8 @@ export function LaGlyph() {
 }
 
 /** Larger Lá illustrations (wallet, gift, top-up packs, success medal). Always decorative. */
-export function LaMark({ name, size = 40 }: { name: LaMarkName; size?: number }) {
-  return <span className={`la-mark la-mark-${name}`} style={{ "--la-size": `${size}px` } as CSSProperties} aria-hidden="true" />;
+export function LaMark({ name, size = 40, busy = false }: { name: LaMarkName | `pack-${string}`; size?: number; busy?: boolean }) {
+  return <span className={`la-mark la-mark-${name}${busy ? " la-mark-busy" : ""}`} style={{ "--la-size": `${size}px` } as CSSProperties} aria-hidden="true" />;
 }
 
 const PACK_MARK: Record<string, LaMarkName> = {

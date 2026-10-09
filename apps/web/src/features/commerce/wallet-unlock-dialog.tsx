@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
 import { InlineTopUp } from "./inline-topup";
+import { LaGlyph } from "../../components/la-icons";
 import { findSmallestCoveringPack, LA_TOP_UP_PACKS } from "./la-packs";
 import {
   trackUnlockConfirmView,
@@ -381,14 +382,14 @@ export function WalletUnlockDialog({
         {(state.step === "confirm" || state.step === "confirming") && (
           <div className="wallet-unlock-dialog-summary">
             <p>
-              {labels.priceLabel}: <strong>{state.priceLa} Lá</strong>
+              {labels.priceLabel}: <strong><LaGlyph />{state.priceLa} Lá</strong>
             </p>
             <p>
-              {labels.balanceLabel}: <strong>{state.balance} Lá</strong>
+              {labels.balanceLabel}: <strong><LaGlyph />{state.balance} Lá</strong>
             </p>
             {balanceAfter !== null && (
               <p>
-                {labels.balanceAfterLabel}: <strong>{balanceAfter} Lá</strong>
+                {labels.balanceAfterLabel}: <strong><LaGlyph />{balanceAfter} Lá</strong>
               </p>
             )}
             <div className="wallet-unlock-dialog-actions">

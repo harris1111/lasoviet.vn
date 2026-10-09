@@ -24,3 +24,8 @@ html[data-theme="light"] .la-mark-pack-tang-thu { --la-img: url("/images/lasovie
 .inline-topup-selected > .la-mark { grid-row: 1 / span 4; }
 .inline-topup-other-packs label { align-items: center; }
 .account-stat-label .la-mark { margin-inline-end: 6px; }
+.la-mark-busy { animation: la-breathe 1.6s ease-in-out infinite; }
+@keyframes la-breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.55; transform: scale(0.94); } }
+@media (prefers-reduced-motion: reduce) { .la-mark-busy { animation: none; } }
+.la-return { font-size: 22px; line-height: 1; opacity: 0.85; }
+.hv3-pack .la-mark { align-self: center; }
