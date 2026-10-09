@@ -17,6 +17,7 @@ import {
   wholeWord,
 } from "./comprehensive-report-quality-v4.js";
 import { normalizeComprehensiveReportModelProse } from "./comprehensive-report-writer.js";
+import { hasProhibitedReadingAdvice } from "./reading-content-line.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
@@ -27,6 +28,7 @@ export const TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES = [
   "MINIMUM_SYLLABLES",
   "DISCOURAGED_TERM",
   "DEATH_TERM",
+  "CONTENT_LINE_VIOLATION",
   "CERTAINTY",
   "LOCALE_HAN",
   "ENGLISH_BRIGHTNESS",
@@ -48,8 +50,8 @@ export type TopicDeepDiveQualityFinding = {
 };
 
 export type TopicDeepDiveQualityResult =
-  | { ok: true; findings: [] }
-  | { ok: false; findings: TopicDeepDiveQualityFinding[] };
+  | { ok: true; findings: []; advisory?: TopicDeepDiveQualityFinding[] }
+  | { ok: false; findings: TopicDeepDiveQualityFinding[]; advisory?: TopicDeepDiveQualityFinding[] };
 
 export type TopicDeepDiveQualityConfig = {
   minOverviewSyllables: number;
@@ -99,12 +101,16 @@ function checkProse(
     );
   }
 
-  // Death terms (FD-077 & FD-089 absolute Vietnamese law boundary)
+  // FD077/FD089 hard content boundary.
   for (const term of deathTerms) {
     if (wholeWord(normalized, term)) {
       addFinding("DEATH_TERM", `Contains prohibited death/fatalistic term: ${term}.`);
       break;
     }
+  }
+
+  if (hasProhibitedReadingAdvice(normalized)) {
+    addFinding("CONTENT_LINE_VIOLATION", "Contains prohibited ritual or lottery advice.");
   }
 
   // Discouraged terms (with contextual palace-name exception)
@@ -149,8 +155,9 @@ export function validateZiweiTopicDeepDiveQualityV4(
   );
 
   const findings: TopicDeepDiveQualityFinding[] = [];
+  const advisory: TopicDeepDiveQualityFinding[] = [];
   const add = (sectionKey: string, code: TopicDeepDiveQualityFindingCode, note: string) => {
-    findings.push({ sectionKey, code, note });
+    (code === "DISCOURAGED_TERM" ? advisory : findings).push({ sectionKey, code, note });
   };
 
   const validEvidenceKeys = new Set(facts.evidenceKeys);
@@ -460,5 +467,5 @@ export function validateZiweiTopicDeepDiveQualityV4(
     }
   }
 
-  return findings.length === 0 ? { ok: true, findings: [] } : { ok: false, findings };
+  return findings.length === 0 ? { ok: true, findings: [], advisory } : { ok: false, findings, advisory };
 }
