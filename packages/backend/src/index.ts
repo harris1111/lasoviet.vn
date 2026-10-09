@@ -889,3 +889,5 @@ export * from "./reports/decadal-report-config.js";
 export { createDatabaseBaziTwoPersonRepository } from "./bazi/bazi-two-person.repository.js";
 
 export * from "./reports/decadal-purchase-source.repository.js";
+
+export { createDatabaseBaziDecadalSourceRepository, type OwnedBaziDecadalResult } from "./bazi/bazi-decadal-source.repository.js";
