@@ -55,7 +55,7 @@ export function BirthWizardHeader({
           alt="Lá Số Việt"
           className="brand-logo-light"
           height={33}
-          src="/brand/lasoviet-logo-ngang-muc-son.svg"
+          src="/brand/lasoviet-logo-ngang-dao-muc.svg"
           width={188}
         />
       </Link>
