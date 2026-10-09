@@ -27,6 +27,26 @@ function render(tab: "chart" | "overview" | "topics" = "overview") {
     initialState={{ tab }} model={model} signInHref="/dang-nhap" loadEvidence={async () => ({ ok: false, error: { code: "EVIDENCE_NOT_FOUND" } })} />);
 }
 
+describe("free-result long overview text", () => {
+  it("reads in capitals and keeps the system-style facts out of the reading flow", () => {
+    const html = render();
+    const start = html.indexOf('data-testid="fd109-long-overview"');
+    expect(start).toBeGreaterThan(-1);
+    const prose = html.slice(start, html.indexOf("</article></div>", start));
+    const flow = prose.replace(/<details[\s\S]*?<\/details>/g, "");
+    const paragraphs = [...flow.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((match) => match[1]!.replace(/<[^>]+>/g, ""));
+    const titles = [...flow.matchAll(/<h3>([\s\S]*?)<\/h3>/g)].map((match) => match[1]!);
+    expect(paragraphs.length).toBeGreaterThan(5);
+    for (const text of [...titles, ...paragraphs]) {
+      expect(text).toMatch(/^\p{Lu}|^\p{N}/u);
+      expect(text).not.toContain("dữ liệu ghi nhận");
+    }
+    expect(prose).toContain('data-testid="fd109-overview-basis"');
+    expect(prose).toContain("Căn cứ của phần này");
+    expect(prose).toMatch(/<details[^>]*>[\s\S]*?dữ liệu ghi nhận[\s\S]*?<\/details>/);
+  });
+});
+
 describe("free-result headings", () => {
   const texts = (html: string, pattern: RegExp) => [...html.matchAll(pattern)].map((match) => match[1]!.replace(/<[^>]+>/g, "").trim());
   it("never shows a bare number or a numbered prefix as a heading or eyebrow on any tab", () => {
