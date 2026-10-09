@@ -31,3 +31,9 @@ Meaningful tests cover no dispatch before reservation, one physical request, sou
 ## Open acceptance
 
 Owner manual report review, any failed technical/quality gate, application integration and release smoke remain separate. LSV89 decadal purchase/delivery and the annual pair remain subsequent bounded implementation work.
+
+## Native receipt recovery follow-up
+
+One actual attempt returned visible text and complete billable input/output/thinking/total counters, but omitted the cache-discount counter. The reviewed strict runner stopped and retains its full 33,368 VND exposure. Selected-counter diagnostics do not preserve enough original usage metadata to exclude all tier/tool/extra-usage ambiguity; they cannot release that reservation, reopen its key or resume the campaign.
+
+Bounded follow-up permits only a pure `scripts/lib/fd121-reference-maximum.mjs` receipt preparation helper and focused tests, plus evidence/documentation. With trustworthy complete native response/completion/model/tier/tool/modality evidence, missing cache discount alone permits a conservative API-reference maximum: all input at the uncached rate, output plus thinking once. Preserve cache as unknown; do not invent zero or claim exact billing. Other missing counters or unexpected usage remain hard stops. The helper has no transport, ledger mutation, settlement or continuation authority and stays disconnected from the live runner. Legacy strict parsing remains unchanged. Independent financial review permits preparing this technical change; further calls remain held pending trustworthy first-receipt reconciliation and quality/format correction.

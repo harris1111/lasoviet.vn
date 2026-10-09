@@ -1,0 +1,26 @@
+{
+  "status": "diagnostic_only_retained_native_output",
+  "slot": "relationship_marriage:0",
+  "sourceHashVerified": true,
+  "rawFormatValid": false,
+  "rawFormatIssue": "JSON_MARKDOWN_FENCE",
+  "afterDiagnosticWrapperRemovalSchemaValid": true,
+  "quality": {
+    "ok": false,
+    "findings": [
+      {
+        "sectionKey": "overview",
+        "code": "DISCOURAGED_TERM",
+        "note": "Contains discouraged term: phu thê."
+      },
+      {
+        "sectionKey": "actions[1]",
+        "code": "DISCOURAGED_TERM",
+        "note": "Contains discouraged term: bản mệnh."
+      }
+    ]
+  },
+  "manualAccepted": false,
+  "accountingResolved": false,
+  "campaignContinuationAuthorized": false
+}
