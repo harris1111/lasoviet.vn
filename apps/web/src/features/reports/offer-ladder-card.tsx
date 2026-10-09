@@ -15,12 +15,16 @@ export type OfferCardState = "available" | "owned" | "coming_soon" | "unavailabl
  */
 export type OfferCardCopy = { pitch: string; learn: string[]; parts: string; learnLabel: string };
 
-export function OfferCard({ sku, name, price, state, lifetime, quote, shortfall = 0, canOpen, onOpen, ownedLink, children, copy, fitLabel }: {
+export function OfferCard({ sku, name, price, state, lifetime, quote, shortfall = 0, canOpen, onOpen, ownedLink, children, copy, fitLabel, tierLabel, anchorId }: {
   sku: LaSku; name: string; price: number; state: OfferCardState; lifetime: boolean; quote?: WalletQuoteV1;
   /** Lá still missing for this price; the card stays openable because the sheet tops up in place. */
   shortfall?: number; canOpen: boolean; onOpen: (sku: LaSku) => void;
   ownedLink?: { href: string; label: string }; children?: ReactNode;
   copy?: OfferCardCopy; fitLabel?: string;
+  /** Tier name shown on the card on wide screens, where the tier heading is visually hidden and cards flow in one grid. */
+  tierLabel?: string;
+  /** Id of the first card of a tier: the target of the tier rail link. */
+  anchorId?: string;
 }) {
   const t = useTranslations("reports");
   const owned = state === "owned" && ownedLink;
@@ -28,10 +32,15 @@ export function OfferCard({ sku, name, price, state, lifetime, quote, shortfall 
   const headingId = `offer-name-${sku}`;
   const buttonId = `offer-open-${sku}`;
   const short = canOpen && shortfall > 0;
-  return <article className={`stretched-card${lifetime ? " offer-ladder-best" : ""}${fitLabel ? " offer-ladder-fit" : ""}`} data-sku={sku}
+  return <article id={anchorId} className={`stretched-card${lifetime ? " offer-ladder-best" : ""}${fitLabel ? " offer-ladder-fit" : ""}`} data-sku={sku}
     data-state={owned ? "owned" : canOpen ? (short ? "short" : "openable") : "locked"}>
+    {lifetime && <>
+      {(["tl", "tr", "bl", "br"] as const).map((corner) => <i key={corner} className={`offer-orn offer-orn-${corner}`} aria-hidden="true" />)}
+      <span className="offer-ribbon">{t("selection.ladderBestValue")}</span>
+      <span className="offer-band" aria-hidden="true" />
+    </>}
+    {tierLabel && <span className="offer-card-tier" aria-hidden="true">{tierLabel}</span>}
     {fitLabel && <span className="offer-fit-flag">{fitLabel}</span>}
-    {lifetime && <span className="fd109-state">{t("selection.ladderBestValue")}</span>}
     <h3 id={headingId}>{name}</h3>
     {copy && <>
       <p className="offer-pitch">{copy.pitch}</p>
@@ -41,7 +50,7 @@ export function OfferCard({ sku, name, price, state, lifetime, quote, shortfall 
     </>}
     {children}
     <p className="offer-ladder-price"><LaGlyph />{t("selection.ladderPrice", { price })}</p>
-    {lifetime && <p>{t("selection.ladderLifetimeComparison")}</p>}
+    {lifetime && <p className="offer-save">{t("selection.ladderLifetimeComparison")}</p>}
     {quote && quote.creditLa > 0 && <p>{t("selection.ladderCredit", { credit: quote.creditLa, price })}</p>}
     {quote && quote.discountLa > 0 && <p>{t("selection.ladderDiscount", { discount: quote.discountLa })}</p>}
     {owned

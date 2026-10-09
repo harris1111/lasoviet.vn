@@ -74,15 +74,23 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     return { product, quote: result, state: result?.state ?? (quote.status !== "guest" ? "unavailable" : !guestSupported ? "unavailable" : product.availability === "active" ? "available" : "coming_soon"), price: result?.priceLa ?? product.priceLa };
   }
   const tiers = visibleLadder(locale, palaceSku);
+  const tierName = (tier: string) => t(`selection.tier${tier[0]!.toUpperCase()}${tier.slice(1)}`);
   const selected = terms(selectedSku);
   return <div ref={root} className="offer-ladder" data-testid="offer-ladder">
     <h2>{t("selection.ladderHeading")}</h2><p>{t("selection.ladderDescription")}</p>
     {quote.status === "loading" && <p role="status">{t("selection.ladderLoading")}</p>}
     {quote.status === "error" && <div role="alert"><p>{t("selection.ladderQuoteError")}</p><button type="button" className="button" onClick={quote.retry}>{t("selection.retry")}</button></div>}
     <p>{t("selection.ladderIntro")}</p>
+    <div className="offer-ladder-body">
+    <nav className="offer-ladder-rail" aria-label={t("selection.ladderRail")}>
+      <ol>{tiers.map(({ tier, entries }) => <li key={tier}><a href={`#offer-tier-first-${tier}`}>
+        <span>{tierName(tier)}</span><small>{t("selection.ladderRailCount", { count: entries.length })}</small></a></li>)}</ol>
+      <p className="offer-ladder-rail-balance" aria-hidden="true"><LaMark name="wallet" size={28} />{t("selection.ladderBalance", { balance })}</p>
+    </nav>
+    <div className="offer-ladder-tiers">
     {tiers.map(({ tier, entries }) => <section key={tier} className="offer-ladder-tier" aria-labelledby={`offer-tier-${tier}`}>
-      <h3 id={`offer-tier-${tier}`}>{t(`selection.tier${tier[0]!.toUpperCase()}${tier.slice(1)}`)}</h3>
-      <div className="offer-ladder-cards">{entries.map(({ sku: entrySku, resolved: sku, copy }) => {
+      <h3 id={`offer-tier-${tier}`}>{tierName(tier)}</h3>
+      <div className="offer-ladder-cards">{entries.map(({ sku: entrySku, resolved: sku, copy }, index) => {
         const item = terms(sku);
         const palace = entrySku === "palace";
         const fits = initialIntent && (palace ? isSinglePalaceSku(selectedSku) && isSinglePalaceSku(initialSku) : sku === initialSku);
@@ -92,12 +100,15 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
           shortfall={Math.max(0, item.price - balance)} onOpen={openCard}
           ownedLink={item.state === "owned" ? ownedLinkFor(sku, item.quote) : undefined}
           fitLabel={fits ? t("selection.ladderFit") : undefined}
+          tierLabel={tierName(tier)} anchorId={index === 0 ? `offer-tier-first-${tier}` : undefined}
           copy={{ pitch: t(`selection.copy.${copy}.pitch`), parts: t(`selection.copy.${copy}.parts`), learnLabel: t("selection.ladderLearn"),
             learn: [t(`selection.copy.${copy}.l1`), t(`selection.copy.${copy}.l2`), t(`selection.copy.${copy}.l3`)] }}>
           {palace && <PalacePicker locale={locale} selectedSku={selectedSku} onSelect={select} scores={scores} quotes={quote.quotes} />}
         </OfferCard>;
       })}</div>
     </section>)}
+    </div>
+    </div>
     <div className="offer-ladder-summary" aria-label={t("selection.ladderHeading")}>
       <p className="la-balance-row"><LaMark name="wallet" size={28} />{t("selection.ladderBalance", { balance })}</p>
       {receipt && <div role="status"><p>{t("selection.contextualUnlocked")}</p><Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t("selection.viewProgress")}</Link></div>}

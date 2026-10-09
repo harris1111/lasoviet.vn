@@ -134,6 +134,8 @@
     "ladderSelect": "Select this reading",
     "ladderSelected": "Selected",
     "ladderBalance": "Balance: {balance} Lá",
+    "ladderRail": "Sections",
+    "ladderRailCount": "{count} available",
     "inlinePackLabel": "Choose a Lá pack",
     "inlinePackBonus": "+{bonus} bonus Lá",
     "inlineRemaining": "Your wallet will have {balance} Lá after unlocking.",

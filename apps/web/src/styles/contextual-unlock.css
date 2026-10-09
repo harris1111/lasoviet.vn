@@ -95,7 +95,6 @@ html .offer-ladder-cards article[data-selected="true"] .offer-card-select { back
 .offer-parts { margin: 8px 0 0; font-size: 13px; opacity: 0.75; }
 .offer-fit-flag { justify-self: start; display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 999px; background: var(--gold-500); color: var(--lacquer-900); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
 .offer-ladder-cards article.offer-ladder-fit { border-color: var(--gold-500); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--gold-500) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--gold-500) 55%, transparent); }
-@media (min-width: 900px) { .offer-ladder-tier .offer-ladder-cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
 
 /* One-button cards: the arrow sits in its own circle (Q10); a short balance keeps the dashed outline and states the gap */
 .offer-card-open { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
@@ -103,3 +102,55 @@ html .offer-ladder-cards article[data-selected="true"] .offer-card-select { back
 .offer-card-short { border-style: dashed; }
 .offer-ladder-cards article[data-state="openable"], .offer-ladder-cards article[data-state="short"], .offer-ladder-cards article[data-state="owned"] { cursor: pointer; }
 .offer-ladder-summary a { display: inline-flex; align-items: center; min-height: 44px; }
+
+/* A1 desktop layout. Phone: tiers stacked, one column (unchanged). From 768px the tier headings become visually hidden and every
+   card flows in one two-column grid with its tier printed on the card, so a tier with one card never leaves an empty row. From
+   1024px a sticky rail lists the tiers and the content is capped (cards never wider than 520px). */
+.offer-ladder-rail { display: none; }
+.offer-card-tier { display: none; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-500); }
+.offer-ladder-cards article { scroll-margin-top: 16px; }
+.offer-ladder-cards article.offer-ladder-best { padding-top: 34px; border-width: 2px; border-color: var(--gold-500);
+  background: radial-gradient(120% 70% at 50% 0%, color-mix(in srgb, var(--gold-500) 24%, transparent), transparent 62%), linear-gradient(170deg, var(--gold-soft), var(--surface-raised) 58%);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold-500) 16%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--gold-500) 55%, transparent), 0 26px 50px -24px color-mix(in srgb, var(--gold-500) 65%, transparent); }
+.offer-ribbon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); padding: 6px 20px; border-radius: 999px; background: var(--gold-gradient); color: var(--lacquer-900); font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 6px 16px -6px rgb(0 0 0 / 50%); }
+.offer-band { display: block; width: 72%; max-width: 320px; aspect-ratio: 2048 / 217; margin: 0 auto 6px; opacity: .95; background: url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet-toi.webp") center / contain no-repeat; }
+html[data-theme="light"] .offer-band { background-image: url("/images/lasoviet/dai-hoa-van-dong-son-ngang-lasoviet-sang.webp"); }
+.offer-orn { position: absolute; width: 44px; aspect-ratio: 1; pointer-events: none; background: url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet-toi.webp") center / contain no-repeat; }
+html[data-theme="light"] .offer-orn { background-image: url("/images/lasoviet/goc-trang-tri-hoa-van-khung-vang-lasoviet-sang.webp"); }
+.offer-orn-tl { top: 5px; left: 5px; } .offer-orn-tr { top: 5px; right: 5px; transform: scaleX(-1); }
+.offer-orn-bl { bottom: 5px; left: 5px; transform: scaleY(-1); } .offer-orn-br { bottom: 5px; right: 5px; transform: scale(-1, -1); }
+.offer-ladder-best h3 { text-align: center; font-size: 26px; }
+.offer-ladder-best .offer-pitch, .offer-ladder-best .offer-learn-label, .offer-ladder-best .offer-parts { text-align: center; }
+.offer-ladder-best .offer-ladder-price { font-size: 36px !important; justify-content: center; }
+html .offer-ladder-cards .offer-ladder-best .offer-card-open { min-height: 56px; font-size: 17px; background: var(--gold-gradient); color: var(--lacquer-900); border-color: transparent; }
+.offer-ladder-cards .offer-save { justify-self: center; width: fit-content; margin: 8px auto 0; padding: 4px 14px; border-radius: 999px; background: color-mix(in srgb, var(--gold-500) 22%, transparent); color: var(--gold-500); font-size: 13px; font-weight: 600; }
+.offer-ladder-tiers { display: grid; }
+@media (min-width: 768px) {
+  .offer-ladder-tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-top: 24px; }
+  .offer-ladder-tier, .offer-ladder-cards { display: contents; }
+  .offer-ladder-tier { margin-top: 0; }
+  .offer-ladder-tier > h3 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .offer-ladder-tiers { grid-auto-flow: row dense; }
+  /* The palace card holds the 12-palace picker and is far taller than the others: let it span two rows so its neighbours fill the column instead of stretching. */
+  .offer-ladder-cards article:has(.palace-picker) { grid-row: span 2; }
+  .offer-ladder-cards article { display: flex; flex-direction: column; gap: 6px; }
+  .offer-ladder-cards article > h3 { margin: 2px 0 0; }
+  /* The lifetime card closes the grid on a row of its own, centred, so it is the focal point and no empty cell sits beside it. */
+  .offer-ladder-cards article.offer-ladder-best { grid-column: 1 / -1; justify-self: center; width: min(100%, 520px); }
+  .offer-ladder-cards article .offer-ladder-price { margin-top: auto; padding-top: 14px; }
+  .offer-card-tier { display: block; align-self: flex-start; }
+  .offer-ladder-best .offer-card-tier { display: none; }
+}
+@media (min-width: 1024px) {
+  .offer-ladder { max-width: 1100px; margin-inline: auto; }
+  .offer-ladder-body { display: grid; grid-template-columns: 210px minmax(0, 1fr); column-gap: 28px; align-items: start; margin-top: 24px; }
+  .offer-ladder-body .offer-ladder-tiers { margin-top: 0; grid-template-columns: repeat(2, minmax(0, 520px)); justify-content: start; }
+  .offer-ladder-rail { display: block; position: sticky; top: 16px; }
+  .offer-ladder-rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .offer-ladder-rail a { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border-radius: 8px; color: var(--text-heading); text-decoration: none; }
+  .offer-ladder-rail a:hover { background: var(--gold-soft); }
+  .offer-ladder-rail a:focus-visible { outline: 2px solid var(--gold-500); outline-offset: 2px; }
+  .offer-ladder-rail small { color: var(--text-body); font-size: 12px; opacity: .8; }
+  .offer-ladder-rail-balance { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--surface-raised); font-weight: 600; }
+}
+@media (max-width: 767px) { .offer-ladder-best .offer-ladder-price { font-size: 32px !important; } }

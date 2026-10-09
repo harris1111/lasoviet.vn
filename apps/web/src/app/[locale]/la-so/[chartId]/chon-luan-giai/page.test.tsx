@@ -113,7 +113,7 @@ describe("authorized offer ladder page", () => {
     // Products the catalog still holds back never appear, and nothing says "coming soon".
     for (const sku of ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0", "ZIWEI-MONTHLY-P0"]) expect(html).not.toContain(`data-sku="${sku}"`);
     expect(html).not.toContain("Sắp mở");
-    expect(html).toContain("Bạn sẽ biết"); expect(html).toContain("Đáng nhất"); expect(html).toContain("Độ mạnh cấu trúc:");
+    expect(html).toContain("Bạn sẽ biết"); expect(html).toContain("Đáng nhất"); expect(html).toContain('class="offer-ladder-rail"'); expect(html).toContain("offer-card-tier"); expect(html).toContain("#offer-tier-first-"); expect(html).toContain("Độ mạnh cấu trúc:");
     expect(html).toContain('id="offer-tier-today"'); expect(html).toContain('id="offer-tier-life"');
     const ladder = html.slice(html.indexOf('data-testid="offer-ladder"'), html.indexOf('id="hoi-vien"'));
     expect(ladder).not.toMatch(/VND|VNĐ|₫/);
