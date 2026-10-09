@@ -25,58 +25,60 @@ function find(node: unknown, pred: (el: El) => boolean): El | null {
 }
 // Render the (hook-free apart from the mocked translator) card into its element tree.
 const card = (over: Partial<Parameters<typeof OfferCard>[0]> = {}) => OfferCard({
-  sku: "ZIWEI-CAREER-P0", name: "Sự nghiệp", price: 100, state: "available", locked: false,
-  selected: false, lifetime: false, onSelect: () => undefined, ...over,
+  sku: "ZIWEI-CAREER-P0", name: "Sự nghiệp", price: 100, state: "available", canOpen: true,
+  lifetime: false, onOpen: () => undefined, ...over,
 }) as unknown;
 const button = (tree: unknown) => find(tree, el => el.type === "button")!;
 
 describe("OfferCard", () => {
-  it("selects through its single primary button (click, and Enter/Space which a native button turns into click)", () => {
-    const onSelect = vi.fn();
-    const btn = button(card({ onSelect }));
+  it("opens through its single primary button (click, and Enter/Space which a native button turns into click)", () => {
+    const onOpen = vi.fn();
+    const btn = button(card({ onOpen }));
     expect(btn.props.type).toBe("button");
     expect(String(btn.props.className)).toContain("stretched-target");
-    expect(btn.props["aria-pressed"]).toBe(false);
+    expect(btn.props["aria-label"]).toBe("Mở Sự nghiệp — 100 Lá");
     (btn.props.onClick as () => void)();
-    expect(onSelect).toHaveBeenCalledWith("ZIWEI-CAREER-P0");
+    expect(onOpen).toHaveBeenCalledWith("ZIWEI-CAREER-P0");
   });
 
-  it("shows a visible selected state: check mark, text, aria-pressed, data-selected", () => {
-    const html = renderToStaticMarkup(card({ selected: true }) as never);
-    expect(html).toContain('data-selected="true"');
-    expect(html).toContain('aria-pressed="true"');
-    expect(html).toContain("✓");
-    expect(html).toContain("Đã chọn");
+  it("shows the price and the visible 'Mở – N Lá' label with the arrow hidden from assistive tech", () => {
+    const html = renderToStaticMarkup(card() as never);
+    expect(html).toContain('<span aria-hidden="true">Mở – 100 Lá</span>');
+    expect(html).toContain('<span class="offer-open-arrow" aria-hidden="true">→</span>');
+    expect(html).toContain('data-state="openable"');
+    expect(html.match(/<button/g)).toHaveLength(1);
   });
 
-  it("keeps a constant, unique accessible name: sr-only label plus the card heading, visual state aria-hidden", () => {
-    const off = renderToStaticMarkup(card({ selected: false }) as never);
-    const on = renderToStaticMarkup(card({ selected: true }) as never);
-    for (const html of [off, on]) {
-      expect(html).toContain('id="offer-name-ZIWEI-CAREER-P0"');
-      expect(html).toContain('aria-labelledby="offer-select-ZIWEI-CAREER-P0 offer-name-ZIWEI-CAREER-P0"');
-      expect(html).toContain('<span class="sr-only">Chọn phần này</span>');
-    }
-    expect(on).toContain('<span aria-hidden="true">✓ Đã chọn</span>');
-    expect(off).toContain('<span aria-hidden="true">Chọn phần này</span>');
+  it("keeps the dashed outline and states the gap when the balance is short, but still opens the sheet", () => {
+    const onOpen = vi.fn();
+    const tree = card({ shortfall: 180, onOpen });
+    const html = renderToStaticMarkup(tree as never);
+    expect(html).toContain('data-state="short"');
+    expect(html).toContain("offer-card-short");
+    expect(html).toContain("Cần 180 Lá nữa");
+    expect(html).toContain('aria-describedby="offer-reason-ZIWEI-CAREER-P0"');
+    (button(tree).props.onClick as () => void)();
+    expect(onOpen).toHaveBeenCalled();
   });
 
-  it("renders locked cards as a disabled button with a visible reason and never fires onSelect", () => {
-    const onSelect = vi.fn();
-    const tree = card({ onSelect, locked: true, state: "coming_soon" });
+  it("renders an owned card as a link to the reading instead of a purchase button", () => {
+    const html = renderToStaticMarkup(card({ state: "owned", ownedLink: { href: "/bao-cao/r1", label: "Đọc lại" } }) as never);
+    expect(html).toContain('data-state="owned"');
+    expect(html).toContain('href="/bao-cao/r1"');
+    expect(html).toContain("Đọc lại");
+    expect(html).not.toContain("<button");
+  });
+
+  it("renders unsupported cards as a disabled button with a visible reason and never opens", () => {
+    const onOpen = vi.fn();
+    const tree = card({ onOpen, canOpen: false, state: "unavailable" });
     const btn = button(tree);
     expect(btn.props.disabled).toBe(true);
     expect(btn.props.onClick).toBeUndefined();
-    expect(onSelect).not.toHaveBeenCalled();
+    expect(onOpen).not.toHaveBeenCalled();
     const html = renderToStaticMarkup(tree as never);
     expect(html).toContain('data-state="locked"');
-    expect(html).toContain("Sắp mở");
-    expect(html).toContain('aria-describedby="offer-reason-ZIWEI-CAREER-P0"');
-  });
-
-  it("treats unsupported cards as locked with the unsupported reason", () => {
-    const html = renderToStaticMarkup(card({ state: "unavailable" }) as never);
-    expect(html).toContain("disabled");
     expect(html).toContain("Chưa hỗ trợ lựa chọn này");
+    expect(html).not.toContain("Sắp mở");
   });
 });

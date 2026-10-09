@@ -243,7 +243,10 @@
         "l3": "Giá gộp thấp hơn mua lẻ từng phần",
         "parts": "Trọn đời và 12 tháng"
       }
-    }
+    },
+    "ladderOpenCard": "Mở – {price} Lá",
+    "ladderOpenAria": "Mở {name} — {price} Lá",
+    "ladderShortfall": "Cần {gap} Lá nữa. Bấm để nạp ngay trong tấm."
   },
   "checkout": {
     "eyebrow": "Thanh toán",

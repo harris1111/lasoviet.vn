@@ -243,7 +243,10 @@
         "l3": "A bundle price below buying each part",
         "parts": "Lifetime and 12 months"
       }
-    }
+    },
+    "ladderOpenCard": "Open – {price} Lá",
+    "ladderOpenAria": "Open {name} — {price} Lá",
+    "ladderShortfall": "{gap} Lá short. Select to top up in place."
   },
   "checkout": {
     "eyebrow": "Payment",

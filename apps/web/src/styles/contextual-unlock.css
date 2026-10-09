@@ -10,9 +10,9 @@
 .offer-ladder p { color: var(--text-body); font-size: 16px; overflow-wrap: anywhere; }
 .offer-ladder-cards { display: grid; gap: 20px; }
 .offer-ladder-cards article { min-width: 0; border: 1px solid var(--border-soft); border-radius: var(--radius-card); padding: 24px; background: var(--surface-raised); transition: transform var(--motion-feedback) ease, border-color var(--motion-feedback) ease, box-shadow var(--motion-feedback) ease; }
-.offer-ladder-cards article[data-state="selectable"] { cursor: pointer; }
-.offer-ladder-cards article[data-state="selectable"]:active { transform: scale(.99); }
-@media (hover: hover) { .offer-ladder-cards article[data-state="selectable"]:hover { transform: translateY(-2px); border-color: var(--gold-500); box-shadow: 0 8px 24px rgb(0 0 0 / 25%); } .offer-ladder-cards article[data-state="selectable"][data-selected="true"]:hover { box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 5px var(--gold-500), 0 8px 24px rgb(0 0 0 / 25%); } html .offer-ladder-cards article[data-selected="true"] .offer-card-select:hover { color: var(--lacquer-900); border-color: transparent; } }
+.offer-ladder-cards article[data-state="openable"] { cursor: pointer; }
+.offer-ladder-cards article[data-state="openable"]:active { transform: scale(.99); }
+@media (hover: hover) { .offer-ladder-cards article[data-state="openable"]:hover { transform: translateY(-2px); border-color: var(--gold-500); box-shadow: 0 8px 24px rgb(0 0 0 / 25%); } .offer-ladder-cards article[data-state="openable"][data-selected="true"]:hover { box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 5px var(--gold-500), 0 8px 24px rgb(0 0 0 / 25%); } html .offer-ladder-cards article[data-selected="true"] .offer-card-select:hover { color: var(--lacquer-900); border-color: transparent; } }
 .offer-ladder-cards article:has(.offer-card-select:focus-visible) { outline: 3px solid var(--gold-400); outline-offset: 3px; }
 .offer-ladder-cards .offer-card-select:focus-visible { outline: none; }
 /* Selected: double border (inner card border + outer ring) plus check mark and "Da chon" text in the button. */
@@ -37,7 +37,7 @@ html .offer-ladder-cards article[data-selected="true"] .offer-card-select { back
 .palace-picker button { min-height: 44px; cursor: pointer; transition: border-color var(--motion-feedback) ease, transform var(--motion-feedback) ease, background var(--motion-feedback) ease; padding: 12px; border: 1px solid var(--border-soft); color: var(--text-heading); background: transparent; border-radius: var(--radius-control); text-align: left; display: grid; gap: 6px; }
 @media (hover: hover) { .palace-picker button:hover { border-color: var(--gold-500); } }
 .palace-picker button:active { transform: scale(.97); }
-@media (prefers-reduced-motion: reduce) { .offer-ladder-cards article[data-state="selectable"]:hover, .offer-ladder-cards article[data-state="selectable"]:active, .palace-picker button:active { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .offer-ladder-cards article[data-state="openable"]:hover, .offer-ladder-cards article[data-state="openable"]:active, .palace-picker button:active { transform: none; } }
 .palace-picker button[aria-pressed="true"] { border-color: var(--gold-500); background: var(--gold-soft); box-shadow: inset 0 0 0 1px var(--gold-500); }
 .pricing-page-container .paybar[hidden] { display: none !important; }
 @media (min-width: 768px) { .offer-ladder-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } .unlock-sheet { margin: auto; border-radius: var(--radius-modal); } }
@@ -96,3 +96,9 @@ html .offer-ladder-cards article[data-selected="true"] .offer-card-select { back
 .offer-fit-flag { justify-self: start; display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 999px; background: var(--gold-500); color: var(--lacquer-900); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
 .offer-ladder-cards article.offer-ladder-fit { border-color: var(--gold-500); box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--gold-500) 14%, transparent), 0 0 0 1px color-mix(in srgb, var(--gold-500) 55%, transparent); }
 @media (min-width: 900px) { .offer-ladder-tier .offer-ladder-cards { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
+
+/* One-button cards: the arrow sits in its own circle (Q10); a short balance keeps the dashed outline and states the gap */
+.offer-card-open { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; }
+.offer-open-arrow { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: color-mix(in srgb, currentColor 18%, transparent); }
+.offer-card-short { border-style: dashed; }
+.offer-ladder-cards article[data-state="openable"], .offer-ladder-cards article[data-state="short"], .offer-ladder-cards article[data-state="owned"] { cursor: pointer; }

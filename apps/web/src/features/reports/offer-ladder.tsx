@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import { useTranslations } from "next-intl";
-import { findLaProduct, isSinglePalaceSku, type LaSku } from "@lasoviet/contracts";
+import { findLaProduct, isSinglePalaceSku, type LaSku, type WalletQuoteV1 } from "@lasoviet/contracts";
 import { UnlockSheet } from "../commerce/unlock-sheet";
 import { useUnlockLabels } from "../commerce/contextual-unlock";
 import { useWalletQuotes, type InitialWalletQuotes } from "../commerce/use-wallet-quotes";
@@ -42,15 +42,15 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     root.current?.querySelectorAll("article[data-sku]").forEach(card => observer.observe(card));
     return () => observer.disconnect();
   }, [locale, quote.quotes, palaceSku]);
-  const trigger = useRef<HTMLButtonElement>(null);
   const resumed = useRef(false);
   useEffect(() => {
     if (!initialResume || resumed.current || selectedSku !== initialSku || quote.status !== "ready") return;
     const current = quote.quotes?.find(item => item.sku === initialSku);
-    if (current?.state !== "available" || !trigger.current || trigger.current.disabled) return;
+    const button = root.current?.querySelector<HTMLButtonElement>(`button[data-sku-open="${initialSku}"]`);
+    if (current?.state !== "available" || !button || button.disabled) return;
     // Open confirmation only. The user still explicitly confirms any spend or top-up.
     resumed.current = true;
-    trigger.current.click();
+    button.click();
   }, [initialResume, initialSku, selectedSku, quote.status, quote.quotes]);
   const prefix = locale === "en" ? "/en" : "";
   function select(sku: LaSku) {
@@ -62,6 +62,11 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     for (const [key, value] of Object.entries(ladderSelectionQuery(sku))) url.searchParams.set(key, value);
     window.history.replaceState(window.history.state, "", url);
   }
+  function openCard(sku: LaSku) { select(sku); setOpen(true); }
+  function ownedLinkFor(sku: LaSku, result?: WalletQuoteV1) {
+    const href = sku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : result?.reportId ? `${prefix}/bao-cao/${encodeURIComponent(result.reportId)}` : `${prefix}/tai-khoan/bao-cao`;
+    return { href, label: t(sku === "ZIWEI-TODAY-P0" || result?.reportState === "ready" ? "selection.readAgain" : result?.reportId ? "selection.viewProgress" : "selection.viewLibrary") };
+  }
   function terms(sku: LaSku) {
     const product = findLaProduct(sku)!;
     const result = quote.quotes?.find(item => item.sku === sku);
@@ -70,8 +75,6 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
   }
   const tiers = visibleLadder(locale, palaceSku);
   const selected = terms(selectedSku);
-  const canBuy = selected.state === "available" && (quote.status === "ready" || quote.status === "guest");
-  const shortfall = Math.max(0, selected.price - balance);
   return <div ref={root} className="offer-ladder" data-testid="offer-ladder">
     <h2>{t("selection.ladderHeading")}</h2><p>{t("selection.ladderDescription")}</p>
     {quote.status === "loading" && <p role="status">{t("selection.ladderLoading")}</p>}
@@ -84,8 +87,10 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
         const palace = entrySku === "palace";
         const fits = initialIntent && (palace ? isSinglePalaceSku(selectedSku) && isSinglePalaceSku(initialSku) : sku === initialSku);
         return <OfferCard key={palace ? "palace" : sku} sku={sku} name={palace ? t("selection.ladderPalace") : item.product.name[locale]}
-          price={item.price} state={item.state} locked={item.product.availability !== "active"} quote={item.quote}
-          selected={selectedSku === sku} lifetime={sku === "ZIWEI-IDENTITY-P0"} onSelect={select}
+          price={item.price} state={item.state} quote={item.quote} lifetime={sku === "ZIWEI-IDENTITY-P0"}
+          canOpen={item.state === "available" && (quote.status === "ready" || quote.status === "guest")}
+          shortfall={Math.max(0, item.price - balance)} onOpen={openCard}
+          ownedLink={item.state === "owned" ? ownedLinkFor(sku, item.quote) : undefined}
           fitLabel={fits ? t("selection.ladderFit") : undefined}
           copy={{ pitch: t(`selection.copy.${copy}.pitch`), parts: t(`selection.copy.${copy}.parts`), learnLabel: t("selection.ladderLearn"),
             learn: [t(`selection.copy.${copy}.l1`), t(`selection.copy.${copy}.l2`), t(`selection.copy.${copy}.l3`)] }}>
@@ -94,11 +99,8 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
       })}</div>
     </section>)}
     <div className="offer-ladder-summary" aria-label={t("selection.ladderHeading")}>
-      <p><strong>{selected.product.name[locale]}</strong> · {t("selection.ladderPrice", { price: selected.price })}</p>
-      <p className="la-balance-row"><LaMark name="wallet" size={28} />{t("selection.ladderBalance", { balance })}{canBuy && shortfall > 0 ? ` · ${t("selection.insufficientBalance", { gap: shortfall })}` : ""}</p>
-      {receipt ? <div role="status"><p>{t("selection.contextualUnlocked")}</p><Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t("selection.viewProgress")}</Link></div> :
-        selected.state === "owned" ? <Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : selected.quote?.reportId ? `${prefix}/bao-cao/${encodeURIComponent(selected.quote.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t(selectedSku === "ZIWEI-TODAY-P0" || selected.quote?.reportState === "ready" ? "selection.readAgain" : selected.quote?.reportId ? "selection.viewProgress" : "selection.viewLibrary")}</Link> :
-          <button ref={trigger} type="button" className="button button-primary" disabled={!canBuy} onClick={() => setOpen(true)}>{canBuy ? t("selection.ladderOpen", { price: selected.price }) : t(selected.product.availability === "active" ? "selection.ladderUnavailable" : "selection.ladderComingSoon")}</button>}
+      <p className="la-balance-row"><LaMark name="wallet" size={28} />{t("selection.ladderBalance", { balance })}</p>
+      {receipt && <div role="status"><p>{t("selection.contextualUnlocked")}</p><Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t("selection.viewProgress")}</Link></div>}
       <Link href={`${prefix}/bao-cao-mau/tu-vi`}>{t("selection.viewSample")}</Link>
     </div>
     <UnlockSheet open={open} chartId={chartId} chartVersionId={chartVersionId} sku={selectedSku} locale={locale} itemName={selected.product.name[locale]} labels={labels}
