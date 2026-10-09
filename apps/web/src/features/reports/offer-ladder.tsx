@@ -13,6 +13,7 @@ import { claimLadderViewEvents } from "./offer-ladder-analytics";
 import { PalacePicker } from "./palace-picker";
 import { OfferCard } from "./offer-ladder-card";
 import { visibleLadder } from "./offer-ladder-config";
+import { LaMark } from "../../components/la-icons";
 
 export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initialQuotes, initialResume = false, initialIntent = false, balance, scores }: {
   chartId: string; chartVersionId: string; locale: "vi" | "en"; initialSku: LaSku;
@@ -94,7 +95,7 @@ export function OfferLadder({ chartId, chartVersionId, locale, initialSku, initi
     </section>)}
     <div className="offer-ladder-summary" aria-label={t("selection.ladderHeading")}>
       <p><strong>{selected.product.name[locale]}</strong> · {t("selection.ladderPrice", { price: selected.price })}</p>
-      <p>{t("selection.ladderBalance", { balance })}{canBuy && shortfall > 0 ? ` · ${t("selection.insufficientBalance", { gap: shortfall })}` : ""}</p>
+      <p className="la-balance-row"><LaMark name="wallet" size={28} />{t("selection.ladderBalance", { balance })}{canBuy && shortfall > 0 ? ` · ${t("selection.insufficientBalance", { gap: shortfall })}` : ""}</p>
       {receipt ? <div role="status"><p>{t("selection.contextualUnlocked")}</p><Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : receipt.reportId ? `${prefix}/bao-cao/${encodeURIComponent(receipt.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t("selection.viewProgress")}</Link></div> :
         selected.state === "owned" ? <Link className="button" href={selectedSku === "ZIWEI-TODAY-P0" ? "#personal-daily-reading" : selected.quote?.reportId ? `${prefix}/bao-cao/${encodeURIComponent(selected.quote.reportId)}` : `${prefix}/tai-khoan/bao-cao`}>{t(selectedSku === "ZIWEI-TODAY-P0" || selected.quote?.reportState === "ready" ? "selection.readAgain" : selected.quote?.reportId ? "selection.viewProgress" : "selection.viewLibrary")}</Link> :
           <button ref={trigger} type="button" className="button button-primary" disabled={!canBuy} onClick={() => setOpen(true)}>{canBuy ? t("selection.ladderOpen", { price: selected.price }) : t(selected.product.availability === "active" ? "selection.ladderUnavailable" : "selection.ladderComingSoon")}</button>}

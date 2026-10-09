@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import type { LaSku, WalletQuoteV1 } from "@lasoviet/contracts";
+import { LaGlyph } from "../../components/la-icons";
 
 export type OfferCardState = "available" | "owned" | "coming_soon" | "unavailable" | string;
 
@@ -36,7 +37,7 @@ export function OfferCard({ sku, name, price, state, locked, selected, lifetime,
       <ul className="offer-learn">{copy.learn.map((line) => <li key={line}>{line}</li>)}</ul>
       <p className="offer-parts">{copy.parts}</p>
     </>}
-    <p className="offer-ladder-price">{t("selection.ladderPrice", { price })}</p>
+    <p className="offer-ladder-price"><LaGlyph />{t("selection.ladderPrice", { price })}</p>
     {lifetime && <p>{t("selection.ladderLifetimeComparison")}</p>}
     {quote && quote.creditLa > 0 && <p>{t("selection.ladderCredit", { credit: quote.creditLa, price })}</p>}
     {quote && quote.discountLa > 0 && <p>{t("selection.ladderDiscount", { discount: quote.discountLa })}</p>}
