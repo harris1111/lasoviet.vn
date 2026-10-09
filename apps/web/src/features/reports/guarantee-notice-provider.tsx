@@ -6,6 +6,7 @@ import { authClient } from "../../auth/auth-client";
 import { CANONICAL_TAB_PALACE_IDS } from "../ziwei/ziwei-tabs-state";
 import { ziweiPresentation } from "../ziwei/ziwei-presentation";
 import { GuaranteeNoticeContext, type GuaranteeNotice } from "./guarantee-notice-context";
+import { LaMark } from "../../components/la-icons";
 
 // Keep the approved result outside the reader that loses access after refund.
 // Never persist it; a delayed response remains scoped to its initiating actor.
@@ -31,7 +32,7 @@ export function GuaranteeNoticeProvider({ children, locale }: { children: ReactN
   }}>
     {children}
     {visible && <aside className="guarantee-result-notice" data-testid="guarantee-result-notice" data-print-hidden>
-      <p role="status" aria-live="polite">{t("restored", { amount: visible.amountLaRestored })}</p>
+      <p role="status" aria-live="polite" className="la-balance-row"><LaMark name="coin" size={32} /><span className="la-return" aria-hidden="true">↺</span>{t("restored", { amount: visible.amountLaRestored })}</p>
       {palace && <a onClick={() => setNotice(undefined)} href={`${locale === "en" ? "/en" : ""}/la-so/${encodeURIComponent(visible.chartId)}?tab=palaces&open=${encodeURIComponent(palace)}`}>{t("related", { palace: ziweiPresentation(locale, { strict: false }).palace(`ziwei.palace.${palace}`) })}</a>}
       <button type="button" onClick={() => setNotice(undefined)}>{t("dismiss")}</button>
     </aside>}

@@ -31,6 +31,10 @@ export type FreeResultGift = {
   avoidItems: FreeResultGiftPoint[];
   facts: { n: number; label: string; value: string }[];
 };
+export type FreeResultDecadeCycle = {
+  ordinal: number; palaceId: string; palaceName: string; startAge: number; endAge: number;
+  state: "past" | "current" | "future"; score: number; band: PalaceScoreBandKey;
+};
 export type FreeResultModel = {
   overview: FreeStructuralOverviewDocV1;
   structuralPalace: FreeStructuralPalaceDocV1;
@@ -40,6 +44,10 @@ export type FreeResultModel = {
   topics: FreeResultTopic[];
   selectedPalaceId: string;
   annual: { year: number; caution: number; favorable: number; neutral: number } | null;
+  // Marker only: a caution month never carries its palace, focus or evidence before it is unlocked.
+  months: { index: number; marker: "warn" | "good" | "neutral" }[] | null;
+  // Decade strip: structural score of the palace each decade passes through (FD-107/111), free to show.
+  decade: { cycles: FreeResultDecadeCycle[]; annualPalaceId: string | null } | null;
   isGuest: boolean;
   // Present ONLY for an actual ready, validated artifact on a palace of this chart.
   gift: FreeResultGift | null;
@@ -134,6 +142,18 @@ export function buildFreeResultModel(input: {
     id: item.id, title: item.title, description: item.description ?? "",
   }));
   const yearly = input.horoscope?.yearly;
+  // Cycles past age 90 are left out: the strip is a life overview, not an actuarial table.
+  const decadeCycles: FreeResultDecadeCycle[] = chart.provisional ? [] : (input.horoscope?.decadalCycles ?? [])
+    .filter((cycle) => cycle.startAge <= 90)
+    .flatMap((cycle) => {
+      const own = palaces.find((palace) => palace.id === cycle.palaceId);
+      const score = cycle.structuralScore?.value ?? own?.score;
+      const band = cycle.structuralScore?.band ?? own?.band;
+      return score === undefined || band === undefined ? [] : [{
+        ordinal: cycle.ordinal, palaceId: cycle.palaceId, palaceName: presentation.palace(cycle.palaceId),
+        startAge: cycle.startAge, endAge: cycle.endAge, state: cycle.state, score, band,
+      }];
+    });
   return {
     overview: input.overview ?? compileFreeStructuralOverview(chart, locale),
     structuralPalace: compileFreeStructuralPalace(chart, selectedPalaceId, locale),
@@ -150,5 +170,7 @@ export function buildFreeResultModel(input: {
       year: yearly.targetYear, caution: yearly.hanMonthCount,
       favorable: yearly.favorableMonthCount, neutral: yearly.neutralMonthCount,
     } : null,
+    months: yearly && !chart.provisional ? yearly.months.map((month) => ({ index: month.monthIndex, marker: month.marker })) : null,
+    decade: decadeCycles.length ? { cycles: decadeCycles, annualPalaceId: yearly?.annualPalaceId ?? null } : null,
   };
 }

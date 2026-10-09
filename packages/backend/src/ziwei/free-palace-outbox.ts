@@ -9,15 +9,18 @@ export const FREE_PALACE_GENERATION_REQUESTED_EVENT = "free_palace.generation.re
 
 export type ClaimedFreePalaceEvent = Readonly<{ id: string; eventId: string; traceId: string; requestId: string | null }>;
 
-const claimable = (current: Date) => and(
-  eq(outbox.eventType, FREE_PALACE_GENERATION_REQUESTED_EVENT),
+type FreeEventType = typeof FREE_PALACE_GENERATION_REQUESTED_EVENT | "free_reading.generation.requested.v2";
+const claimable = (current: Date, eventType: FreeEventType) => and(
+  eq(outbox.eventType, eventType),
   or(
     and(eq(outbox.status, "pending"), lte(outbox.availableAt, current)),
     and(eq(outbox.status, "leased"), lte(outbox.leasedUntil, current)),
   ),
 );
 
-export function createFreePalaceOutboxStore(database: Database, workerId: string, options: { now?: () => Date; leaseMs?: number } = {}) {
+export function createFreePalaceOutboxStore(database: Database, workerId: string, options: { now?: () => Date; leaseMs?: number; eventType?: FreeEventType } = {}) {
+  const eventType = options.eventType ?? FREE_PALACE_GENERATION_REQUESTED_EVENT;
+  if (eventType !== FREE_PALACE_GENERATION_REQUESTED_EVENT && eventType !== "free_reading.generation.requested.v2") throw new Error("FREE_AI_EVENT_TYPE_INVALID");
   const now = options.now ?? (() => new Date());
   const leaseMs = options.leaseMs ?? 300_000;
   const owned = (id: string) => and(eq(outbox.id, id), eq(outbox.status, "leased"), eq(outbox.leasedBy, workerId));
@@ -25,12 +28,12 @@ export function createFreePalaceOutboxStore(database: Database, workerId: string
     async claim(): Promise<ClaimedFreePalaceEvent | null> {
       return database.transaction(async (tx) => {
         const current = now();
-        const [candidate] = await tx.select({ id: outbox.id }).from(outbox).where(claimable(current)).limit(1).for("update", { skipLocked: true });
+        const [candidate] = await tx.select({ id: outbox.id }).from(outbox).where(claimable(current, eventType)).limit(1).for("update", { skipLocked: true });
         if (!candidate) return null;
         const [claimed] = await tx.update(outbox).set({
           status: "leased", leasedBy: workerId, leasedUntil: new Date(current.getTime() + leaseMs),
           attemptCount: sql`${outbox.attemptCount} + 1`, updatedAt: current,
-        }).where(and(eq(outbox.id, candidate.id), claimable(current))).returning();
+        }).where(and(eq(outbox.id, candidate.id), claimable(current, eventType))).returning();
         if (!claimed) return null;
         const payload = FreePalaceGiftOutboxPayloadV1Schema.safeParse(claimed.payload);
         return { id: claimed.id, eventId: claimed.eventId, traceId: claimed.traceId, requestId: payload.success ? payload.data.requestId : null };

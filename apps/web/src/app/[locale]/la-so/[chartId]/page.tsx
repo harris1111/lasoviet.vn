@@ -159,7 +159,6 @@ export default async function ZiweiChartResultPage({
               labels={{
                 title: t("deletion.title"),
                 description: t("deletion.description"),
-                begin: t("deletion.begin"),
                 confirmation: t("deletion.confirmation"),
                 cancel: t("deletion.cancel"),
                 confirm: t("deletion.confirm"),

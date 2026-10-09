@@ -80,3 +80,16 @@ balance path, replay/preview privacy and all eleven durable events remain intact
 Final isolated run:14/14 mobile/desktop paths passed; zero AI calls. Owned QA
 containers/network/credentials were removed. Required i18n/lint/typecheck passed
 after this test-only correction. New exact-head review and fresh CI remain gates.
+
+## Reconciliation with 2026-10-09 master
+
+Reconcile master8e72a87f including Lam/Claude FE345/351 and the approved backend
+source/CLI releases. Only conflicts are test expectations: preserve the new
+selection-dialog and Escape flow with candidate1200 price; preserve historical
+authoritative960 quotes while guest catalog fallback uses1200. No UI component,
+translation, visible copy or business-policy behavior is implemented here.
+Current FE still has960/720 literals and below500-only guarantee copy; the atomic
+FD119 release hold remains. Focused financial/quote checks, required checks,
+independent exact-head review and fresh CI apply before pushing the reconciled
+candidate; real-network golden paths need rebuilding against this exact tree.
+Do not infer new-policy deployment or activate reserved products.

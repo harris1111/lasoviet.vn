@@ -23,28 +23,30 @@ export async function runPeriodCampaign({ selectedPeriods, runs, makeInput, gene
       if (!passed) return { status: "failed", acceptedPeriods: [], evidence };
     }
   }
-  return { status: runs === 20 ? "passed" : "diagnostic", acceptedPeriods: runs === 20 ? selectedPeriods : [], evidence };
+  // FD120/121: diagnostic output never replaces owner manual acceptance.
+  return { status: "diagnostic", acceptedPeriods: [], evidence };
 }
 
 async function main(args) {
   const { values } = parseArgs({ args, options: {
     kind: { type: "string", default: "all" }, dryRun: { type: "boolean", default: false },
-    runs: { type: "string", default: "20" }, output: { type: "string" },
+    runs: { type: "string", default: "2" }, output: { type: "string" },
     asOfDate: { type: "string", default: "2026-09-30" },
   } });
   const runs = Number(values.runs);
-  if (!Number.isInteger(runs) || runs < 1 || runs > 20 || ![...kinds, "all"].includes(values.kind)) throw new Error("INVALID_CAMPAIGN_ARGUMENTS");
+  if (!Number.isInteger(runs) || runs < 1 || runs > 3 || ![...kinds, "all"].includes(values.kind)) throw new Error("INVALID_CAMPAIGN_ARGUMENTS");
   const selectedPeriods = values.kind === "all" ? kinds : [values.kind];
   const campaignId = randomUUID();
   const output = resolve(values.output ?? `plan/evidence/kind-campaign-${campaignId}.json`);
   const manifest = { version: 1, campaignId, asOfDate: values.asOfDate, selectedPeriods, requestedRuns: runs,
     source: "synthetic profiles calculated by Iztro; real configured provider required for acceptance",
-    status: "running", acceptedPeriods: [], evidence: [] };
+    status: "running", manualAccepted: false, acceptedPeriods: [], evidence: [] };
   async function save() { await mkdir(dirname(output), { recursive: true }); await writeFile(output, JSON.stringify(manifest, null, 2) + "\n", { mode: 0o600 }); }
-  const required = ["AI_BASE_URL", "AI_API_KEY", "AI_MODEL", "AI_ALLOWED_RESOLVED_MODELS", "DATABASE_URL"];
-  if (!values.dryRun && (required.some(key => !process.env[key]) || process.env.AI_PRODUCTION_ENABLED !== "true")) {
+  // The legacy live path has no approved aggregate budget or final-wire bound.
+  // Old environment flags cannot authorize it under FD121.
+  if (!values.dryRun) {
     manifest.status = "blocked";
-    manifest.reason = "CONFIGURED_PROVIDER_DATABASE_AND_APPROVED_PRODUCTION_GATE_REQUIRED";
+    manifest.reason = "FD121_BOUNDED_NATIVE_MANUAL_TRIAL_TRANSPORT_REQUIRED";
     await save();
     console.log(JSON.stringify({ status: manifest.status, reason: manifest.reason, output }));
     process.exitCode = 2;
@@ -53,18 +55,7 @@ async function main(args) {
   const backend = await import("../packages/backend/dist/index.js");
   const contracts = await import("../packages/contracts/dist/index.js");
   const engine = await import("../packages/engine-adapters/dist/index.js");
-  let database;
   try {
-    let retrieval, provider;
-    if (!values.dryRun) {
-      const { createDatabase } = await import("../packages/database/dist/index.js");
-      database = createDatabase(process.env.DATABASE_URL);
-      retrieval = backend.createKnowledgeRetrievalService({ database });
-      provider = backend.createOpenAiCompatibleAdapter({ baseUrl: process.env.AI_BASE_URL, apiKey: process.env.AI_API_KEY,
-        modelId: process.env.AI_MODEL, allowedResolvedModelIds: process.env.AI_ALLOWED_RESOLVED_MODELS.split(",").map(value => value.trim()).filter(Boolean),
-        timeoutMs: 120000, retryCount: 0, productionGate: backend.createAiProductionGate("approved"),
-        costRecorder: backend.createDatabaseAiCostService(database).recorder });
-    }
     const makeInput = async (kindId, index) => {
       const pad = value => String(value).padStart(2, "0");
       const date = `${1980 + index}-${pad(1 + index % 12)}-${pad(1 + index % 27)}`;
@@ -83,29 +74,19 @@ async function main(args) {
       const comprehensiveFacts = backend.buildComprehensiveZiweiFactsV4(chart.output, source);
       const facts = snapshot.value.periodReading;
       if (!facts) throw new Error("PERIOD_FACTS_MISSING");
-      const knowledgePacks = retrieval ? await backend.buildComprehensiveKnowledgePacks(comprehensiveFacts.natal, query => retrieval.retrieveZiweiKnowledge(query), "ziwei.comprehensive.knowledge.v4") : [];
-      if (retrieval && !knowledgePacks.some(pack => pack.passages.length)) throw new Error("KNOWLEDGE_CORPUS_EMPTY");
-      return { facts, snapshotHash: snapshot.value.provenance.snapshotHash, knowledgePacks, provider, costContext: { idempotencyKey: `${campaignId}:${kindId}:${index}`, purpose: "report" } };
+      return { facts, snapshotHash: snapshot.value.provenance.snapshotHash, evidenceCount: comprehensiveFacts.evidence.items.length };
     };
-    if (values.dryRun) {
-      for (const kindId of selectedPeriods) for (let index = 0; index < runs; index++) {
-        const input = await makeInput(kindId, index);
-        manifest.evidence.push({ kindId, index, chartVersionId: input.facts.chartVersionId, snapshotHash: input.snapshotHash, evidenceCount: input.facts.evidenceKeys.length });
-      }
-      manifest.status = "dry_run_not_acceptance";
-    } else {
-      Object.assign(manifest, await runPeriodCampaign({ selectedPeriods, runs, makeInput,
-        generate: input => backend.writePeriodReading(input),
-        record: async evidence => { manifest.evidence = evidence; await save(); } }));
-      if (manifest.status !== "passed") process.exitCode = 1;
+    for (const kindId of selectedPeriods) for (let index = 0; index < runs; index++) {
+      const input = await makeInput(kindId, index);
+      manifest.evidence.push({ kindId, index, chartVersionId: input.facts.chartVersionId, snapshotHash: input.snapshotHash, evidenceCount: input.facts.evidenceKeys.length });
     }
+    manifest.status = "dry_run_not_acceptance";
   } catch {
     manifest.status = "failed";
     manifest.reason = "CAMPAIGN_EXECUTION_FAILED";
     process.exitCode = 1;
   } finally {
     await save();
-    await database?.$client.end({ timeout: 5 });
   }
   console.log(JSON.stringify({ status: manifest.status, acceptedPeriods: manifest.acceptedPeriods, output }));
 }
