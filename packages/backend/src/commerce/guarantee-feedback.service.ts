@@ -347,10 +347,10 @@ export function createGuaranteeFeedbackService(
 
       const isPeriod = periodKindForSku(parsed.data.partId.toUpperCase()) !== null;
       const topicId = topicIdForSku(parsed.data.partId.toUpperCase());
-      const isBusiness = topicId === "business_enterprise";
-      const isReportScoped = isPeriod || isBusiness ||
+      const requiresTopicReport = topicId === "business_enterprise" || topicId === "career_transition";
+      const isReportScoped = isPeriod || requiresTopicReport ||
         (Boolean(parsed.data.reportId) && (topicId !== null || parsed.data.partId.toLowerCase().replace(/^section-/, "") === "topicdeepdive"));
-      if ((isPeriod || isBusiness) && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
+      if ((isPeriod || requiresTopicReport) && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
       // The optional report association is private owner data, including on the refund path.
       if (parsed.data.reportId) {
         const [report] = await transaction.select({ id: reportReservations.id })
@@ -442,7 +442,7 @@ export function createGuaranteeFeedbackService(
       const normalizedPartId = parsed.data.partId.toLowerCase();
       const matched = entitlements.find((candidate) => {
         if (isReportScoped && candidate.entitlement.id !== reportEntitlementId) return false;
-        if (candidate.entitlement.sku === "ZIWEI-BUSINESS-P0" && !parsed.data.reportId) return false;
+        if (["ZIWEI-BUSINESS-P0", "ZIWEI-CAREER-TRANSITION-P0"].includes(candidate.entitlement.sku) && !parsed.data.reportId) return false;
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
         if (candidate.entitlement.sku === "ZIWEI-TODAY-P0") {

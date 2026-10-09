@@ -184,7 +184,7 @@ function filterTopicKnowledgePacks(
   const prefix =
     topicId === "relationship_marriage"
       ? ["thematic_relationships_family", "palace_ziwei.palace.spouse", "palace_ziwei.palace.fortune"]
-      : topicId === "business_enterprise"
+      : ["business_enterprise", "career_transition"].includes(topicId)
         ? ["thematic_career_wealth", ...[...TOPIC_PALACE_SCOPES[topicId].primaryPalaces, ...TOPIC_PALACE_SCOPES[topicId].supportingPalaces].map(palace => `palace_${palace}`)]
         : ["thematic_career_wealth", "palace_ziwei.palace.career", "palace_ziwei.palace.wealth"];
 
@@ -281,6 +281,11 @@ export async function writeZiweiTopicDeepDiveV4(
       distinguishFromCareer: "Do not substitute a general job/career reading. Discuss initiative, counterpart relationships, capital discipline and manageable business decisions without promising returns.",
       forbidden: "No invented income, revenue, return percentages, successful ventures, market forecasts or exact investment dates.",
     }} : {}),
+    ...(input.topicId === "career_transition" ? {transitionScope: {
+      focus: "Job changes, external mobility, role fit, collaboration and resource preparation grounded in Career/Travel and supplied supporting palaces.",
+      distinguishFromCareer: "Address concrete tradeoffs between staying, changing roles and moving environments; do not substitute a general Career & Wealth reading or an enterprise plan.",
+      forbidden: "No invented event date, guaranteed job offer, salary, revenue or return. Decadal dates are only the computed cycle, never a predicted hiring event.",
+    }} : {}),
     title: topicTitle,
     scopedFacts: {
       natalPalaces: input.facts.natal.palaces.filter((p) =>
@@ -343,7 +348,7 @@ Tất cả các tiêu chí trên là bắt buộc. Phản hồi phải là JSON 
   }
 
   const content = parsed.data;
-  if (input.topicId === "business_enterprise") {
+  if (["business_enterprise", "career_transition"].includes(input.topicId)) {
     const keys = [content.overview, ...content.palaceAnchors, ...content.thematicDimensions,
       content.decadalTiming, ...content.actions].flatMap(section => section.evidenceKeys);
     if (keys.some(key => !allowedSet.has(key))) {

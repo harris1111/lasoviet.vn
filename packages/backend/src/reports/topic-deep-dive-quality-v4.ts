@@ -173,7 +173,7 @@ export function validateZiweiTopicDeepDiveQualityV4(
 
   let totalSyllables = 0;
 
-  if (report.topicId === "business_enterprise") {
+  if (["business_enterprise", "career_transition"].includes(report.topicId)) {
     const text = [report.title, report.overview.title, report.overview.narrative,
       ...report.palaceAnchors.flatMap(p => [p.title, p.narrative]),
       ...report.thematicDimensions.flatMap(p => [p.title, p.narrative]),

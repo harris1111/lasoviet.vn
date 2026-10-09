@@ -3,7 +3,7 @@ import { projectTopicDeepDivePublicContent, ReportReadyViewV1Schema } from "@las
 import { createReportGenerationService, type ReportGenerationServiceDependencies, type GenerateReportInput } from "./report-generation.service.js";
 import { createReportQueryService, ReportQueryDataError, type AuthorizedReportQueryRecord } from "./report-query.service.js";
 import { writeZiweiTopicDeepDiveV4 } from "./topic-deep-dive-writer-v4.js";
-import { buildFactsFixture, makeBusinessContentFixture, makeValidRelationshipContent } from "./topic-report.test-fixture.js";
+import { buildFactsFixture, makeBusinessContentFixture, makeCareerTransitionContentFixture, makeValidRelationshipContent } from "./topic-report.test-fixture.js";
 import { topicReportVersions } from "./topic-report-config.js";
 
 vi.mock("./topic-deep-dive-writer-v4.js", () => ({ writeZiweiTopicDeepDiveV4: vi.fn() }));
@@ -39,6 +39,19 @@ describe("paid topic delivery", () => {
     expect(writeZiweiTopicDeepDiveV4).toHaveBeenCalledWith(expect.objectContaining({topicId: "business_enterprise",
       costContext: expect.objectContaining({sku: "ZIWEI-BUSINESS-P0"})}));
     expect(commit).toHaveBeenCalledWith(expect.objectContaining({sku: "ZIWEI-BUSINESS-P0", structuredContent: business,
+      templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion}));
+    expect(dependencies.provider.generateStructured).not.toHaveBeenCalled();
+  });
+  it("dispatches the reserved transition mechanics fixture through its own topic lineage", async () => {
+    const transition = makeCareerTransitionContentFixture(facts);
+    vi.mocked(writeZiweiTopicDeepDiveV4).mockResolvedValue({ok: true, value: {content: transition,
+      quality: {ok: true, findings: []}, providerId: "synthetic", modelId: "synthetic"}} as never);
+    const {service, commit, dependencies} = setup();
+    const transitionInput = {...input, job: {...input.job, payload: {...payload, sku: "ZIWEI-CAREER-TRANSITION-P0"}}};
+    expect((await service.generate(transitionInput)).ok).toBe(true);
+    expect(writeZiweiTopicDeepDiveV4).toHaveBeenCalledWith(expect.objectContaining({topicId: "career_transition",
+      costContext: expect.objectContaining({sku: "ZIWEI-CAREER-TRANSITION-P0"})}));
+    expect(commit).toHaveBeenCalledWith(expect.objectContaining({sku: "ZIWEI-CAREER-TRANSITION-P0", structuredContent: transition,
       templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion}));
     expect(dependencies.provider.generateStructured).not.toHaveBeenCalled();
   });

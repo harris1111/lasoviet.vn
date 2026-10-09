@@ -335,3 +335,20 @@ export function makeBusinessContentFixture(facts: ReturnType<typeof buildFactsFi
     narrative: `Vũ Khúc và Thái Âm ở Tài Bạch đặt việc giữ nguồn lực cạnh cách điều hành ở Quan Lộc. Khi xem một phương án kinh doanh, bạn thử phân biệt khoản phải duy trì với khoản có thể dùng để học từ một thử nghiệm nhỏ. Ghi lại điều kiện dừng và trách nhiệm của từng bên giúp tránh mở rộng vì áp lực từ người khác. Đây là cách cân nhắc hành động dựa trên cấu trúc cung, không phải một mức lời hay khoản thu nhập được tính từ lá số.`};
   return content;
 }
+
+/** Synthetic transition mechanics, not native or manual interpretation acceptance. */
+export function makeCareerTransitionContentFixture(facts: ReturnType<typeof buildFactsFixture>): ZiweiTopicDeepDiveContentV1 {
+  const content=makeValidCareerContent(facts);
+  const travelKey=facts.evidence.items.find(item=>item.dimension==="natal" && item.sourceKeys.includes("ziwei.palace.travel"))?.key;
+  if(!travelKey) throw new Error("Missing actual Travel evidence");
+  content.topicId="career_transition";
+  content.title="Luận giải chuyên sâu Đổi việc và bước ngoặt sự nghiệp";
+  content.overview.title="Cân nhắc thay đổi vai trò và môi trường làm việc";
+  content.overview.narrative=`Tử Vi và Thiên Tướng tại Quan Lộc là căn cứ để nhìn cách tổ chức công việc và trách nhiệm trong một vai trò. Khi đặt cạnh cung Thiên Di, câu hỏi đổi việc cần xét cả phần việc mình muốn giữ và cách thích nghi với môi trường bên ngoài. Bạn có thể ghi lại điều kiện cần cho một vị trí mới, thử trao đổi với người trong nghề và so sánh trách nhiệm thực tế trước khi quyết định. Cách đọc này giúp chuẩn bị cho thay đổi, không xác nhận một lời mời việc hay ngày chuyển việc sẽ xảy ra. Việc ở lại, thay đổi vai trò trong cùng tổ chức hay chuyển môi trường đều cần đối chiếu với hoàn cảnh hiện tại.`;
+  content.overview.evidenceKeys=[...content.overview.evidenceKeys,travelKey];
+  content.palaceAnchors[1]={palaceId:"ziwei.palace.travel",title:"Cung Thiên Di: thích nghi với môi trường bên ngoài",
+    narrative:`Thiên Di không có chính tinh và có Văn Khúc trong bộ dữ kiện đang đọc, còn Quan Lộc có Tử Vi cùng Thiên Tướng. Khi cân nhắc một môi trường mới, hãy chuẩn bị cách trình bày năng lực, hỏi rõ trách nhiệm và quan sát cách đội ngũ phối hợp. Bạn có thể thử một cuộc trao đổi nghề nghiệp hoặc một nhiệm vụ nhỏ để biết điều gì phù hợp với mình. Căn cứ cung này gợi việc kiểm tra môi trường bên ngoài, không bảo đảm rằng thay đổi công việc sẽ có kết quả tốt hơn. Quyết định cần đi cùng nguồn lực và trách nhiệm thực tế.`,evidenceKeys:[travelKey]};
+  content.thematicDimensions[0]={...content.thematicDimensions[0]!,key:"role_transition",title:"Giữ năng lực cốt lõi khi đổi vai trò"};
+  content.thematicDimensions[1]={...content.thematicDimensions[1]!,key:"transition_resources",title:"Chuẩn bị nguồn lực cho thay đổi"};
+  return content;
+}
