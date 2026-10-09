@@ -9,7 +9,8 @@ export const CANONICAL_RESULT_TABS = [
   "evidence",
 ] as const;
 
-export type ZiweiResultTab = (typeof CANONICAL_RESULT_TABS)[number];
+// The free result adds a decade (Đại vận) tab that the legacy tabs do not have.
+export type ZiweiResultTab = (typeof CANONICAL_RESULT_TABS)[number] | "decade";
 
 export const CANONICAL_TAB_PALACE_IDS = [
   "life",
@@ -84,8 +85,10 @@ export function parseResultTabState(
     resolvedTab = "nam-nay";
   }
 
+  // The free result has no evidence tab: the evidence sheets open from the overview (old links keep working).
+  if (context === "free-result" && resolvedTab === "evidence") resolvedTab = "overview";
   const tab: ZiweiResultTab =
-    resolvedTab && (CANONICAL_RESULT_TABS as readonly string[]).includes(resolvedTab)
+    resolvedTab && ((CANONICAL_RESULT_TABS as readonly string[]).includes(resolvedTab) || (context === "free-result" && resolvedTab === "decade"))
       ? (resolvedTab as ZiweiResultTab)
       : "chart";
 
@@ -98,7 +101,8 @@ export function parseResultTabState(
     } else if (tab === "topics" && ((CANONICAL_TOPIC_IDS as readonly string[]).includes(trimmed)
       || (context === "free-result" && (FREE_RESULT_TOPIC_IDS as readonly string[]).includes(trimmed)))) {
       open = trimmed;
-    } else if (tab === "evidence" && (CANONICAL_EVIDENCE_OPEN_IDS as readonly string[]).includes(trimmed)) {
+    } else if ((tab === "evidence" || (context === "free-result" && tab === "overview"))
+      && (CANONICAL_EVIDENCE_OPEN_IDS as readonly string[]).includes(trimmed)) {
       open = trimmed;
     }
   }

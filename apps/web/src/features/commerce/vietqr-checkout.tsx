@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 import { LsvIcon } from "../../components/lsv-icon";
+import { LaMark } from "../../components/la-icons";
 import {
   parseCheckoutStatus,
   type CheckoutStatus,
@@ -576,6 +577,7 @@ export function VietQrCheckout({
           role="status"
         >
           <div className="vietqr-recovery-content">
+            <LaMark name="medal" size={88} />
             <p className="vietqr-status">{labels.status.paid}</p>
             <h2>{creditedTitle}</h2>
             <p className="vietqr-recovery-description">{creditedDesc}</p>
@@ -859,6 +861,7 @@ export function VietQrCheckout({
         </figure>
 
         <div className="vietqr-instructions">
+          <LaMark name="coin" size={56} busy />
           <p className="vietqr-status" role="status">
             {labels.status.pending}
           </p>
