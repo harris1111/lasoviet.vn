@@ -6,4 +6,6 @@ Independent working review found the legacy receipt branch still exported raw me
 
 Local producer builds, i18n, lint and typecheck pass (four existing frontend warnings). All107 script checks pass, including20 focused transport/evidence/reference checks. Independent corrected working GO replayed20/20. Exact-head review and fresh CI remain required before merge.
 
+Composition includes already reviewed FD120 master5d42c2d1. Its portable evidence smoke now resolves the actual pnpm-deploy backend layout instead of assuming monorepo package directories in the worker image; the installed paths were verified read-only before deployment. This evidence-only correction adds no product runtime change.
+
 No real call, source credential refresh, production application DB/customer write or ledger mutation occurs during this preparation. The historical first33368VND reservation cannot be repaired or released from these new functions. Retaining it does not waive FD121's unknown-cost stop: any later continuation requires a narrowly scoped owner exception and separately reviewed recovery implementation. No such exception or settlement/continuation authority is added here.
