@@ -1,3 +1,8 @@
+import { mkdtemp, mkdir, readFile, writeFile, copyFile, unlink, rmdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { resolve, join } from "node:path";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -50,29 +55,53 @@ describe("authorized immutable Bazi source on PostgreSQL", () => {
     expect(result.ok).toBe(true); if (!result.ok) throw new Error("expected source"); return result.value;
   }
   it("upgrades an actual migration-0065 database without changing existing Ziwei metadata", async () => {
-    // This owned test database has no Bazi sources yet. Recreate the exact preceding
-    // migration boundary and preserve an existing revision and Ziwei run across replay.
-    const f = await seed();
-    const run = {id: `${f.id}-ziwei-run`, profileId: f.id, profileRevisionId: f.revisionId,
-      idempotencyKey: "historical-ziwei", engineId: "ziwei.iztro", engineVersion: "2.6.0",
-      adapterId: "ziwei.iztro-adapter", adapterVersion: "1", schemaId: "ziwei.chart.v1",
-      ruleSetId: "ziwei.default", inputHash: "a".repeat(64), configHash: "b".repeat(64), rawSnapshotHash: "c".repeat(64), createdAt: at};
-    await database.insert(calculationRuns).values(run);
-    const before = await database.select().from(birthProfileRevisions).where(eq(birthProfileRevisions.id, f.revisionId));
-    await database.execute(sql`DROP TRIGGER bazi_run_input_immutable ON calculation_runs`);
-    await database.execute(sql`DROP TRIGGER bazi_profile_input_immutable ON birth_profile_revisions`);
-    await database.execute(sql`DROP TABLE bazi_sources`);
-    await database.execute(sql`DROP FUNCTION enforce_bazi_source_binding()`);
-    await database.execute(sql`DROP FUNCTION prevent_bazi_source_mutation()`);
-    await database.execute(sql`DROP FUNCTION preserve_bazi_referenced_input()`);
-    await database.execute(sql`DELETE FROM drizzle.__drizzle_migrations WHERE created_at > 1791478800000`);
-    const migrated = await runMigrations(container.getConnectionUri());
-    expect((await runMigrations(container.getConnectionUri())).appliedMigrations).toEqual(migrated.appliedMigrations);
-    expect(await database.select().from(calculationRuns).where(eq(calculationRuns.id, run.id))).toEqual([run]);
-    expect(await database.select().from(birthProfileRevisions).where(eq(birthProfileRevisions.id, f.revisionId))).toEqual(before);
-    await database.update(calculationRuns).set({adapterVersion: "historical-edit"}).where(eq(calculationRuns.id, run.id));
-    expect((await calculated(f)).chart.systemId).toBe("bazi");
-    expect(await database.select().from(calculationRuns).where(eq(calculationRuns.profileRevisionId, f.revisionId))).toHaveLength(2);
+    // A separate owned database isolates the historical boundary even when this
+    // source suite is inherited by drafts containing later commerce migrations.
+    await database.execute(sql`CREATE DATABASE bazi_pre66_test`);
+    const url = new URL(container.getConnectionUri()); url.pathname = "/bazi_pre66_test";
+    const isolated = createDatabase(url.toString());
+    const root = resolve("packages/database/drizzle");
+    const journal = JSON.parse(await readFile(join(root, "meta/_journal.json"), "utf8")) as {entries: Array<{idx: number; tag: string}>};
+    const earlier = {...journal, entries: journal.entries.filter(e => e.idx <= 65)};
+    expect(earlier.entries.at(-1)?.tag).toBe("0065_amount_aware_wallet_restoration");
+    const directory = await mkdtemp(join(tmpdir(), "lasoviet-bazi-pre66-"));
+    const copied: string[] = [];
+    try {
+      await mkdir(join(directory, "meta"));
+      await writeFile(join(directory, "meta/_journal.json"), JSON.stringify(earlier));
+      for (const e of earlier.entries) {
+        const target = join(directory, `${e.tag}.sql`); await copyFile(join(root, `${e.tag}.sql`), target); copied.push(target);
+      }
+      // Drizzle's inferred return retains its documented raw client; the shared
+      // Database type deliberately hides that detail from production repositories.
+      const raw = (isolated as ReturnType<typeof drizzle>).$client;
+      await migrate(drizzle(raw), {migrationsFolder: directory});
+      const owner = "historical-bazi-boundary-owner", id = "historical-bazi-boundary-profile", revisionId = "historical-bazi-boundary-revision";
+      const p = profile(), {originalInput, ...normalizedInput} = p;
+      await isolated.insert(authUsers).values({id: owner, name: "Synthetic", email: "historical-bazi@example.test"});
+      await isolated.insert(birthProfiles).values({id, userId: owner});
+      await isolated.insert(birthProfileRevisions).values({id: revisionId, profileId: id, revisionNumber: 1,
+        originalInput, normalizedInput, normalizationWarnings: [], limitations: [], consentVersion: "synthetic", createdAt: at});
+      const run = {id: "historical-ziwei-run", profileId: id, profileRevisionId: revisionId,
+        idempotencyKey: "historical-ziwei", engineId: "ziwei.iztro", engineVersion: "2.6.0",
+        adapterId: "ziwei.iztro-adapter", adapterVersion: "1", schemaId: "ziwei.chart.v1",
+        ruleSetId: "ziwei.default", inputHash: "a".repeat(64), configHash: "b".repeat(64), rawSnapshotHash: "c".repeat(64), createdAt: at};
+      await isolated.insert(calculationRuns).values(run);
+      const before = await isolated.select().from(birthProfileRevisions).where(eq(birthProfileRevisions.id, revisionId));
+      const migrated = await runMigrations(url.toString());
+      expect((await runMigrations(url.toString())).appliedMigrations).toEqual(migrated.appliedMigrations);
+      expect(await isolated.select().from(calculationRuns).where(eq(calculationRuns.id, run.id))).toEqual([run]);
+      expect(await isolated.select().from(birthProfileRevisions).where(eq(birthProfileRevisions.id, revisionId))).toEqual(before);
+      await isolated.update(calculationRuns).set({adapterVersion: "historical-edit"}).where(eq(calculationRuns.id, run.id));
+      const result = await createDatabaseBaziSourceRepository(isolated, {clock: () => at})
+        .calculate({kind: "account", userId: owner, sessionId: "s", requestId: "r"}, revisionId);
+      expect(result.ok).toBe(true);
+      expect(await isolated.select().from(calculationRuns).where(eq(calculationRuns.profileRevisionId, revisionId))).toHaveLength(2);
+    } finally {
+      await (isolated as ReturnType<typeof drizzle>).$client.end();
+      for (const file of copied) await unlink(file);
+      await unlink(join(directory, "meta/_journal.json")); await rmdir(join(directory, "meta")); await rmdir(directory);
+    }
   });
   it("uses one immutable source/run for concurrent requests and reuses its original timestamp", async () => {
     const f = await seed();

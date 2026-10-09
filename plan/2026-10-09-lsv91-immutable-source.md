@@ -87,3 +87,20 @@ These local log paths are supplementary; this versioned receipt, tests and fresh
 CI remain portable evidence. Exact committed-head review, fresh PR/push CI,
 release publication and audited deployment/smoke are still pending at this record.
 FullLSV91, public delivery, report/manual acceptance and native transport remain open.
+
+## Historical fixture portability correction
+
+The original0065 replay test passed on this source branch but failed when inherited
+by the unapplied FD119 commercial draft: rewinding all canonical migrations also
+reran already-present price DDL. The initial descendant run recorded20 failures
+and28 passes; this was a test-isolation fault, not production source acceptance.
+The source regression now creates a separate owned database, copies the actual
+≤0065 journal and SQL into a temporary migration directory, preserves an existing
+Ziwei run/revision, then applies canonical migrations and checks idempotency and
+new Bazi storage. Later inherited commerce DDL in the primary test DB is untouched.
+No runtime code, SQL body, privacy or financial assertion changed.
+
+Replayed54 checks/5 suites PASS19.16s; reviewer approved the test-only correction.
+Logs:/tmp/lasoviet-bazi-immutable-isolated-regression-20261009.log and
+/tmp/lasoviet-bazi-immutable-isolated-required-20261009.log. Required checks on this
+correction and fresh updated-head CI remain gates until successfully completed.
