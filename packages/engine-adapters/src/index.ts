@@ -36,3 +36,5 @@ export { lunarPeriodPurchaseKey } from "./ziwei/period-purchase-key.js";
 export { lunarReminderDay } from "./ziwei/period-purchase-key.js";
 
 export { calculateBaziFacts } from "./bazi/lunar-bazi-facts.js";
+
+export { buildBaziStructure, baziTenGod, baziStemElement, baziBranchElement } from "./bazi/lunar-bazi-structure.js";
