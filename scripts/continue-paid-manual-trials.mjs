@@ -116,6 +116,40 @@ export function prepareFd123RetainedFormatRecovery(manifest, lineage, inputs, mo
   }
   return recovered;
 }
+export function prepareFd123RetainedQualityRecovery(manifest, lineage, inputs, modules, state, { at = new Date() } = {}) {
+  const observed = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-annual-retained-stop.json", import.meta.url), "utf8"));
+  if (hash(JSON.stringify(manifest)) !== hash(JSON.stringify(observed)) || manifest.status !== "stopped" || manifest.manualAccepted !== false ||
+      manifest.originalJournalSha256 !== lineage.originalJournalSha256 || manifest.originalLedgerSha256 !== lineage.originalLedgerSha256 ||
+      manifest.referenceMode !== FD123_MODEL_BOUND_MODE || manifest.reports.length !== 6 || manifest.stopSlot !== "current_annual:0" ||
+      modules.backend.PERIOD_READING_TUPLE.qualityVersion !== "ziwei.period-reading.quality.v3" ||
+      state.openReservations !== 0 || state.totalVnd !== 233576 || state.capVnd !== 600624) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+  let recovered;
+  for (const [index, row] of manifest.reports.entries()) {
+    const input = inputs[index], topic = ["relationship_marriage", "career_wealth"].includes(input?.group);
+    if (!input || row.slot !== FD123_SLOTS[index] || row.manualAccepted !== false || row.snapshotHash !== input.snapshotHash ||
+        row.factsSha256 !== hash(JSON.stringify(input.facts)) || row.attempts.length !== (index === 5 ? 2 : 1)) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+    for (const [attemptIndex, attempt] of row.attempts.entries()) {
+      if (attempt.purpose !== (attemptIndex ? "rewrite" : "report") || attempt.attemptKey !== fd123AttemptKey(row.slot, attempt.purpose) ||
+          !["reference_settled", "reference_settled_model_bound"].includes(attempt.status)) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+      const normalized = normalizeTrialJson(attempt.outputText);
+      const content = (topic ? modules.contracts.ZiweiTopicDeepDiveContentV1Schema : modules.contracts.ZiweiPeriodReadingContentV1Schema).parse(normalized.value);
+      const quality = topic ? modules.backend.validateZiweiTopicDeepDiveQualityV4(content, input.facts) : modules.backend.validatePeriodReading(content, input.facts);
+      const quote = quoteFd123ReferenceSettlement({ receipt: attempt.receipt, outputSha256: normalized.rawSha256,
+        accountingEvidence: attempt.accountingEvidence, referenceMode: FD123_MODEL_BOUND_MODE }, attempt.trace, { at });
+      if (!quality.ok || normalized.rawSha256 !== attempt.rawSha256 || normalized.rawSha256 !== attempt.outputSha256 ||
+          normalized.parsedSha256 !== attempt.parsedSha256 || JSON.stringify(quote) !== JSON.stringify(attempt.quote)) fail("FD123_QUALITY_RECOVERY_CONTENT_OR_REFERENCE_INVALID");
+      if (index < 5) {
+        if (row.status !== "quality_passed_pending_manual_review" || !row.result.ok ||
+            JSON.stringify(content) !== JSON.stringify(row.result.value.content)) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+      } else {
+        if (row.status !== "failed" || row.result.error?.code !== "PERIOD_QUALITY_REJECTED" ||
+            JSON.stringify(row.result.findings) !== '["CONTENT_LINE_VIOLATION"]') fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+        if (attemptIndex === 1) recovered = { content, quality, rawSha256: normalized.rawSha256, parsedSha256: normalized.parsedSha256 };
+      }
+    }
+  }
+  return recovered;
+}
 function privateRead(path) {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
@@ -147,9 +181,10 @@ export async function buildFd123Inputs(original, modules, preflight) {
 }
 async function main(args) {
   const { values } = parseArgs({ args, options: { live: { type: "boolean", default: false }, dryRun: { type: "boolean", default: false },
-    locked: { type: "boolean", default: false }, resumeReference: { type: "boolean", default: false }, resumeFormat: { type: "boolean", default: false }, output: { type: "string" } } });
+    locked: { type: "boolean", default: false }, resumeReference: { type: "boolean", default: false }, resumeFormat: { type: "boolean", default: false }, resumeQuality: { type: "boolean", default: false }, output: { type: "string" } } });
   if (values.live === values.dryRun || process.getuid() !== 1000) fail("FD123_MODE_OR_IDENTITY_INVALID");
-  if (((values.resumeReference || values.resumeFormat) && !values.live) || (values.resumeReference && values.resumeFormat)) fail("FD123_MODE_OR_IDENTITY_INVALID");
+  const recoveryCount = [values.resumeReference, values.resumeFormat, values.resumeQuality].filter(Boolean).length;
+  if ((recoveryCount && !values.live) || recoveryCount > 1) fail("FD123_MODE_OR_IDENTITY_INVALID");
   const output = assertFd123OutputPath(values.output ?? "plan/evidence/2026-10-09-fd123-paid-trials.json");
   const originalText = privateRead(join(FD121_ROOT, "reports.json"));
   const ledgerText = privateRead(join(FD121_ROOT, "budget.jsonl"));
@@ -188,7 +223,28 @@ async function main(args) {
   if (existsSync(JOURNAL)) {
     const priorText = privateRead(JOURNAL);
     manifest = JSON.parse(priorText);
-    if (!values.resumeReference && !values.resumeFormat) { assertFd123Resume(manifest, lineage); pendingInputs = []; }
+    if (!recoveryCount) { assertFd123Resume(manifest, lineage); pendingInputs = []; }
+    else if (values.resumeQuality) {
+      const state = budget.status(), ledgerSha256 = hash(privateRead(join(ROOT, "budget.jsonl")));
+      const recovered = prepareFd123RetainedQualityRecovery(manifest, lineage, inputs, modules, state);
+      const row = manifest.reports[5]; unchanged();
+      manifest.qualityRecoveryEvents = [{ status: "prepared", priorManifestSha256: hash(priorText), previousStatus: manifest.status,
+        previousStopSlot: manifest.stopSlot, previousRowStatus: row.status, previousResult: row.result,
+        fromQualityVersion: "ziwei.period-reading.quality.v2", toQualityVersion: modules.backend.PERIOD_READING_TUPLE.qualityVersion,
+        retainedAttemptPurpose: "rewrite", rawOutputSha256: recovered.rawSha256, parsedSha256: recovered.parsedSha256,
+        ledgerSha256, noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() }];
+      manifest.status = "quality_recovery_prepared"; durableSave(JOURNAL, manifest);
+      // Revalidate the retained rewrite; neither original response is edited.
+      row.result = { ok: true, value: { content: recovered.content, quality: recovered.quality,
+        providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium" } };
+      row.status = "quality_passed_pending_manual_review";
+      manifest.qualityRecoveryEvents.push({ status: "completed", noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() });
+      manifest.status = "running"; delete manifest.stopSlot; durableSave(JOURNAL, manifest); unchanged();
+      if (JSON.stringify(budget.status()) !== JSON.stringify(state) ||
+          hash(privateRead(join(ROOT, "budget.jsonl"))) !== ledgerSha256) fail("FD123_QUALITY_RECOVERY_LEDGER_CHANGED");
+      pendingInputs = inputs.slice(6);
+      console.log(JSON.stringify({ slot: row.slot, status: "retained_quality_recovered", physicalProviderCalls: 0, ledgerWrites: 0, manualAccepted: false }));
+    }
     else if (values.resumeFormat) {
       const state = budget.status();
       const ledgerSha256 = hash(privateRead(join(ROOT, "budget.jsonl")));
@@ -237,7 +293,7 @@ async function main(args) {
         heldReferenceVnd: recovered.quote.quoteVnd, actualUsageVerified: false, manualAccepted: false }));
     }
   } else {
-    if (values.resumeReference || values.resumeFormat) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
+    if (recoveryCount) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
     const state = budget.status();
     if (state.totalVnd !== 0 || state.openReservations !== 0) fail("FD123_LEDGER_REQUIRES_RECONCILIATION");
     manifest = { campaign: FD123_POLICY, ownerDecision: "FD-123", status: "running", manualAccepted: false, asOfDate: original.asOfDate,

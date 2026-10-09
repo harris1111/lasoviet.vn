@@ -14,7 +14,7 @@ describe("FD089 advice boundary and FD120 version compatibility", () => {
   it("versions future quality while keeping frozen v1 source identities usable", () => {
     const topic = topicReportVersions(), period = periodReportVersions();
     expect(topic.qualityVersion).toBe("ziwei.topic-deep-dive.quality.v2");
-    expect(period.qualityVersion).toBe("ziwei.period-reading.quality.v2");
+    expect(period.qualityVersion).toBe("ziwei.period-reading.quality.v3");
     expect(REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1).toBe("ziwei.topic-deep-dive.quality.v1");
     expect(PERIOD_READING_QUALITY_VERSION_V1).toBe("ziwei.period-reading.quality.v1");
     expect(isTopicReportTuple({ ...topic, sku: "ZIWEI-RELATIONSHIP-P0", locale: "vi", knowledgeVersionId: topic.knowledgeVersion })).toBe(true);

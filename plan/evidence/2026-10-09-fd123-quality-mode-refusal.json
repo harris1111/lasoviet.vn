@@ -1,0 +1,34 @@
+[
+  {
+    "arguments": [
+      "--dryRun",
+      "--resumeQuality"
+    ],
+    "refusedCode": "FD123_MODE_OR_IDENTITY_INVALID",
+    "authorityAccess": false,
+    "physicalProviderCalls": 0,
+    "ledgerWrites": 0
+  },
+  {
+    "arguments": [
+      "--live",
+      "--resumeQuality",
+      "--resumeFormat"
+    ],
+    "refusedCode": "FD123_MODE_OR_IDENTITY_INVALID",
+    "authorityAccess": false,
+    "physicalProviderCalls": 0,
+    "ledgerWrites": 0
+  },
+  {
+    "arguments": [
+      "--live",
+      "--resumeQuality",
+      "--resumeReference"
+    ],
+    "refusedCode": "FD123_MODE_OR_IDENTITY_INVALID",
+    "authorityAccess": false,
+    "physicalProviderCalls": 0,
+    "ledgerWrites": 0
+  }
+]

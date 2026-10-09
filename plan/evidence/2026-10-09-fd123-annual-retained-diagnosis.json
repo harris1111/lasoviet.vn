@@ -1,0 +1,48 @@
+{
+  "slot": "current_annual:0",
+  "status": "failed",
+  "findings": [
+    "CONTENT_LINE_VIOLATION"
+  ],
+  "attempts": [
+    {
+      "purpose": "report",
+      "rawSha256": "5656a8c4a6e52819d3c7e8a5ede801fa2d577673271e877c001b7308c4059d97",
+      "offenders": [
+        {
+          "section": "2026-12-regular-normal",
+          "terms": [
+            "chắc chắn"
+          ],
+          "prohibitedAdvice": false,
+          "sentence": "Đây là bối cảnh đòi hỏi sự tỉnh táo cao độ chứ không phải điềm báo chắc chắn về tai họa"
+        }
+      ]
+    },
+    {
+      "purpose": "rewrite",
+      "rawSha256": "9696e968d0d7e0fbb25a9ac7fe1fcf127a3c0377cc384363589eeee54938a9be",
+      "offenders": [
+        {
+          "section": "2026-05-regular-normal",
+          "terms": [
+            "chắc chắn"
+          ],
+          "prohibitedAdvice": false,
+          "sentence": "Đây là ngữ cảnh nhắc nhở bạn nên rà soát kỹ các khoản thanh toán, hạn chế mua sắm vượt quá khả năng thực tế chứ không phải là điều chắc chắn xảy ra rủi ro"
+        },
+        {
+          "section": "2026-12-regular-normal",
+          "terms": [
+            "chắc chắn"
+          ],
+          "prohibitedAdvice": false,
+          "sentence": "Đây là bối cảnh cần sự minh bạch và đối thoại ôn hòa để giữ gìn sự yên ấm chứ không phải điềm báo chắc chắn về tranh chấp"
+        }
+      ]
+    }
+  ],
+  "physicalProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false
+}

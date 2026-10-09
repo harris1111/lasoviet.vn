@@ -11,7 +11,7 @@ import { captureNativeAccountingEvidence } from "./lib/prod-9router-child.mjs";
 import { runProdRouterAttempt, paidTrialAttemptKey } from "./lib/prod-9router-attempt.mjs";
 import { FD123_POLICY, FD123_MODEL_BOUND_MODE, FD123_TECHNICAL_CAP_VND, FD123_SLOTS, fd123AttemptKey, quoteFd123ReferenceSettlement } from "./lib/fd123-reference-continuation.mjs";
 import { assertFd123OutputPath, normalizeTrialJson, assertFd123Original, assertFd123Resume, buildFd123Inputs, prepareFd123RetainedRecovery,
-  prepareFd123RetainedFormatRecovery, paidTrialSchemaInstruction } from "./continue-paid-manual-trials.mjs";
+  prepareFd123RetainedFormatRecovery, prepareFd123RetainedQualityRecovery, paidTrialSchemaInstruction } from "./continue-paid-manual-trials.mjs";
 import { API_REFERENCE_PRICING } from "./lib/native-campaign-api-pricing.mjs";
 
 const now = () => new Date("2026-10-09T18:00:00Z");
@@ -319,5 +319,46 @@ test("four-row format recovery validates each source/default quality/settlement,
     dispatched.push(row.slot); return {ok: true, value: {quality: {ok: true}}};
   } });
   assert.deepEqual(dispatched, FD123_SLOTS.slice(4)); assert.equal(manifest.reports.length, 9);
+  assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
+});
+
+
+test("six-row quality recovery validates seven settled responses without edits or replay and leaves only three unrun slots", async () => {
+  const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-annual-retained-stop.json", import.meta.url), "utf8"));
+  const original = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-retained.json", import.meta.url), "utf8"));
+  const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
+  const modules = { backend: await import("../packages/backend/dist/index.js"), contracts: await import("../packages/contracts/dist/index.js"), engine: await import("../packages/engine-adapters/dist/index.js") };
+  const inputs = await buildFd123Inputs(original, modules, preflight);
+  const lineage = { originalJournalSha256: stopped.originalJournalSha256, originalLedgerSha256: stopped.originalLedgerSha256 };
+  const { budget, ledgerPath } = fresh();
+  for (const row of stopped.reports) for (const attempt of row.attempts) {
+    const id = budget.reserveAttempt("v4.2-report", 33368, { attemptKey: attempt.attemptKey, trace: attempt.trace }); budget.markDispatched(id);
+    budget.settleAttempt(id, { receipt: attempt.receipt, outputSha256: attempt.outputSha256, accountingEvidence: attempt.accountingEvidence, referenceMode: FD123_MODEL_BOUND_MODE });
+  }
+  assert.equal(budget.status().totalVnd, 233576); assert.equal(budget.status().openReservations, 0);
+  const ledgerBefore = digest(readFileSync(ledgerPath)), before = JSON.stringify(stopped);
+  const recover = value => prepareFd123RetainedQualityRecovery(value, lineage, inputs, modules, budget.status(), { at: now() });
+  const recovered = recover(stopped);
+  assert.equal(recovered.quality.ok, true);
+  assert.equal(recovered.rawSha256, stopped.reports[5].attempts[1].rawSha256);
+  assert.equal(recovered.parsedSha256, stopped.reports[5].attempts[1].parsedSha256);
+  assert.equal(JSON.stringify(stopped), before); assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
+  for (const mutate of [m => { m.status = "quality_recovery_prepared"; }, m => { m.qualityRecoveryEvents = [{status: "prepared"}]; },
+    m => { m.reports[5].attempts.pop(); }, m => { m.reports[5].attempts[1].outputText += " "; },
+    m => { m.reports[5].attempts[0].quote.quoteVnd = "1"; }, m => { m.reports[5].result.findings = []; },
+    m => { m.reports[0].result.value.content.title = "changed"; }, m => { m.manualAccepted = true; }]) {
+    const value = structuredClone(stopped); mutate(value); assert.throws(() => recover(value));
+  }
+  const unsafe = { ...modules, backend: { ...modules.backend, validatePeriodReading: () => ({ok: false}) } };
+  assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, unsafe, budget.status(), { at: now() }), { code: "FD123_QUALITY_RECOVERY_CONTENT_OR_REFERENCE_INVALID" });
+  const wrongVersion = { ...modules, backend: { ...modules.backend, PERIOD_READING_TUPLE: {qualityVersion: "ziwei.period-reading.quality.v2"} } };
+  assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, wrongVersion, budget.status(), { at: now() }));
+  assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, modules, {...budget.status(), openReservations: 1}, { at: now() }));
+  const manifest = structuredClone(stopped); manifest.reports[5].status = "quality_passed_pending_manual_review";
+  const dispatched = []; const { runTrialSequence } = await import("./run-paid-manual-trials.mjs");
+  await runTrialSequence({ inputs: inputs.slice(6), manifest, save() {}, generate: async (_, row) => {
+    dispatched.push(row.slot); return {ok: true, value: {quality: {ok: true}}};
+  } });
+  assert.deepEqual(dispatched, FD123_SLOTS.slice(6)); assert.equal(manifest.reports.length, 9);
   assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
 });

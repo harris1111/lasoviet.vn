@@ -1,0 +1,35 @@
+{
+  "sourceHead": "367cec1080c8f022b69c152732e00b3fff9ef7a8",
+  "checkedAt": "2026-10-09T19:28:14.598Z",
+  "status": "format_recovery_preflight_passed",
+  "retainedSlot": "monthly:0",
+  "returnedSourcesRevalidated": 4,
+  "frozenSourcesMatch": 9,
+  "schemaPassed": true,
+  "defaultQuality": {
+    "ok": true,
+    "findings": [],
+    "advisory": [
+      "EDITORIAL_TERM"
+    ]
+  },
+  "normalization": "root_json_schema_annotation",
+  "rawOutputSha256": "4162eae5d3e44a6fa7ec99b7a2ddc3a9cd5794b9a89853e18cccbe17cc609971",
+  "previousParsedSha256": "1f2c7058fdc8598bcbae1dd09a400c3117c4a728b90da5881587d727b63c01bd",
+  "parsedSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a",
+  "pendingSlots": [
+    "monthly:1",
+    "current_annual:0",
+    "current_annual:1",
+    "next_annual:0",
+    "next_annual:1"
+  ],
+  "authorityFilesUnchanged": 4,
+  "originalJournalSha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+  "originalLedgerSha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+  "retainedJournalSha256": "6bfc592508dfc46f78c4d9f702dc922033fca20803106be9bfd783c97e9d2b92",
+  "retainedLedgerSha256": "0f577d62ddecde1629c3b1a45a09157640c625a6d739d676e22e1d9ddd4be926",
+  "physicalProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false
+}

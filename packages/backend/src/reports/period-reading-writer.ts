@@ -8,13 +8,33 @@ import { hasProhibitedReadingAdvice } from "./reading-content-line.js";
 
 export const PERIOD_READING_QUALITY_VERSION_V1 = "ziwei.period-reading.quality.v1" as const;
 export const PERIOD_READING_QUALITY_VERSION_V2 = "ziwei.period-reading.quality.v2" as const;
+export const PERIOD_READING_QUALITY_VERSION_V3 = "ziwei.period-reading.quality.v3" as const;
 
 export const PERIOD_READING_TUPLE = {
   promptVersion: "ziwei.period-reading.prompt.v1", reportConfigVersion: "ziwei.period-reading.report.v1",
-  qualityVersion: PERIOD_READING_QUALITY_VERSION_V2, contentVersion: "ziwei.period-reading.v1",
+  qualityVersion: PERIOD_READING_QUALITY_VERSION_V3, contentVersion: "ziwei.period-reading.v1",
 } as const;
 const monthWords: Record<string, number> = { một: 1, giêng: 1, hai: 2, ba: 3, tư: 4, bốn: 4, năm: 5, sáu: 6, bảy: 7, tám: 8, chín: 9, mười: 10, "mười một": 11, "mười hai": 12, chạp: 12 };
 const monthPattern = /tháng\s+(mười hai|mười một|giêng|chạp|một|hai|ba|bốn|tư|năm|sáu|bảy|tám|chín|mười|\d{1,2})(?![\p{L}\p{N}])/giu;
+
+function hasAffirmativeCertainty(text: string, terms: readonly string[]): boolean {
+  const normalized = text.normalize("NFC").toLocaleLowerCase("vi");
+  for (const term of terms) {
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    for (const match of normalized.matchAll(new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, "giu"))) {
+      // Only the observed immediate denial governs this occurrence. A later
+      // affirmative occurrence or a different configured term still fails.
+      const prefix = normalized.slice(0, match.index);
+      const denial = /(?<![\p{L}\p{N}])không phải(?: là)? (?:điềm báo|điều)\s*$/u.exec(prefix);
+      const outerPrefix = denial ? prefix.slice(0, denial.index).split(/[.!?;\n]/u).at(-1)! : "";
+      const outerDenial = /(?<![\p{L}\p{N}])(?:không|chưa|chẳng|đừng|tránh|phủ nhận|bác bỏ|chối bỏ)(?![\p{L}\p{N}])/u.test(outerPrefix);
+      if (["chắc chắn", "chắc chắn sẽ"].includes(term) &&
+          denial && !outerDenial) continue;
+      return true;
+    }
+  }
+  return false;
+}
 
 export function validatePeriodReading(content: ZiweiPeriodReadingContentV1, facts: ZiweiPeriodReadingFactsV1) {
   const findings: string[] = [];
@@ -27,7 +47,7 @@ export function validatePeriodReading(content: ZiweiPeriodReadingContentV1, fact
     if (countVietnameseSyllables(text) < minimum) findings.push("MINIMUM_DEPTH");
     if (!keys.length || keys.some(key => !allowed.includes(key))) findings.push("EVIDENCE_MISMATCH");
     if (HAN_IDEOGRAPH_PATTERN.test(text) || ENGLISH_BRIGHTNESS_PATTERN.test(text)) findings.push("LOCALE_INVALID");
-    if ([...config.deathTerms, ...config.certaintyPhrases].some(term => wholeWord(text, term)) || hasProhibitedReadingAdvice(text)) findings.push("CONTENT_LINE_VIOLATION");
+    if (config.deathTerms.some(term => wholeWord(text, term)) || hasAffirmativeCertainty(text, config.certaintyPhrases) || hasProhibitedReadingAdvice(text)) findings.push("CONTENT_LINE_VIOLATION");
     if (/\b\d{1,2}[/-]\d{1,2}\b/u.test(text) || /ngày\s+\d{1,2}/iu.test(text)) findings.push("UNCOMPUTED_DAY");
     if ([...text.matchAll(/\b(?:19|20)\d{2}\b/g)].some(match => Number(match[0]) !== facts.targetYear)) findings.push("UNCOMPUTED_YEAR");
     for (const match of text.toLocaleLowerCase("vi").matchAll(monthPattern)) {

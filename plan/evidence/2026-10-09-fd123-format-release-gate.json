@@ -1,0 +1,25 @@
+{
+  "sourceHead": "367cec1080c8f022b69c152732e00b3fff9ef7a8",
+  "checkedAt": "2026-10-09T19:41:49.777363+00:00",
+  "status": "release_gate_passed",
+  "ci": [
+    {
+      "conclusion": "success",
+      "headSha": "367cec1080c8f022b69c152732e00b3fff9ef7a8",
+      "status": "completed",
+      "url": "https://github.com/harris1111/lasoviet.vn/actions/runs/37979955425"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "367cec1080c8f022b69c152732e00b3fff9ef7a8",
+      "status": "completed",
+      "url": "https://github.com/harris1111/lasoviet.vn/actions/runs/37979950227"
+    }
+  ],
+  "independentExactHeadReview": "https://github.com/harris1111/lasoviet.vn/pull/382#issuecomment-6087750124",
+  "physicalProviderCallsByThisCheck": 0,
+  "retainedFD123Responses": 4,
+  "pendingNewSlots": 5,
+  "recoveryLedgerWrites": 0,
+  "manualAccepted": false
+}
