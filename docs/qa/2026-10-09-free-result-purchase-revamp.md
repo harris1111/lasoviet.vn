@@ -12,7 +12,7 @@ Repeatable measurement: `REVAMP_ACCEPTANCE_OUT=<dir> pnpm exec playwright test t
 | Playwright read-first (8 widths x 2 locales, history) | 19 / 20, URL history flaky (Back sometimes reloads the whole page) |
 | Playwright feedback, guarantee, sign-in return | 8 / 8 |
 | Stale pre-FD109 specs (chart-tabs-navigation, chart-topics-mobile-dialog, free-chart-flow) | 4 fail, need rewriting |
-| funnel-golden-path | updated for the one-button flow, not run (needs Docker) |
+| funnel-golden-path | updated for the one-button flow; passes in GitHub CI (verify job of #345, which also runs the three money-path specs) |
 | Decadal and Tet boundary (scripts/export-decadal-boundary-acceptance.mjs) | 30 charts x 8 dates, 107,280 invariants, 0 mismatches |
 | Monthly attention (scripts/export-monthly-attention-review.mjs) | 200 charts, 0 forced, histogram 1:66 2:86 3:39 4:8 5:1 |
 | Sideways scroll | none at 360/390/430/1024/1280/1440 |
@@ -20,5 +20,7 @@ Repeatable measurement: `REVAMP_ACCEPTANCE_OUT=<dir> pnpm exec playwright test t
 | Tap targets under 44 px | offer page 0; chart page 0 on phone, 7 header text links on desktop (shared header) |
 | Text under 12 px | 13 elements on phone (radar chart labels, existing) |
 | LCP (local, unthrottled) | chart 284 to 304 ms, offer 68 to 76 ms |
+
+CI: all nine PRs (#326, #327, #339 to #345) have a passing `verify` job on their head commit. Not in CI and only run locally: free-result-read-first, revamp-acceptance.
 
 Open: formula numbers still appear in the free overview body (rule-based text, LSV-82), price still 960 La (FD-119 not shipped), phase 6 products not in the catalog, no funnel before/after, real-site device and browser checks.
