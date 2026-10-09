@@ -101,7 +101,7 @@ export default async function PaidTopicSelectionPage({
       <div className="container">
         <PaidTopicSelector
           readingContent={<><OfferLadder chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale}
-            initialSku={resolveLadderSelection(query?.offer, query?.palace)} initialResume={query?.resume === "1"} balance={userBalance} scores={scores}
+            initialSku={resolveLadderSelection(query?.offer, query?.palace)} initialResume={query?.resume === "1"} initialIntent={Boolean(query?.offer || query?.palace)} balance={userBalance} scores={scores}
             initialQuotes={!actor ? { status: "guest" } : initialQuotes ? { status: "ready", value: initialQuotes } : { status: "error" }} />
             {actor && locale === "vi" && <PersonalDailyReadingPanel key={`${chartId}:${chartResult.value.chartVersionId}:${locale}`} chartId={chartId} chartVersionId={chartResult.value.chartVersionId} locale={locale} />}
           </>}

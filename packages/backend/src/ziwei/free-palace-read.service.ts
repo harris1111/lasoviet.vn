@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import {
-  FreePalaceGiftViewV1Schema,
+  FreePalaceGiftViewV1Schema, FreePalaceGiftContentV1Schema,
   type CurrentActor,
   type FreePalaceGiftViewV1,
   type Result,
@@ -57,10 +57,11 @@ export function createFreePalaceReadService(options: FreePalaceReadServiceOption
       // under a currently supported lineage, with an intact content hash.
       const [settlement] = await options.database.select({ outcome: freeAiSettlements.outcome }).from(freeAiSettlements)
         .where(eq(freeAiSettlements.requestId, request.id)).limit(1);
-      if (!artifact || !artifact.content || !artifact.facts || !artifact.contentHash || settlement?.outcome !== "resolved" ||
+      const legacyContent = FreePalaceGiftContentV1Schema.safeParse(artifact?.content);
+      if (!legacyContent.success || !artifact || !artifact.content || !artifact.facts || !artifact.contentHash || settlement?.outcome !== "resolved" ||
         request.locale !== locale || request.chartVersionId !== found.source.chartVersionId ||
         options.currentLineageHash({ chartVersionId: request.chartVersionId, palaceId: request.palaceId, locale }) !== request.lineageHash ||
-        freePalaceContentHash(artifact.content, artifact.facts) !== artifact.contentHash) {
+        freePalaceContentHash(legacyContent.data, artifact.facts) !== artifact.contentHash) {
         return view("unavailable");
       }
       const parsed = FreePalaceGiftViewV1Schema.safeParse({

@@ -23,7 +23,7 @@ const providerBody = (content: unknown, usage: Record<string, unknown> | null = 
 const ok = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const tariff = { inputPricePerMillion: 15_000n, outputPricePerMillion: 60_000n };
 
-async function harness(behaviour: (attempt: number) => Promise<Response>, options: { retryCount?: number; snapshotOverride?: string; tariffAvailable?: boolean; modelId?: string } = {}) {
+async function harness(behaviour: (attempt: number) => Promise<Response>, options: { retryCount?: number; snapshotOverride?: string; tariffAvailable?: boolean; modelId?: string; ackFails?: boolean; wrongCompletion?: boolean } = {}) {
   const modelId = options.modelId ?? "gift-model";
   const cost = createInMemoryAiCostService();
   const pricing = await cost.savePricing({
@@ -33,11 +33,11 @@ async function harness(behaviour: (attempt: number) => Promise<Response>, option
   });
   let physicalAttempts = 0;
   const writer = createFreePalaceWriter({
-    costRecorder: cost.recorder,
+    costRecorder: options.ackFails ? {...cost.recorder, completeAttempt: async () => ({ok: false, error: {code: "AI_COST_RECORDING_FAILED", retryable: true, message: "synthetic persistence failure"}})} : cost.recorder,
     loadTariff: async () => (options.tariffAvailable === false ? null : tariff),
     createProvider: (recorder) => createOpenAiCompatibleAdapter({
       baseUrl: "https://ai.synthetic.test/v1", apiKey: "not-a-real-secret", modelId, allowedResolvedModelIds: [modelId],
-      timeoutMs: 1000, retryCount: options.retryCount ?? 0, productionGate: createAiProductionGate("approved"), costRecorder: recorder,
+      timeoutMs: 1000, retryCount: options.retryCount ?? 0, productionGate: createAiProductionGate("approved"), costRecorder: options.wrongCompletion ? {...recorder, completeAttempt: input => recorder.completeAttempt({...input, attemptId: "WRONG_ATTEMPT"})} : recorder,
       fetchImpl: async () => { physicalAttempts += 1; return behaviour(physicalAttempts); },
     }),
   });
@@ -169,6 +169,43 @@ describe("free palace gift writer", () => {
     expect(await recorder.beginAttempt({ ...base, purpose: "synthetic_probe" })).toMatchObject({ ok: false });
     expect(await recorder.beginAttempt({ ...base, purpose: "free_preview" })).toMatchObject({ ok: true });
     expect(await recorder.beginAttempt({ ...base, attemptNumber: 1, purpose: "free_preview" })).toMatchObject({ ok: false });
+  });
+
+  it("claims a single eligible begin before asynchronous persistence", async () => {
+    const cost = createInMemoryAiCostService();
+    const pricing = await cost.savePricing({pricingVersion: "v1", providerId: "p", modelId: "m", currency: "VND", inputPricePerMillion: 1, outputPricePerMillion: 1, cachedInputPricePerMillion: 0, effectiveFrom: new Date("2026-01-01"), source: "s", sourceCurrency: "VND", sourceReference: "r", fxSource: "x", fxRate: 1, fxTimestamp: new Date("2026-01-01"), referenceMetadata: {}, status: "active"});
+    const begin = vi.fn(async (...args: Parameters<typeof cost.recorder.beginAttempt>) => {await Promise.resolve(); return cost.recorder.beginAttempt(...args);});
+    const {recorder, snapshot} = createFreePalaceAttemptRecorder({...cost.recorder, beginAttempt: begin}, pricing.id!);
+    const input = {callId: "c", attemptNumber: 0, providerId: "p", requestedModelId: "m", maxOutputTokens: 10, purpose: "free_preview" as const};
+    const outcomes = await Promise.all([recorder.beginAttempt(input), recorder.beginAttempt({...input, attemptNumber: 1})]);
+    expect(outcomes.map(r => r.ok)).toEqual([true, false]);
+    expect(begin).toHaveBeenCalledTimes(1); expect(snapshot().begun).toBe(1);
+  });
+  it.each(["ackFails", "wrongCompletion"] as const)("keeps the full hold when %s prevents an acknowledged outcome", async mode => {
+    const h = await harness(async () => ok(providerBody(goodContent())), {[mode]: true});
+    const outcome = await h.writer.run(h.call, attemptId);
+    expect(h.attempts()).toBe(1);
+    expect(outcome).toMatchObject({settlement: {kind: "unknown"}, diagnostic: "usage_unknown"});
+    expect(outcome.publication).toBeUndefined();
+    expect(await h.cost.getAiCogsSummary({})).toMatchObject({hasIncompleteAttempts: true});
+  });
+  it("settles acknowledged cached input at the persisted actual rate, preserving the conservative admission hold", async () => {
+    const h = await harness(async () => ok(providerBody(goodContent(), {prompt_tokens: 1000, completion_tokens: 500, total_tokens: 1500, prompt_tokens_details: {cached_tokens: 100}})));
+    const outcome = await h.writer.run(h.call, attemptId);
+    expect(h.attempts()).toBe(1);
+    expect(outcome.settlement).toEqual({kind: "resolved", actualMicroVnd: 43_875_000n, disposition: "publishable"});
+    expect((await h.cost.getAiCogsSummary({})).totalCogsMicroVnd).toBe("43875000");
+  });
+  it("refuses a repeated completion without replacing the acknowledged receipt", async () => {
+    const cost = createInMemoryAiCostService();
+    const pricing = await cost.savePricing({pricingVersion: "v1", providerId: "p", modelId: "m", currency: "VND", inputPricePerMillion: 1, outputPricePerMillion: 1, cachedInputPricePerMillion: 0, effectiveFrom: new Date("2026-01-01"), source: "s", sourceCurrency: "VND", sourceReference: "r", fxSource: "x", fxRate: 1, fxTimestamp: new Date("2026-01-01"), referenceMetadata: {}, status: "active"});
+    const {recorder, snapshot} = createFreePalaceAttemptRecorder(cost.recorder, pricing.id!);
+    const started = await recorder.beginAttempt({callId: "c", attemptNumber: 0, providerId: "p", requestedModelId: "m", maxOutputTokens: 10, purpose: "free_preview"});
+    if (!started.ok) throw new Error("Synthetic begin refused");
+    const first = {attemptId: started.value.attemptId, responseModelId: "m", httpStatus: 200, inputTokens: 2, outputTokens: 3, cachedTokens: 0, totalTokens: 5};
+    expect((await recorder.completeAttempt(first)).ok).toBe(true);
+    expect((await recorder.completeAttempt({...first, outputTokens: 9, totalTokens: 11})).ok).toBe(false);
+    expect(snapshot()).toMatchObject({completed: first, actualMicroVnd: 5n, refused: "unexpected or repeated outcome"});
   });
 
   it("row 36: the gift writer imports nothing from the paid report writer, critic or rewrite path", () => {
