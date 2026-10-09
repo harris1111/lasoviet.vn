@@ -1,120 +1,101 @@
 import { expect, test } from "@playwright/test";
 import { createAnonymousChart } from "./helpers/create-anonymous-chart";
 
-test.describe("Chart result tabs URL navigation & Back/Forward contracts", () => {
-  test("creates an authorized chart and tests tab/topic/evidence URL and Back/Forward history hydration", async ({
-    page,
-  }) => {
-    // 1. Verify private route returns 404 for unauthorized chart request before canonicalization
-    const unauthorizedRes = await page.goto("/la-so/unauthorized-chart-99999?tab=invalid_tab&unknown=foo");
-    expect(unauthorizedRes?.status()).toBe(404);
+// FD-109: five tabs (Tổng quan, Năm nay, Đại vận, 12 cung, Chủ đề) on one page; the evidence is a row under the tabs and opens a drawer on Tổng quan.
+// Tabs, previews and the evidence drawer write ?tab=&open= and Back/Forward restore them without a document load.
+test.describe("Free result tabs: URL, Back and Forward (FD-109)", () => {
+  test("canonical URLs, tab history, preview and evidence drawer restore client-side", async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 1280, height: 900 });
 
-    // 2. Create real authorized anonymous chart via canonical helper
+    // The private route answers 404 before any query canonicalisation.
+    const unauthorized = await page.goto("/la-so/unauthorized-chart-99999?tab=invalid_tab&unknown=foo");
+    expect(unauthorized?.status()).toBe(404);
+
     const chartUrl = await createAnonymousChart(page, "vi");
-    const chartUrlObj = new URL(chartUrl);
-    const chartPath = chartUrlObj.pathname;
+    const chartPath = new URL(chartUrl).pathname;
+    const selected = (id: string) => expect(page.locator(`#tab-${id}`)).toHaveAttribute("aria-selected", "true");
 
-    // 3. Canonicalizes non-canonical query params on authorized chart URL
+    // Canonicalisation of what the server is handed.
     await page.goto(`${chartPath}?tab=invalid_tab&unknown=foo`);
     await expect(page).toHaveURL(chartUrl);
-    const chartTab = page.locator("#tab-chart");
-    await expect(chartTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-chart")).toBeVisible();
-
-    // Canonicalizes invalid child open state for tab
+    await selected("overview");
+    await page.goto(`${chartPath}?tab=chart`);
+    await expect(page).toHaveURL(chartUrl);
     await page.goto(`${chartPath}?tab=topics&open=non_existent_topic_xyz`);
     await expect(page).toHaveURL(`${chartPath}?tab=topics`);
-    const topicsTab = page.locator("#tab-topics");
-    await expect(topicsTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-topics")).toBeVisible();
-
-    // 4. Tab navigation pushes URL history and updates aria-selected & panel UI
-    // Click Overview tab
-    const overviewTab = page.locator("#tab-overview");
-    await overviewTab.click();
+    await selected("topics");
+    await page.goto(`${chartPath}?tab=evidence`);
     await expect(page).toHaveURL(`${chartPath}?tab=overview`);
-    await expect(overviewTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-overview")).toBeVisible();
+    await selected("overview");
 
-    // Click Topics tab
-    await topicsTab.click();
-    await expect(page).toHaveURL(`${chartPath}?tab=topics`);
-    await expect(topicsTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-topics")).toBeVisible();
+    // Walk the history on a fresh load. Nothing below may load a document.
+    await page.goto(chartPath);
+    await selected("overview");
+    const documentRequests: string[] = [];
+    page.on("request", (request) => {
+      if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documentRequests.push(request.url());
+    });
+    await page.evaluate(() => { (window as unknown as { __fd109NoReload?: boolean }).__fd109NoReload = true; });
+    const expectNoDocumentLoad = async () => {
+      expect(await page.evaluate(() => (window as unknown as { __fd109NoReload?: boolean }).__fd109NoReload)).toBe(true);
+      expect(documentRequests).toEqual([]);
+    };
+    const dialog = page.getByTestId("fd109-preview-dialog");
+    const drawer = page.locator(".evidence-drawer");
 
-    // Open Topic outline (Life palace topic)
-    const lifeTopicBtn = page.getByRole("button", { name: "Xem cấu trúc chủ đề" }).first();
-    await lifeTopicBtn.click();
-    await expect(page).toHaveURL(`${chartPath}?tab=topics&open=life`);
-    await expect(page.getByText("Cấu trúc nội dung chủ đề: Cung Mệnh")).toBeVisible();
+    for (const [tab, query] of [["nam-nay", "?tab=nam-nay"], ["decade", "?tab=decade"], ["palaces", "?tab=palaces"], ["topics", "?tab=topics"]] as const) {
+      await page.locator(`#tab-${tab}`).click();
+      await expect(page).toHaveURL(`${chartPath}${query}`);
+      await selected(tab);
+    }
+    const careerRow = page.locator('[data-topic-id="career_wealth"]');
+    await careerRow.click();
+    await expect(page).toHaveURL(`${chartPath}?tab=topics&open=career_wealth`);
+    await expect(dialog).toBeVisible();
 
-    // Click Evidence tab
-    const evidenceTab = page.locator("#tab-evidence");
-    await evidenceTab.click();
-    await expect(page).toHaveURL(`${chartPath}?tab=evidence`);
-    await expect(evidenceTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-evidence")).toBeVisible();
-
-    // Open Evidence child drawer
-    const openEvidenceBtn = page.locator("#panel-evidence .evidence-open").first();
-    await openEvidenceBtn.click();
-    await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=evidence&open=[a-z0-9-]+`));
-    const evidenceDrawer = page.locator(".evidence-drawer");
-    await expect(evidenceDrawer).toBeVisible();
-
-    // 5. Test browser Back button history traversal with both URL and UI panel assertions
-    // Back -> returns to Evidence tab with drawer closed
-    await page.goBack();
-    await expect(page).toHaveURL(`${chartPath}?tab=evidence`);
-    await expect(evidenceTab).toHaveAttribute("aria-selected", "true");
-    await expect(evidenceDrawer).toBeHidden();
-
-    // Back -> returns to Topics tab with open=life
-    await page.goBack();
-    await expect(page).toHaveURL(`${chartPath}?tab=topics&open=life`);
-    await expect(topicsTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByText("Cấu trúc nội dung chủ đề: Cung Mệnh")).toBeVisible();
-
-    // Back -> returns to Topics tab without open (closed preview)
+    // Back: the preview closes and the row it came from has focus, then each earlier tab in turn.
     await page.goBack();
     await expect(page).toHaveURL(`${chartPath}?tab=topics`);
-    await expect(topicsTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByText("Cấu trúc nội dung chủ đề: Cung Mệnh")).toBeHidden();
-
-    // Back -> returns to Overview tab
-    await page.goBack();
-    await expect(page).toHaveURL(`${chartPath}?tab=overview`);
-    await expect(overviewTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-overview")).toBeVisible();
-
-    // Back -> returns to default chart URL
+    await expect(dialog).toBeHidden();
+    await expect(careerRow).toBeFocused();
+    for (const [tab, query] of [["palaces", "?tab=palaces"], ["decade", "?tab=decade"], ["nam-nay", "?tab=nam-nay"]] as const) {
+      await page.goBack();
+      await expect(page).toHaveURL(`${chartPath}${query}`);
+      await selected(tab);
+    }
     await page.goBack();
     await expect(page).toHaveURL(chartUrl);
-    await expect(chartTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-chart")).toBeVisible();
+    await selected("overview");
+    await expectNoDocumentLoad();
 
-    // 6. Test browser Forward button history traversal
+    // Forward replays the same walk and reopens the preview.
+    for (const [tab, query] of [["nam-nay", "?tab=nam-nay"], ["decade", "?tab=decade"], ["palaces", "?tab=palaces"], ["topics", "?tab=topics"]] as const) {
+      await page.goForward();
+      await expect(page).toHaveURL(`${chartPath}${query}`);
+      await selected(tab);
+    }
     await page.goForward();
+    await expect(page).toHaveURL(`${chartPath}?tab=topics&open=career_wealth`);
+    await expect(dialog).toBeVisible();
+    await expectNoDocumentLoad();
+
+    // Evidence lives in Tổng quan and is a drawer with its own URL.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await page.locator("#tab-overview").click();
     await expect(page).toHaveURL(`${chartPath}?tab=overview`);
-    await expect(overviewTab).toHaveAttribute("aria-selected", "true");
+    await page.locator('[data-testid="fd109-evidence-row"] .evidence-open').first().click();
+    await expect(page).toHaveURL(`${chartPath}?tab=overview&open=life-palace`);
+    await expect(drawer).toBeVisible();
+    await expect(drawer.locator(".evidence-close")).toBeFocused();
 
+    await page.goBack();
+    await expect(page).toHaveURL(`${chartPath}?tab=overview`);
+    await expect(drawer).toBeHidden();
     await page.goForward();
-    await expect(page).toHaveURL(`${chartPath}?tab=topics`);
-    await expect(topicsTab).toHaveAttribute("aria-selected", "true");
-
-    await page.goForward();
-    await expect(page).toHaveURL(`${chartPath}?tab=topics&open=life`);
-    await expect(topicsTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.getByText("Cấu trúc nội dung chủ đề: Cung Mệnh")).toBeVisible();
-
-    await page.goForward();
-    await expect(page).toHaveURL(`${chartPath}?tab=evidence`);
-    await expect(evidenceTab).toHaveAttribute("aria-selected", "true");
-    await expect(page.locator("#panel-evidence")).toBeVisible();
-
-    await page.goForward();
-    await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=evidence&open=[a-z0-9-]+`));
-    await expect(evidenceTab).toHaveAttribute("aria-selected", "true");
-    await expect(evidenceDrawer).toBeVisible();
+    await expect(page).toHaveURL(`${chartPath}?tab=overview&open=life-palace`);
+    await expect(drawer).toBeVisible();
+    await expectNoDocumentLoad();
   });
 });

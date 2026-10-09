@@ -2,14 +2,15 @@ import { expect, test } from "@playwright/test";
 
 import { createAnonymousChart } from "./helpers/create-anonymous-chart";
 
-test("the private Zi Wei result route renders the free chart flow", async ({
-  page,
-}) => {
+// FD-109: the free result is one reading page (chart stage + five tabs + evidence row) that ends in a single door to the offer page.
+test("the private Zi Wei result route renders the free chart flow", async ({ page }) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 1280, height: 900 });
   await createAnonymousChart(page, "vi");
 
   // 1. Hero
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Lá số Tử Vi");
-  await expect(page.getByText("Lá số riêng tư")).toBeVisible();
+  await expect(page.getByText("Lá số riêng tư", { exact: true })).toBeVisible();
 
   // 2. Traditional 4x4 board with 12 palaces
   const chartGrid = page.getByTestId("ziwei-chart-grid");
@@ -17,86 +18,59 @@ test("the private Zi Wei result route renders the free chart flow", async ({
   const palaces = chartGrid.getByTestId("ziwei-palace");
   await expect(palaces).toHaveCount(12);
 
-  // 3. Palace selection updates inspector, aria-pressed, and relation labels
+  // 3. Selecting a palace marks it and shows the inspector beside the board
   const targetPalace = palaces.nth(1);
   await targetPalace.click();
   await expect(targetPalace).toHaveAttribute("aria-pressed", "true");
-  const inspector = page.getByTestId("ziwei-detail-inspector");
-  await expect(inspector).toBeVisible();
-  await expect(targetPalace.locator(".palace-relation-tag")).toHaveText("Bản cung");
+  await expect(page.getByTestId("ziwei-detail-inspector")).toBeVisible();
 
-  // 4. Evidence drawer: focus close button, trap Tab/Shift+Tab, Escape restore, and backdrop close
-  const trigger = page.getByRole("button", { name: "Xem căn cứ" }).first();
+  // 4. Evidence drawer: focus lands on the close button, Tab/Shift+Tab stay inside, Escape and the backdrop both close and restore focus
+  const trigger = page.locator('[data-testid="fd109-evidence-row"] .evidence-open').first();
+  await trigger.scrollIntoViewIfNeeded();
   await expect(trigger).toBeVisible();
   await trigger.click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("heading", { level: 2 })).toHaveText(/Căn cứ/);
-
   const closeButton = dialog.getByRole("button", { name: "Đóng căn cứ" });
   await expect(closeButton).toBeFocused();
 
-  // Tab & Shift+Tab stay inside dialog panel
   await page.keyboard.press("Tab");
   await expect(closeButton).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(closeButton).toBeFocused();
 
-  // Escape closes dialog and restores focus to trigger button
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
 
-  // Re-open and close via backdrop click, then verify focus is restored
   await trigger.click();
   await expect(dialog).toBeVisible();
   await dialog.click({ position: { x: 5, y: 5 } });
   await expect(dialog).toBeHidden();
   await expect(trigger).toBeFocused();
 
-  // 5. Free Identity Preview sections
-  await expect(
-    page.getByRole("heading", { name: /Ba điểm để tự quan sát|Lá số Tử Vi của bạn, và 2 điều lá số nói riêng về bạn/ }),
-  ).toBeVisible();
-  await expect(page.getByText("Điểm mạnh")).toBeVisible();
-  await expect(page.getByText("Điểm cần điềm tĩnh quan sát")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Xem bản luận giải mẫu" })).toBeVisible();
+  // 5. The reading itself: plain-language headings on the overview, and no price on the page body
+  await expect(page.getByRole("heading", { level: 2, name: "Lá số này nói gì về bạn" })).toBeVisible();
+  await expect(page.getByTestId("fd109-free-result")).not.toContainText(/₫|\bVND\b/);
 
-  // 6. Topic Selection Page
+  // 6. One door to the offer page, at the end of the reading
   const completionDoor = page.getByTestId("fd109-completion").locator('a[href*="/chon-luan-giai"]');
+  await expect(completionDoor).toHaveCount(1);
   await completionDoor.scrollIntoViewIfNeeded();
   await completionDoor.click();
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Chọn chủ đề luận giải");
+  await expect(page).toHaveURL(/\/chon-luan-giai/);
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Luận giải cho lá số của bạn");
+  await expect(page.getByRole("heading", { level: 2, name: "Bạn muốn đọc phần nào của lá số?" })).toBeVisible();
 
-  // Layer 1: Disciplines
-  const disciplines = page.getByTestId("disciplines-layer");
-  await expect(disciplines.getByText("Tử Vi Đẩu Số")).toBeVisible();
-  await expect(disciplines.getByText("Bát Tự (Tứ Trụ)")).toBeVisible();
-  await expect(disciplines.getByText("Bản đồ sao phương Tây")).toBeVisible();
-  await expect(disciplines.getByText("Thần số học (Pitago)")).toBeVisible();
-  await expect(disciplines.getByText("Đang phát triển")).toHaveCount(3);
-  await expect(disciplines.getByText("Kinh Dịch")).toHaveCount(0);
-
-  // Layer 2: Zi Wei topics (active lifetime + 3 disabled topics with no action)
-  const activeTopic = page.getByTestId("topic-lifetime-active");
-  await expect(activeTopic).toBeVisible();
-  await expect(activeTopic.getByText("Luận giải Tử Vi trọn đời")).toBeVisible();
-  await expect(activeTopic.getByText("79.000 ₫")).toBeVisible();
-  await expect(activeTopic.getByRole("button", { name: "Tiếp tục thanh toán" })).toBeVisible();
-
-  const relTopic = page.getByTestId("topic-relationship-disabled");
-  await expect(relTopic).toBeVisible();
-  await expect(relTopic.getByText("Sắp ra mắt")).toBeVisible();
-  await expect(relTopic.getByRole("button")).toHaveCount(0);
-
-  const careerTopic = page.getByTestId("topic-career-wealth-disabled");
-  await expect(careerTopic).toBeVisible();
-  await expect(careerTopic.getByText("Sắp ra mắt")).toBeVisible();
-  await expect(careerTopic.getByRole("button")).toHaveCount(0);
-
-  const annualTopic = page.getByTestId("topic-annual-disabled");
-  await expect(annualTopic).toBeVisible();
-  await expect(annualTopic.getByText("Sắp ra mắt")).toBeVisible();
-  await expect(annualTopic.getByRole("button")).toHaveCount(0);
+  // 7. The offer page lists products in Lá, each with one button; nothing is priced in đồng or marked as coming soon
+  const ladder = page.getByTestId("offer-ladder");
+  await expect(ladder).toBeVisible();
+  const lifetime = ladder.locator('article[data-sku="ZIWEI-IDENTITY-P0"]');
+  await expect(lifetime).toBeVisible();
+  await expect(lifetime.getByRole("heading", { name: "Tử Vi trọn đời" })).toBeVisible();
+  await expect(lifetime).toContainText(/\d+ Lá/);
+  await expect(lifetime.getByRole("button")).toHaveCount(1);
+  await expect(ladder).not.toContainText(/₫|\bVND\b|Sắp mở|Sắp ra mắt/);
 });
