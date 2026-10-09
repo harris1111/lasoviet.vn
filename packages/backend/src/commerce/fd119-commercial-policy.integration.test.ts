@@ -1,3 +1,5 @@
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
+import { reportReservations } from "@lasoviet/database";
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
@@ -167,6 +169,11 @@ describe("FD119 purchase cohorts", () => {
     expect(result.value.intent.amountLa).toBe(1200);
     const [intent] = await database.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id, result.value.intent.id));
     expect(intent!.commercialTerms).toMatchObject({version: 2, policy: "fd119", basePriceLa: 1200, chargedLa: 1200, guarantee: "half"});
+    const [reservation]=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));
+    const record=await createDatabaseReportQueryRepository(database,()=>frozenNow).readAuthorizedReport(owner.userId,reservation!.reportId);
+    expect(record).toMatchObject({source:"ledger_spend",wallet:{guaranteePromise:{chargedLa:1200,restoration:"half",maximumRestoreLa:600,claimBefore:"2026-10-01T10:00:00.000Z"}}});
+    expect(await createDatabaseReportQueryRepository(database,()=>frozenNow).readAuthorizedReport("other-owner",reservation!.reportId)).toBeNull();
+
   });
   it.each([false, true])("preserves the original960 scope and old guarantee with snapshot=%s", async snapshot => {
     const owner = await ownerFixture("Old scope"); const ports = await fund(owner);
@@ -184,6 +191,14 @@ describe("FD119 purchase cohorts", () => {
     const later = walletPorts(owner.userId, {now: () => new Date(frozenNow.getTime() + 8 * 86_400_000)});
     const expired = await later.service.createPurchaseIntent(owner.actor, request(owner));
     expect(expired).toMatchObject({ok: true, value: {amountLa: 960}});
+  });
+  it.each([false,true])("reads actual old960 completed purchase snapshot=%s without new refund rights",async snapshot=>{
+    const owner=await ownerFixture("Old read projection");const ports=await fund(owner);
+    await pending(owner,"ZIWEI-IDENTITY-P0","lifetime",960,snapshot);
+    await buy(owner,ports,"ZIWEI-IDENTITY-P0");
+    const [reservation]=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));
+    const record=await createDatabaseReportQueryRepository(database,()=>frozenNow).readAuthorizedReport(owner.userId,reservation!.reportId);
+    expect(record).toMatchObject({wallet:{guaranteePromise:{commercialPolicyVersion:1,chargedLa:960,restoration:"none",maximumRestoreLa:0,claimBefore:null}}});
   });
   it("a different Combo year creates a new FD119 purchase rather than grandfathering the SKU", async () => {
     const owner = await ownerFixture("New year"); const ports = await fund(owner);

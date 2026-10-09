@@ -76,10 +76,17 @@ it.each([2026, 2027, 2028])("generates and reads the frozen generic annual year%
     sourceSnapshot: {periodReading: annualFacts}, reservation: {...annualPayload, status: "html_ready"},
     version: {...annualPayload, structuredContent: annualContent, templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion},
     entitlements: [{id: "ent", chartId: "chart", sku: "ZIWEI-YEAR-P0", scope: {sections: ["periodReading"]}, periodKey: String(year), active: true, source: "ledger_spend"}]} as unknown as AuthorizedReportQueryRecord;
+  if (record.source !== "ledger_spend") throw new Error("wallet fixture required");
+  record.wallet.guaranteePromise={version:1,commercialPolicyVersion:2,chargedLa:480,restoration:"full",maximumRestoreLa:480,
+    claimBefore:"2026-10-01T10:00:00.000Z",oncePerAccount:true,requiresAllPaidComponentsReady:false};
   const query = createReportQueryService({repository: {readAuthorizedReport: async () => record}, now: () => new Date("2029-03-01T00:00:00Z")});
   const actor = {kind: "account" as const, userId: "owner", sessionId: "session", requestId: "request"};
   expect(await query.getReport(actor, reportId)).toMatchObject({ok: true, value: {state: "ready", content: {targetYear: year, periods: expect.any(Array)}}});
-  const view = await query.getReport(actor, reportId); expect(JSON.stringify(view)).not.toMatch(/evidenceKeys|periodId/);
+  const view = await query.getReport(actor, reportId); expect(JSON.stringify(view)).not.toMatch(/evidenceKeys|periodId|purchaseIntentId|spendId/);
+  expect(view).toMatchObject({ok:true,value:{guaranteePromise:record.wallet.guaranteePromise}});
+  record.wallet.guaranteePromise.maximumRestoreLa=600;
+  await expect(query.getReport(actor,reportId)).rejects.toBeInstanceOf(ReportQueryDataError);
+  record.wallet.guaranteePromise.maximumRestoreLa=480;
   record.entitlements[0]!.periodKey = String(year + 1);
   await expect(query.getReport(actor, reportId)).rejects.toBeInstanceOf(ReportQueryDataError);
 });

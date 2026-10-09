@@ -950,3 +950,5 @@ export * from "./free-reading-v2.js";
 export { matchesReportYearLineage } from "./report-year-lineage.js";
 
 export { RecoveryControlCommandSchema } from "./recovery-outbound-control-v1.js";
+
+export * from "./guarantee-promise-v1.js";
