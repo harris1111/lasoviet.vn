@@ -154,3 +154,7 @@ html .offer-ladder-cards .offer-ladder-best .offer-card-open { min-height: 56px;
   .offer-ladder-rail-balance { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; padding: 12px; border: 1px solid var(--border-soft); border-radius: 10px; background: var(--surface-raised); font-weight: 600; }
 }
 @media (max-width: 767px) { .offer-ladder-best .offer-ladder-price { font-size: 32px !important; } }
+
+/* The two links in the sentence under the offer-page title ("← Xem lại lá số · Xem bản mẫu") were 19px and 38px tall.
+   Grow the hit area with padding and cancel it with a negative margin so the sentence keeps its line height. */
+.topic-selector-context .back-to-chart-link, .topic-selector-context .view-sample-link { display: inline-block; padding-block: 13px; margin-block: -13px; }
