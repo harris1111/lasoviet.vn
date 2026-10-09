@@ -71,7 +71,7 @@ function durableSave(path, value) {
 
 export function acquireTrialRunnerLock(descriptor, path) {
   const opened = fstatSync(descriptor), lock = lstatSync(path);
-  if (!opened.isFile() || opened.dev !== lock.dev || opened.ino !== lock.ino || opened.uid !== 1000 ||
+  if (!opened.isFile() || opened.dev !== lock.dev || opened.ino !== lock.ino || opened.uid !== process.getuid() ||
       opened.nlink !== 1 || (opened.mode & 0o077)) fail("PAID_TRIAL_LOCK_REQUIRED");
   try {
     // Numeric-FD flock locks this inherited open file description. The helper

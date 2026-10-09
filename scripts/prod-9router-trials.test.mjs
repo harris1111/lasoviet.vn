@@ -175,7 +175,11 @@ test("unlocked matching FD3 must acquire the real lock and excludes a competing 
     process.stdin.resume();console.log('ACQUIRED');await new Promise(resolve=>process.stdin.once('end',resolve));
   `], { stdio: ["pipe", "pipe", "pipe", descriptor] });
   closeSync(descriptor); t.after(() => first.kill());
-  const [ready] = await once(first.stdout, "data"); assert.equal(ready.toString().trim(), "ACQUIRED");
+  const readiness = await Promise.race([
+    once(first.stdout, "data").then(([ready]) => ready.toString().trim()),
+    once(first, "exit").then(([code]) => { throw new Error(`Lock holder exited before readiness: ${code}`); }),
+  ]);
+  assert.equal(readiness, "ACQUIRED");
   const competing = openSync(path, "r+");
   try {
     const output = execFileSync(process.execPath, ["--input-type=module", "-e", `
