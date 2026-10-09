@@ -35,6 +35,7 @@
     "@lasoviet/config": "workspace:0.0.0",
     "@lasoviet/contracts": "workspace:0.0.0",
     "@lasoviet/database": "workspace:0.0.0",
+    "@lasoviet/engine-adapters": "workspace:0.0.0",
     "@nestjs/common": "12.0.1",
     "drizzle-orm": "0.45.2",
     "lunar-typescript": "1.8.6",
