@@ -93,3 +93,11 @@ FD119 release hold remains. Focused financial/quote checks, required checks,
 independent exact-head review and fresh CI apply before pushing the reconciled
 candidate; real-network golden paths need rebuilding against this exact tree.
 Do not infer new-policy deployment or activate reserved products.
+
+Reconciled focused run:94 tests across eight financial/catalog/quote suites
+passed. Producer and production web builds, i18n/lint/typecheck passed, retaining
+four existing lint warnings. The first isolated golden run correctly rejected
+a stale ungrouped1200 expectation: the actual new unlock sheet renders1.200 La.
+Only the independent displayed-price expectation is corrected; actual wallet,
+frozen-price, once-only replay and eleven durable-event checks stay intact.
+A fresh isolated golden run, exact-head review and CI remain required.

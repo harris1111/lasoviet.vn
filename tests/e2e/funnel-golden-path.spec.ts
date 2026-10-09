@@ -259,7 +259,7 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       const ladder = page.getByTestId("offer-ladder"); await expect(ladder).toBeVisible();
       for (const sku of ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-IDENTITY-P0"]) {
         const card = ladder.locator(`article[data-sku="${sku}"]`); await card.getByRole("button").click();
-        await expect(page.locator("dialog.unlock-sheet")).toContainText(sku.includes("WEALTH") ? "120" : sku.includes("EXCERPT") ? "240" : "1200");
+        await expect(page.locator("dialog.unlock-sheet")).toContainText(sku.includes("WEALTH") ? "120" : sku.includes("EXCERPT") ? "240" : "1.200");
         await page.keyboard.press("Escape");
       }
       const picker = ladder.locator(".palace-picker");
