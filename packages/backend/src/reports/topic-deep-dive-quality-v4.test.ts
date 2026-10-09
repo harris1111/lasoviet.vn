@@ -289,7 +289,7 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
     expect(result.findings.some((f) => f.code === "DEATH_TERM")).toBe(true);
   });
 
-  it("flags DISCOURAGED_TERM when unapproved jargon is present", () => {
+  it("retains discouraged jargon as advisory without rejecting factual content", () => {
     const report = makeValidRelationshipReport(facts);
     report.actions[0]!.recommendation += " Gặp phải sát tinh chiếu mệnh.";
     const result = validateZiweiTopicDeepDiveQualityV4(report, facts, {
@@ -300,8 +300,21 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
       minActionItemSyllables: 10,
       minTotalSyllables: 50,
     });
+    expect(result.ok).toBe(true);
+    expect(result.findings).toEqual([]);
+    expect(result.advisory?.some((f) => f.code === "DISCOURAGED_TERM")).toBe(true);
+  });
+
+  it.each(["Nên mua bùa để giải hạn.", "Hãy cúng giải hạn.", "Số xổ số phù hợp là 12.", "Giải hạn bằng cách mua lễ dâng sao.", "Hóa giải vận hạn bằng lễ dâng sao.", "Hãy mua vòng phong thủy để cải vận.", "Hãy hóa giải vận hạn.", "Không nên lo lắng, hãy mua bùa chú."])("keeps FD089 advice hard alongside editorial findings: %s", text => {
+    const report = makeValidRelationshipReport(facts);
+    report.actions[0]!.recommendation += ` Bản mệnh. ${text}`;
+    const result = validateZiweiTopicDeepDiveQualityV4(report, facts, {
+      minOverviewSyllables: 10, minPalaceAnchorSyllables: 10, minThematicDimensionSyllables: 10,
+      minDecadalTimingSyllables: 10, minActionItemSyllables: 10, minTotalSyllables: 50,
+    });
     expect(result.ok).toBe(false);
-    expect(result.findings.some((f) => f.code === "DISCOURAGED_TERM")).toBe(true);
+    expect(result.findings.some(f => f.code === "CONTENT_LINE_VIOLATION")).toBe(true);
+    expect(result.advisory?.some(f => f.code === "DISCOURAGED_TERM")).toBe(true);
   });
 
   it("flags CERTAINTY when pseudo-scientific certainty phrases are used", () => {
@@ -317,6 +330,19 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
     });
     expect(result.ok).toBe(false);
     expect(result.findings.some((f) => f.code === "CERTAINTY")).toBe(true);
+  });
+
+  it("keeps wrong evidence hard alongside editorial advice", () => {
+    const report = makeValidRelationshipReport(facts);
+    report.overview.narrative += " Bản mệnh cân nhắc.";
+    report.overview.evidenceKeys = ["foreign-evidence"];
+    const result = validateZiweiTopicDeepDiveQualityV4(report, facts, {
+      minOverviewSyllables: 10, minPalaceAnchorSyllables: 10, minThematicDimensionSyllables: 10,
+      minDecadalTimingSyllables: 10, minActionItemSyllables: 10, minTotalSyllables: 50,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.findings.some(f => f.code === "EVIDENCE_ANCHORS")).toBe(true);
+    expect(result.advisory?.some(f => f.code === "DISCOURAGED_TERM")).toBe(true);
   });
 
   it("flags LOCALE_HAN when Han ideographs are detected", () => {
