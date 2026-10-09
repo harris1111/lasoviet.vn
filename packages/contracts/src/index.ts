@@ -953,3 +953,5 @@ export { matchesReportYearLineage } from "./report-year-lineage.js";
 export { RecoveryControlCommandSchema } from "./recovery-outbound-control-v1.js";
 
 export * from "./bazi-structure-v1.js";
+
+export * from "./free-reading-frozen-call-v2.js";
