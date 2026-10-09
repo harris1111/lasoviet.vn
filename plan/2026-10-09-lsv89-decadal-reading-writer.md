@@ -51,3 +51,9 @@ quality rewriting. Recorded zero remains valid. No assertions or budgets were
 weakened. Exact committed-head review, fresh CI and installed deployment smoke
 remain subsequent gates. Commerce, delivery and manual/product release remain
 outside this bounded private writer.
+
+Master reconciliation includes the owner-side heading PR363 and private Bazi
+pair source PR368. Append-only package-export conflicts retain both modules;
+the writer implementation and contract are unchanged, and FE files are identical
+to master. Repeat producer/required checks and include actual pair-source
+PostgreSQL regressions before the reconciled head is released.
