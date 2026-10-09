@@ -1,0 +1,3679 @@
+{
+  "profiles": [
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ]
+      },
+      "id": "synthetic-01",
+      "input": {
+        "localSolarDate": "1950-01-01",
+        "localTime": "00:30",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.gui"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.xin"
+          }
+        ]
+      },
+      "id": "synthetic-02",
+      "input": {
+        "localSolarDate": "1952-02-02",
+        "localTime": "01:30",
+        "offsetMinutes": 0
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.gui"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.jia"
+          }
+        ]
+      },
+      "id": "synthetic-03",
+      "input": {
+        "localSolarDate": "1954-03-03",
+        "localTime": "02:30",
+        "offsetMinutes": 330
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "synthetic-04",
+      "input": {
+        "localSolarDate": "1956-04-04",
+        "localTime": "03:30",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.wu"
+          }
+        ]
+      },
+      "id": "synthetic-05",
+      "input": {
+        "localSolarDate": "1958-05-05",
+        "localTime": "04:30",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rabbit",
+          "stemId": "bazi.stem.ji"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.geng"
+          }
+        ]
+      },
+      "id": "synthetic-06",
+      "input": {
+        "localSolarDate": "1960-06-06",
+        "localTime": "05:30",
+        "offsetMinutes": 540
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rabbit",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "synthetic-07",
+      "input": {
+        "localSolarDate": "1962-07-07",
+        "localTime": "06:30",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ]
+      },
+      "id": "synthetic-08",
+      "input": {
+        "localSolarDate": "1964-08-08",
+        "localTime": "07:30",
+        "offsetMinutes": 0
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "synthetic-09",
+      "input": {
+        "localSolarDate": "1966-09-09",
+        "localTime": "08:30",
+        "offsetMinutes": 330
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.snake",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ]
+      },
+      "id": "synthetic-10",
+      "input": {
+        "localSolarDate": "1968-10-10",
+        "localTime": "09:30",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.snake",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ]
+      },
+      "id": "synthetic-11",
+      "input": {
+        "localSolarDate": "1970-11-11",
+        "localTime": "10:30",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.horse",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "synthetic-12",
+      "input": {
+        "localSolarDate": "1972-12-12",
+        "localTime": "11:30",
+        "offsetMinutes": 540
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.horse",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ]
+      },
+      "id": "synthetic-13",
+      "input": {
+        "localSolarDate": "1974-01-13",
+        "localTime": "12:30",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "synthetic-14",
+      "input": {
+        "localSolarDate": "1976-02-14",
+        "localTime": "13:30",
+        "offsetMinutes": 0
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.wu"
+          }
+        ]
+      },
+      "id": "synthetic-15",
+      "input": {
+        "localSolarDate": "1978-03-15",
+        "localTime": "14:30",
+        "offsetMinutes": 330
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ]
+      },
+      "id": "synthetic-16",
+      "input": {
+        "localSolarDate": "1980-04-16",
+        "localTime": "15:30",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "synthetic-17",
+      "input": {
+        "localSolarDate": "1982-05-17",
+        "localTime": "16:30",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rooster",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.jia"
+          }
+        ]
+      },
+      "id": "synthetic-18",
+      "input": {
+        "localSolarDate": "1984-06-18",
+        "localTime": "17:30",
+        "offsetMinutes": 540
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rooster",
+          "stemId": "bazi.stem.gui"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "synthetic-19",
+      "input": {
+        "localSolarDate": "1986-07-19",
+        "localTime": "18:30",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.wu"
+          }
+        ]
+      },
+      "id": "synthetic-20",
+      "input": {
+        "localSolarDate": "1988-08-20",
+        "localTime": "19:30",
+        "offsetMinutes": 0
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.geng"
+          }
+        ]
+      },
+      "id": "synthetic-21",
+      "input": {
+        "localSolarDate": "1990-09-21",
+        "localTime": "20:30",
+        "offsetMinutes": 330
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.pig",
+          "stemId": "bazi.stem.ji"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "synthetic-22",
+      "input": {
+        "localSolarDate": "1992-10-22",
+        "localTime": "21:30",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.pig",
+          "stemId": "bazi.stem.gui"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.jia"
+          }
+        ]
+      },
+      "id": "synthetic-23",
+      "input": {
+        "localSolarDate": "1994-11-23",
+        "localTime": "22:30",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "synthetic-24",
+      "input": {
+        "localSolarDate": "1996-12-24",
+        "localTime": "23:30",
+        "offsetMinutes": 540
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "synthetic-25",
+      "input": {
+        "localSolarDate": "1998-01-25",
+        "localTime": "00:30",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.geng"
+          }
+        ]
+      },
+      "id": "synthetic-26",
+      "input": {
+        "localSolarDate": "2000-02-26",
+        "localTime": "01:30",
+        "offsetMinutes": 0
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "synthetic-27",
+      "input": {
+        "localSolarDate": "2002-03-27",
+        "localTime": "02:30",
+        "offsetMinutes": 330
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ]
+      },
+      "id": "synthetic-28",
+      "input": {
+        "localSolarDate": "2004-04-01",
+        "localTime": "03:30",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "synthetic-29",
+      "input": {
+        "localSolarDate": "2006-05-02",
+        "localTime": "04:30",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rabbit",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.wu"
+          }
+        ]
+      },
+      "id": "synthetic-30",
+      "input": {
+        "localSolarDate": "2008-06-03",
+        "localTime": "05:30",
+        "offsetMinutes": 540
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "jie-03-420--3",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "08:42",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-03-420-3",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "08:48",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.snake",
+          "stemId": "bazi.stem.ji"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "jie-03-480--3",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "09:42",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.snake",
+          "stemId": "bazi.stem.ji"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-03-480-3",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "09:48",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ]
+      },
+      "id": "jie-03--300--3",
+      "input": {
+        "localSolarDate": "2027-02-03",
+        "localTime": "20:42",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-03--300-3",
+      "input": {
+        "localSolarDate": "2027-02-03",
+        "localTime": "20:48",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-05-420--3",
+      "input": {
+        "localSolarDate": "2027-03-06",
+        "localTime": "02:36",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-05-420-3",
+      "input": {
+        "localSolarDate": "2027-03-06",
+        "localTime": "02:42",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-05-480--3",
+      "input": {
+        "localSolarDate": "2027-03-06",
+        "localTime": "03:36",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-05-480-3",
+      "input": {
+        "localSolarDate": "2027-03-06",
+        "localTime": "03:42",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.ji"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-05--300--3",
+      "input": {
+        "localSolarDate": "2027-03-05",
+        "localTime": "14:36",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.ji"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-05--300-3",
+      "input": {
+        "localSolarDate": "2027-03-05",
+        "localTime": "14:42",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-07-420--3",
+      "input": {
+        "localSolarDate": "2027-04-05",
+        "localTime": "07:14",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-07-420-3",
+      "input": {
+        "localSolarDate": "2027-04-05",
+        "localTime": "07:20",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-07-480--3",
+      "input": {
+        "localSolarDate": "2027-04-05",
+        "localTime": "08:14",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-07-480-3",
+      "input": {
+        "localSolarDate": "2027-04-05",
+        "localTime": "08:20",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-07--300--3",
+      "input": {
+        "localSolarDate": "2027-04-04",
+        "localTime": "19:14",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-07--300-3",
+      "input": {
+        "localSolarDate": "2027-04-04",
+        "localTime": "19:20",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-09-420--3",
+      "input": {
+        "localSolarDate": "2027-05-06",
+        "localTime": "00:21",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-09-420-3",
+      "input": {
+        "localSolarDate": "2027-05-06",
+        "localTime": "00:27",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-09-480--3",
+      "input": {
+        "localSolarDate": "2027-05-06",
+        "localTime": "01:21",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-09-480-3",
+      "input": {
+        "localSolarDate": "2027-05-06",
+        "localTime": "01:27",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.horse",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-09--300--3",
+      "input": {
+        "localSolarDate": "2027-05-05",
+        "localTime": "12:21",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.horse",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-09--300-3",
+      "input": {
+        "localSolarDate": "2027-05-05",
+        "localTime": "12:27",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-11-420--3",
+      "input": {
+        "localSolarDate": "2027-06-06",
+        "localTime": "04:22",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-11-420-3",
+      "input": {
+        "localSolarDate": "2027-06-06",
+        "localTime": "04:28",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rabbit",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-11-480--3",
+      "input": {
+        "localSolarDate": "2027-06-06",
+        "localTime": "05:22",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dragon",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rabbit",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-11-480-3",
+      "input": {
+        "localSolarDate": "2027-06-06",
+        "localTime": "05:28",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.snake",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-11--300--3",
+      "input": {
+        "localSolarDate": "2027-06-05",
+        "localTime": "16:22",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-11--300-3",
+      "input": {
+        "localSolarDate": "2027-06-05",
+        "localTime": "16:28",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-13-420--3",
+      "input": {
+        "localSolarDate": "2027-07-07",
+        "localTime": "14:33",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-13-420-3",
+      "input": {
+        "localSolarDate": "2027-07-07",
+        "localTime": "14:39",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-13-480--3",
+      "input": {
+        "localSolarDate": "2027-07-07",
+        "localTime": "15:33",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-13-480-3",
+      "input": {
+        "localSolarDate": "2027-07-07",
+        "localTime": "15:39",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-13--300--3",
+      "input": {
+        "localSolarDate": "2027-07-07",
+        "localTime": "02:33",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-13--300-3",
+      "input": {
+        "localSolarDate": "2027-07-07",
+        "localTime": "02:39",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-15-420--3",
+      "input": {
+        "localSolarDate": "2027-08-08",
+        "localTime": "00:23",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-15-420-3",
+      "input": {
+        "localSolarDate": "2027-08-08",
+        "localTime": "00:29",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-15-480--3",
+      "input": {
+        "localSolarDate": "2027-08-08",
+        "localTime": "01:23",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-15-480-3",
+      "input": {
+        "localSolarDate": "2027-08-08",
+        "localTime": "01:29",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.horse",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-15--300--3",
+      "input": {
+        "localSolarDate": "2027-08-07",
+        "localTime": "12:23",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.horse",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-15--300-3",
+      "input": {
+        "localSolarDate": "2027-08-07",
+        "localTime": "12:29",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-17-420--3",
+      "input": {
+        "localSolarDate": "2027-09-08",
+        "localTime": "03:25",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-17-420-3",
+      "input": {
+        "localSolarDate": "2027-09-08",
+        "localTime": "03:31",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-17-480--3",
+      "input": {
+        "localSolarDate": "2027-09-08",
+        "localTime": "04:25",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-17-480-3",
+      "input": {
+        "localSolarDate": "2027-09-08",
+        "localTime": "04:31",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.wu"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-17--300--3",
+      "input": {
+        "localSolarDate": "2027-09-07",
+        "localTime": "15:25",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-17--300-3",
+      "input": {
+        "localSolarDate": "2027-09-07",
+        "localTime": "15:31",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-19-420--3",
+      "input": {
+        "localSolarDate": "2027-10-08",
+        "localTime": "19:13",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-19-420-3",
+      "input": {
+        "localSolarDate": "2027-10-08",
+        "localTime": "19:19",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-19-480--3",
+      "input": {
+        "localSolarDate": "2027-10-08",
+        "localTime": "20:13",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dog",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-19-480-3",
+      "input": {
+        "localSolarDate": "2027-10-08",
+        "localTime": "20:19",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rooster",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-19--300--3",
+      "input": {
+        "localSolarDate": "2027-10-08",
+        "localTime": "07:13",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.dragon",
+          "stemId": "bazi.stem.geng"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-19--300-3",
+      "input": {
+        "localSolarDate": "2027-10-08",
+        "localTime": "07:19",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.pig",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-21-420--3",
+      "input": {
+        "localSolarDate": "2027-11-07",
+        "localTime": "22:35",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.pig",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-21-420-3",
+      "input": {
+        "localSolarDate": "2027-11-07",
+        "localTime": "22:41",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-21-480--3",
+      "input": {
+        "localSolarDate": "2027-11-07",
+        "localTime": "23:35",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-21-480-3",
+      "input": {
+        "localSolarDate": "2027-11-07",
+        "localTime": "23:41",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.snake",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-21--300--3",
+      "input": {
+        "localSolarDate": "2027-11-07",
+        "localTime": "10:35",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.snake",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-21--300-3",
+      "input": {
+        "localSolarDate": "2027-11-07",
+        "localTime": "10:41",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-23-420--3",
+      "input": {
+        "localSolarDate": "2027-12-07",
+        "localTime": "15:34",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-23-420-3",
+      "input": {
+        "localSolarDate": "2027-12-07",
+        "localTime": "15:40",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-23-480--3",
+      "input": {
+        "localSolarDate": "2027-12-07",
+        "localTime": "16:34",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.monkey",
+          "stemId": "bazi.stem.jia"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-23-480-3",
+      "input": {
+        "localSolarDate": "2027-12-07",
+        "localTime": "16:40",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.xin"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-23--300--3",
+      "input": {
+        "localSolarDate": "2027-12-07",
+        "localTime": "03:34",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-23--300-3",
+      "input": {
+        "localSolarDate": "2027-12-07",
+        "localTime": "03:40",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-01-420--3",
+      "input": {
+        "localSolarDate": "2028-01-06",
+        "localTime": "02:51",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.ox",
+          "stemId": "bazi.stem.ding"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-01-420-3",
+      "input": {
+        "localSolarDate": "2028-01-06",
+        "localTime": "02:57",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-01-480--3",
+      "input": {
+        "localSolarDate": "2028-01-06",
+        "localTime": "03:51",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.geng"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.tiger",
+          "stemId": "bazi.stem.wu"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-01-480-3",
+      "input": {
+        "localSolarDate": "2028-01-06",
+        "localTime": "03:57",
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.rat",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-01--300--3",
+      "input": {
+        "localSolarDate": "2028-01-05",
+        "localTime": "14:51",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.ji"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.goat",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "jie-01--300-3",
+      "input": {
+        "localSolarDate": "2028-01-05",
+        "localTime": "14:57",
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.pig",
+          "stemId": "bazi.stem.xin"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "civil-19920615-2259",
+      "input": {
+        "localSolarDate": "1992-06-15",
+        "localTime": "22:59",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "civil-19920615-2300",
+      "input": {
+        "localSolarDate": "1992-06-15",
+        "localTime": "23:00",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "civil-19920615-2359",
+      "input": {
+        "localSolarDate": "1992-06-15",
+        "localTime": "23:59",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.pig",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.ren"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "civil-19920615-0000",
+      "input": {
+        "localSolarDate": "1992-06-16",
+        "localTime": "00:00",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.pig",
+          "stemId": "bazi.stem.yi"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "civil-20270204-2259",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "22:59",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "civil-20270204-2300",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "23:00",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "civil-20270204-2359",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": "23:59",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.rabbit",
+            "stemId": "bazi.stem.yi"
+          }
+        ],
+        "hour": {
+          "branchId": "bazi.branch.rat",
+          "stemId": "bazi.stem.bing"
+        },
+        "month": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "civil-20270204-0000",
+      "input": {
+        "localSolarDate": "2027-02-05",
+        "localTime": "00:00",
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": null,
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          },
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          },
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "unknown-li-chun-420",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": null,
+        "offsetMinutes": 420
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.jia"
+          }
+        ],
+        "hour": null,
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          },
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          },
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "unknown-li-chun-480",
+      "input": {
+        "localSolarDate": "2027-02-04",
+        "localTime": null,
+        "offsetMinutes": 480
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.gui"
+          }
+        ],
+        "hour": null,
+        "month": [
+          {
+            "branchId": "bazi.branch.ox",
+            "stemId": "bazi.stem.xin"
+          },
+          {
+            "branchId": "bazi.branch.tiger",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          },
+          {
+            "branchId": "bazi.branch.goat",
+            "stemId": "bazi.stem.ding"
+          }
+        ]
+      },
+      "id": "unknown-li-chun--300",
+      "input": {
+        "localSolarDate": "2027-02-03",
+        "localTime": null,
+        "offsetMinutes": -300
+      }
+    },
+    {
+      "expected": {
+        "day": [
+          {
+            "branchId": "bazi.branch.dog",
+            "stemId": "bazi.stem.ren"
+          }
+        ],
+        "hour": null,
+        "month": [
+          {
+            "branchId": "bazi.branch.horse",
+            "stemId": "bazi.stem.bing"
+          }
+        ],
+        "year": [
+          {
+            "branchId": "bazi.branch.monkey",
+            "stemId": "bazi.stem.ren"
+          }
+        ]
+      },
+      "id": "unknown-ordinary",
+      "input": {
+        "localSolarDate": "1992-06-15",
+        "localTime": null,
+        "offsetMinutes": 420
+      }
+    }
+  ],
+  "reference": {
+    "dayBoundary": "local-midnight",
+    "documentation": "https://github.com/yuangu/sxtwl_cpp/blob/master/python/README.md",
+    "engine": "sxtwl",
+    "hourPolicy": "getHourGZ(hour, True); late-Zi hour uses the next stem while civil day remains unchanged",
+    "monthBoundary": "jie-instant",
+    "scope": "Four pillar stems/branches only; no hidden stems, ten gods, elements, luck cycles or empirical prediction.",
+    "solarTermsOffsetMinutes": 480,
+    "source": "https://pypi.org/project/sxtwl/2.0.7/",
+    "sourceArchiveSha256": "38b24472389f7f6f3521c2c99e4b5e86c0184c7d6eb02e5409c239d21f0a6512",
+    "version": "2.0.7",
+    "yearBoundary": "li-chun"
+  },
+  "schemaVersion": 1,
+  "synthetic": true
+}

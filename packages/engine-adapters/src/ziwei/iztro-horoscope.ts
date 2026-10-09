@@ -1,3 +1,4 @@
+import { buildZiweiPurchaseFacts } from "./iztro-purchase-facts.js";
 import { astro, util } from "iztro";
 import { Lunar, Solar } from "lunar-typescript";
 
@@ -138,6 +139,7 @@ export type CalculateHoroscopeOptions = {
   chartVersionId?: string;
   asOfDate?: string; // YYYY-MM-DD
   targetYear?: number;
+  nearYearEndMonthThreshold?: number;
   isUnlocked?: boolean;
 };
 
@@ -414,6 +416,17 @@ export function calculateZiweiHoroscope(
     isUnlocked,
     yearly: yearlyHan,
     daily: dailyHoroscope,
+    purchaseFacts: buildZiweiPurchaseFacts({ asOfDate, cycles: decadalCycles,
+      provisional: birthProfile.normalizedTime.precision === "unknown" || birthProfile.normalizedTime.precision === "range",
+      nearYearEndThreshold: options.nearYearEndMonthThreshold,
+      annualPalace: year => {
+        const branch = Lunar.fromYmd(year, 6, 1).getYearZhi();
+        const index = util.fixEarthlyBranchIndex(branch as Parameters<typeof util.fixEarthlyBranchIndex>[0]);
+        const palaceId = palaceIds[astrolabe.palaces[index]!.name];
+        if (!palaceId) throw new Error("HOROSCOPE_ANNUAL_MAPPING_INVALID");
+        return palaceId;
+      },
+    }),
     decadalCycles, currentDecadalOrdinal: currentCycle?.ordinal ?? null,
     decadalDirection: directionStep === 1 ? "forward" : "reverse",
     chartMetadata: { bureau, lifeMasterStarId, bodyMasterStarId, naYinCycleIndex: Math.floor(birthCycleIndex / 2) },

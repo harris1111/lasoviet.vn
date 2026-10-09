@@ -380,7 +380,8 @@ export function createReportQueryService(options: {
             !content.success || !facts.success || content.data.kind !== periodKind || facts.data.kind !== periodKind ||
             content.data.periodKey !== entitlement.periodKey || content.data.periodKey !== facts.data.periodKey ||
             content.data.targetYear !== facts.data.targetYear || facts.data.chartVersionId !== reservation.chartVersionId || facts.data.chartId !== record.chartId ||
-            (periodKind === "annual" && content.data.targetYear !== 2026) || content.data.periods.length !== facts.data.periods.length ||
+            (periodKind === "annual" && (reservation.sku === "ZIWEI-YEAR-2026-P0"
+              ? content.data.targetYear !== 2026 : content.data.periodKey !== String(content.data.targetYear))) || content.data.periods.length !== facts.data.periods.length ||
             new Set(content.data.periods.map(item => item.periodId)).size !== facts.data.periods.length || content.data.periods.some(item => !facts.data.periods.some(period => period.id === item.periodId))) throw new ReportQueryDataError();
         const ready = ReportReadyViewV1Schema.safeParse({version: 1, state: "ready", contentVersion: tuple.contentVersion,
           reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, locale: "vi", sku: reservation.sku,
