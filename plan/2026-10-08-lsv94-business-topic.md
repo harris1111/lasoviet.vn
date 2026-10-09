@@ -58,3 +58,5 @@ and shipped atomically; do not deploy its inherited price policy independently.
 ## Unapplied migration reconciliation (2026-10-09)
 
 Bounded maintenance: rename only this unapplied migration from0067_business_topic to0068_business_topic/index68, preserving its SQL body. Inherit the reviewed private Bazi source migration0066 and the corrected commercial parent order. Applied migrations≤0065 remain byte-identical. Previous receipts describe earlier heads; rerun actual PostgreSQL/schema replay, producer/required gates, independent exact-head review and fresh CI. Draft status and FE/manual/native/commercial release holds remain binding. No public/provider/price activation.
+
+The first renumbered run recorded79 passes and3 historical-schema fixture failures: the pre-Business helper still named the old FD1190066 file. Correct the helper to the renamed0067 file and document Business as0068. Its SQL slices and every financial assertion remain unchanged; rerun the same six suites and required gates.
