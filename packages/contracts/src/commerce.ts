@@ -163,6 +163,8 @@ export function resolveEntitlementScopeForSku(
     case "ZIWEI-BUSINESS-P0":
     case "ZIWEI-CAREER-TRANSITION-P0":
     case "ZIWEI-FAMILY-CHILDREN-P0":
+    case "ZIWEI-EDUCATION-CAREER-P0":
+    case "ZIWEI-PROPERTY-HOME-P0":
       return { sections: ["topicDeepDive"] };
     case "ZIWEI-NATAL-EXCERPT-P0":
       return TIER_1_ENTITLEMENT_SCOPE;
@@ -177,6 +179,8 @@ export function resolveEntitlementScopeForSku(
 export const PRODUCT_DISPLAY_NAMES: Record<string, Record<"vi" | "en", string>> = {
   "ZIWEI-CAREER-TRANSITION-P0": findLaProduct("ZIWEI-CAREER-TRANSITION-P0")!.name,
   "ZIWEI-FAMILY-CHILDREN-P0": findLaProduct("ZIWEI-FAMILY-CHILDREN-P0")!.name,
+  "ZIWEI-EDUCATION-CAREER-P0": findLaProduct("ZIWEI-EDUCATION-CAREER-P0")!.name,
+  "ZIWEI-PROPERTY-HOME-P0": findLaProduct("ZIWEI-PROPERTY-HOME-P0")!.name,
   "ZIWEI-BUSINESS-P0": findLaProduct("ZIWEI-BUSINESS-P0")!.name,
   "ZIWEI-IDENTITY-P0": {
     vi: "Tử Vi trọn đời",

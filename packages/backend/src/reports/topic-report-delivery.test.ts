@@ -3,7 +3,7 @@ import { projectTopicDeepDivePublicContent, ReportReadyViewV1Schema } from "@las
 import { createReportGenerationService, type ReportGenerationServiceDependencies, type GenerateReportInput } from "./report-generation.service.js";
 import { createReportQueryService, ReportQueryDataError, type AuthorizedReportQueryRecord } from "./report-query.service.js";
 import { writeZiweiTopicDeepDiveV4 } from "./topic-deep-dive-writer-v4.js";
-import { buildFactsFixture, makeBusinessContentFixture, makeCareerTransitionContentFixture, makeFamilyChildrenContentFixture, makeValidRelationshipContent } from "./topic-report.test-fixture.js";
+import { buildFactsFixture, makeBusinessContentFixture, makeCareerTransitionContentFixture, makeFamilyChildrenContentFixture, makeStudyHousingContentFixture, makeValidRelationshipContent } from "./topic-report.test-fixture.js";
 import { topicReportVersions } from "./topic-report-config.js";
 
 vi.mock("./topic-deep-dive-writer-v4.js", () => ({ writeZiweiTopicDeepDiveV4: vi.fn() }));
@@ -64,6 +64,20 @@ describe("paid topic delivery", () => {
     expect(writeZiweiTopicDeepDiveV4).toHaveBeenCalledWith(expect.objectContaining({topicId: "family_children",
       costContext: expect.objectContaining({sku: "ZIWEI-FAMILY-CHILDREN-P0"})}));
     expect(commit).toHaveBeenCalledWith(expect.objectContaining({sku: "ZIWEI-FAMILY-CHILDREN-P0", structuredContent: family,
+      templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion}));
+    expect(dependencies.provider.generateStructured).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["education_career", "ZIWEI-EDUCATION-CAREER-P0"],
+    ["property_home", "ZIWEI-PROPERTY-HOME-P0"],
+  ] as const)("dispatches %s through its own immutable topic lineage", async (topicId, sku) => {
+    const content = makeStudyHousingContentFixture(facts, topicId);
+    vi.mocked(writeZiweiTopicDeepDiveV4).mockResolvedValue({ok: true, value: {content,
+      quality: {ok: true, findings: []}, providerId: "synthetic", modelId: "synthetic"}} as never);
+    const {service, commit, dependencies} = setup();
+    expect((await service.generate({...input, job: {...input.job, payload: {...payload, sku}}})).ok).toBe(true);
+    expect(writeZiweiTopicDeepDiveV4).toHaveBeenCalledWith(expect.objectContaining({topicId, costContext: expect.objectContaining({sku})}));
+    expect(commit).toHaveBeenCalledWith(expect.objectContaining({sku, structuredContent: content,
       templateVersion: tuple.templateVersion, renderVersion: tuple.renderVersion}));
     expect(dependencies.provider.generateStructured).not.toHaveBeenCalled();
   });

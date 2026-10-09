@@ -38,6 +38,8 @@ export const TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES = [
   "THEMATIC_OVERLAP",
   "UNSUPPORTED_FINANCIAL_METRIC",
   "UNSUPPORTED_FAMILY_CLAIM",
+  "UNSUPPORTED_EDUCATION_CLAIM",
+  "UNSUPPORTED_PROPERTY_CLAIM",
 ] as const;
 
 export type TopicDeepDiveQualityFindingCode =
@@ -174,7 +176,7 @@ export function validateZiweiTopicDeepDiveQualityV4(
 
   let totalSyllables = 0;
 
-  if (["business_enterprise", "career_transition", "family_children"].includes(report.topicId)) {
+  if (["business_enterprise", "career_transition", "family_children", "education_career", "property_home"].includes(report.topicId)) {
     const text = [report.title, report.overview.title, report.overview.narrative,
       ...report.palaceAnchors.flatMap(p => [p.title, p.narrative]),
       ...report.thematicDimensions.flatMap(p => [p.title, p.narrative]),
@@ -185,6 +187,17 @@ export function validateZiweiTopicDeepDiveQualityV4(
     const explicitMetricAmount = /(?:thu nhập|doanh thu|lợi nhuận|tỷ suất|lợi tức)\s*(?:(?:là|đạt|ở mức|khoảng|dự kiến)\s*)?\d+(?:[.,]\d+)?/iu;
     if (amountAfterUnit.test(text) || amountBeforeUnit.test(text) || explicitMetricAmount.test(text)) {
       add("root", "UNSUPPORTED_FINANCIAL_METRIC", "The chart source supplies no numeric income, return or revenue metric.");
+    }
+    if (report.topicId === "education_career") {
+      const outcome = /(?:bạn|đương số)\s+(?:sẽ|đã|đang|chắc chắn|nhất định)\s+(?:đỗ|đậu|trúng tuyển|tốt nghiệp|có bằng|đạt học bổng|được tuyển dụng)|(?:điểm thi|điểm số|điểm trung bình|gpa)\s*(?:(?:là|đạt|ở mức|khoảng)\s*)?\d+(?:[.,]\d+)?|(?:đỗ|đậu|trúng tuyển|tốt nghiệp)\s+(?:vào|trong)\s+(?:năm|tháng|ngày)/iu;
+      const biography = /(?:bạn|đương số)\s+(?:là|đang là)\s+(?:học sinh|sinh viên|cử nhân|thạc sĩ|tiến sĩ)|(?:chắc chắn|bảo đảm|đảm bảo|nhất định)\s+(?:đỗ|đậu|trúng tuyển|có việc|tìm được việc)/iu;
+      if (outcome.test(text) || biography.test(text)) add("root", "UNSUPPORTED_EDUCATION_CLAIM", "The chart source supplies no schooling biography, score, admission/degree or guaranteed employment outcome.");
+    }
+    if (report.topicId === "property_home") {
+      const outcome = /(?:bạn|đương số)\s+(?:sẽ|đã|đang|chắc chắn)\s+(?:sở hữu|có nhà|mua nhà|bán nhà|chuyển nhà|mua đất|bán đất)|(?:mua nhà|bán nhà|chuyển nhà|mua đất|bán đất)\s+(?:vào|trong)\s+(?:năm|tháng|ngày)/iu;
+      const physicalMetric = /(?:diện tích|giá nhà|giá đất|giá bán|giá mua)\s*(?:(?:là|đạt|ở mức|khoảng)\s*)?\d+(?:[.,]\d+)?|\d+(?:[.,]\d+)?\s*(?:m2|m²|mét vuông|hecta)(?![\p{L}\p{N}])/iu;
+      const direction = /(?:hướng nhà|nhà hướng|hướng đất|đất hướng|phong thủy)\s*(?:(?:là|nên chọn|hợp|ở)\s*)?(?:đông|tây|nam|bắc)|(?:bạn|đương số)\s+hợp\s+(?:nhà|đất)\s+hướng/iu;
+      if (outcome.test(text) || physicalMetric.test(text) || direction.test(text)) add("root", "UNSUPPORTED_PROPERTY_CLAIM", "The chart source supplies no property ownership, physical price/size/location, event date or feng-shui direction.");
     }
     if (report.topicId === "family_children") {
       const childCount = /(?<![\p{L}\p{N}])(?:\d+|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười)\s+(?:đứa\s+)?(?:con|bé)(?:\s+(?:trai|gái))?(?![\p{L}\p{N}])/iu;

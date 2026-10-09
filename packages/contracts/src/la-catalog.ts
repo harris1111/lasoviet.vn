@@ -101,6 +101,16 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     locales: ["vi"], category: "topic", qualifiesForRollover: false, availability: "reserved",
   },
   {
+    sku: "ZIWEI-EDUCATION-CAREER-P0", priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
+    name: {vi: "Học hành và con đường nghề", en: "Education and career path"},
+    locales: ["vi"], category: "topic", qualifiesForRollover: false, availability: "reserved",
+  },
+  {
+    sku: "ZIWEI-PROPERTY-HOME-P0", priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
+    name: {vi: "Nhà đất và an cư", en: "Property and home"},
+    locales: ["vi"], category: "topic", qualifiesForRollover: false, availability: "reserved",
+  },
+  {
     sku: "ZIWEI-CAREER-P0",
     priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
     name: { vi: "Công việc và tài lộc", en: "Career and wealth" },
@@ -351,6 +361,8 @@ export const LaSkuSchema = z.enum([
   "ZIWEI-BUSINESS-P0",
   "ZIWEI-CAREER-TRANSITION-P0",
   "ZIWEI-FAMILY-CHILDREN-P0",
+  "ZIWEI-EDUCATION-CAREER-P0",
+  "ZIWEI-PROPERTY-HOME-P0",
   "ZIWEI-PALACE-LIFE-P0",
   "ZIWEI-PALACE-SIBLINGS-P0",
   "ZIWEI-PALACE-SPOUSE-P0",

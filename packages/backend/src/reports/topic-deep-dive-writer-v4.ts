@@ -184,8 +184,8 @@ function filterTopicKnowledgePacks(
   const prefix =
     topicId === "relationship_marriage"
       ? ["thematic_relationships_family", "palace_ziwei.palace.spouse", "palace_ziwei.palace.fortune"]
-      : ["business_enterprise", "career_transition", "family_children"].includes(topicId)
-        ? [topicId === "family_children" ? "thematic_relationships_family" : "thematic_career_wealth",
+      : ["business_enterprise", "career_transition", "family_children", "education_career", "property_home"].includes(topicId)
+        ? [...(topicId === "family_children" ? ["thematic_relationships_family"] : topicId === "education_career" || topicId === "property_home" ? [] : ["thematic_career_wealth"]),
           ...[...TOPIC_PALACE_SCOPES[topicId].primaryPalaces, ...TOPIC_PALACE_SCOPES[topicId].supportingPalaces].map(palace => `palace_${palace}`)]
         : ["thematic_career_wealth", "palace_ziwei.palace.career", "palace_ziwei.palace.wealth"];
 
@@ -287,6 +287,16 @@ export async function writeZiweiTopicDeepDiveV4(
       distinguishFromCareer: "Address concrete tradeoffs between staying, changing roles and moving environments; do not substitute a general Career & Wealth reading or an enterprise plan.",
       forbidden: "No invented event date, guaranteed job offer, salary, revenue or return. Decadal dates are only the computed cycle, never a predicted hiring event.",
     }} : {}),
+    ...(input.topicId === "education_career" ? {educationScope: {
+      focus: "Learning, mentoring and practical skill experiments grounded in Career/Parents and supplied Life/Fortune/Siblings facts.",
+      distinguishFromTransition: "Discuss how to choose learning steps and seek guidance; do not substitute a job-transition forecast or assume the reader is a student, parent or degree holder.",
+      forbidden: "No invented schooling biography, exam score or pass date, admission/degree outcome, guaranteed employment or uncomputed education metric.",
+    }} : {}),
+    ...(input.topicId === "property_home" ? {propertyScope: {
+      focus: "Conditional housing and shared-space considerations grounded in Property and supplied Wealth/Parents/Travel facts.",
+      distinguishFromBusiness: "Discuss practical housing conditions and questions to check independently, not investment returns or a buy/sell recommendation. Do not assume ownership or household biography.",
+      forbidden: "No computed house price/size/location, investment return, buy/sell/move date, assumed property ownership or invented feng-shui direction.",
+    }} : {}),
     ...(input.topicId === "family_children" ? {familyScope: {
       focus: "Household cooperation, shared space, supportive family communication and practical responsibilities grounded in Children/Property and the supplied Parents/Siblings/Fortune facts.",
       distinguishFromRelationship: "Discuss conditional family and caregiving decisions without assuming an existing spouse or child; do not substitute a partner/romance reading.",
@@ -354,7 +364,7 @@ Tất cả các tiêu chí trên là bắt buộc. Phản hồi phải là JSON 
   }
 
   const content = parsed.data;
-  if (["business_enterprise", "career_transition", "family_children"].includes(input.topicId)) {
+  if (["business_enterprise", "career_transition", "family_children", "education_career", "property_home"].includes(input.topicId)) {
     const keys = [content.overview, ...content.palaceAnchors, ...content.thematicDimensions,
       content.decadalTiming, ...content.actions].flatMap(section => section.evidenceKeys);
     if (keys.some(key => !allowedSet.has(key))) {

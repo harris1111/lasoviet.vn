@@ -384,3 +384,39 @@ export function makeFamilyChildrenContentFixture(facts: ReturnType<typeof buildF
       {recommendation: "Dành một buổi trao đổi ngắn để hỏi điều nào trong việc chung cần điều chỉnh.", rationale: "Thỏa thuận có thể được cập nhật theo nhu cầu thực tế, thay vì suy đoán hoàn cảnh của nhau.", avoid: "Tránh dùng một nhận định từ lá số thay cho cuộc trao đổi trực tiếp.", evidenceKeys: [fortune]},
     ] };
 }
+
+/** Literal synthetic learning/housing mechanics; not semantic product acceptance. */
+export function makeStudyHousingContentFixture(facts: ReturnType<typeof buildFactsFixture>, topicId: "education_career" | "property_home"): ZiweiTopicDeepDiveContentV1 {
+  const education = topicId === "education_career";
+  const keyFor = (source: string) => {
+    const key = facts.evidence.items.find(item => item.dimension === "natal" && item.sourceKeys.includes(source))?.key;
+    if (!key) throw new Error("Missing actual study/housing evidence"); return key;
+  };
+  const primary = education ? ["ziwei.palace.career", "ziwei.palace.parents"] as const : ["ziwei.palace.property"] as const;
+  const supporting = education ? "ziwei.palace.fortune" : "ziwei.palace.wealth";
+  const decadal = facts.evidence.items.find(item => item.dimension === "decadal")?.key;
+  if (!decadal) throw new Error("Missing actual decadal evidence");
+  const learning = "cung Quan Lộc có Tử Vi và Thiên Tướng trong dữ kiện hiện có. Khi chọn một điều muốn học thêm, bạn có thể bắt đầu từ nhiệm vụ thực tế mình muốn làm tốt hơn, thử một bài tập nhỏ rồi hỏi người có kinh nghiệm điều cần chỉnh. Cách này giúp tách điều mình thích khỏi yêu cầu của công việc đang cân nhắc. Hãy ghi lại phản hồi và điều kiện thời gian trước khi chọn bước tiếp theo; lá số không xác định một kết quả thi hay cơ hội tuyển dụng cụ thể.";
+  const mentoring = "cung Phụ Mẫu không có chính tinh và có Văn Khúc trong bộ dữ kiện này. Khi cần lời khuyên về học tập, bạn có thể hỏi rõ người hướng dẫn dựa trên kinh nghiệm nào và đề nghị một ví dụ để tự thử. Nếu ý kiến khác nhau, hãy so sánh theo mục tiêu và nguồn lực thực tế, thay vì chọn chỉ vì vị trí của người nói. Những câu hỏi này phù hợp nhiều hoàn cảnh học tập khác nhau; dữ kiện không cung cấp một tiểu sử học hành của riêng bạn.";
+  const housing = "cung Điền Trạch không có chính tinh và có Văn Khúc trong phần dữ kiện được cung cấp. Khi cân nhắc một không gian sống, bạn có thể ghi lại nhu cầu về nghỉ ngơi, riêng tư và việc chung rồi kiểm tra điều kiện thực tế trước khi thống nhất phương án. Hãy hỏi người liên quan điều gì cần làm rõ và tách mong muốn cá nhân khỏi trách nhiệm có thể đảm nhận. Điểm nhìn này không xác định tình trạng sở hữu hay một lịch giao dịch bất động sản.";
+  const household = "cung Tài Bạch có Vũ Khúc và Thái Âm trong dữ kiện hiện có. Trước một thay đổi nơi ở, bạn có thể tự kiểm tra nguồn lực thực tế, điều kiện sử dụng và trách nhiệm của người cùng tham gia. Sau đó ghi lại các câu hỏi còn thiếu để kiểm tra độc lập, thay vì lấy một nhận định từ lá số thay cho việc xem hồ sơ và trao đổi trực tiếp. Những điều cần kiểm tra phụ thuộc hoàn cảnh thực tế; cung Điền Trạch không cung cấp giá hay quy mô của một căn nhà.";
+  const narratives = education ? [learning, mentoring] : [housing];
+  const shared = education ? `${learning} ${mentoring}` : `${housing} ${household}`;
+  const name = education ? "Học hành và con đường nghề" : "Nhà đất và an cư";
+  const starKeys = education ? [keyFor("ziwei.star.ziwei"), keyFor("ziwei.star.tianxiang"), keyFor("ziwei.star.wenqu")] : [keyFor("ziwei.star.wenqu"), keyFor("ziwei.star.wuqu"), keyFor("ziwei.star.taiyin")];
+  const keys = [...primary.map(keyFor), keyFor(supporting), ...starKeys];
+  return {topicId, title: `Luận giải chuyên sâu ${name}`,
+    overview: {title: education ? "Bước học nhỏ và sự hướng dẫn" : "Điều kiện sống và nguồn lực thực tế", narrative: shared, evidenceKeys: keys},
+    palaceAnchors: primary.map((palaceId, i) => ({palaceId, title: education ? (i === 0 ? "Cung Quan Lộc: chọn bước học" : "Cung Phụ Mẫu: hỏi cách hướng dẫn") : "Cung Điền Trạch: kiểm tra điều kiện sống", narrative: narratives[i]!, evidenceKeys: [keyFor(palaceId)]})),
+    thematicDimensions: [
+      {key: education ? "learning_experiments" : "housing_conditions", title: "Kiểm tra điều kiện trước khi chọn", narrative: shared, evidenceKeys: keys},
+      {key: education ? "mentoring_questions" : "shared_responsibilities", title: "Hỏi rõ trách nhiệm và bước tiếp theo", narrative: shared, evidenceKeys: keys},
+    ],
+    decadalTiming: {title: "Chặng hiện hành và cách chuẩn bị", state: "active", index: 2, ageRange: [24, 33], yearRange: [2024, 2033], palaceId: "ziwei.palace.fortune",
+      narrative: `Đại vận 24–33 tuổi, từ năm 2024 đến năm 2033, đang ở cung Phúc Đức trong bộ dữ kiện. Đây là mốc chặng được tính, không phải lịch của một kết quả học tập hay giao dịch nhà đất. ${shared}`, evidenceKeys: [decadal, ...keys]},
+    actions: [
+      {recommendation: education ? "Chọn một kỹ năng cần thử, làm bài tập nhỏ và ghi lại điều muốn hỏi người hướng dẫn." : "Ghi lại các điều kiện về không gian sống và kiểm tra thực tế trước khi chọn phương án.", rationale: "Điều kiện cụ thể giúp tách mong muốn cá nhân khỏi những việc cần xác minh độc lập.", avoid: "Tránh dùng một nhận định từ lá số thay cho kiểm tra thực tế.", evidenceKeys: [keyFor(primary[0])]},
+      {recommendation: "Hỏi người liên quan về kinh nghiệm, trách nhiệm và điều kiện cần làm rõ trước bước tiếp theo.", rationale: "Trao đổi có câu hỏi cụ thể giúp kiểm tra thông tin còn thiếu và điều chỉnh theo nguồn lực hiện có.", avoid: "Tránh tự giả định hoàn cảnh hoặc kỳ vọng của người khác.", evidenceKeys: keys},
+      {recommendation: "Ghi lại các câu hỏi còn thiếu rồi kiểm tra độc lập trước khi nhận một trách nhiệm mới.", rationale: "Phương án cần phù hợp điều kiện thực tế; các dữ kiện lá số chỉ là điểm nhìn để cân nhắc.", avoid: "Tránh nhận trách nhiệm vượt thời gian và nguồn lực mình có.", evidenceKeys: keys},
+    ]};
+}

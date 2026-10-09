@@ -16,6 +16,8 @@ describe("ZiweiTopicDeepDive contracts", () => {
       "business_enterprise",
       "career_transition",
       "family_children",
+      "education_career",
+      "property_home",
     ]);
     expect(ZIWEI_TOPIC_SKU_MAP.relationship_marriage).toBe("ZIWEI-RELATIONSHIP-P0");
     expect(ZIWEI_TOPIC_SKU_MAP.career_wealth).toBe("ZIWEI-CAREER-P0");
