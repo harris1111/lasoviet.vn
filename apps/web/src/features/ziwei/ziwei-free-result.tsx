@@ -15,6 +15,7 @@ import { ZiweiDecadeStrip } from "./ziwei-decade-strip";
 import { ZiweiMonthStrip } from "./ziwei-month-strip";
 import type { FreeResultDecadeCycle } from "./ziwei-free-result-model";
 import { buildClosingHook } from "./ziwei-closing-hook";
+import { presentOverviewSection } from "./ziwei-overview-text";
 import { ZiweiSupportPalaces, type SupportPalace } from "./ziwei-support-palaces";
 import { EvidenceDrawer } from "../evidence/evidence-drawer";
 import { ReportPalaceRadar, ReportScoreExplainer } from "../reports/report-chart-visuals";
@@ -415,8 +416,11 @@ export function ZiweiFreeResult({
               {chart.provisional && <p role="status">{t("provisional.insightsDisclaimer")}</p>}
               <p className="fd109-source-note">{t("freeResult.structuralOverview")}</p>
               <div className="fd109-overview-prose" data-testid="fd109-long-overview">
-                {model.overview.sections.map(section => <article key={section.id} data-overview-section={section.id}>
+                {model.overview.sections.map(presentOverviewSection).map(section => <article key={section.id} data-overview-section={section.id}>
                   <h3>{section.title}</h3>{section.paragraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                  {section.basis.length > 0 && <details className="fd109-overview-basis" data-testid="fd109-overview-basis">
+                    <summary>{t("freeResult.overviewBasis")}</summary>{section.basis.map((fact, index) => <p key={index}>{fact}</p>)}
+                  </details>}
                 </article>)}
               </div>
               <PartFeedback locale={locale} chartId={chartId} partId="structural-overview" sku="free-result" />
