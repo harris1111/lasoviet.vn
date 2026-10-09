@@ -1,3 +1,4 @@
+import { topicIdForSku } from "./topic-report-config.js";
 import { randomUUID } from "node:crypto";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { SINGLE_PALACE_SKUS } from "@lasoviet/contracts";
@@ -76,7 +77,7 @@ export async function reserveNatalReport(database: Database, input: {
 /** Topic and period purchases keep independent generation provenance. */
 export async function reservePaidReport(database: Database, input: Parameters<typeof reserveNatalReport>[1]) {
   if (NATAL_REPORT_SKUS.includes(input.entitlement.sku)) return reserveNatalReport(database, input);
-  if (!["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(input.entitlement.sku)) throw new Error("REPORT_SKU_UNSUPPORTED");
+  if (!topicIdForSku(input.entitlement.sku) && !["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(input.entitlement.sku)) throw new Error("REPORT_SKU_UNSUPPORTED");
   return reserveDedicatedReport(database, input);
 }
 

@@ -119,6 +119,9 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
     OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} >= 0 AND ${table.priceLa} <= 1200)
     OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
+    OR (${table.sku} = 'ZIWEI-BUSINESS-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} IN (480, 384)
+      AND ${table.periodKey} = 'lifetime' AND ${table.commercialTerms} IS NOT NULL
+      AND ${table.commercialTerms}->>'version' = '2' AND ${table.commercialTerms}->>'policy' = 'fd119')
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
     OR (${table.sku} = 'ZIWEI-MONTHLY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (300, 240, 0))
     OR (${table.sku} = 'ZIWEI-YEAR-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384) AND ${table.periodKey} ~ '^(19[0-9]{2}|20[0-9]{2}|2100)$')
