@@ -134,6 +134,8 @@
     "ladderSelect": "Chọn phần này",
     "ladderSelected": "Đã chọn",
     "ladderBalance": "Số dư: {balance} Lá",
+    "ladderRail": "Các tầng",
+    "ladderRailCount": "{count} phần",
     "inlinePackLabel": "Chọn gói nạp Lá",
     "inlinePackBonus": "+{bonus} Lá tặng",
     "inlineRemaining": "Mở xong, ví còn {balance} Lá.",

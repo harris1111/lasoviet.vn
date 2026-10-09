@@ -81,4 +81,17 @@ describe("OfferCard", () => {
     expect(html).toContain("Chưa hỗ trợ lựa chọn này");
     expect(html).not.toContain("Sắp mở");
   });
+
+  it("marks its tier and the rail anchor, and decorates only the lifetime card", () => {
+    const plain = renderToStaticMarkup(card({ tierLabel: "Cung", anchorId: "offer-tier-first-palace" }) as never);
+    expect(plain).toContain('id="offer-tier-first-palace"');
+    expect(plain).toContain('<span class="offer-card-tier" aria-hidden="true">Cung</span>');
+    expect(plain).not.toContain("offer-ribbon");
+    expect(plain).not.toContain("offer-orn");
+    const lifetime = renderToStaticMarkup(card({ sku: "ZIWEI-IDENTITY-P0", lifetime: true }) as never);
+    expect(lifetime.match(/class="offer-orn offer-orn-(tl|tr|bl|br)"/g)).toHaveLength(4);
+    expect(lifetime).toContain('<span class="offer-ribbon">Đáng nhất</span>');
+    expect(lifetime).toContain('class="offer-save"');
+    expect(lifetime).toContain("offer-ladder-best");
+  });
 });
