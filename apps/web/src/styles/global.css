@@ -1278,3 +1278,10 @@ html[data-theme="light"]:has([data-light-ready]) .result-tab-button.is-active {
   color: var(--pearl-400);
   line-height: 1.7;
 }
+
+/* Shared header and footer: every link and button is a real tap target (at least 44px), on every page. */
+.site-header .brand, .desktop-nav a, .locale-link, .login-link { display: inline-flex; align-items: center; min-height: 44px; }
+.theme-toggle { flex: none; min-width: 44px; }
+.site-footer .footer-group a, .site-footer .footer-policy-links a, .site-footer .footer-support-email { min-height: 44px; }
+/* The guest-data sentence under the result page has an inline link: grow its hit area without changing the line height. */
+.result-privacy-note a { display: inline-block; padding-block: 13px; margin-block: -13px; }
