@@ -883,3 +883,6 @@ export { createFreeReadingPrivateRunner } from "./ziwei/free-reading-private-run
 export { createFreeReadingRequestService, type FreeReadingRequestOptions } from "./ziwei/free-reading-request.service.js";
 
 export { buildDecadalReadingSource } from "./reports/decadal-reading-source.js";
+
+export * from "./reports/decadal-reading-writer.js";
+export * from "./reports/decadal-report-config.js";
