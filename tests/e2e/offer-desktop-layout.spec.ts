@@ -25,6 +25,11 @@ test("offer page layout holds from phone to wide desktop", async ({ page }) => {
     expect(layout.overflow, `no horizontal scroll at ${width}px`).toBe(false);
     expect(layout.cards.length).toBeGreaterThanOrEqual(3);
     for (const card of layout.cards) expect(card.tap, `${card.sku} button is a real tap target at ${width}px`).toBeGreaterThanOrEqual(44);
+    // The links in the sentence under the page title are tap targets too (they were 19px and 38px tall).
+    for (const link of [page.locator(".back-to-chart-link"), page.locator(".view-sample-link")]) {
+      const box = await link.boundingBox();
+      expect(box?.height ?? 0, `context link at ${width}px`).toBeGreaterThanOrEqual(44);
+    }
 
     if (width < 768) {
       expect(layout.rail).toBe("none");
