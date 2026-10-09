@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { bigint, check, date, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import type { FreePalaceGiftContentV1, FreePalaceGiftFactV1, FreePalaceGiftFrozenCallV1 } from "@lasoviet/contracts";
+import type { FreePalaceGiftContentV1, FreePalaceGiftFactV1, FreePalaceGiftFrozenCallV1, FreeReadingFrozenCallV2, FreeReadingCandidateV2 } from "@lasoviet/contracts";
 
 const money = (name: string) => bigint(name, { mode: "bigint" }).notNull().default(sql`0`);
 const time = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
@@ -64,7 +64,7 @@ export const freeAiSettlements = pgTable("free_ai_settlements", {
 export const freeAiArtifacts = pgTable("free_ai_artifacts", {
   requestId: uuid("request_id").primaryKey().references(() => freeAiRequests.id, { onDelete: "restrict" }),
   deletionGeneration: integer("deletion_generation").notNull(),
-  frozenCall: jsonb("frozen_call").$type<FreePalaceGiftFrozenCallV1>(),
-  content: jsonb("content").$type<FreePalaceGiftContentV1>(), facts: jsonb("facts").$type<FreePalaceGiftFactV1[]>(),
+  frozenCall: jsonb("frozen_call").$type<FreePalaceGiftFrozenCallV1 | FreeReadingFrozenCallV2>(),
+  content: jsonb("content").$type<FreePalaceGiftContentV1 | FreeReadingCandidateV2>(), facts: jsonb("facts").$type<FreePalaceGiftFactV1[]>(),
   contentHash: text("content_hash"), expiresAt: time("expires_at"), createdAt: time("created_at").notNull().defaultNow(),
 }, (t) => [index("free_ai_artifacts_expiry_idx").on(t.expiresAt), check("free_ai_artifacts_generation_valid", sql`${t.deletionGeneration} >= 0`)]);
