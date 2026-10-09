@@ -17,6 +17,72 @@ const ENDPOINT = "https://daily-cloudcode-pa.googleapis.com/v1internal:generateC
 const fail = code => { throw Object.assign(new Error(code), { code }); };
 const hash = value => createHash("sha256").update(value).digest("hex");
 
+const usageCounters = ["promptTokenCount", "candidatesTokenCount", "cachedContentTokenCount", "thoughtsTokenCount", "totalTokenCount"];
+const usageFields = new Set([...usageCounters, "toolUsePromptTokenCount", "promptTokensDetails", "cacheTokensDetails",
+  "candidatesTokensDetails", "toolUsePromptTokensDetails", "serviceTier", "trafficType"]);
+const usageEnums = new Set(["TEXT", "IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "STANDARD", "PRIORITY", "BATCH",
+  "SERVICE_TIER_UNSPECIFIED", "ON_DEMAND", "PROVISIONED_THROUGHPUT"]);
+const object = value => value && typeof value === "object" && !Array.isArray(value);
+const keysAllowed = (value, keys) => object(value) && Object.keys(value).every(key => keys.includes(key));
+function safeUsage(value) {
+  if (!object(value) || Object.keys(value).some(key => !usageFields.has(key)) || JSON.stringify(value).length > 65536) return undefined;
+  for (const [key, item] of Object.entries(value)) {
+    if (key.endsWith("Details")) {
+      if (!Array.isArray(item) || item.length > 32 || item.some(row => !keysAllowed(row, ["modality", "tokenCount"]) ||
+          !usageEnums.has(row.modality) || !Number.isSafeInteger(row.tokenCount) || row.tokenCount < 0)) return undefined;
+    } else if (["serviceTier", "trafficType"].includes(key)) {
+      if (!usageEnums.has(item)) return undefined;
+    } else if (!Number.isSafeInteger(item) || item < 0) return undefined;
+  }
+  return structuredClone(value);
+}
+
+/** Safe original accounting metadata, not a billing/settlement authorization.
+ * The closed child observes the response; hashes bind its redacted proof to that
+ * observation, request and visible output, rather than proving authenticity alone. */
+export function captureNativeAccountingEvidence(payload, { responseSha256, requestSha256, outputText }) {
+  const wrapped = object(payload?.response), native = wrapped ? payload.response : payload;
+  const usageMetadata = safeUsage(native?.usageMetadata);
+  const candidate = native?.candidates?.[0];
+  const completionVerified = native?.candidates?.length === 1 && candidate?.finishReason === "STOP" && candidate.content?.role === "model" &&
+    Array.isArray(candidate.content.parts) && candidate.content.parts.length > 0 && candidate.content.parts.every(part =>
+      keysAllowed(part, ["text", "thought", "thoughtSignature"]) && typeof part.text === "string" &&
+      (part.thought === undefined || typeof part.thought === "boolean") && (part.thoughtSignature === undefined || typeof part.thoughtSignature === "string")) &&
+    candidate.content.parts.filter(part => part.thought !== true).map(part => part.text).join("") === outputText && Boolean(outputText?.trim());
+  const conflictingUsage = wrapped && Object.hasOwn(payload, "usageMetadata");
+  const envelopeVerified = (!wrapped || keysAllowed(payload, ["response"])) &&
+    keysAllowed(native, ["modelVersion", "usageMetadata", "candidates", "responseId", "createTime"]) &&
+    keysAllowed(candidate, ["finishReason", "content", "index"]) && keysAllowed(candidate?.content, ["role", "parts"]) &&
+    (candidate.index === undefined || candidate.index === 0) &&
+    (native.responseId === undefined || (typeof native.responseId === "string" && native.responseId.length <= 200)) &&
+    (native.createTime === undefined || (typeof native.createTime === "string" && /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/u.test(native.createTime)));
+  const modelVersion = ["gemini-3.8-flash", "gemini-3.8-flash-medium"].includes(native?.modelVersion) ? native.modelVersion : "unsupported";
+  if (typeof responseSha256 !== "string" || !/^[a-f0-9]{64}$/.test(responseSha256) || typeof requestSha256 !== "string" ||
+      !/^[a-f0-9]{64}$/.test(requestSha256) || typeof outputText !== "string") fail("ROUTER_ACCOUNTING_EVIDENCE_INVALID");
+  return { version: "native.accounting.evidence.v1", httpStatus: 200, requestSha256, responseSha256,
+    visibleOutputSha256: hash(outputText), modelVersion, completionVerified: Boolean(completionVerified), conflictingUsage: Boolean(conflictingUsage),
+    envelopeComplete: Boolean(envelopeVerified && completionVerified && !conflictingUsage && usageMetadata && modelVersion !== "unsupported"),
+    billingCountersComplete: Boolean(usageMetadata && usageCounters.every(key => Object.hasOwn(usageMetadata, key))),
+    metadataRedacted: !usageMetadata, ...(usageMetadata ? { usageMetadata } : {}), settlementAuthorized: false, continuationAuthorized: false };
+}
+
+export function inspectNativeAccountingEvidence(proof, { requestSha256, outputText, receipt, conflictingUsage }) {
+  const allowed = ["version", "httpStatus", "requestSha256", "responseSha256", "visibleOutputSha256", "modelVersion", "completionVerified",
+    "conflictingUsage", "envelopeComplete", "billingCountersComplete", "metadataRedacted", "usageMetadata", "settlementAuthorized", "continuationAuthorized"];
+  const usageMetadata = safeUsage(proof?.usageMetadata);
+  if (!keysAllowed(proof, allowed) || proof.version !== "native.accounting.evidence.v1" || proof.httpStatus !== 200 ||
+      proof.requestSha256 !== requestSha256 || typeof proof.responseSha256 !== "string" || !/^[a-f0-9]{64}$/.test(proof.responseSha256) ||
+      typeof outputText !== "string" || proof.visibleOutputSha256 !== hash(outputText) ||
+      proof.modelVersion !== receipt?.modelVersion || !["gemini-3.8-flash", "gemini-3.8-flash-medium", "unsupported"].includes(proof.modelVersion) ||
+      ["completionVerified", "conflictingUsage", "envelopeComplete", "billingCountersComplete", "metadataRedacted"].some(key => typeof proof[key] !== "boolean") ||
+      proof.conflictingUsage !== conflictingUsage || proof.settlementAuthorized !== false || proof.continuationAuthorized !== false ||
+      (proof.envelopeComplete && (!proof.completionVerified || proof.conflictingUsage || proof.metadataRedacted || proof.modelVersion === "unsupported")) ||
+      proof.metadataRedacted !== !usageMetadata || (proof.metadataRedacted && Object.hasOwn(proof, "usageMetadata")) ||
+      (usageMetadata && JSON.stringify(usageMetadata) !== JSON.stringify(safeUsage(receipt?.usageMetadata))) ||
+      proof.billingCountersComplete !== Boolean(usageMetadata && usageCounters.every(key => Object.hasOwn(usageMetadata, key)))) fail("ROUTER_ACCOUNTING_EVIDENCE_INVALID");
+  return structuredClone(proof);
+}
+
 // A child-process-only isolation hook. These services are never allowed in the
 // text-only transform; their compiled deployment dependencies are absent on disk.
 // Calling either substituted function fails rather than refreshing or writing DB.
@@ -95,7 +161,7 @@ export async function dispatchOnce(prepared, { requestImpl = request, now = () =
         res.once("error", () => finish(Object.assign(new Error("ROUTER_TRANSPORT_ERROR"), { code: "ROUTER_TRANSPORT_ERROR" })));
         res.once("aborted", () => finish(Object.assign(new Error("ROUTER_TRANSPORT_ERROR"), { code: "ROUTER_TRANSPORT_ERROR" })));
         res.once("end", () => { try {
-          const payload = JSON.parse(Buffer.concat(chunks).toString("utf8")), native = payload.response ?? payload;
+          const raw = Buffer.concat(chunks), payload = JSON.parse(raw.toString("utf8")), native = payload.response ?? payload;
           const candidate = native.candidates?.[0];
           if (native.candidates?.length !== 1 || candidate?.finishReason !== "STOP" || candidate.content?.role !== "model" ||
               !Array.isArray(candidate.content.parts) || candidate.content.parts.some(p => typeof p.text !== "string" ||
@@ -104,7 +170,9 @@ export async function dispatchOnce(prepared, { requestImpl = request, now = () =
           if (!outputText.trim()) fail("ROUTER_CANDIDATE_INVALID");
           // Raw counters preserve absence, including absent zeros. Neither raw
           // response nor thought text can leave this process or enter its logs.
-          finish(null, { outputText, receipt: { modelVersion: native.modelVersion, usageMetadata: native.usageMetadata },
+          const accountingEvidence = captureNativeAccountingEvidence(payload, { responseSha256: hash(raw), requestSha256: prepared.trace.requestSha256, outputText });
+          finish(null, { outputText, receipt: { modelVersion: accountingEvidence.modelVersion,
+            ...(accountingEvidence.usageMetadata ? { usageMetadata: accountingEvidence.usageMetadata } : {}) }, accountingEvidence,
             conflictingUsage: payload.response !== undefined && payload.usageMetadata !== undefined });
         } catch { finish(Object.assign(new Error("ROUTER_RESPONSE_INVALID"), { code: "ROUTER_RESPONSE_INVALID" })); } });
       });

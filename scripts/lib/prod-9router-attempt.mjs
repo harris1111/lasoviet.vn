@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { execFileSync, spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
-import { ROUTER_IMAGE } from "./prod-9router-child.mjs";
+import { ROUTER_IMAGE, inspectNativeAccountingEvidence } from "./prod-9router-child.mjs";
 import { createCampaignBudget } from "./campaign-budget.mjs";
 import { inspectNativeReceipt } from "./native-campaign-preflight.mjs";
 import { nativeApiReferencePricing, quoteNativeApiReference } from "./native-campaign-api-pricing.mjs";
@@ -35,14 +35,14 @@ export function installedRouterProcess() {
 }
 
 export async function runProdRouterAttempt({ system, user, maxOutputTokens, attemptKey, onPrepared = () => {},
-  budget = paidTrialBudget(), processFactory = installedRouterProcess, now = () => new Date() }) {
+  onReceipt = () => {}, budget = paidTrialBudget(), processFactory = installedRouterProcess, now = () => new Date() }) {
   if (!/^[a-f0-9]{64}$/.test(attemptKey)) fail("ROUTER_ATTEMPT_INVALID");
   const pricing = nativeApiReferencePricing(now());
   nativeApiReferencePricing(new Date(now().getTime() + 120000));
   const child = processFactory();
   const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
   const iterator = lines[Symbol.asyncIterator]();
-  let reservationId, trace, bounds, usageDiagnostic, visibleUnacceptedOutput;
+  let reservationId, trace, bounds, usageDiagnostic, visibleUnacceptedOutput, accountingEvidence;
   const timer = setTimeout(() => child.kill(), 135000);
   const rejectChildError = () => child.stdout.destroy();
   child.once("error", rejectChildError);
@@ -70,22 +70,28 @@ export async function runProdRouterAttempt({ system, user, maxOutputTokens, atte
     if (result.done || result.value.length > 2000000) fail("ROUTER_RESULT_MISSING");
     const r = JSON.parse(result.value);
     if (r.type !== "result") fail(r.type === "failure" ? r.code : "ROUTER_RESULT_INVALID");
+    accountingEvidence = inspectNativeAccountingEvidence(r.accountingEvidence, { requestSha256: trace.requestSha256,
+      outputText: r.outputText, receipt: r.receipt, conflictingUsage: r.conflictingUsage });
     visibleUnacceptedOutput = typeof r.outputText === "string" ? r.outputText : undefined;
     const counterNames = ["promptTokenCount", "candidatesTokenCount", "cachedContentTokenCount", "thoughtsTokenCount", "totalTokenCount"];
     usageDiagnostic = { modelVersion: r.receipt?.modelVersion,
       counterPresence: Object.fromEntries(counterNames.map(key => [key, Object.hasOwn(r.receipt?.usageMetadata ?? {}, key)])),
       counters: Object.fromEntries(counterNames.filter(key => Number.isSafeInteger(r.receipt?.usageMetadata?.[key])).map(key => [key, r.receipt.usageMetadata[key]])) };
+    // Durable caller evidence precedes strict counter parsing or settlement.
+    // A failed checkpoint retains the whole open reservation and stops.
+    await onReceipt({ attemptKey, reservationId, accountingEvidence, visibleUnacceptedOutput });
     if (r.conflictingUsage) fail("ROUTER_USAGE_UNVERIFIED");
+    if (!accountingEvidence.envelopeComplete) fail("ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE");
     const receipt = inspectNativeReceipt(r.receipt);
     const quote = quoteNativeApiReference(receipt, { at: now() });
     if (receipt.inputTokens > bounds.inputTokens || receipt.outputTokens > bounds.outputTokens || receipt.reasoningTokens > bounds.reasoningTokens ||
         BigInt(quote.quoteVnd) > BigInt(reserveVnd) || typeof r.outputText !== "string" || !r.outputText.trim()) fail("ROUTER_RESULT_UNVERIFIED");
     const outputSha256 = hash(r.outputText);
     budget.settleAttempt(reservationId, { receipt, outputSha256 });
-    return { attemptKey, reservationId, trace, receipt, quote, outputSha256, outputText: r.outputText };
+    return { attemptKey, reservationId, trace, receipt, quote, outputSha256, outputText: r.outputText, accountingEvidence };
   } catch (error) {
     throw Object.assign(new Error("PAID_TRIAL_ATTEMPT_STOPPED"), { code: typeof error.code === "string" ? error.code : "ROUTER_ATTEMPT_FAILED", reservationId,
-      ...(usageDiagnostic ? { usageDiagnostic, visibleUnacceptedOutput } : {}) });
+      ...(usageDiagnostic ? { usageDiagnostic, visibleUnacceptedOutput } : {}), ...(accountingEvidence ? { accountingEvidence } : {}) });
   } finally {
     clearTimeout(timer); lines.close(); child.kill();
   }

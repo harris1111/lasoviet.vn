@@ -135,7 +135,8 @@ async function main(args) {
         try {
           const native = await runProdRouterAttempt({ system: `${request.system}\nAuthoritative JSON schema: ${JSON.stringify(modules.contracts.z.toJSONSchema(request.schema))}`,
             user: request.user, maxOutputTokens: request.maxOutputTokens, attemptKey: attempt.attemptKey, budget,
-            onPrepared: trace => { Object.assign(attempt, trace, { status: "dispatch_pending" }); durableSave(JOURNAL, manifest); } });
+            onPrepared: trace => { Object.assign(attempt, trace, { status: "dispatch_pending" }); durableSave(JOURNAL, manifest); },
+            onReceipt: receipt => { Object.assign(attempt, receipt, { status: "native_received_pending_accounting" }); durableSave(JOURNAL, manifest); } });
           const { outputText, ...receipt } = native;
           Object.assign(attempt, receipt, { outputText, status: "settled" }); durableSave(JOURNAL, manifest);
           let parsed;
@@ -147,6 +148,7 @@ async function main(args) {
           attempt.status = "stopped"; attempt.errorCode = error.code ?? "PAID_TRIAL_FAILED";
           if (error.usageDiagnostic) Object.assign(attempt, { usageDiagnostic: error.usageDiagnostic,
             visibleUnacceptedOutput: error.visibleUnacceptedOutput });
+          if (error.accountingEvidence) attempt.accountingEvidence = error.accountingEvidence;
           durableSave(JOURNAL, manifest); return { ok: false, error: { code: "AI_PROVIDER_REQUEST_FAILED", retryable: false } };
         }
       } };
