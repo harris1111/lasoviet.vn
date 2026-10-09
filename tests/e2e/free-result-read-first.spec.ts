@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 import { createAnonymousChart } from "./helpers/create-anonymous-chart";
 
 const blocks = [
-  "chart", "insights", "scores", "free-palace", "year",
-  "palaces", "topics", "completion", "evidence",
+  "chart", "insights", "scores", "free-palace", "year", "decade",
+  "palaces", "topics", "evidence", "completion",
 ];
 
 for (const locale of ["vi", "en"] as const) {
@@ -42,7 +42,9 @@ for (const locale of ["vi", "en"] as const) {
       await expect(page.getByTestId("fd109-completion").locator('a[href*="/chon-luan-giai"]')).toHaveCount(1);
 
       if (width < 1024) {
-        await expect(result.getByRole("tablist")).toBeHidden();
+        // Phone: one scrolling page whose sticky chip bar is the same tablist, used as anchors.
+        await expect(result.getByRole("tablist")).toBeVisible();
+        await expect(result.getByRole("tab")).toHaveCount(5);
         for (const block of blocks) {
           await expect(result.locator(`[data-free-result-block="${block}"]`)).toBeVisible();
         }
@@ -50,7 +52,7 @@ for (const locale of ["vi", "en"] as const) {
         await expect(page.getByTestId("fd109-sticky")).toBeVisible();
       } else {
         await expect(result.getByRole("tablist")).toBeVisible();
-        await expect(result.getByRole("tab")).toHaveCount(6);
+        await expect(result.getByRole("tab")).toHaveCount(5);
         await page.locator("#tab-overview").click();
         await expect(page).toHaveURL(/\?tab=overview$/);
         await expect(page.locator("#panel-overview")).toBeVisible();
@@ -109,14 +111,14 @@ test("FD109 URL history and direct preview links restore modal and keyboard stat
   await expect(page.locator("#tab-palaces")).toBeFocused();
 
   await page.locator("#tab-overview").click();
-  await page.locator("#panel-overview .evidence-open").first().click();
-  await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=evidence&open=life-palace$`));
+  await page.locator('[data-testid="fd109-evidence-row"] .evidence-open').first().click();
+  await expect(page).toHaveURL(new RegExp(`${chartPath}\\?tab=overview&open=life-palace$`));
   await expect(page.locator(".evidence-drawer")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator(".evidence-drawer")).toBeHidden();
-  await page.locator("#tab-chart").click();
+  await page.locator("#tab-overview").click();
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
-  await expect(page.locator("#tab-chart")).toBeFocused();
+  await expect(page.locator("#tab-overview")).toBeFocused();
 });
 
 test("FD109 Back from an offer link restores the open preview and keeps the URL", async ({ page }) => {
