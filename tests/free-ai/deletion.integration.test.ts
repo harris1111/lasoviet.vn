@@ -27,10 +27,10 @@ describe("free AI deletion-safe publication and retention (real Postgres)", () =
   beforeAll(async () => { h = await startFreeAiDatabase(); main = h.connect(); }, 180000);
   afterAll(async () => { if (h) await h.stop(); });
 
-  async function seedChart(owner: { userId: string } | { anonymousActorId: string }, chartVersionId: string) {
+  async function seedChart(owner: { userId: string } | { anonymousActorId: string }, chartVersionId: string, anonymousExpiresAt?: Date) {
     const n = ++seq;
     const profileId = `profile-${n}`;
-    const expires = "anonymousActorId" in owner ? { anonymousExpiresAt: new Date(Date.now() + 3_600_000) } : {};
+    const expires = "anonymousActorId" in owner ? { anonymousExpiresAt: anonymousExpiresAt ?? new Date(Date.now() + 3_600_000) } : {};
     await main.insert(birthProfiles).values({ id: profileId, ...owner, ...expires });
     await main.insert(birthProfileRevisions).values({ id: `rev-${n}`, profileId, revisionNumber: 1, originalInput: { born: BIRTH_SENTINEL }, consentVersion: "v1" });
     await main.insert(calculationRuns).values({ id: `run-${n}`, profileId, profileRevisionId: `rev-${n}`, idempotencyKey: `k-${n}`, engineId: "e", engineVersion: "1", adapterId: "a", adapterVersion: "1", schemaId: "s", ruleSetId: "r", inputHash: "i", configHash: "c", rawSnapshotHash: "h" });
@@ -49,26 +49,26 @@ describe("free AI deletion-safe publication and retention (real Postgres)", () =
     return id;
   }
   // Admits a request whose frozen prompt carries a birth sentinel, then optionally fences/settles it.
-  async function provision(chart: string, owner: { kind: "guest" | "account"; id: string }, stage: "reserved" | "fenced" | "settled" | "unknown", expiresAt: Date | null = null) {
+  async function provision(chart: string, owner: { kind: "guest" | "account"; id: string }, stage: "reserved" | "fenced" | "settled" | "unknown", expiresAt: Date | null = null, at?: Date) {
     const result = await createFreeAiBudgetRepository(h.connect()).reserve({
       flagEnabled: true, actor: { kind: owner.kind, id: owner.id, trusted: true }, lineage: lineage(chart), concern: "career",
-      cost: costContext(VND(1000), { finalSerializedRequest: `{"born":"${BIRTH_SENTINEL}"}` }), traceId: "t", authorizeSource: async () => ({ expiresAt }),
+      cost: costContext(VND(1000), { finalSerializedRequest: `{"born":"${BIRTH_SENTINEL}"}` }), traceId: "t", authorizeSource: async () => ({ expiresAt }), clock: at ? async () => at : undefined,
     });
     if (result.kind !== "admitted") throw new Error(`setup admission failed: ${JSON.stringify(result)}`);
     let attemptId = "";
     if (stage !== "reserved") {
-      const fence = await createFreeAiDispatchService(h.connect()).fence({ requestId: result.requestId, flagEnabled: true, isSourceAvailable: async () => true, activePricingSnapshotId: async () => "price-1" });
+      const fence = await createFreeAiDispatchService(h.connect()).fence({ requestId: result.requestId, flagEnabled: true, isSourceAvailable: async () => true, activePricingSnapshotId: async () => "price-1", clock: at ? async () => at : undefined });
       if (fence.kind !== "fenced") throw new Error("setup fence failed");
       attemptId = fence.attemptId;
     }
     if (stage === "settled" || stage === "unknown") {
       const settlement = stage === "settled" ? { kind: "resolved", actualMicroVnd: VND(300), disposition: "publishable" } as const : { kind: "unknown" } as const;
-      await createFreeAiSettlementService(h.connect()).settle({ requestId: result.requestId, attemptId, settlement });
+      await createFreeAiSettlementService(h.connect()).settle({ requestId: result.requestId, attemptId, settlement, clock: at ? async () => at : undefined });
     }
     return { requestId: result.requestId, attemptId };
   }
-  const publish = (r: { requestId: string; attemptId: string }, palaceId?: string, database = h.connect()) =>
-    createFreePalaceArtifactRepository(database).publish({ requestId: r.requestId, attemptId: r.attemptId, content: content(palaceId), facts });
+  const publish = (r: { requestId: string; attemptId: string }, palaceId?: string, database = h.connect(), at?: Date) =>
+    createFreePalaceArtifactRepository(database).publish({ requestId: r.requestId, attemptId: r.attemptId, content: content(palaceId), facts, clock: at ? async () => at : undefined });
   const artifact = async (requestId: string) => (await h.raw`SELECT content, facts, frozen_call, content_hash FROM free_ai_artifacts WHERE request_id=${requestId}`)[0]!;
   const request = async (requestId: string) => (await h.raw`SELECT status, concern FROM free_ai_requests WHERE id=${requestId}`)[0]!;
 
@@ -148,21 +148,39 @@ describe("free AI deletion-safe publication and retention (real Postgres)", () =
     expect(await publish(flight)).toEqual({ kind: "refused", reason: "deleted" });
   });
 
-  it("row 28: a guest's 24h expiry purges the payload and blocks publishing", async () => {
-    const guest = await newGuest(new Date(Date.now() - 1000));
-    await seedChart({ anonymousActorId: guest }, "ttl-expired");
-    const r = await provision("ttl-expired", { kind: "guest", id: guest }, "settled", new Date(Date.now() - 1000));
-    expect(await publish(r)).toEqual({ kind: "refused", reason: "expired" });
-    expect(await createFreePalaceArtifactRepository(h.connect()).purgeExpiredPayloads({ limit: 10 })).toBe(1);
+  it("row 28: a guest's 24h expiry purges an already-fenced payload and blocks publishing", async () => {
+    const admittedAt = new Date("2026-10-09T00:00:00Z"), expiresAt = new Date("2026-10-10T00:00:00Z");
+    const guest = await newGuest(expiresAt);
+    await seedChart({ anonymousActorId: guest }, "ttl-expired", expiresAt);
+    // Dispatch/settlement happened while eligible; publication races the exact expiry.
+    const r = await provision("ttl-expired", { kind: "guest", id: guest }, "settled", expiresAt, admittedAt);
+    expect(await publish(r, undefined, h.connect(), expiresAt)).toEqual({ kind: "refused", reason: "expired" });
+    const artifacts = createFreePalaceArtifactRepository(h.connect());
+    expect(await artifacts.purgeExpiredPayloads({ limit: 10, clock: async () => expiresAt })).toBe(1);
     expect((await artifact(r.requestId)).frozen_call).toBeNull();
-    expect(await createFreePalaceArtifactRepository(h.connect()).purgeExpiredPayloads({ limit: 10 })).toBe(0);
-    // and the expiry path through the retention repository purges the actor and bumps the generation
-    const other = await newGuest(new Date(Date.now() - 1000));
-    await seedChart({ anonymousActorId: other }, "ttl-actor");
-    const o = await provision("ttl-actor", { kind: "guest", id: other }, "settled");
-    expect(await createDatabaseAnonymousRetentionRepository(h.connect()).purgeExpired(new Date(), 10)).toContain(other);
+    expect(await artifacts.purgeExpiredPayloads({ limit: 10, clock: async () => expiresAt })).toBe(0);
+    const other = await newGuest(expiresAt);
+    await seedChart({ anonymousActorId: other }, "ttl-actor", expiresAt);
+    const o = await provision("ttl-actor", { kind: "guest", id: other }, "settled", expiresAt, admittedAt);
+    expect(await createDatabaseAnonymousRetentionRepository(h.connect()).purgeExpired(expiresAt, 10)).toContain(other);
     expect((await artifact(o.requestId)).content).toBeNull();
-    expect(await publish(o)).toEqual({ kind: "refused", reason: "deleted" });
+    expect(await publish(o, undefined, h.connect(), expiresAt)).toEqual({ kind: "refused", reason: "deleted" });
+  });
+
+  it("refuses a queued guest at expiry before any fence, releasing only its unsent hold", async () => {
+    const admittedAt = new Date("2026-10-11T00:00:00Z"), expiresAt = new Date("2026-10-12T00:00:00Z");
+    const guest = await newGuest(expiresAt);
+    await seedChart({anonymousActorId: guest}, "ttl-unfenced", expiresAt);
+    const r = await provision("ttl-unfenced", {kind: "guest", id: guest}, "reserved", expiresAt, admittedAt);
+    const fence = await createFreeAiDispatchService(h.connect()).fence({requestId: r.requestId, flagEnabled: true,
+      isSourceAvailable: async () => true, activePricingSnapshotId: async () => "price-1", clock: async () => expiresAt});
+    expect(fence).toEqual({kind: "cancelled", reason: "source_unavailable"});
+    expect((await request(r.requestId)).status).toBe("cancelled");
+    expect((await h.raw`SELECT reserved_micro_vnd::text AS held FROM free_ai_chart_budgets WHERE chart_version_id='ttl-unfenced'`)[0]!.held).toBe("0");
+    expect(await h.raw`SELECT 1 FROM free_ai_admissions WHERE request_id=${r.requestId}`).toHaveLength(1);
+    expect(await h.raw`SELECT 1 FROM free_ai_settlements WHERE request_id=${r.requestId}`).toHaveLength(0);
+    expect(await createFreePalaceArtifactRepository(h.connect()).purgeExpiredPayloads({limit: 10, clock: async () => expiresAt})).toBe(1);
+    expect((await artifact(r.requestId)).frozen_call).toBeNull();
   });
 
   it("an unexpired guest is not purged by the retention path", async () => {

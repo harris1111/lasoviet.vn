@@ -39,3 +39,9 @@ actual overshoot halt; pinned growth alert midnight dedup. Additional28 legacy
 admission/request/writer regression checks pass. Physical provider/customer
 sends and production financial writes:0. Independent reviewer replayed the
 14 PostgreSQL checks and gave working-diff GO after the midnight fix.
+
+CI exposed a legacy retention fixture that attempted to fence an already-expired
+guest. Preserve the new dispatch TTL gate and correct the fixture chronology
+with injected clocks: eligible dispatch/settlement before24h, publication/purge
+at expiry. Add an unfenced-at-expiry cancellation/hold/consumed-slot regression.
+The original failed run remains evidence; no privacy assertion is relaxed.
