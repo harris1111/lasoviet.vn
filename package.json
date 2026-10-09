@@ -15,7 +15,7 @@
     "i18n:check": "node scripts/check-i18n-parity.mjs",
     "content:check": "corepack pnpm@11.25.0 --filter @lasoviet/config... run build && node scripts/check-public-content.mjs",
     "check": "corepack pnpm@11.25.0 run lint && corepack pnpm@11.25.0 run typecheck && corepack pnpm@11.25.0 run build && corepack pnpm@11.25.0 run test",
-    "test:scripts": "node --test scripts/assemble-ziwei-knowledge-v4.test.mjs scripts/select-ziwei-knowledge-v4-sample.test.mjs scripts/validate-ziwei-knowledge-v4.test.mjs scripts/campaign-budget.test.mjs scripts/native-campaign-api-pricing.test.mjs scripts/native-campaign-preflight.test.mjs scripts/native-campaign-transport.test.mjs scripts/native-campaign-attempt.test.mjs scripts/prod-9router-trials.test.mjs scripts/fd121-reference-maximum.test.mjs scripts/topic-campaign.test.mjs scripts/period-campaign.test.mjs scripts/manual-campaign-cli.test.mjs",
+    "test:scripts": "node --test scripts/assemble-ziwei-knowledge-v4.test.mjs scripts/select-ziwei-knowledge-v4-sample.test.mjs scripts/validate-ziwei-knowledge-v4.test.mjs scripts/campaign-budget.test.mjs scripts/native-campaign-api-pricing.test.mjs scripts/native-campaign-preflight.test.mjs scripts/native-campaign-transport.test.mjs scripts/native-campaign-attempt.test.mjs scripts/prod-9router-trials.test.mjs scripts/fd121-reference-maximum.test.mjs scripts/fd123-continuation.test.mjs scripts/topic-campaign.test.mjs scripts/period-campaign.test.mjs scripts/manual-campaign-cli.test.mjs",
     "assets:troi-nam": "node scripts/build-troi-nam-assets.mjs",
     "config:contact:check": "node packages/config/scripts/generate-customer-contact.mjs --check",
     "test:unit": "vitest run"

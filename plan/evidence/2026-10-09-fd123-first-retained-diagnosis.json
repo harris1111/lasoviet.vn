@@ -1,0 +1,33 @@
+{
+  "diagnosticOnly": true,
+  "slot": "relationship_marriage:1",
+  "schemaPassed": true,
+  "sourceHashesMatch": true,
+  "quality": {
+    "ok": true,
+    "findings": [],
+    "advisory": [
+      {
+        "sectionKey": "thematicDimensions[communication_and_temperament]",
+        "code": "DISCOURAGED_TERM",
+        "note": "Contains discouraged term: phu thê."
+      },
+      {
+        "sectionKey": "actions[0]",
+        "code": "DISCOURAGED_TERM",
+        "note": "Contains discouraged term: phu thê."
+      },
+      {
+        "sectionKey": "actions[2]",
+        "code": "DISCOURAGED_TERM",
+        "note": "Contains discouraged term: phu thê."
+      }
+    ]
+  },
+  "normalization": "none",
+  "rawOutputSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+  "heldReferenceVnd": 33368,
+  "physicalProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false
+}

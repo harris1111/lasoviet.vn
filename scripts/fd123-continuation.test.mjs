@@ -9,8 +9,8 @@ import { join } from "node:path";
 import { createCampaignBudget } from "./lib/campaign-budget.mjs";
 import { captureNativeAccountingEvidence } from "./lib/prod-9router-child.mjs";
 import { runProdRouterAttempt, paidTrialAttemptKey } from "./lib/prod-9router-attempt.mjs";
-import { FD123_POLICY, FD123_TECHNICAL_CAP_VND, FD123_SLOTS, fd123AttemptKey, quoteFd123ReferenceSettlement } from "./lib/fd123-reference-continuation.mjs";
-import { assertFd123OutputPath, normalizeTrialJson, assertFd123Original, assertFd123Resume, buildFd123Inputs } from "./continue-paid-manual-trials.mjs";
+import { FD123_POLICY, FD123_MODEL_BOUND_MODE, FD123_TECHNICAL_CAP_VND, FD123_SLOTS, fd123AttemptKey, quoteFd123ReferenceSettlement } from "./lib/fd123-reference-continuation.mjs";
+import { assertFd123OutputPath, normalizeTrialJson, assertFd123Original, assertFd123Resume, buildFd123Inputs, prepareFd123RetainedRecovery } from "./continue-paid-manual-trials.mjs";
 import { API_REFERENCE_PRICING } from "./lib/native-campaign-api-pricing.mjs";
 
 const now = () => new Date("2026-10-09T18:00:00Z");
@@ -189,4 +189,69 @@ test("only explicit on-demand traffic is supported while original tags remain in
     assert.equal(value.accountingEvidence.usageMetadata.trafficType, "ON_DEMAND");
     assert.equal(value.quote.cachedTokensUnknown, !cached);
   }
+});
+
+test("explicit FD123 model-bound mode retains the entire hold without inventing absent counters and survives ledger replay", async () => {
+  const { budget, options } = fresh(), f = fixture(n => {
+    delete n.usageMetadata.thoughtsTokenCount; n.usageMetadata.totalTokenCount = 150; n.responseMetadata = { internal: true };
+  });
+  const value = await run(budget, f, undefined, undefined, { referenceMode: FD123_MODEL_BOUND_MODE });
+  assert.equal(value.quote.quoteVnd, "33368"); assert.equal(value.quote.tokensUnknown, true);
+  assert.equal(value.quote.actualUsageVerified, false); assert.equal(value.quote.providerBillingVerified, false);
+  assert.equal(value.quote.exposureReduced, false); assert.equal(value.accountingEvidence.envelopeComplete, false);
+  assert.deepEqual(value.quote.unknownNativeCounters, ["cachedContentTokenCount", "thoughtsTokenCount"]);
+  assert.equal(Object.hasOwn(value.receipt.usageMetadata, "thoughtsTokenCount"), false);
+  assert.equal(Object.hasOwn(value.receipt.usageMetadata, "cachedContentTokenCount"), false);
+  assert.equal(budget.status().totalVnd, 33368); assert.equal(budget.status().openReservations, 0);
+  assert.deepEqual(createCampaignBudget(options).status(), budget.status());
+  await run(budget, fixture(), FD123_SLOTS[1]); assert.equal(f.calls(), 1);
+  await assert.rejects(run(budget, f, undefined, undefined, { referenceMode: FD123_MODEL_BOUND_MODE }), { code: "BUDGET_ATTEMPT_ALREADY_CLAIMED" });
+});
+
+test("model-bound mode preserves non-monetary completion, metadata, model and counter fences", async () => {
+  for (const mutate of [n => { n.candidates[0].finishReason = "MAX_TOKENS"; }, n => { n.modelVersion = "unknown"; },
+    n => { n.usageMetadata.unrecognized = "sensitive"; }, n => { n.usageMetadata.serviceTier = "PRIORITY"; },
+    n => { n.usageMetadata.trafficType = "PROVISIONED_THROUGHPUT"; }, n => { n.usageMetadata.toolUsePromptTokenCount = 1; },
+    n => { n.usageMetadata.promptTokensDetails = [{ modality: "IMAGE", tokenCount: 100 }]; },
+    n => { n.usageMetadata.totalTokenCount = 149; }, n => { n.usageMetadata.totalTokenCount = 65687; },
+    n => { n.usageMetadata.promptTokenCount = 1048577; }, n => { n.usageMetadata.cachedContentTokenCount = 101; },
+    n => { n.usageMetadata.candidatesTokensDetails = [{ modality: "TEXT", tokenCount: 49 }]; }]) {
+    const { budget } = fresh(), f = fixture(n => { delete n.usageMetadata.thoughtsTokenCount; n.usageMetadata.totalTokenCount = 150; mutate(n); });
+    await assert.rejects(run(budget, f, undefined, undefined, { referenceMode: FD123_MODEL_BOUND_MODE }));
+    assert.equal(budget.status().totalVnd, 33368); assert.equal(budget.status().openReservations, 1);
+  }
+  const old = fresh(false), f = fixture();
+  await assert.rejects(runProdRouterAttempt({ system: "synthetic", user: "synthetic", maxOutputTokens: 14000,
+    attemptKey: paidTrialAttemptKey("relationship_marriage:0", "report"), budget: old.budget, now,
+    processFactory: f.processFactory, referenceMode: FD123_MODEL_BOUND_MODE }), { code: "FD123_REFERENCE_MODE_INVALID" });
+  assert.equal(f.calls(), 0);
+});
+
+test("narrow retained recovery validates original source and default quality and fences all crash phases without dispatch", async () => {
+  const retained = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-first-retained-stop.json", import.meta.url), "utf8"));
+  const modules = { backend: await import("../packages/backend/dist/index.js"), contracts: await import("../packages/contracts/dist/index.js"), engine: await import("../packages/engine-adapters/dist/index.js") };
+  const { makePaidTrialInput } = await import("./run-paid-manual-trials.mjs");
+  const input = await makePaidTrialInput("relationship_marriage", 1, retained.asOfDate, modules);
+  const lineage = { originalJournalSha256: retained.originalJournalSha256, originalLedgerSha256: retained.originalLedgerSha256 };
+  const before = JSON.stringify(retained);
+  const recover = value => prepareFd123RetainedRecovery(value, lineage, input, modules, retained.budget, { at: now() });
+  const recovered = recover(retained); assert.equal(recovered.quality.ok, true); assert.equal(recovered.quote.quoteVnd, "33368");
+  assert.equal(recovered.settlement.referenceMode, FD123_MODEL_BOUND_MODE); assert.equal(JSON.stringify(retained), before);
+  for (const mutate of [m => { m.status = "recovery_prepared"; }, m => { m.recoveryEvents = [{ status: "prepared" }]; },
+    m => { m.recoveryEvents = [{ status: "completed" }]; }, m => { m.reports[0].attempts[0].status = "reference_settled_model_bound"; },
+    m => { m.reports[0].slot = FD123_SLOTS[1]; }, m => { m.reports.push(m.reports[0]); },
+    m => { m.reports[0].factsSha256 = "b".repeat(64); }, m => { m.originalLedgerSha256 = "b".repeat(64); },
+    m => { m.reports[0].attempts[0].visibleUnacceptedOutput += " "; },
+    m => { m.reports[0].attempts[0].accountingEvidence.responseSha256 = "b".repeat(64); },
+    m => { m.reports[0].attempts[0].accountingEvidence.completionVerified = false; }]) {
+    const value = structuredClone(retained); mutate(value); assert.throws(() => recover(value));
+  }
+  const rejectedModules = { ...modules, backend: { ...modules.backend, validateZiweiTopicDeepDiveQualityV4: () => ({ ok: false }) } };
+  assert.throws(() => prepareFd123RetainedRecovery(retained, lineage, input, rejectedModules, retained.budget, { at: now() }), { code: "FD123_RECOVERY_QUALITY_FAILED" });
+  const { runTrialSequence } = await import("./run-paid-manual-trials.mjs");
+  const manifest = structuredClone(retained); manifest.reports[0].status = "quality_passed_pending_manual_review";
+  const dispatched = [];
+  await runTrialSequence({ inputs: FD123_SLOTS.slice(1).map(slot => { const [group, index] = slot.split(":"); return { group, index: Number(index), facts: {} }; }),
+    manifest, save() {}, generate: async (_, row) => { dispatched.push(row.slot); return { ok: true, value: { quality: { ok: true } } }; } });
+  assert.deepEqual(dispatched, FD123_SLOTS.slice(1)); assert.equal(manifest.reports.length, 9);
 });
