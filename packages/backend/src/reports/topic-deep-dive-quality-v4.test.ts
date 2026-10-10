@@ -261,6 +261,34 @@ function makeValidRelationshipReport(facts: ReturnType<typeof buildFactsFixture>
 describe("validateZiweiTopicDeepDiveQualityV4", () => {
   const facts = buildFactsFixture();
 
+  it.each(["trực chiếu", "xung chiếu", "chiếu"])("checks absence of %s major stars against the opposite palace", relation => {
+    const source = structuredClone(facts);
+    const wealth = source.natal.palaces.find(palace => palace.palaceId === "ziwei.palace.wealth")!;
+    wealth.stars = [];
+    const opposite = source.natal.palaces.find(palace => palace.palaceId === wealth.oppositePalaceId)!;
+    opposite.stars = structuredClone(source.natal.palaces.find(palace => palace.palaceId === "ziwei.palace.life")!.stars);
+    expect(opposite.stars.some(star => star.category === "major")).toBe(true);
+    const report = makeValidRelationshipReport(source);
+    report.overview.narrative += ` Cung Tài Bạch không có chính tinh ${relation}.`;
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sectionKey: "overview", code: "PALACE_FACTS" }),
+    ]));
+    opposite.stars = [];
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(finding => finding.code === "PALACE_FACTS")).toEqual([]);
+  });
+
+  it("keeps resident absence separate from opposition and checks NFC prose", () => {
+    const source = structuredClone(facts);
+    const wealth = source.natal.palaces.find(palace => palace.palaceId === "ziwei.palace.wealth")!;
+    wealth.stars = [];
+    source.natal.palaces.find(palace => palace.palaceId === wealth.oppositePalaceId)!.stars = structuredClone(source.natal.palaces.find(palace => palace.palaceId === "ziwei.palace.life")!.stars);
+    const report = makeValidRelationshipReport(source);
+    report.overview.narrative += " Cung Tài Bạch không có chính tinh tọa thủ.";
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(finding => finding.code === "PALACE_FACTS")).toEqual([]);
+    report.overview.narrative += " Cung Tài Bạch không có chính tinh trực chiếu.".normalize("NFD");
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.some(finding => finding.code === "PALACE_FACTS")).toBe(true);
+  });
+
   it("passes cleanly on compliant relationship deep dive", () => {
     const report = makeValidRelationshipReport(facts);
     const result = validateZiweiTopicDeepDiveQualityV4(report, facts, {

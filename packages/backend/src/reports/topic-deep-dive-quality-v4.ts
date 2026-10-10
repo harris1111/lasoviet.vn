@@ -88,6 +88,20 @@ function checkProse(
   const rawText = text.normalize("NFC");
   const normalized = normalizeComprehensiveReportModelProse(rawText);
 
+  // Resident-major absence says nothing about the opposite palace. Check
+  // explicit named-palace opposition claims against that separate source.
+  for (const palace of facts.natal.palaces) {
+    const label = displayFact(palace.palaceId), branch = displayFact(palace.earthlyBranchId);
+    if (!label || !branch) continue;
+    const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const claim = new RegExp(`(?<![\\p{L}\\p{N}])(?:cung\\s+)?${escape(label)}(?![\\p{L}\\p{N}])(?:\\s+(?:tọa|an|đóng)\\s+tại\\s+${escape(branch)})?\\s+không\\s+có\\s+(?:sao\\s+)?chính\\s+tinh\\s+(?:(?:trực|xung)\\s+chiếu|chiếu)(?![\\p{L}\\p{N}])`, "iu");
+    if (!claim.test(rawText)) continue;
+    const opposite = facts.natal.palaces.find(other => other.palaceId === palace.oppositePalaceId);
+    if (!opposite || !hasTrueNoMajorStarState(opposite.stars)) {
+      addFinding("PALACE_FACTS", `Opposing major-star absence for ${palace.palaceId} is not supported by ${palace.oppositePalaceId}. Resident-star absence is a separate fact.`);
+    }
+  }
+
   // Han/Nom check
   if (HAN_IDEOGRAPH_PATTERN.test(rawText)) {
     addFinding("LOCALE_HAN", "Contains a Han ideograph.");

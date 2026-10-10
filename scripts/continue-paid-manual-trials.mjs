@@ -1,0 +1,380 @@
+#!/usr/bin/env node
+import { parseArgs } from "node:util";
+import { createHash } from "node:crypto";
+import { closeSync, constants, existsSync, fsyncSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, join, resolve, basename, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import { FD121_ROOT, paidContinuationBudget, runProdRouterAttempt } from "./lib/prod-9router-attempt.mjs";
+import { FD123_POLICY, FD123_MODEL_BOUND_MODE, FD123_SLOTS, fd123AttemptKey, quoteFd123ReferenceSettlement } from "./lib/fd123-reference-continuation.mjs";
+import { makePaidTrialInput, acquireTrialRunnerLock, runTrialSequence } from "./run-paid-manual-trials.mjs";
+
+const ROOT = join(FD121_ROOT, "fd123-continuation");
+const JOURNAL = join(ROOT, "reports.json");
+const SCHEMA_ANNOTATION = "https://json-schema.org/draft/2020-12/schema";
+const hash = text => createHash("sha256").update(text).digest("hex");
+const fail = code => { throw Object.assign(new Error(code), { code }); };
+export function assertFd123OutputPath(path, authorityRoot = FD121_ROOT) {
+  const output = resolve(path), authority = resolve(authorityRoot);
+  const inside = (value, root) => value === root || value.startsWith(`${root}${sep}`);
+  if (inside(output, authority)) fail("FD123_EXPORT_AUTHORITY_PATH_FORBIDDEN");
+  let ancestor = dirname(output);
+  const suffix = [];
+  while (!existsSync(ancestor)) { suffix.unshift(basename(ancestor)); ancestor = dirname(ancestor); }
+  const canonical = resolve(realpathSync(ancestor), ...suffix, basename(output));
+  const canonicalAuthority = realpathSync(authority);
+  if (inside(canonical, canonicalAuthority) || (existsSync(output) && lstatSync(output).isSymbolicLink())) fail("FD123_EXPORT_AUTHORITY_PATH_FORBIDDEN");
+  return canonical;
+}
+export function normalizeTrialJson(raw) {
+  if (typeof raw !== "string") fail("FD123_JSON_INVALID");
+  const text = raw.trim();
+  const wrapper = /^```(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n```$/u.exec(text);
+  const json = wrapper ? wrapper[1] : text;
+  let value;
+  try { value = JSON.parse(json); } catch { fail("FD123_JSON_INVALID"); }
+  let annotation = false;
+  if (value && typeof value === "object" && !Array.isArray(value) && Object.hasOwn(value, "$schema")) {
+    if (value.$schema !== SCHEMA_ANNOTATION) fail("FD123_JSON_SCHEMA_ANNOTATION_INVALID");
+    delete value.$schema; annotation = true;
+  }
+  const normalization = [wrapper ? "single_json_fence" : "", annotation ? "root_json_schema_annotation" : ""].filter(Boolean).join("_and_") || "none";
+  return { value, rawSha256: hash(raw), parsedSha256: hash(JSON.stringify(value)), normalization };
+}
+export function paidTrialSchemaInstruction(schemaDocument) {
+  const document = structuredClone(schemaDocument);
+  delete document.$schema;
+  return `Return only product data fields, never schema-document annotations such as $schema. Authoritative JSON output schema: ${JSON.stringify(document)}`;
+}
+export function assertFd123Original(manifest) {
+  const first = manifest?.reports?.[0];
+  if (manifest?.campaign !== "FD121-paid-manual-trials-v1" || manifest.status !== "stopped" || manifest.asOfDate !== "2026-10-09" ||
+      manifest.reports.length !== 1 || first.slot !== "relationship_marriage:0" || first.attempts?.length !== 1 ||
+      manifest.budget?.openReservations !== 1 || manifest.budget.totalVnd !== 33368 || manifest.manualAccepted !== false) fail("FD123_ORIGINAL_FENCE_INVALID");
+}
+export function assertFd123Resume(manifest, lineage) {
+  if (manifest?.campaign !== FD123_POLICY || manifest.manualAccepted !== false || manifest.status !== "complete_pending_manual_review" ||
+      manifest.originalJournalSha256 !== lineage.originalJournalSha256 || manifest.originalLedgerSha256 !== lineage.originalLedgerSha256 ||
+      manifest.reports?.length !== 9 || manifest.reports.some((row, index) => row.slot !== FD123_SLOTS[index] ||
+        row.status !== "quality_passed_pending_manual_review" || row.manualAccepted !== false || row.attempts.length < 1 || row.attempts.length > 2)) fail("FD123_RESTART_REQUIRES_RECONCILIATION");
+}
+export function prepareFd123RetainedRecovery(manifest, lineage, input, modules, state, { at = new Date() } = {}) {
+  const row = manifest?.reports?.[0], attempt = row?.attempts?.[0];
+  const observed = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-first-retained-stop.json", import.meta.url), "utf8"));
+  if (hash(JSON.stringify(manifest)) !== hash(JSON.stringify(observed))) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
+  if (manifest?.campaign !== FD123_POLICY || manifest.status !== "stopped" || manifest.manualAccepted !== false ||
+      manifest.asOfDate !== "2026-10-09" || manifest.originalJournalSha256 !== lineage.originalJournalSha256 ||
+      manifest.originalLedgerSha256 !== lineage.originalLedgerSha256 || manifest.reports.length !== 1 || manifest.recoveryEvents !== undefined ||
+      manifest.stopSlot !== FD123_SLOTS[0] || row.slot !== FD123_SLOTS[0] || row.group !== input.group || row.index !== input.index ||
+      row.status !== "failed" || row.manualAccepted !== false || row.attempts.length !== 1 || attempt.status !== "stopped" ||
+      attempt.purpose !== "report" || attempt.attemptKey !== fd123AttemptKey(FD123_SLOTS[0], "report") ||
+      attempt.errorCode !== "ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE" || attempt.reserveVnd !== 33368 ||
+      typeof attempt.reservationId !== "string" || state.openReservations !== 1 || state.totalVnd !== 33368 || state.capVnd !== 600624 ||
+      row.snapshotHash !== input.snapshotHash || row.factsSha256 !== hash(JSON.stringify(input.facts))) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
+  const normalized = normalizeTrialJson(attempt.visibleUnacceptedOutput);
+  // This recovery authorizes only the one observed stop, never another
+  // incomplete run or an ambiguous checkpoint left by a crashed recovery.
+  if (normalized.rawSha256 !== "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344" ||
+      attempt.accountingEvidence?.responseSha256 !== "a7f53f31bbe35beeb4416d0017f0f59a2925c1aa47ad5c38dbe2b05859bad63b" ||
+      attempt.trace?.requestSha256 !== "f88490536cf0dffb3af25e2523c0124062eed172aa93a9f48b0505d7911ac1c7") fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
+  const content = modules.contracts.ZiweiTopicDeepDiveContentV1Schema.parse(normalized.value);
+  const quality = modules.backend.validateZiweiTopicDeepDiveQualityV4(content, input.facts);
+  if (!quality.ok) fail("FD123_RECOVERY_QUALITY_FAILED");
+  const proof = attempt.accountingEvidence;
+  const settlement = { receipt: { modelVersion: proof.modelVersion, usageMetadata: structuredClone(proof.usageMetadata) },
+    outputSha256: normalized.rawSha256, accountingEvidence: proof, referenceMode: FD123_MODEL_BOUND_MODE };
+  const quote = quoteFd123ReferenceSettlement(settlement, attempt.trace, { at });
+  return { settlement, quote, content, quality, rawSha256: normalized.rawSha256,
+    parsedSha256: normalized.parsedSha256, normalization: normalized.normalization };
+}
+export function prepareFd123RetainedFormatRecovery(manifest, lineage, inputs, modules, state, { at = new Date() } = {}) {
+  const observed = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-monthly-retained-stop.json", import.meta.url), "utf8"));
+  if (hash(JSON.stringify(manifest)) !== hash(JSON.stringify(observed)) || manifest.status !== "stopped" || manifest.manualAccepted !== false ||
+      manifest.originalJournalSha256 !== lineage.originalJournalSha256 || manifest.originalLedgerSha256 !== lineage.originalLedgerSha256 ||
+      manifest.referenceMode !== FD123_MODEL_BOUND_MODE || manifest.reports.length !== 4 || manifest.stopSlot !== "monthly:0" ||
+      state.openReservations !== 0 || state.totalVnd !== 133472 || state.capVnd !== 600624) fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+  let recovered;
+  for (const [index, row] of manifest.reports.entries()) {
+    const input = inputs[index], attempt = row.attempts.at(-1);
+    if (!input || row.slot !== FD123_SLOTS[index] || row.manualAccepted !== false || row.snapshotHash !== input.snapshotHash ||
+        row.factsSha256 !== hash(JSON.stringify(input.facts))) fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+    const normalized = normalizeTrialJson(attempt.outputText);
+    const topic = ["relationship_marriage", "career_wealth"].includes(input.group);
+    const content = (topic ? modules.contracts.ZiweiTopicDeepDiveContentV1Schema : modules.contracts.ZiweiPeriodReadingContentV1Schema).parse(normalized.value);
+    const quality = topic ? modules.backend.validateZiweiTopicDeepDiveQualityV4(content, input.facts) : modules.backend.validatePeriodReading(content, input.facts);
+    const quote = quoteFd123ReferenceSettlement({ receipt: attempt.receipt, outputSha256: normalized.rawSha256,
+      accountingEvidence: attempt.accountingEvidence, referenceMode: FD123_MODEL_BOUND_MODE }, attempt.trace, { at });
+    if (!quality.ok || JSON.stringify(quote) !== JSON.stringify(attempt.quote)) fail("FD123_FORMAT_RECOVERY_CONTENT_OR_REFERENCE_INVALID");
+    if (index < 3) {
+      if (row.status !== "quality_passed_pending_manual_review" || !row.result.ok ||
+          JSON.stringify(content) !== JSON.stringify(row.result.value.content)) fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+    } else {
+      if (row.status !== "failed" || row.result.error?.code !== "AI_OUTPUT_INVALID" || row.attempts.length !== 1 ||
+          attempt.purpose !== "report" || attempt.status !== "reference_settled" || normalized.normalization !== "root_json_schema_annotation") fail("FD123_FORMAT_RECOVERY_REQUIRES_RECONCILIATION");
+      recovered = { content, quality, rawSha256: normalized.rawSha256, parsedSha256: normalized.parsedSha256, normalization: normalized.normalization };
+    }
+  }
+  return recovered;
+}
+export function prepareFd123RetainedQualityRecovery(manifest, lineage, inputs, modules, state, { at = new Date() } = {}) {
+  const observed = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-annual-retained-stop.json", import.meta.url), "utf8"));
+  if (hash(JSON.stringify(manifest)) !== hash(JSON.stringify(observed)) || manifest.status !== "stopped" || manifest.manualAccepted !== false ||
+      manifest.originalJournalSha256 !== lineage.originalJournalSha256 || manifest.originalLedgerSha256 !== lineage.originalLedgerSha256 ||
+      manifest.referenceMode !== FD123_MODEL_BOUND_MODE || manifest.reports.length !== 6 || manifest.stopSlot !== "current_annual:0" ||
+      modules.backend.PERIOD_READING_TUPLE.qualityVersion !== "ziwei.period-reading.quality.v3" ||
+      modules.backend.REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V3 !== "ziwei.topic-deep-dive.quality.v3" ||
+      state.openReservations !== 0 || state.totalVnd !== 233576 || state.capVnd !== 600624) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+  let recovered, topicRepair;
+  for (const [index, row] of manifest.reports.entries()) {
+    const input = inputs[index], topic = ["relationship_marriage", "career_wealth"].includes(input?.group);
+    if (!input || row.slot !== FD123_SLOTS[index] || row.manualAccepted !== false || row.snapshotHash !== input.snapshotHash ||
+        row.factsSha256 !== hash(JSON.stringify(input.facts)) || row.attempts.length !== (index === 5 ? 2 : 1)) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+    for (const [attemptIndex, attempt] of row.attempts.entries()) {
+      if (attempt.purpose !== (attemptIndex ? "rewrite" : "report") || attempt.attemptKey !== fd123AttemptKey(row.slot, attempt.purpose) ||
+          !["reference_settled", "reference_settled_model_bound"].includes(attempt.status)) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+      const normalized = normalizeTrialJson(attempt.outputText);
+      const content = (topic ? modules.contracts.ZiweiTopicDeepDiveContentV1Schema : modules.contracts.ZiweiPeriodReadingContentV1Schema).parse(normalized.value);
+      const quality = topic ? modules.backend.validateZiweiTopicDeepDiveQualityV4(content, input.facts) : modules.backend.validatePeriodReading(content, input.facts);
+      const quote = quoteFd123ReferenceSettlement({ receipt: attempt.receipt, outputSha256: normalized.rawSha256,
+        accountingEvidence: attempt.accountingEvidence, referenceMode: FD123_MODEL_BOUND_MODE }, attempt.trace, { at });
+      const expectedRepairFinding = { sectionKey: "overview", code: "PALACE_FACTS", note: "Opposing major-star absence for ziwei.palace.wealth is not supported by ziwei.palace.fortune. Resident-star absence is a separate fact." };
+      const knownTopicRepair = index === 2 && attemptIndex === 0 && !quality.ok &&
+        JSON.stringify(quality.findings) === JSON.stringify([expectedRepairFinding]);
+      if ((!quality.ok && !knownTopicRepair) || normalized.rawSha256 !== attempt.rawSha256 || normalized.rawSha256 !== attempt.outputSha256 ||
+          normalized.parsedSha256 !== attempt.parsedSha256 || JSON.stringify(quote) !== JSON.stringify(attempt.quote)) fail("FD123_QUALITY_RECOVERY_CONTENT_OR_REFERENCE_INVALID");
+      if (index < 5) {
+        if (row.status !== "quality_passed_pending_manual_review" || !row.result.ok ||
+            JSON.stringify(content) !== JSON.stringify(row.result.value.content)) fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+      } else {
+        if (row.status !== "failed" || row.result.error?.code !== "PERIOD_QUALITY_REJECTED" ||
+            JSON.stringify(row.result.findings) !== '["CONTENT_LINE_VIOLATION"]') fail("FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION");
+        if (attemptIndex === 1) recovered = { content, quality, rawSha256: normalized.rawSha256, parsedSha256: normalized.parsedSha256 };
+      }
+      if (knownTopicRepair) topicRepair = { content, quality, rawSha256: normalized.rawSha256, parsedSha256: normalized.parsedSha256 };
+    }
+  }
+  if (!topicRepair) fail("FD123_RETAINED_TOPIC_REPAIR_REQUIRED");
+  return { ...recovered, topicRepair };
+}
+function privateRead(path) {
+  const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  try {
+    const stat = fstatSync(fd), named = lstatSync(path);
+    if (stat.dev !== named.dev || stat.ino !== named.ino || !stat.isFile() || stat.uid !== 1000 || stat.nlink !== 1 || (stat.mode & 0o077)) fail("FD123_STORAGE_UNSAFE");
+    return readFileSync(fd, "utf8");
+  } finally { closeSync(fd); }
+}
+function durableSave(path, value) {
+  const temporary = `${path}.next`;
+  const fd = openSync(temporary, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+  try { writeFileSync(fd, JSON.stringify(value, null, 2) + "\n"); fsyncSync(fd); } finally { closeSync(fd); }
+  renameSync(temporary, path);
+  const directory = openSync(dirname(path), constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+  try { fsyncSync(directory); } finally { closeSync(directory); }
+}
+export async function buildFd123Inputs(original, modules, preflight) {
+  assertFd123Original(original);
+  const inputs = [];
+  for (const slot of ["relationship_marriage:0", ...FD123_SLOTS]) {
+    const [group, index] = slot.split(":");
+    const input = await makePaidTrialInput(group, Number(index), original.asOfDate, modules);
+    const expected = preflight.inputs.find(row => row.group === group && row.index === Number(index));
+    if (!expected || input.snapshotHash !== expected.snapshotHash || hash(JSON.stringify(input.facts)) !== expected.factsSha256 ||
+        (slot === "relationship_marriage:0" && (input.snapshotHash !== original.reports[0].snapshotHash || hash(JSON.stringify(input.facts)) !== original.reports[0].factsSha256))) fail("FD123_SOURCE_CHANGED");
+    if (slot !== "relationship_marriage:0") inputs.push(input);
+  }
+  return inputs;
+}
+async function main(args) {
+  const { values } = parseArgs({ args, options: { live: { type: "boolean", default: false }, dryRun: { type: "boolean", default: false },
+    locked: { type: "boolean", default: false }, resumeReference: { type: "boolean", default: false }, resumeFormat: { type: "boolean", default: false }, resumeQuality: { type: "boolean", default: false }, output: { type: "string" } } });
+  if (values.live === values.dryRun || process.getuid() !== 1000) fail("FD123_MODE_OR_IDENTITY_INVALID");
+  const recoveryCount = [values.resumeReference, values.resumeFormat, values.resumeQuality].filter(Boolean).length;
+  if ((recoveryCount && !values.live) || recoveryCount > 1) fail("FD123_MODE_OR_IDENTITY_INVALID");
+  const output = assertFd123OutputPath(values.output ?? "plan/evidence/2026-10-09-fd123-paid-trials.json");
+  const originalText = privateRead(join(FD121_ROOT, "reports.json"));
+  const ledgerText = privateRead(join(FD121_ROOT, "budget.jsonl"));
+  const original = JSON.parse(originalText); assertFd123Original(original);
+  const lineage = { originalJournalSha256: hash(originalText), originalLedgerSha256: hash(ledgerText), originalHeldExposureVnd: 33368 };
+  const unchanged = () => {
+    if (hash(privateRead(join(FD121_ROOT, "reports.json"))) !== lineage.originalJournalSha256 ||
+        hash(privateRead(join(FD121_ROOT, "budget.jsonl"))) !== lineage.originalLedgerSha256) fail("FD123_ORIGINAL_CHANGED");
+  };
+  if (values.live && !values.locked) {
+    const root = lstatSync(FD121_ROOT);
+    if (!root.isDirectory() || root.uid !== 1000 || (root.mode & 0o077)) fail("FD123_STORAGE_UNSAFE");
+    const fd = openSync(join(FD121_ROOT, "runner.lock"), constants.O_RDWR | constants.O_NOFOLLOW);
+    try {
+      acquireTrialRunnerLock(fd, join(FD121_ROOT, "runner.lock"));
+      execFileSync(process.execPath, [fileURLToPath(import.meta.url), ...args, "--locked"], { stdio: ["inherit", "inherit", "inherit", fd] });
+    } finally { closeSync(fd); }
+    return;
+  }
+  if (values.live) acquireTrialRunnerLock(3, join(FD121_ROOT, "runner.lock"));
+  const modules = { backend: await import("../packages/backend/dist/index.js"), contracts: await import("../packages/contracts/dist/index.js"),
+    engine: await import("../packages/engine-adapters/dist/index.js") };
+  const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
+  const inputs = await buildFd123Inputs(original, modules, preflight);
+  if (values.dryRun) {
+    mkdirSync(dirname(output), { recursive: true }); unchanged();
+    durableSave(output, { campaign: FD123_POLICY, status: "dry_run_not_acceptance", ...lineage, manualAccepted: false,
+      physicalDispatches: 0, maxNewPhysicalAttempts: 18, slots: FD123_SLOTS, sourceHashesMatch: true }); unchanged();
+    console.log(JSON.stringify({ status: "dry_run_not_acceptance", reports: inputs.length, physicalDispatches: 0 })); return;
+  }
+  if (!existsSync(ROOT)) mkdirSync(ROOT, { recursive: false, mode: 0o700 });
+  const storage = lstatSync(ROOT);
+  if (!storage.isDirectory() || storage.uid !== 1000 || (storage.mode & 0o077)) fail("FD123_STORAGE_UNSAFE");
+  const budget = paidContinuationBudget();
+  let manifest, pendingInputs = inputs;
+
+  const providerFor = (input, row) => {
+    const slot = `${input.group}:${input.index}`;
+    return { async generateStructured(request) {
+      const purpose = row.attempts.length ? "rewrite" : "report";
+      if (row.attempts.length >= 2 || request.purpose !== purpose) return { ok: false, error: { code: "AI_PROVIDER_REQUEST_FAILED", retryable: false } };
+      unchanged();
+      const attempt = { attemptKey: fd123AttemptKey(slot, purpose), purpose, status: "preparing" };
+      row.attempts.push(attempt); durableSave(JOURNAL, manifest);
+      try {
+        const native = await runProdRouterAttempt({ system: `${request.system}\n${paidTrialSchemaInstruction(modules.contracts.z.toJSONSchema(request.schema))}`,
+          user: request.user, maxOutputTokens: request.maxOutputTokens, attemptKey: attempt.attemptKey, budget, referenceContinuation: true,
+          referenceMode: manifest.referenceMode,
+          onPrepared: trace => { unchanged(); Object.assign(attempt, trace, { status: "dispatch_pending" }); durableSave(JOURNAL, manifest); },
+          onReceipt: receipt => { unchanged(); Object.assign(attempt, receipt, { status: "native_received_pending_accounting" }); durableSave(JOURNAL, manifest); } });
+        Object.assign(attempt, native, { status: "reference_settled" }); durableSave(JOURNAL, manifest);
+        const normalized = normalizeTrialJson(native.outputText);
+        const parsed = request.schema.safeParse(normalized.value);
+        const format = { rawSha256: normalized.rawSha256, parsedSha256: normalized.parsedSha256, normalization: normalized.normalization }; Object.assign(attempt, format); durableSave(JOURNAL, manifest);
+        if (!parsed.success) return { ok: false, error: { code: "AI_OUTPUT_INVALID", retryable: false } };
+        console.log(JSON.stringify({ slot, purpose, status: "reference_settled", referenceVnd: native.quote.quoteVnd, normalization: normalized.normalization }));
+        return { ok: true, value: { value: parsed.data, providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium",
+          usage: { tokensUnknown: native.quote.tokensUnknown ?? false, costStatus: "resolved", costMicroVnd: native.quote.quoteMicroVnd, costVnd: Number(native.quote.quoteVnd) } } };
+      } catch (error) {
+        Object.assign(attempt, { status: "stopped", errorCode: error.code ?? "FD123_ATTEMPT_FAILED" });
+        if (error.accountingEvidence) attempt.accountingEvidence = error.accountingEvidence;
+        if (error.visibleUnacceptedOutput) attempt.visibleUnacceptedOutput = error.visibleUnacceptedOutput;
+        durableSave(JOURNAL, manifest);
+        return { ok: false, error: { code: "AI_PROVIDER_REQUEST_FAILED", retryable: false } };
+      }
+    } };
+  };
+  if (existsSync(JOURNAL)) {
+    const priorText = privateRead(JOURNAL);
+    manifest = JSON.parse(priorText);
+    if (!recoveryCount) { assertFd123Resume(manifest, lineage); pendingInputs = []; }
+    else if (values.resumeQuality) {
+      const state = budget.status(), ledgerSha256 = hash(privateRead(join(ROOT, "budget.jsonl")));
+      const recovered = prepareFd123RetainedQualityRecovery(manifest, lineage, inputs, modules, state);
+      const row = manifest.reports[5]; unchanged();
+      manifest.qualityRecoveryEvents = [{ status: "prepared", priorManifestSha256: hash(priorText), previousStatus: manifest.status,
+        previousStopSlot: manifest.stopSlot, previousRowStatus: row.status, previousResult: row.result,
+        fromQualityVersion: "ziwei.period-reading.quality.v2", toQualityVersion: modules.backend.PERIOD_READING_TUPLE.qualityVersion,
+        retainedAttemptPurpose: "rewrite", retainedTopicSlot: "career_wealth:1", previousTopicResult: manifest.reports[2].result,
+        topicRevalidationQuality: recovered.topicRepair.quality, topicRewriteLimit: 1,
+        rawOutputSha256: recovered.rawSha256, parsedSha256: recovered.parsedSha256,
+        ledgerSha256, noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() }];
+      manifest.status = "quality_recovery_prepared"; durableSave(JOURNAL, manifest);
+      // Revalidate the retained rewrite; neither original response is edited.
+      row.result = { ok: true, value: { content: recovered.content, quality: recovered.quality,
+        providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium" } };
+      row.status = "quality_passed_pending_manual_review";
+      manifest.qualityRecoveryEvents.push({ status: "annual_revalidation_completed", noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() });
+      durableSave(JOURNAL, manifest); unchanged();
+      if (JSON.stringify(budget.status()) !== JSON.stringify(state) ||
+          hash(privateRead(join(ROOT, "budget.jsonl"))) !== ledgerSha256) fail("FD123_QUALITY_RECOVERY_LEDGER_CHANGED");
+      console.log(JSON.stringify({ slot: row.slot, status: "retained_quality_recovered", physicalProviderCalls: 0, ledgerWrites: 0, manualAccepted: false }));
+      const topicRow = manifest.reports[2], topicInput = inputs[2];
+      topicRow.status = "factual_revalidation_rejected";
+      topicRow.result = { ok: true, value: { content: recovered.topicRepair.content, quality: recovered.topicRepair.quality,
+        providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium" } };
+      durableSave(JOURNAL, manifest);
+      // The original report is retained. Its one unused rewrite is a fresh,
+      // separately accounted attempt; no third attempt can be constructed.
+      const corrected = await modules.backend.writeZiweiTopicDeepDiveV4({ topicId: topicInput.group, facts: topicInput.facts,
+        knowledgePacks: [], provider: providerFor(topicInput, topicRow),
+        rewrite: { priorContent: recovered.topicRepair.content, findings: recovered.topicRepair.quality.findings } });
+      topicRow.result = corrected;
+      const passed = corrected.ok && corrected.value.quality.ok;
+      topicRow.status = passed ? "quality_passed_pending_manual_review" : "failed";
+      manifest.budget = budget.status();
+      manifest.qualityRecoveryEvents.push({ status: passed ? "completed" : "topic_repair_failed", retainedResponsesReplayed: 0,
+        topicRewriteAttemptKey: fd123AttemptKey(topicRow.slot, "rewrite"), recordedAt: new Date().toISOString() });
+      manifest.status = passed ? "running" : "stopped";
+      if (passed) { delete manifest.stopSlot; pendingInputs = inputs.slice(6); }
+      else { manifest.stopSlot = topicRow.slot; pendingInputs = []; }
+      durableSave(JOURNAL, manifest); unchanged();
+    }
+    else if (values.resumeFormat) {
+      const state = budget.status();
+      const ledgerSha256 = hash(privateRead(join(ROOT, "budget.jsonl")));
+      const recovered = prepareFd123RetainedFormatRecovery(manifest, lineage, inputs, modules, state);
+      const row = manifest.reports[3], attempt = row.attempts[0]; unchanged();
+      manifest.formatRecoveryEvents = [{ status: "prepared", ownerDecision: "FD-123", priorManifestSha256: hash(priorText),
+        previousStatus: manifest.status, previousStopSlot: manifest.stopSlot, previousRowStatus: row.status,
+        previousResult: row.result, previousNormalization: attempt.normalization, previousParsedSha256: attempt.parsedSha256,
+        rawOutputSha256: recovered.rawSha256, ledgerSha256, noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() }];
+      manifest.status = "format_recovery_prepared"; durableSave(JOURNAL, manifest);
+      // The existing settled proof/receipt/quote and original output stay intact.
+      // Only the parsed view removes the exact schema-document annotation.
+      Object.assign(attempt, { rawSha256: recovered.rawSha256, parsedSha256: recovered.parsedSha256, normalization: recovered.normalization });
+      row.result = { ok: true, value: { content: recovered.content, quality: recovered.quality,
+        providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium" } };
+      row.status = "quality_passed_pending_manual_review";
+      manifest.formatRecoveryEvents.push({ status: "completed", noPhysicalReplay: true, ledgerWrites: 0, recordedAt: new Date().toISOString() });
+      manifest.status = "running"; delete manifest.stopSlot; durableSave(JOURNAL, manifest); unchanged();
+      const after = budget.status(); if (JSON.stringify(after) !== JSON.stringify(state) ||
+        hash(privateRead(join(ROOT, "budget.jsonl"))) !== ledgerSha256) fail("FD123_FORMAT_RECOVERY_LEDGER_CHANGED");
+      pendingInputs = inputs.slice(4);
+      console.log(JSON.stringify({ slot: row.slot, status: "retained_format_recovered", physicalProviderCalls: 0, ledgerWrites: 0, manualAccepted: false }));
+    } else {
+      const recovered = prepareFd123RetainedRecovery(manifest, lineage, inputs[0], modules, budget.status());
+      const row = manifest.reports[0], attempt = row.attempts[0];
+      unchanged();
+      manifest.recoveryEvents = [{ ownerDecision: "FD-123", referenceMode: FD123_MODEL_BOUND_MODE,
+        priorManifestSha256: hash(priorText), previousStatus: manifest.status, previousStopSlot: manifest.stopSlot,
+        previousRowStatus: row.status, previousAttemptStatus: attempt.status, previousErrorCode: attempt.errorCode,
+        requestSha256: attempt.trace.requestSha256, responseSha256: attempt.accountingEvidence.responseSha256,
+        rawOutputSha256: recovered.rawSha256, noPhysicalReplay: true, status: "prepared", recordedAt: new Date().toISOString() }];
+      manifest.status = "recovery_prepared"; durableSave(JOURNAL, manifest);
+      // A crash across this append/update boundary remains fenced; the CLI
+      // never automatically settles again or replays the retained response.
+      budget.settleAttempt(attempt.reservationId, recovered.settlement);
+      Object.assign(attempt, { status: "reference_settled_model_bound", receipt: recovered.settlement.receipt, quote: recovered.quote,
+        outputSha256: recovered.rawSha256, outputText: attempt.visibleUnacceptedOutput, rawSha256: recovered.rawSha256,
+        parsedSha256: recovered.parsedSha256, normalization: recovered.normalization });
+      row.result = { ok: true, value: { content: recovered.content, quality: recovered.quality,
+        providerId: "9router-antigravity-native", modelId: "gemini-3.8-flash-medium" } };
+      row.status = "quality_passed_pending_manual_review";
+      manifest.recoveryEvents.push({ status: "completed", noPhysicalReplay: true, recordedAt: new Date().toISOString() });
+      manifest.referenceMode = FD123_MODEL_BOUND_MODE; manifest.status = "running"; manifest.budget = budget.status();
+      durableSave(JOURNAL, manifest); unchanged(); pendingInputs = inputs.slice(1);
+      console.log(JSON.stringify({ slot: row.slot, status: "retained_response_recovered", physicalProviderCalls: 0,
+        heldReferenceVnd: recovered.quote.quoteVnd, actualUsageVerified: false, manualAccepted: false }));
+    }
+  } else {
+    if (recoveryCount) fail("FD123_RECOVERY_REQUIRES_RECONCILIATION");
+    const state = budget.status();
+    if (state.totalVnd !== 0 || state.openReservations !== 0) fail("FD123_LEDGER_REQUIRES_RECONCILIATION");
+    manifest = { campaign: FD123_POLICY, ownerDecision: "FD-123", status: "running", manualAccepted: false, asOfDate: original.asOfDate,
+      ...lineage, maxNewPhysicalAttempts: 18, technicalCeilingVnd: 600624, monetaryBudgetBlockerWaived: true,
+      accountingBasis: "FD114_API_reference_not_provider_invoice", reports: [] };
+    durableSave(JOURNAL, manifest);
+  }
+  if (pendingInputs.length) {
+    try {
+      await runTrialSequence({ inputs: pendingInputs, manifest, save: value => durableSave(JOURNAL, value), generate: async (input, row) => {
+        const provider = providerFor(input, row);
+        return ["relationship_marriage", "career_wealth"].includes(input.group)
+          ? modules.backend.generateZiweiTopicDeepDiveWithQualityLoopV4({ topicId: input.group, facts: input.facts, knowledgePacks: [], provider, maxRewriteAttempts: 1 })
+          : modules.backend.writePeriodReading({ facts: input.facts, provider });
+      } });
+    } finally { unchanged(); }
+    manifest.budget = budget.status(); durableSave(JOURNAL, manifest);
+  }
+  unchanged(); mkdirSync(dirname(output), { recursive: true }); durableSave(output, manifest); unchanged();
+  console.log(JSON.stringify({ status: manifest.status, reports: manifest.reports.length, newReferenceExposureVnd: manifest.budget.totalVnd,
+    originalHeldExposureVnd: 33368, openReservations: manifest.budget.openReservations, manualAccepted: false }));
+}
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main(process.argv.slice(2)).catch(error => { console.error(JSON.stringify({ status: "stopped", code: error.code ?? "FD123_RUN_FAILED" })); process.exitCode = 1; });
+}

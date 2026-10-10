@@ -1,0 +1,18 @@
+{
+  "diagnosticOnly": true,
+  "slot": "monthly:0",
+  "schemaAnnotation": "https://json-schema.org/draft/2020-12/schema",
+  "removedOnlySchemaAnnotation": true,
+  "sourceHashesMatch": true,
+  "schemaPassed": true,
+  "defaultQuality": {
+    "ok": true,
+    "findings": [],
+    "advisory": [
+      "EDITORIAL_TERM"
+    ]
+  },
+  "physicalProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false
+}

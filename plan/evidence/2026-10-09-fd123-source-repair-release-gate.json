@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-09T20:26:50.730882+00:00",
+  "sourceHead": "e958c1ed47048002a06e9c4ff946ee07e620f3b3",
+  "status": "PASS",
+  "ci": [
+    {
+      "conclusion": "success",
+      "headSha": "e958c1ed47048002a06e9c4ff946ee07e620f3b3",
+      "status": "completed",
+      "url": "https://github.com/harris1111/lasoviet.vn/actions/runs/37984768541"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "e958c1ed47048002a06e9c4ff946ee07e620f3b3",
+      "status": "completed",
+      "url": "https://github.com/harris1111/lasoviet.vn/actions/runs/37984773994"
+    }
+  ],
+  "independentReview": "https://github.com/harris1111/lasoviet.vn/pull/382#issuecomment-6088410015",
+  "physicalProviderCallsByThisCheck": 0,
+  "annualReuseCalls": 0,
+  "annualReuseLedgerWrites": 0,
+  "topicRewriteAuthorized": 1,
+  "pendingNewSlots": 3,
+  "maxFurtherCalls": 7
+}

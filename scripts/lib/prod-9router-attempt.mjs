@@ -6,6 +6,7 @@ import { ROUTER_IMAGE, inspectNativeAccountingEvidence } from "./prod-9router-ch
 import { createCampaignBudget } from "./campaign-budget.mjs";
 import { inspectNativeReceipt } from "./native-campaign-preflight.mjs";
 import { nativeApiReferencePricing, quoteNativeApiReference } from "./native-campaign-api-pricing.mjs";
+import { FD123_POLICY, FD123_MODEL_BOUND_MODE, FD123_TECHNICAL_CAP_VND, quoteFd123ReferenceSettlement } from "./fd123-reference-continuation.mjs";
 
 export const FD121_ROOT = "/home/debian/.lasoviet/fd121-paid-manual-trials";
 export const FD121_LEDGER = `${FD121_ROOT}/budget.jsonl`;
@@ -17,6 +18,11 @@ export function paidTrialBudget() {
   if (process.getuid() !== 1000) fail("PAID_TRIAL_EXECUTION_IDENTITY_MISMATCH");
   return createCampaignBudget({ ledgerPath: FD121_LEDGER, totalCapVnd: FD121_CAP_VND,
     allocationsVnd: { "v4.2-report": FD121_CAP_VND }, settleActualUsage: true });
+}
+export function paidContinuationBudget() {
+  if (process.getuid() !== 1000) fail("PAID_TRIAL_EXECUTION_IDENTITY_MISMATCH");
+  return createCampaignBudget({ ledgerPath: `${FD121_ROOT}/fd123-continuation/budget.jsonl`, totalCapVnd: FD123_TECHNICAL_CAP_VND,
+    allocationsVnd: { "v4.2-report": FD123_TECHNICAL_CAP_VND }, settleActualUsage: true, referenceContinuation: FD123_POLICY });
 }
 export function conservativeTrialReserve(bounds, at) {
   if (bounds?.inputTokens !== 1048576 || bounds?.outputTokens !== 65536 || bounds?.reasoningTokens !== 65536) fail("ROUTER_BOUND_UNVERIFIED");
@@ -35,7 +41,9 @@ export function installedRouterProcess() {
 }
 
 export async function runProdRouterAttempt({ system, user, maxOutputTokens, attemptKey, onPrepared = () => {},
-  onReceipt = () => {}, budget = paidTrialBudget(), processFactory = installedRouterProcess, now = () => new Date() }) {
+  onReceipt = () => {}, budget = paidTrialBudget(), processFactory = installedRouterProcess, now = () => new Date(), referenceContinuation = false, referenceMode }) {
+  if (referenceMode !== undefined && (!referenceContinuation || referenceMode !== FD123_MODEL_BOUND_MODE)) fail("FD123_REFERENCE_MODE_INVALID");
+  if (referenceContinuation && budget.referenceContinuation !== FD123_POLICY) fail("FD123_LEDGER_POLICY_REQUIRED");
   if (!/^[a-f0-9]{64}$/.test(attemptKey)) fail("ROUTER_ATTEMPT_INVALID");
   const pricing = nativeApiReferencePricing(now());
   nativeApiReferencePricing(new Date(now().getTime() + 120000));
@@ -81,13 +89,17 @@ export async function runProdRouterAttempt({ system, user, maxOutputTokens, atte
     // A failed checkpoint retains the whole open reservation and stops.
     await onReceipt({ attemptKey, reservationId, accountingEvidence, visibleUnacceptedOutput });
     if (r.conflictingUsage) fail("ROUTER_USAGE_UNVERIFIED");
-    if (!accountingEvidence.envelopeComplete) fail("ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE");
-    const receipt = inspectNativeReceipt(r.receipt);
-    const quote = quoteNativeApiReference(receipt, { at: now() });
-    if (receipt.inputTokens > bounds.inputTokens || receipt.outputTokens > bounds.outputTokens || receipt.reasoningTokens > bounds.reasoningTokens ||
+    if (!accountingEvidence.envelopeComplete && referenceMode !== FD123_MODEL_BOUND_MODE) fail("ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE");
+    const outputSha256 = typeof r.outputText === "string" ? hash(r.outputText) : undefined;
+    const settlement = referenceContinuation ? { receipt: r.receipt, outputSha256, accountingEvidence, ...(referenceMode ? { referenceMode } : {}) }
+      : { receipt: inspectNativeReceipt(r.receipt), outputSha256 };
+    const receipt = settlement.receipt;
+    const quote = referenceContinuation ? quoteFd123ReferenceSettlement(settlement, trace, { at: now() })
+      : quoteNativeApiReference(receipt, { at: now() });
+    const counters = referenceContinuation ? (quote.tokenBounds ?? quote) : receipt;
+    if (counters.inputTokens > bounds.inputTokens || counters.outputTokens > bounds.outputTokens || counters.reasoningTokens > bounds.reasoningTokens ||
         BigInt(quote.quoteVnd) > BigInt(reserveVnd) || typeof r.outputText !== "string" || !r.outputText.trim()) fail("ROUTER_RESULT_UNVERIFIED");
-    const outputSha256 = hash(r.outputText);
-    budget.settleAttempt(reservationId, { receipt, outputSha256 });
+    budget.settleAttempt(reservationId, settlement);
     return { attemptKey, reservationId, trace, receipt, quote, outputSha256, outputText: r.outputText, accountingEvidence };
   } catch (error) {
     throw Object.assign(new Error("PAID_TRIAL_ATTEMPT_STOPPED"), { code: typeof error.code === "string" ? error.code : "ROUTER_ATTEMPT_FAILED", reservationId,

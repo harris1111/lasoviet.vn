@@ -1,0 +1,533 @@
+{
+  "campaign": "FD123-paid-nine-v1",
+  "status": "stopped",
+  "reportCount": 6,
+  "originalHeldExposureVnd": 33368,
+  "newReferenceExposureVnd": 266944,
+  "openReservations": 1,
+  "dispatchPermissions": 8,
+  "observedNativeResponses": 7,
+  "manualAccepted": false,
+  "providerBillingVerified": false,
+  "authoritativeJournalSha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+  "authoritativeLedgerSha256": "1496236a197afb8e3362113cf45d093d69d495b41c1eed6ec8b8690189367b14",
+  "recoveryEvents": [
+    {
+      "ownerDecision": "FD-123",
+      "referenceMode": "FD123-model-bounds-v2",
+      "priorManifestSha256": "6960dd003e44daedafacdd45ddac1837a3b1ad14e9a0ed71a10c3ed280096502",
+      "previousStatus": "stopped",
+      "previousStopSlot": "relationship_marriage:1",
+      "previousRowStatus": "failed",
+      "previousAttemptStatus": "stopped",
+      "previousErrorCode": "ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE",
+      "requestSha256": "f88490536cf0dffb3af25e2523c0124062eed172aa93a9f48b0505d7911ac1c7",
+      "responseSha256": "a7f53f31bbe35beeb4416d0017f0f59a2925c1aa47ad5c38dbe2b05859bad63b",
+      "rawOutputSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+      "noPhysicalReplay": true,
+      "status": "prepared",
+      "recordedAt": "2026-10-09T19:14:20.056Z"
+    },
+    {
+      "status": "completed",
+      "noPhysicalReplay": true,
+      "recordedAt": "2026-10-09T19:14:20.132Z"
+    }
+  ],
+  "formatRecoveryEvents": [
+    {
+      "status": "prepared",
+      "ownerDecision": "FD-123",
+      "priorManifestSha256": "6bfc592508dfc46f78c4d9f702dc922033fca20803106be9bfd783c97e9d2b92",
+      "previousStatus": "stopped",
+      "previousStopSlot": "monthly:0",
+      "previousRowStatus": "failed",
+      "previousResult": {
+        "ok": false,
+        "error": {
+          "code": "AI_OUTPUT_INVALID",
+          "retryable": false
+        }
+      },
+      "previousNormalization": "none",
+      "previousParsedSha256": "1f2c7058fdc8598bcbae1dd09a400c3117c4a728b90da5881587d727b63c01bd",
+      "rawOutputSha256": "4162eae5d3e44a6fa7ec99b7a2ddc3a9cd5794b9a89853e18cccbe17cc609971",
+      "ledgerSha256": "0f577d62ddecde1629c3b1a45a09157640c625a6d739d676e22e1d9ddd4be926",
+      "noPhysicalReplay": true,
+      "ledgerWrites": 0,
+      "recordedAt": "2026-10-09T19:41:55.328Z"
+    },
+    {
+      "status": "completed",
+      "noPhysicalReplay": true,
+      "ledgerWrites": 0,
+      "recordedAt": "2026-10-09T19:41:55.339Z"
+    }
+  ],
+  "qualityRecoveryEvents": [
+    {
+      "status": "prepared",
+      "priorManifestSha256": "3189341636596baa74272174d64303f59a9c8882bd3a72e1d3bf70f7d3b7af67",
+      "previousStatus": "stopped",
+      "previousStopSlot": "current_annual:0",
+      "previousRowStatus": "failed",
+      "previousResult": {
+        "ok": false,
+        "error": {
+          "code": "PERIOD_QUALITY_REJECTED",
+          "retryable": false
+        },
+        "findings": [
+          "CONTENT_LINE_VIOLATION"
+        ]
+      },
+      "fromQualityVersion": "ziwei.period-reading.quality.v2",
+      "toQualityVersion": "ziwei.period-reading.quality.v3",
+      "retainedAttemptPurpose": "rewrite",
+      "retainedTopicSlot": "career_wealth:1",
+      "previousTopicResult": {
+        "ok": true,
+        "value": {
+          "content": {
+            "topicId": "career_wealth",
+            "title": "Luận giải chuyên sâu Công việc & Tài chính",
+            "overview": {
+              "title": "Tổng quan cấu trúc Sự nghiệp và Tài chính",
+              "narrative": "Lá số cho thấy cấu trúc cung Quan Lộc tọa tại Tuất với sao Thái Dương ở trạng thái Nhược nhưng đi cùng Hóa Lộc, tạo nên xu hướng phát triển chuyên môn cần sự kiên trì bền bỉ và minh bạch thông tin. Thái Dương tượng trưng cho sự lan tỏa, ánh sáng tri thức và hoạt động xã hội rộng lớn; khi đi cùng Hóa Lộc, nguồn thu nhập chính thường gắn chặt với năng lực xây dựng uy tín cá nhân, xử lý công việc đối ngoại hoặc các lĩnh vực đòi hỏi chuyên môn cao. Cung Tài Bạch tọa tại Dần không có chính tinh trực chiếu, hội hợp cùng Thiên Mã mang trạng thái Bình và Đại Hao, biểu thị dòng tiền lưu chuyển nhanh, có sự dịch chuyển địa bàn thường xuyên và khó giữ tiền tích lũy nếu thiếu phương án quản trị ngân sách chặt chẽ. Sự hiện diện của Cự Môn Vượng tại Mệnh ở Ngọ kết hợp Địa Kiếp mang lại tư duy phản biện sắc bén, khả năng dùng lời nói và năng lực đàm phán để khai phá cơ hội nghề nghiệp. Dù vậy, các yếu tố này cũng cảnh báo việc tiền bạc dễ đến nhanh nhưng cũng đi nhanh nếu đầu tư vào các kênh mang tính may rủi. Việc định vị công việc dựa trên năng lực giải quyết vấn đề và chủ động kiểm soát chi tiêu là chìa khóa then chốt để củng cố nền tảng kinh tế bền vững theo thời gian.",
+              "evidenceKeys": [
+                "natal.ziwei.palace.career",
+                "natal.ziwei.palace.wealth",
+                "natal.ziwei.star.taiyang",
+                "natal.ziwei.transformation.prosperity",
+                "natal.ziwei.star.tianma",
+                "natal.ziwei.star.dahao",
+                "natal.ziwei.star.jumen",
+                "natal.ziwei.star.dijie"
+              ]
+            },
+            "palaceAnchors": [
+              {
+                "title": "Phân tích cung Quan Lộc tại Tuất",
+                "narrative": "Cung Quan Lộc đóng tại Tuất do Thái Dương tọa thủ ở trạng thái Nhược nhưng nhận được Hóa Lộc, tạo ra bức tranh nghề nghiệp nhiều thử thách ban đầu nhưng có tiềm năng tài chính từ chính năng lực chuyên sâu. Thái Dương dù không ở vị trí sáng mạnh nhất vẫn giữ bản chất nhiệt huyết, trách nhiệm cao và hướng đến việc cống hiến cho tập thể hoặc công chúng. Nhờ có Hóa Lộc đồng cung, đương số có cơ hội chuyển đổi những ý tưởng chuyên môn thành giá trị vật chất thực tế, đặc biệt thích hợp với các lĩnh vực đòi hỏi giao tiếp, tư vấn, dịch vụ hoặc công việc gắn liền với việc mở rộng thị trường. Tuy nhiên, sự xuất hiện của Thiên Khốc, Phục Binh và Tang Môn hội tụ tại cung này nhắc nhở rằng môi trường làm việc thường xuyên tiềm ẩn những áp lực vô hình, cạnh tranh ngầm hoặc những lúc thiếu sự đồng thuận từ cộng sự. Để tiến xa, bản thân cần duy trì quy trình làm việc chuẩn mực, rõ ràng về mặt pháp lý và giấy tờ nhằm vô hiệu hóa rủi ro từ Phục Binh, đồng thời giữ vững sự bền bỉ trước những giai đoạn công việc đòi hỏi phải làm việc quá giờ hay đối diện với áp lực tiến độ.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.brightness.weak",
+                  "natal.ziwei.transformation.prosperity",
+                  "natal.ziwei.star.tianku",
+                  "natal.ziwei.star.fubing",
+                  "natal.ziwei.star.sangmen"
+                ],
+                "palaceId": "ziwei.palace.career"
+              },
+              {
+                "title": "Phân tích cung Tài Bạch tại Dần",
+                "narrative": "Cung Tài Bạch tọa lạc tại Dần ở thế vô chính diệu, chịu ảnh hưởng từ các sao phụ tá như Thiên Mã, Phượng Các, Thiên Tài cùng với Đại Hao. Cấu trúc này cho thấy phương thức tạo lập tài chính không đi theo con đường thụ động hay ngồi một chỗ hưởng lợi, mà phụ thuộc rất lớn vào sự linh hoạt, năng động và khả năng đi lại khảo sát thực tế. Thiên Mã tại đây đóng vai trò là động lực thúc đẩy việc khai thác các nguồn thu từ xa, giao thương liên tỉnh hoặc thực hiện những dự án đòi hỏi di chuyển liên tục. Phượng Các và Thiên Tài hỗ trợ thêm sự khéo léo trong thẩm mỹ, tư duy phân tích và kỹ năng giải quyết công việc tinh tế. Mặc dù vậy, sự góp mặt của Đại Hao cùng Thiên Hư đặt ra thách thức rất lớn về khả năng giữ tiền. Tiền bạc có xu hướng ra vào liên tục với những khoản chi tiêu quy mô lớn cho việc tái đầu tư, mua sắm tài sản cố định hoặc hỗ trợ công việc. Nếu không xây dựng quỹ dự phòng riêng biệt và kỷ luật quản lý chi phí cá nhân, đương số rất dễ rơi vào tình trạng tài chính bấp bênh dù tổng thu nhập kiếm được không hề nhỏ.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.star.tianma",
+                  "natal.ziwei.brightness.neutral",
+                  "natal.ziwei.star.fengge",
+                  "natal.ziwei.star.tiancai",
+                  "natal.ziwei.star.dahao",
+                  "natal.ziwei.star.tianxu"
+                ],
+                "palaceId": "ziwei.palace.wealth"
+              },
+              {
+                "title": "Phân tích cung Điền Trạch tại Dậu",
+                "narrative": "Cung Điền Trạch tại Dậu giữ vai trò tối quan trọng trong việc cân bằng tài chính của toàn bộ lá số nhờ sự kết hợp giữa Vũ Khúc Bình hòa và Thất Sát Miếu, có thêm Hóa Quyền, Hỏa Tinh Đắc và Kình Dương Nhược. Vũ Khúc là tài tinh khi đi cùng Thất Sát và Hóa Quyền mang lại năng lực quản lý tài sản vô cùng quyết đoán, có xu hướng sở hữu và tích lũy đất đai hoặc bất động sản có giá trị thực tế sau những nỗ lực cá nhân mạnh mẽ. Hóa Quyền trao quyền kiểm soát và định đoạt các cơ sở vật chất, giúp đương số chủ động trong việc mua bán hoặc cải tạo không gian sống và làm việc. Tuy nhiên, sự hội tụ của Hỏa Tinh và Kình Dương tại đây báo hiệu việc mua bán nhà đất hoặc giấy tờ sở hữu thường trải qua những đợt biến động nhanh, cạnh tranh gay gắt hoặc có tranh chấp thủ tục trước khi hoàn tất. Nguồn lực tích lũy qua kênh Điền Trạch chính là chiếc mỏ neo tài chính vững chắc nhất để hấp thụ bớt áp lực hao tổn tiền bạc từ cung Tài Bạch, biến dòng tiền lưu động thành tài sản tích lũy dài hạn ổn định.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.wuqu",
+                  "natal.ziwei.star.qisha",
+                  "natal.ziwei.brightness.exalted",
+                  "natal.ziwei.transformation.power",
+                  "natal.ziwei.star.huoxing",
+                  "natal.ziwei.star.qingyang"
+                ],
+                "palaceId": "ziwei.palace.property"
+              }
+            ],
+            "thematicDimensions": [
+              {
+                "title": "Khuynh hướng và Cơ hội Phát triển Chuyên môn",
+                "narrative": "Đường hướng nghề nghiệp của lá số được định hình mạnh mẽ bởi sự tương tác giữa Cự Môn Vượng tại Mệnh ở Ngọ và Thái Dương Hóa Lộc tại Quan Lộc ở Tuất. Cự Môn mang lại khả năng phân tích chiều sâu, tài hùng biện, sự cẩn trọng trong tư duy logic và năng khiếu phản biện sắc bén. Khi kết hợp cùng Thái Dương có Hóa Lộc, đương số thích hợp phát triển trong các lĩnh vực yêu cầu phát ngôn, giảng dạy, tư vấn luật pháp, truyền thông, giải pháp công nghệ hoặc đại diện đối ngoại cho các tổ chức. Việc Thái Dương nhận Hóa Lộc khẳng định rằng càng chia sẻ tri thức, tạo dựng giá trị thực cho cộng đồng và mở rộng mạng lưới giao lưu chuyên môn thì vị thế nghề nghiệp càng được nâng cao. Tuy nhiên, do ảnh hưởng của Địa Kiếp tại Mệnh và Phục Binh tại Quan Lộc, con đường sự nghiệp không hoàn toàn bằng phẳng mà thường xuyên trải qua những giai đoạn tái cấu trúc bất ngờ hoặc phải đối diện với sự nghi kỵ từ đối thủ cạnh tranh. Thay vì chọn các giải pháp đi đường tắt, việc duy trì phong cách làm việc công khai, dựa trên các hợp đồng minh bạch và nguyên tắc bảo mật thông tin sẽ giúp đương số thiết lập một chỗ đứng vững chắc và hạn chế tối đa các trở ngại tiềm ẩn.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.life",
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.brightness.prosperous",
+                  "natal.ziwei.star.dijie",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.transformation.prosperity",
+                  "natal.ziwei.star.fubing"
+                ],
+                "key": "career_trajectory"
+              },
+              {
+                "title": "Cơ chế Dòng tiền và Tích lũy Tài chính",
+                "narrative": "Cơ chế tạo lập và bảo toàn tài chính của đương số mang đặc tính động lực kép: kiếm tiền từ chuyên môn linh hoạt nhưng tích lũy phải thông qua tài sản cố định. Cung Tài Bạch vô chính diệu hội tụ Thiên Mã và Đại Hao khiến dòng tiền ngắn hạn luôn trong trạng thái luân chuyển không ngừng. Tiền bạc kiếm được có xu hướng được chi dùng cho việc mở rộng quan hệ đối tác, đầu tư công cụ làm việc hoặc trang trải cho các nhu cầu di chuyển đối ngoại. Sự hiện diện của Đại Hao cho thấy đương số khó giữ được nhiều tiền mặt trong tài khoản mà không bị phân tán. Do đó, điểm mấu chốt để giữ vững nền tảng kinh tế nằm ở cung Điền Trạch, nơi có Vũ Khúc Hóa Quyền kết hợp Thất Sát Miếu. Cơ chế tối ưu nhất là mỗi khi thu được lợi nhuận từ các hoạt động chuyên môn có Thái Dương Hóa Lộc bảo trợ, đương số cần nhanh chóng chuyển đổi phần lớn thặng dư tiền mặt thành bất động sản hoặc các tài sản có tính thanh khoản thấp nhưng giá trị ổn định lâu dài. Việc ép bản thân vào kỷ luật trả góp tài sản hoặc tích lũy tài sản cố định sẽ giúp chế ngự tác động tiêu hao từ Đại Hao và Thiên Hư, đảm bảo sự an toàn tài chính về lâu dài.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.tianma",
+                  "natal.ziwei.star.dahao",
+                  "natal.ziwei.star.wuqu",
+                  "natal.ziwei.transformation.power",
+                  "natal.ziwei.star.qisha",
+                  "natal.ziwei.transformation.prosperity"
+                ],
+                "key": "wealth_accumulation"
+              }
+            ],
+            "decadalTiming": {
+              "title": "Phân tích Đại vận 10 năm (Độ tuổi 43 - 52, Năm 2022 - 2031)",
+              "state": "active",
+              "index": 0,
+              "ageRange": [
+                43,
+                52
+              ],
+              "yearRange": [
+                2022,
+                2031
+              ],
+              "palaceId": "ziwei.palace.wealth",
+              "narrative": "Giai đoạn từ 43 đến 52 tuổi tương ứng với các năm từ 2022 đến 2031, đại vận vận hành trực tiếp tại cung Dần, vốn là cung Tài Bạch trên bản đồ gốc. Đây là chu kỳ 10 năm trọng điểm tập trung toàn bộ năng lượng vào việc tái cơ cấu nguồn thu và phương thức vận hành tài chính cá nhân. Tại đại vận này, cung Quan Lộc của đại vận an tại Ngọ (trùng cung Mệnh gốc) có Kình Dương và Văn Khúc hội chiếu, cho thấy môi trường công việc đòi hỏi sự dấn thân quyết liệt, tính cạnh tranh tăng cao và phải xử lý nhiều văn bản, hợp đồng quan trọng. Áp lực công việc trong chu kỳ này khá lớn, đòi hỏi đương số phải liên tục thích ứng và giải quyết các tình huống phát sinh nhanh chóng. Cung Điền Trạch của đại vận nằm tại Tỵ có Lộc Tồn và nhận Hóa Lộc từ Tham Lang, tạo nên một cơ hội rất thuận lợi cho việc gia tăng tài sản bất động sản hoặc nhận được nguồn thu nhập gián tiếp thông qua việc khai thác mặt bằng, tích lũy đất đai. Tuy nhiên, do bản cung đại vận ở Dần mang tính chất biến động mạnh với sự dịch chuyển của Thiên Mã và tác động tiêu trừ của Đại Hao, đương số cần tránh tuyệt đối các quyết định đầu tư lướt sóng hoặc vay mượn quá mức. Chiến lược khôn ngoan nhất trong suốt giai đoạn 2022 - 2031 là lấy công việc chuyên môn làm đòn bẩy, hạn chế giữ tiền mặt rảnh rỗi và ưu tiên chuyển hóa lợi nhuận vào các kênh tài sản thực tế an toàn.",
+              "evidenceKeys": [
+                "decadal.age-range.43-52",
+                "decadal.year-range.2022-2031",
+                "decadal.palace.ziwei.palace.wealth",
+                "decadal.palace.ziwei.palace.life.branch.ziwei.branch.tiger",
+                "decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse",
+                "decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang",
+                "decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu",
+                "decadal.palace.ziwei.palace.property.star.ziwei.star.lucun",
+                "decadal.palace.ziwei.palace.property.transformation.ziwei.transformation.prosperity.ziwei.star.tanlang"
+              ]
+            },
+            "actions": [
+              {
+                "recommendation": "Xây dựng cơ chế tích lũy tài chính tự động bằng cách chuyển hóa ngay nguồn tiền thu được thành tài sản cố định hoặc bất động sản có giấy tờ pháp lý rõ ràng.",
+                "rationale": "Cung Tài Bạch có Đại Hao và Thiên Mã khiến tiền mặt dễ bị tiêu hao nhanh chóng, trong khi cung Điền Trạch có Vũ Khúc Hóa Quyền và Thất Sát Miếu hỗ trợ rất mạnh cho việc gìn giữ giá trị qua nhà đất.",
+                "avoid": "Tránh giữ lượng lớn tiền mặt nhàn rỗi trong tài khoản cá nhân hoặc đầu tư vào các kênh tài chính mang tính đầu cơ ngắn hạn thiếu cơ sở bảo đảm.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.star.dahao",
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.wuqu",
+                  "natal.ziwei.transformation.power"
+                ]
+              },
+              {
+                "recommendation": "Tập trung nâng cao giá trị thương hiệu chuyên môn và sử dụng năng lực tư vấn, đàm phán minh bạch làm nền tảng tạo dựng thu nhập chính.",
+                "rationale": "Sự phối hợp giữa Cự Môn Vượng tại Mệnh và Thái Dương Hóa Lộc tại Quan Lộc cho thấy nguồn thu nhập bền vững nhất đến từ việc lan tỏa kiến thức, uy tín và kỹ năng giao tiếp chuyên sâu.",
+                "avoid": "Tránh tham gia vào các thỏa thuận ngầm, những giao dịch thiếu tính minh bạch hoặc các dự án công việc có tính chất mập mờ về vai trò pháp lý.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.life",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.transformation.prosperity"
+                ]
+              },
+              {
+                "recommendation": "Trong chu kỳ đại vận từ 43 đến 52 tuổi, chủ động rà soát kỹ lưỡng các điều khoản văn bản hợp đồng trước khi triển khai các dự án hợp tác quy mô lớn.",
+                "rationale": "Cung Quan Lộc của đại vận tại Ngọ có sự xuất hiện của Kình Dương và Văn Khúc, cảnh báo các rủi ro phát sinh từ tranh chấp cam kết hoặc sai sót thủ tục hành chính.",
+                "avoid": "Tránh ký kết hợp đồng dựa trên sự tin tưởng cảm tính hoặc chủ quan bỏ qua các bước kiểm tra pháp lý chi tiết trong quá trình hợp tác làm việc.",
+                "evidenceKeys": [
+                  "decadal.age-range.43-52",
+                  "decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse",
+                  "decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang",
+                  "decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu"
+                ]
+              }
+            ]
+          },
+          "quality": {
+            "ok": true,
+            "findings": [],
+            "advisory": []
+          },
+          "providerId": "9router-antigravity-native",
+          "modelId": "gemini-3.8-flash-medium"
+        }
+      },
+      "topicRevalidationQuality": {
+        "ok": false,
+        "findings": [
+          {
+            "sectionKey": "overview",
+            "code": "PALACE_FACTS",
+            "note": "Opposing major-star absence for ziwei.palace.wealth is not supported by ziwei.palace.fortune. Resident-star absence is a separate fact."
+          }
+        ],
+        "advisory": []
+      },
+      "topicRewriteLimit": 1,
+      "rawOutputSha256": "9696e968d0d7e0fbb25a9ac7fe1fcf127a3c0377cc384363589eeee54938a9be",
+      "parsedSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb",
+      "ledgerSha256": "b53bdd99c25dfee44ee3b52350eed39bd7d005587653a6035f225426542d7ee8",
+      "noPhysicalReplay": true,
+      "ledgerWrites": 0,
+      "recordedAt": "2026-10-09T20:26:56.020Z"
+    },
+    {
+      "status": "annual_revalidation_completed",
+      "noPhysicalReplay": true,
+      "ledgerWrites": 0,
+      "recordedAt": "2026-10-09T20:26:56.037Z"
+    },
+    {
+      "status": "topic_repair_failed",
+      "retainedResponsesReplayed": 0,
+      "topicRewriteAttemptKey": "a7e1e11222356b954cbe2a6e3286bf396db5dfcf61a6af07ec8354fb5a6e7c73",
+      "recordedAt": "2026-10-09T20:27:40.532Z"
+    }
+  ],
+  "originalJournalSha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+  "originalLedgerSha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+  "rows": [
+    {
+      "slot": "relationship_marriage:1",
+      "status": "quality_passed_pending_manual_review",
+      "sourceSnapshotHash": "560773f5a1a343176f97ed89c1a3a53628a87874a6eae945013d20f634ff31e6",
+      "factsSha256": "5893da190ddfe945689d9edc425c5062632c8b0d28d37c7f072bd34f846a526b",
+      "targetYear": 2026,
+      "attempts": [
+        {
+          "purpose": "report",
+          "status": "reference_settled_model_bound",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+          "parsedSha256": "254e04d4be62ae0341d9974557fb1ba0d5140aa6cd2344a253b2213e4b40ef23",
+          "originalResponseSha256": "a7f53f31bbe35beeb4416d0017f0f59a2925c1aa47ad5c38dbe2b05859bad63b",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": false,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "none",
+          "errorCode": "ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE"
+        }
+      ],
+      "quality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          {
+            "sectionKey": "thematicDimensions[communication_and_temperament]",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: phu thê."
+          },
+          {
+            "sectionKey": "actions[0]",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: phu thê."
+          },
+          {
+            "sectionKey": "actions[2]",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: phu thê."
+          }
+        ]
+      },
+      "manualAccepted": false,
+      "contentSha256": "e0c2f803d4eefd5963847dfe802824a457aa7e46017ac9863271d10481e0a411"
+    },
+    {
+      "slot": "career_wealth:0",
+      "status": "quality_passed_pending_manual_review",
+      "sourceSnapshotHash": "05e3ac3abef0ff987914ccc37ea154ec0126896d0da1d79b86db8e56c329df73",
+      "factsSha256": "b46e542d4c96edc43092c346ed2ddc39c8037282e5a2ad6a1de0a695fd9875bc",
+      "targetYear": 2026,
+      "attempts": [
+        {
+          "purpose": "report",
+          "status": "reference_settled",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "6ffd771e25aa2db097054b73ce1aa8b9b465458c21804e02fc27af832e16ca99",
+          "parsedSha256": "a3205379e16c270f1889cab4c692fae61966ebd8f738451bf072798a2e8ecc9b",
+          "originalResponseSha256": "b7863712cd586f6165d96b581badcc42fc708bf3a34544daa26c38a3a04b0f7e",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": true,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "none"
+        }
+      ],
+      "quality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          {
+            "sectionKey": "decadalTiming",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: vận trình."
+          }
+        ]
+      },
+      "manualAccepted": false,
+      "contentSha256": "01288ac17f2465c33f5e6e5f83df9daee314aa60853d93fa6a9f6095e8bee470"
+    },
+    {
+      "slot": "career_wealth:1",
+      "status": "failed",
+      "sourceSnapshotHash": "560773f5a1a343176f97ed89c1a3a53628a87874a6eae945013d20f634ff31e6",
+      "factsSha256": "d7eead203c3480b7e36b414850f9acce1c1040e2e41af20e1bab630a507d1368",
+      "targetYear": 2026,
+      "attempts": [
+        {
+          "purpose": "report",
+          "status": "reference_settled",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "0e9e683b875d15f208d9eb699913dd6069e7363cd2aad269a64952f8140bc82e",
+          "parsedSha256": "da966cb1c863bbec1818b2dc8366508b0cc9884342168d9d29f59b7e53b44f11",
+          "originalResponseSha256": "614c3b5064a6a34bd1c338f5bb96c2a84b6258f496d62c0167deb43c48b00435",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": true,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "none"
+        },
+        {
+          "purpose": "rewrite",
+          "status": "stopped",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": false,
+          "tokensUnknown": false,
+          "providerBillingVerified": false,
+          "errorCode": "ROUTER_RESPONSE_INVALID"
+        }
+      ],
+      "manualAccepted": false
+    },
+    {
+      "slot": "monthly:0",
+      "status": "quality_passed_pending_manual_review",
+      "sourceSnapshotHash": "d1d9bfbe7827f53acb92a12c4ff46d51fe7074517428854a5eee4a7c18d289a0",
+      "factsSha256": "d12e146e8941a368dfa8a6e5665857a7495af81f434acf6d172f238c5b915043",
+      "targetYear": 2026,
+      "attempts": [
+        {
+          "purpose": "report",
+          "status": "reference_settled",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "4162eae5d3e44a6fa7ec99b7a2ddc3a9cd5794b9a89853e18cccbe17cc609971",
+          "parsedSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a",
+          "originalResponseSha256": "04a1c3395829543815030d1b8500a6414f6486982f679f7ff80590e9cf7255fb",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": true,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "root_json_schema_annotation"
+        }
+      ],
+      "quality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          "EDITORIAL_TERM"
+        ]
+      },
+      "manualAccepted": false,
+      "contentSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a"
+    },
+    {
+      "slot": "monthly:1",
+      "status": "quality_passed_pending_manual_review",
+      "sourceSnapshotHash": "a49303226813fcb0f7e823013c1ca451886b4a81814e5bc6e141e108dd0ef494",
+      "factsSha256": "a7c067e9131ef5060ba7b0a0d041c1375d7b5818e4911531d56873a75a69108a",
+      "targetYear": 2026,
+      "attempts": [
+        {
+          "purpose": "report",
+          "status": "reference_settled",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "3180e166d04c6bf14380e991b6283cb23e1f50ba1663af840a5487ada19246dc",
+          "parsedSha256": "29b6adab77e054385f09b4be910e2b6795e88b109fa1cf8f3403678c3e3df795",
+          "originalResponseSha256": "aea478bfc832031caf1d99f3830d97f8b32abdb27feefc248f7a35c24b8424d4",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": true,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "none"
+        }
+      ],
+      "quality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          "EDITORIAL_TERM"
+        ]
+      },
+      "manualAccepted": false,
+      "contentSha256": "29b6adab77e054385f09b4be910e2b6795e88b109fa1cf8f3403678c3e3df795"
+    },
+    {
+      "slot": "current_annual:0",
+      "status": "quality_passed_pending_manual_review",
+      "sourceSnapshotHash": "1564629b9fa826455fa3ddb291097185df073aeed051e46c468ceeb846f8cbd8",
+      "factsSha256": "5e82316515994aaf89b7ed563f556c72509151ee54ad692d27aadf9a968d3c5b",
+      "targetYear": 2026,
+      "attempts": [
+        {
+          "purpose": "report",
+          "status": "reference_settled",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "5656a8c4a6e52819d3c7e8a5ede801fa2d577673271e877c001b7308c4059d97",
+          "parsedSha256": "2cb42fd654491eb2f1c519a60abe2c29163a9df9025d825e5267f15f4df04834",
+          "originalResponseSha256": "d7cfd8d5c12a823f5c609184705dec26fa28c377085c422a26c34776c54c3248",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": true,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "none"
+        },
+        {
+          "purpose": "rewrite",
+          "status": "reference_settled",
+          "referenceVnd": "33368",
+          "accountingStatus": "api_reference_model_bound",
+          "rawSha256": "9696e968d0d7e0fbb25a9ac7fe1fcf127a3c0377cc384363589eeee54938a9be",
+          "parsedSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb",
+          "originalResponseSha256": "24d24260fb2290d72d017a3ef8c2bff5b1204e6d97f6250f01aab88ad4167161",
+          "cachedCounterPresent": false,
+          "thinkingCounterPresent": true,
+          "nativeEnvelopeComplete": false,
+          "tokensUnknown": true,
+          "actualUsageVerified": false,
+          "providerBillingVerified": false,
+          "normalization": "none"
+        }
+      ],
+      "quality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          "EDITORIAL_TERM"
+        ]
+      },
+      "manualAccepted": false,
+      "contentSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb"
+    }
+  ]
+}

@@ -1,0 +1,878 @@
+{
+  "campaign": "FD123-paid-nine-v1",
+  "ownerDecision": "FD-123",
+  "status": "stopped",
+  "manualAccepted": false,
+  "asOfDate": "2026-10-09",
+  "originalJournalSha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+  "originalLedgerSha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+  "originalHeldExposureVnd": 33368,
+  "maxNewPhysicalAttempts": 18,
+  "technicalCeilingVnd": 600624,
+  "monetaryBudgetBlockerWaived": true,
+  "accountingBasis": "FD114_API_reference_not_provider_invoice",
+  "reports": [
+    {
+      "slot": "relationship_marriage:1",
+      "group": "relationship_marriage",
+      "index": 1,
+      "snapshotHash": "560773f5a1a343176f97ed89c1a3a53628a87874a6eae945013d20f634ff31e6",
+      "factsSha256": "5893da190ddfe945689d9edc425c5062632c8b0d28d37c7f072bd34f846a526b",
+      "targetYear": 2026,
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "sourceKind": "synthetic_actual_iztro",
+      "status": "quality_passed_pending_manual_review",
+      "attempts": [
+        {
+          "attemptKey": "4be419ae08b5b2d33e3d832d48ceae66dff80952c6419998890e94223a38f75c",
+          "purpose": "report",
+          "status": "reference_settled_model_bound",
+          "trace": {
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "pricingSnapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "requestedAlias": "ag/gemini-3.8-flash",
+            "wireModel": "gemini-3.8-flash-medium",
+            "requestId": "agent/950e8e60-c250-4c88-b175-0ce347c6e7b4/1791571112525/5a30fe35-ce13-41f6-bf45-054c440fe239/1",
+            "effectiveMaxOutputTokens": 16384,
+            "requestSha256": "f88490536cf0dffb3af25e2523c0124062eed172aa93a9f48b0505d7911ac1c7"
+          },
+          "reserveVnd": 33368,
+          "reservationId": "5ff718de-051d-4fcc-91fc-5604f44ab89d",
+          "accountingEvidence": {
+            "version": "native.accounting.evidence.v1",
+            "httpStatus": 200,
+            "requestSha256": "f88490536cf0dffb3af25e2523c0124062eed172aa93a9f48b0505d7911ac1c7",
+            "responseSha256": "a7f53f31bbe35beeb4416d0017f0f59a2925c1aa47ad5c38dbe2b05859bad63b",
+            "visibleOutputSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+            "modelVersion": "gemini-3.8-flash",
+            "completionVerified": true,
+            "conflictingUsage": false,
+            "envelopeComplete": false,
+            "billingCountersComplete": false,
+            "metadataRedacted": false,
+            "usageMetadata": {
+              "promptTokenCount": 7991,
+              "candidatesTokenCount": 2831,
+              "totalTokenCount": 10822
+            },
+            "settlementAuthorized": false,
+            "continuationAuthorized": false
+          },
+          "visibleUnacceptedOutput": "{\n  \"topicId\": \"relationship_marriage\",\n  \"title\": \"Luận giải chuyên sâu Tình duyên & Hôn nhân\",\n  \"overview\": {\n    \"title\": \"Tổng quan kết cấu tình duyên và đời sống gia đạo\",\n    \"narrative\": \"Xem xét tổng thể phương diện tình cảm và liên kết lứa đôi, cấu trúc cung vị cho thấy sự đan xen giữa nhu cầu sẻ chia cảm xúc sâu kín và những rào cản mang tính thực tế. Trục liên kết bản thân và người phối ngẫu chịu sự tác động mạnh mẽ từ các tinh diệu chủ về biến động tinh thần. Cung Mệnh an tại Ngọ có Cự Môn vượng địa đồng cung Địa Kiếp, mang lại tư duy phân tích nhạy bén, thẳng thắn nhưng đôi khi tạo nên sự ngờ vực hoặc cách biểu đạt có phần gay gắt trong giao tiếp thường nhật. Trong khi đó, cung Phu Thê an tại Thìn hội tụ Thái Âm hãm địa đi cùng Hóa Khoa và Địa Không, cho thấy đối phương là người giàu tình cảm, có học thức hoặc danh tiếng nhất định, nhưng nội tâm thường cất giấu nhiều nỗi niềm riêng biệt, khó bộc lộ trọn vẹn. Thế tam hợp chiếu từ cung Thân với Thiên Đồng vượng địa hóa Hóa Kỵ cùng Thiên Lương hãm địa càng làm tăng thêm trạng thái bất an, dễ dẫn đến những giai đoạn bằng mặt mà không bằng lòng. Đời sống vợ chồng đòi hỏi sự thấu hiểu sâu sắc, bởi sự hiện diện của cặp sao Địa Không và Địa Kiếp tại hai vị trí then chốt thường tạo ra những khoảng lặng bất ngờ, gây cảm giác xa cách dù cả hai vẫn cùng chung một mái nhà.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.spouse\",\n      \"natal.ziwei.palace.life\",\n      \"natal.ziwei.star.taiyin\",\n      \"natal.ziwei.star.jumen\",\n      \"natal.ziwei.star.dikong\",\n      \"natal.ziwei.star.dijie\",\n      \"natal.ziwei.transformation.fame\",\n      \"natal.ziwei.transformation.obstacle\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.spouse\",\n      \"title\": \"Trọng điểm cung Phu Thê: Sự nhạy cảm và thử thách khoảng cách\",\n      \"narrative\": \"Cung Phu Thê đóng tại Thìn do Thái Âm hãm địa tọa thủ, phản ánh tính chất của người bạn đời có thiên hướng hướng nội, suy nghĩ tinh tế nhưng dễ bị tác động bởi hoàn cảnh môi trường chung quanh. Điểm sáng là sự đồng cung của Hóa Khoa, giúp người phối ngẫu duy trì phong thái hòa nhã, có hiểu biết và giữ được sự tôn trọng căn bản trong mối quan hệ. Dẫu vậy, sự xuất hiện của Địa Không tại bản cung, kết hợp với các phụ tinh như Bạch Hổ, Phi Liêm và Âm Sát, cảnh báo về những giai đoạn tâm lý biến động tiêu cực, thiếu sự chia sẻ cởi mở. Người bạn đời có thể mang những ưu tư thầm kín về công việc hoặc gia đình xuất thân mà không dễ giãi bày, từ đó tạo nên bức tường vô hình giữa hai bên. Khi tam hợp có sự xung chiếu của Thiên Đồng Hóa Kỵ và Thiên Lương, các vấn đề vụn vặt trong cuộc sống thường bị thổi phồng thành sự hờn dỗi hoặc nghi ngờ kéo dài, thử thách trực tiếp lòng kiên nhẫn và khả năng bao dung của đương số.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.star.dikong\",\n        \"natal.ziwei.transformation.fame\",\n        \"natal.ziwei.star.baihu\",\n        \"natal.ziwei.star.yinsha\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"communication_and_temperament\",\n      \"title\": \"Tương tác giao tiếp và khác biệt tính cách\",\n      \"narrative\": \"Một trong những trở ngại lớn nhất trong đời sống lứa đôi của lá số này bắt nguồn từ sự đối lập trong phương thức đối thoại giữa hai bên. Cung Mệnh có Cự Môn ngộ Địa Kiếp khiến đương số có xu hướng bộc trực, thích mổ xẻ vấn đề một cách rành mạch và dễ dùng lời lẽ sắc bén khi nảy sinh bất đồng. Ngược lại, cung Phu Thê có Thái Âm hãm địa lại là biểu tượng của sự che giấu, ngấm ngầm chịu đựng hoặc phản ứng bằng cách im lặng rút lui. Khi Địa Không tại Phu Thê tương tác với Địa Kiếp tại Mệnh, cảm giác hụt hẫng và cô độc rất dễ phát sinh nếu một bên liên tục chất vấn còn bên kia lại chọn sự né tránh. Thêm vào đó, sao Cô Quả và Thiên Hình gián tiếp chiếu rọi từ các cung hội tụ làm cho khoảng cách tâm lý càng dễ nới rộng. Muốn gìn giữ hòa khí, đương số cần học cách tiết chế ngôn từ, không nên truy cứu sự việc đến cùng mà cần cho đối phương không gian an toàn để tự chia sẻ.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.star.dijie\",\n        \"natal.ziwei.star.dikong\"\n      ]\n    },\n    {\n      \"key\": \"financial_and_family_impact\",\n      \"title\": \"Ảnh hưởng từ đời sống vật chất và môi trường gia đình\",\n      \"narrative\": \"Tình cảm lứa đôi không tồn tại độc lập mà chịu sự chi phối chặt chẽ từ bài toán tài chính và các mối quan hệ thân tộc. Tại cung Phúc Đức – vốn là cung Thân tại Thân hội tụ Thiên Lộc Tồn cùng Thiên Đồng Hóa Kỵ, phản ánh những lo toan ngầm về sự ổn định kinh tế và trách nhiệm dòng họ. Mặc dù Lộc Tồn đem lại nền tảng của cải tích lũy, sự xuất hiện của Hóa Kỵ lại chỉ ra những lần chi tiêu bất đồng quan điểm hoặc việc hỗ trợ người thân gây nên căng thẳng giữa hai vợ chồng. Bên cạnh đó, cung Tử Tức tại Mão có Thiên Phủ, Tả Phụ, Văn Xương mang lại sự gắn kết vững chắc về con cái, đóng vai trò như chiếc mỏ neo quan trọng giúp hàn gắn các vết rạn nứt tình cảm. Những lúc mối quan hệ vợ chồng rơi vào bế tắc, trách nhiệm chung đối với con trẻ và việc quản trị ngân sách gia đình một cách minh bạch chính là phương tiện hữu hiệu để kéo hai người trở lại bên nhau.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.fortune\",\n        \"natal.ziwei.palace.children\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tianfu\",\n        \"natal.ziwei.star.zuofu\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Thời vận 10 năm tại cung Tài Bạch (Độ tuổi 43 - 52, năm 2022 - 2031)\",\n    \"state\": \"active\",\n    \"index\": 0,\n    \"ageRange\": [\n      43,\n      52\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Bước vào giai đoạn đại vận 10 năm từ 43 đến 52 tuổi (giai đoạn 2022 - 2031) quản trị tại cung Tài Bạch ở Dần, các vấn đề gia đạo và mối quan hệ lứa đôi chuyển sang một chu kỳ thử thách mới. Trong đại vận này, cung Phu Thê lưu vận an tại Tý chịu ảnh hưởng trực tiếp từ Thiên Cơ Hóa Kỵ. Thiên Cơ đại diện cho suy nghĩ, kế hoạch và sự điều động; khi Hóa Kỵ xâm lấn, vợ chồng rất dễ nảy sinh nghi ngờ, hiểu lầm về các quyết định chung hoặc đối mặt với tình trạng biến động công việc làm xáo trộn thời gian bên nhau. Đồng thời, cung Phúc Đức gốc tại Thìn trong đại vận đón nhận sự can thiệp của sao Đà La và Thái Âm Hóa Quyền, cho thấy người bạn đời có xu hướng nắm quyền kiểm soát nhiều hơn, tính khí trở nên cứng rắn và ít nhượng bộ hơn trước. Trạng thái dồn nén cảm xúc từ phía đối phương có thể tạo ra áp lực nặng nề cho đời sống chung. Đây là thập kỷ đòi hỏi đương số phải cực kỳ bình tĩnh, chủ động minh bạch hóa các kế hoạch làm ăn và lắng nghe người bạn đời để tránh tình trạng xa mặt cách lòng.\",\n    \"evidenceKeys\": [\n      \"decadal.age-range.43-52\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.spouse.transformation.ziwei.transformation.obstacle.ziwei.star.tianji\",\n      \"decadal.palace.ziwei.palace.fortune.transformation.ziwei.transformation.power.ziwei.star.taiyin\",\n      \"decadal.palace.ziwei.palace.fortune.star.ziwei.star.tuoluo\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Thiết lập quy tắc đối thoại định kỳ và tôn trọng khoảng không gian cá nhân của người phối ngẫu.\",\n      \"rationale\": \"Sự hiện diện của Cự Môn tại Mệnh kết hợp với Thái Âm và Địa Không tại Phu Thê dễ biến các cuộc tranh luận thông thường thành sự chỉ trích gay gắt, đẩy đối phương vào thế khép kín nội tâm.\",\n      \"avoid\": \"Không truy vấn dồn dập, không sử dụng lời lẽ mỉa mai khi nhận thấy đối phương đang trong trạng thái căng thẳng hoặc muốn giữ im lặng.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.star.dikong\",\n        \"natal.ziwei.star.dijie\"\n      ]\n    },\n    {\n      \"recommendation\": \"Minh bạch hóa kế hoạch tài chính gia đình và thảo luận rõ ràng các khoản chi viện cho thân tộc.\",\n      \"rationale\": \"Cung Thân tại Phúc Đức có Lộc Tồn nhưng bị Thiên Đồng Hóa Kỵ quấy nhiễu, khiến các bất đồng về dòng tiền và trách nhiệm họ hàng dễ làm tổn hại đến niềm tin lứa đôi.\",\n      \"avoid\": \"Tránh việc tự ý quyết định các khoản đầu tư lớn hoặc cho vay mượn cá nhân mà không có sự đồng thuận từ người bạn đời.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.fortune\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tiantong\"\n      ]\n    },\n    {\n      \"recommendation\": \"Lấy sự chăm sóc, giáo dục con cái làm nền tảng kết nối và giải tỏa mâu thuẫn giữa hai vợ chồng.\",\n      \"rationale\": \"Cung Tử Tức hội tụ nhiều sao tốt như Thiên Phủ, Tả Phụ và Văn Xương, đóng vai trò trợ lực vững chãi giúp chuyển hóa áp lực từ trục Mệnh - Phu Thê.\",\n      \"avoid\": \"Không đem bất hòa của người lớn làm ảnh hưởng tiêu cực đến con trẻ hoặc đùn đẩy trách nhiệm chăm sóc gia đình cho đối phương.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.children\",\n        \"natal.ziwei.star.tianfu\",\n        \"natal.ziwei.star.zuofu\",\n        \"natal.ziwei.star.wenchang\"\n      ]\n    }\n  ]\n}",
+          "errorCode": "ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE",
+          "receipt": {
+            "modelVersion": "gemini-3.8-flash",
+            "usageMetadata": {
+              "promptTokenCount": 7991,
+              "candidatesTokenCount": 2831,
+              "totalTokenCount": 10822
+            }
+          },
+          "quote": {
+            "quoteKind": "owner_approved_model_bound_API_reference",
+            "accountingStatus": "api_reference_model_bound",
+            "referenceMode": "FD123-model-bounds-v2",
+            "quoteVnd": "33368",
+            "quoteMicroVnd": "33367326720",
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "snapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "tokenBounds": {
+              "inputTokens": 1048576,
+              "outputTokens": 65536,
+              "reasoningTokens": 65536
+            },
+            "unknownNativeCounters": [
+              "cachedContentTokenCount",
+              "thoughtsTokenCount"
+            ],
+            "nativeEnvelopeComplete": false,
+            "tokensUnknown": true,
+            "actualUsageVerified": false,
+            "providerBillingVerified": false,
+            "exposureReduced": false,
+            "ownerDecision": "FD-123"
+          },
+          "outputSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+          "outputText": "{\n  \"topicId\": \"relationship_marriage\",\n  \"title\": \"Luận giải chuyên sâu Tình duyên & Hôn nhân\",\n  \"overview\": {\n    \"title\": \"Tổng quan kết cấu tình duyên và đời sống gia đạo\",\n    \"narrative\": \"Xem xét tổng thể phương diện tình cảm và liên kết lứa đôi, cấu trúc cung vị cho thấy sự đan xen giữa nhu cầu sẻ chia cảm xúc sâu kín và những rào cản mang tính thực tế. Trục liên kết bản thân và người phối ngẫu chịu sự tác động mạnh mẽ từ các tinh diệu chủ về biến động tinh thần. Cung Mệnh an tại Ngọ có Cự Môn vượng địa đồng cung Địa Kiếp, mang lại tư duy phân tích nhạy bén, thẳng thắn nhưng đôi khi tạo nên sự ngờ vực hoặc cách biểu đạt có phần gay gắt trong giao tiếp thường nhật. Trong khi đó, cung Phu Thê an tại Thìn hội tụ Thái Âm hãm địa đi cùng Hóa Khoa và Địa Không, cho thấy đối phương là người giàu tình cảm, có học thức hoặc danh tiếng nhất định, nhưng nội tâm thường cất giấu nhiều nỗi niềm riêng biệt, khó bộc lộ trọn vẹn. Thế tam hợp chiếu từ cung Thân với Thiên Đồng vượng địa hóa Hóa Kỵ cùng Thiên Lương hãm địa càng làm tăng thêm trạng thái bất an, dễ dẫn đến những giai đoạn bằng mặt mà không bằng lòng. Đời sống vợ chồng đòi hỏi sự thấu hiểu sâu sắc, bởi sự hiện diện của cặp sao Địa Không và Địa Kiếp tại hai vị trí then chốt thường tạo ra những khoảng lặng bất ngờ, gây cảm giác xa cách dù cả hai vẫn cùng chung một mái nhà.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.spouse\",\n      \"natal.ziwei.palace.life\",\n      \"natal.ziwei.star.taiyin\",\n      \"natal.ziwei.star.jumen\",\n      \"natal.ziwei.star.dikong\",\n      \"natal.ziwei.star.dijie\",\n      \"natal.ziwei.transformation.fame\",\n      \"natal.ziwei.transformation.obstacle\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.spouse\",\n      \"title\": \"Trọng điểm cung Phu Thê: Sự nhạy cảm và thử thách khoảng cách\",\n      \"narrative\": \"Cung Phu Thê đóng tại Thìn do Thái Âm hãm địa tọa thủ, phản ánh tính chất của người bạn đời có thiên hướng hướng nội, suy nghĩ tinh tế nhưng dễ bị tác động bởi hoàn cảnh môi trường chung quanh. Điểm sáng là sự đồng cung của Hóa Khoa, giúp người phối ngẫu duy trì phong thái hòa nhã, có hiểu biết và giữ được sự tôn trọng căn bản trong mối quan hệ. Dẫu vậy, sự xuất hiện của Địa Không tại bản cung, kết hợp với các phụ tinh như Bạch Hổ, Phi Liêm và Âm Sát, cảnh báo về những giai đoạn tâm lý biến động tiêu cực, thiếu sự chia sẻ cởi mở. Người bạn đời có thể mang những ưu tư thầm kín về công việc hoặc gia đình xuất thân mà không dễ giãi bày, từ đó tạo nên bức tường vô hình giữa hai bên. Khi tam hợp có sự xung chiếu của Thiên Đồng Hóa Kỵ và Thiên Lương, các vấn đề vụn vặt trong cuộc sống thường bị thổi phồng thành sự hờn dỗi hoặc nghi ngờ kéo dài, thử thách trực tiếp lòng kiên nhẫn và khả năng bao dung của đương số.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.star.dikong\",\n        \"natal.ziwei.transformation.fame\",\n        \"natal.ziwei.star.baihu\",\n        \"natal.ziwei.star.yinsha\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"communication_and_temperament\",\n      \"title\": \"Tương tác giao tiếp và khác biệt tính cách\",\n      \"narrative\": \"Một trong những trở ngại lớn nhất trong đời sống lứa đôi của lá số này bắt nguồn từ sự đối lập trong phương thức đối thoại giữa hai bên. Cung Mệnh có Cự Môn ngộ Địa Kiếp khiến đương số có xu hướng bộc trực, thích mổ xẻ vấn đề một cách rành mạch và dễ dùng lời lẽ sắc bén khi nảy sinh bất đồng. Ngược lại, cung Phu Thê có Thái Âm hãm địa lại là biểu tượng của sự che giấu, ngấm ngầm chịu đựng hoặc phản ứng bằng cách im lặng rút lui. Khi Địa Không tại Phu Thê tương tác với Địa Kiếp tại Mệnh, cảm giác hụt hẫng và cô độc rất dễ phát sinh nếu một bên liên tục chất vấn còn bên kia lại chọn sự né tránh. Thêm vào đó, sao Cô Quả và Thiên Hình gián tiếp chiếu rọi từ các cung hội tụ làm cho khoảng cách tâm lý càng dễ nới rộng. Muốn gìn giữ hòa khí, đương số cần học cách tiết chế ngôn từ, không nên truy cứu sự việc đến cùng mà cần cho đối phương không gian an toàn để tự chia sẻ.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.palace.spouse\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.star.dijie\",\n        \"natal.ziwei.star.dikong\"\n      ]\n    },\n    {\n      \"key\": \"financial_and_family_impact\",\n      \"title\": \"Ảnh hưởng từ đời sống vật chất và môi trường gia đình\",\n      \"narrative\": \"Tình cảm lứa đôi không tồn tại độc lập mà chịu sự chi phối chặt chẽ từ bài toán tài chính và các mối quan hệ thân tộc. Tại cung Phúc Đức – vốn là cung Thân tại Thân hội tụ Thiên Lộc Tồn cùng Thiên Đồng Hóa Kỵ, phản ánh những lo toan ngầm về sự ổn định kinh tế và trách nhiệm dòng họ. Mặc dù Lộc Tồn đem lại nền tảng của cải tích lũy, sự xuất hiện của Hóa Kỵ lại chỉ ra những lần chi tiêu bất đồng quan điểm hoặc việc hỗ trợ người thân gây nên căng thẳng giữa hai vợ chồng. Bên cạnh đó, cung Tử Tức tại Mão có Thiên Phủ, Tả Phụ, Văn Xương mang lại sự gắn kết vững chắc về con cái, đóng vai trò như chiếc mỏ neo quan trọng giúp hàn gắn các vết rạn nứt tình cảm. Những lúc mối quan hệ vợ chồng rơi vào bế tắc, trách nhiệm chung đối với con trẻ và việc quản trị ngân sách gia đình một cách minh bạch chính là phương tiện hữu hiệu để kéo hai người trở lại bên nhau.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.fortune\",\n        \"natal.ziwei.palace.children\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tianfu\",\n        \"natal.ziwei.star.zuofu\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Thời vận 10 năm tại cung Tài Bạch (Độ tuổi 43 - 52, năm 2022 - 2031)\",\n    \"state\": \"active\",\n    \"index\": 0,\n    \"ageRange\": [\n      43,\n      52\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Bước vào giai đoạn đại vận 10 năm từ 43 đến 52 tuổi (giai đoạn 2022 - 2031) quản trị tại cung Tài Bạch ở Dần, các vấn đề gia đạo và mối quan hệ lứa đôi chuyển sang một chu kỳ thử thách mới. Trong đại vận này, cung Phu Thê lưu vận an tại Tý chịu ảnh hưởng trực tiếp từ Thiên Cơ Hóa Kỵ. Thiên Cơ đại diện cho suy nghĩ, kế hoạch và sự điều động; khi Hóa Kỵ xâm lấn, vợ chồng rất dễ nảy sinh nghi ngờ, hiểu lầm về các quyết định chung hoặc đối mặt với tình trạng biến động công việc làm xáo trộn thời gian bên nhau. Đồng thời, cung Phúc Đức gốc tại Thìn trong đại vận đón nhận sự can thiệp của sao Đà La và Thái Âm Hóa Quyền, cho thấy người bạn đời có xu hướng nắm quyền kiểm soát nhiều hơn, tính khí trở nên cứng rắn và ít nhượng bộ hơn trước. Trạng thái dồn nén cảm xúc từ phía đối phương có thể tạo ra áp lực nặng nề cho đời sống chung. Đây là thập kỷ đòi hỏi đương số phải cực kỳ bình tĩnh, chủ động minh bạch hóa các kế hoạch làm ăn và lắng nghe người bạn đời để tránh tình trạng xa mặt cách lòng.\",\n    \"evidenceKeys\": [\n      \"decadal.age-range.43-52\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.spouse.transformation.ziwei.transformation.obstacle.ziwei.star.tianji\",\n      \"decadal.palace.ziwei.palace.fortune.transformation.ziwei.transformation.power.ziwei.star.taiyin\",\n      \"decadal.palace.ziwei.palace.fortune.star.ziwei.star.tuoluo\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Thiết lập quy tắc đối thoại định kỳ và tôn trọng khoảng không gian cá nhân của người phối ngẫu.\",\n      \"rationale\": \"Sự hiện diện của Cự Môn tại Mệnh kết hợp với Thái Âm và Địa Không tại Phu Thê dễ biến các cuộc tranh luận thông thường thành sự chỉ trích gay gắt, đẩy đối phương vào thế khép kín nội tâm.\",\n      \"avoid\": \"Không truy vấn dồn dập, không sử dụng lời lẽ mỉa mai khi nhận thấy đối phương đang trong trạng thái căng thẳng hoặc muốn giữ im lặng.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.taiyin\",\n        \"natal.ziwei.star.dikong\",\n        \"natal.ziwei.star.dijie\"\n      ]\n    },\n    {\n      \"recommendation\": \"Minh bạch hóa kế hoạch tài chính gia đình và thảo luận rõ ràng các khoản chi viện cho thân tộc.\",\n      \"rationale\": \"Cung Thân tại Phúc Đức có Lộc Tồn nhưng bị Thiên Đồng Hóa Kỵ quấy nhiễu, khiến các bất đồng về dòng tiền và trách nhiệm họ hàng dễ làm tổn hại đến niềm tin lứa đôi.\",\n      \"avoid\": \"Tránh việc tự ý quyết định các khoản đầu tư lớn hoặc cho vay mượn cá nhân mà không có sự đồng thuận từ người bạn đời.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.fortune\",\n        \"natal.ziwei.star.lucun\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tiantong\"\n      ]\n    },\n    {\n      \"recommendation\": \"Lấy sự chăm sóc, giáo dục con cái làm nền tảng kết nối và giải tỏa mâu thuẫn giữa hai vợ chồng.\",\n      \"rationale\": \"Cung Tử Tức hội tụ nhiều sao tốt như Thiên Phủ, Tả Phụ và Văn Xương, đóng vai trò trợ lực vững chãi giúp chuyển hóa áp lực từ trục Mệnh - Phu Thê.\",\n      \"avoid\": \"Không đem bất hòa của người lớn làm ảnh hưởng tiêu cực đến con trẻ hoặc đùn đẩy trách nhiệm chăm sóc gia đình cho đối phương.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.children\",\n        \"natal.ziwei.star.tianfu\",\n        \"natal.ziwei.star.zuofu\",\n        \"natal.ziwei.star.wenchang\"\n      ]\n    }\n  ]\n}",
+          "rawSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+          "parsedSha256": "254e04d4be62ae0341d9974557fb1ba0d5140aa6cd2344a253b2213e4b40ef23",
+          "normalization": "none"
+        }
+      ],
+      "manualAccepted": false,
+      "result": {
+        "ok": true,
+        "value": {
+          "content": {
+            "topicId": "relationship_marriage",
+            "title": "Luận giải chuyên sâu Tình duyên & Hôn nhân",
+            "overview": {
+              "title": "Tổng quan kết cấu tình duyên và đời sống gia đạo",
+              "narrative": "Xem xét tổng thể phương diện tình cảm và liên kết lứa đôi, cấu trúc cung vị cho thấy sự đan xen giữa nhu cầu sẻ chia cảm xúc sâu kín và những rào cản mang tính thực tế. Trục liên kết bản thân và người phối ngẫu chịu sự tác động mạnh mẽ từ các tinh diệu chủ về biến động tinh thần. Cung Mệnh an tại Ngọ có Cự Môn vượng địa đồng cung Địa Kiếp, mang lại tư duy phân tích nhạy bén, thẳng thắn nhưng đôi khi tạo nên sự ngờ vực hoặc cách biểu đạt có phần gay gắt trong giao tiếp thường nhật. Trong khi đó, cung Phu Thê an tại Thìn hội tụ Thái Âm hãm địa đi cùng Hóa Khoa và Địa Không, cho thấy đối phương là người giàu tình cảm, có học thức hoặc danh tiếng nhất định, nhưng nội tâm thường cất giấu nhiều nỗi niềm riêng biệt, khó bộc lộ trọn vẹn. Thế tam hợp chiếu từ cung Thân với Thiên Đồng vượng địa hóa Hóa Kỵ cùng Thiên Lương hãm địa càng làm tăng thêm trạng thái bất an, dễ dẫn đến những giai đoạn bằng mặt mà không bằng lòng. Đời sống vợ chồng đòi hỏi sự thấu hiểu sâu sắc, bởi sự hiện diện của cặp sao Địa Không và Địa Kiếp tại hai vị trí then chốt thường tạo ra những khoảng lặng bất ngờ, gây cảm giác xa cách dù cả hai vẫn cùng chung một mái nhà.",
+              "evidenceKeys": [
+                "natal.ziwei.palace.spouse",
+                "natal.ziwei.palace.life",
+                "natal.ziwei.star.taiyin",
+                "natal.ziwei.star.jumen",
+                "natal.ziwei.star.dikong",
+                "natal.ziwei.star.dijie",
+                "natal.ziwei.transformation.fame",
+                "natal.ziwei.transformation.obstacle"
+              ]
+            },
+            "palaceAnchors": [
+              {
+                "title": "Trọng điểm cung Phu Thê: Sự nhạy cảm và thử thách khoảng cách",
+                "narrative": "Cung Phu Thê đóng tại Thìn do Thái Âm hãm địa tọa thủ, phản ánh tính chất của người bạn đời có thiên hướng hướng nội, suy nghĩ tinh tế nhưng dễ bị tác động bởi hoàn cảnh môi trường chung quanh. Điểm sáng là sự đồng cung của Hóa Khoa, giúp người phối ngẫu duy trì phong thái hòa nhã, có hiểu biết và giữ được sự tôn trọng căn bản trong mối quan hệ. Dẫu vậy, sự xuất hiện của Địa Không tại bản cung, kết hợp với các phụ tinh như Bạch Hổ, Phi Liêm và Âm Sát, cảnh báo về những giai đoạn tâm lý biến động tiêu cực, thiếu sự chia sẻ cởi mở. Người bạn đời có thể mang những ưu tư thầm kín về công việc hoặc gia đình xuất thân mà không dễ giãi bày, từ đó tạo nên bức tường vô hình giữa hai bên. Khi tam hợp có sự xung chiếu của Thiên Đồng Hóa Kỵ và Thiên Lương, các vấn đề vụn vặt trong cuộc sống thường bị thổi phồng thành sự hờn dỗi hoặc nghi ngờ kéo dài, thử thách trực tiếp lòng kiên nhẫn và khả năng bao dung của đương số.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.spouse",
+                  "natal.ziwei.star.taiyin",
+                  "natal.ziwei.star.dikong",
+                  "natal.ziwei.transformation.fame",
+                  "natal.ziwei.star.baihu",
+                  "natal.ziwei.star.yinsha"
+                ],
+                "palaceId": "ziwei.palace.spouse"
+              }
+            ],
+            "thematicDimensions": [
+              {
+                "title": "Tương tác giao tiếp và khác biệt tính cách",
+                "narrative": "Một trong những trở ngại lớn nhất trong đời sống lứa đôi của lá số này bắt nguồn từ sự đối lập trong phương thức đối thoại giữa hai bên. Cung Mệnh có Cự Môn ngộ Địa Kiếp khiến đương số có xu hướng bộc trực, thích mổ xẻ vấn đề một cách rành mạch và dễ dùng lời lẽ sắc bén khi nảy sinh bất đồng. Ngược lại, cung Phu Thê có Thái Âm hãm địa lại là biểu tượng của sự che giấu, ngấm ngầm chịu đựng hoặc phản ứng bằng cách im lặng rút lui. Khi Địa Không tại Phu Thê tương tác với Địa Kiếp tại Mệnh, cảm giác hụt hẫng và cô độc rất dễ phát sinh nếu một bên liên tục chất vấn còn bên kia lại chọn sự né tránh. Thêm vào đó, sao Cô Quả và Thiên Hình gián tiếp chiếu rọi từ các cung hội tụ làm cho khoảng cách tâm lý càng dễ nới rộng. Muốn gìn giữ hòa khí, đương số cần học cách tiết chế ngôn từ, không nên truy cứu sự việc đến cùng mà cần cho đối phương không gian an toàn để tự chia sẻ.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.life",
+                  "natal.ziwei.palace.spouse",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.star.taiyin",
+                  "natal.ziwei.star.dijie",
+                  "natal.ziwei.star.dikong"
+                ],
+                "key": "communication_and_temperament"
+              },
+              {
+                "title": "Ảnh hưởng từ đời sống vật chất và môi trường gia đình",
+                "narrative": "Tình cảm lứa đôi không tồn tại độc lập mà chịu sự chi phối chặt chẽ từ bài toán tài chính và các mối quan hệ thân tộc. Tại cung Phúc Đức – vốn là cung Thân tại Thân hội tụ Thiên Lộc Tồn cùng Thiên Đồng Hóa Kỵ, phản ánh những lo toan ngầm về sự ổn định kinh tế và trách nhiệm dòng họ. Mặc dù Lộc Tồn đem lại nền tảng của cải tích lũy, sự xuất hiện của Hóa Kỵ lại chỉ ra những lần chi tiêu bất đồng quan điểm hoặc việc hỗ trợ người thân gây nên căng thẳng giữa hai vợ chồng. Bên cạnh đó, cung Tử Tức tại Mão có Thiên Phủ, Tả Phụ, Văn Xương mang lại sự gắn kết vững chắc về con cái, đóng vai trò như chiếc mỏ neo quan trọng giúp hàn gắn các vết rạn nứt tình cảm. Những lúc mối quan hệ vợ chồng rơi vào bế tắc, trách nhiệm chung đối với con trẻ và việc quản trị ngân sách gia đình một cách minh bạch chính là phương tiện hữu hiệu để kéo hai người trở lại bên nhau.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.fortune",
+                  "natal.ziwei.palace.children",
+                  "natal.ziwei.star.lucun",
+                  "natal.ziwei.transformation.obstacle",
+                  "natal.ziwei.star.tianfu",
+                  "natal.ziwei.star.zuofu"
+                ],
+                "key": "financial_and_family_impact"
+              }
+            ],
+            "decadalTiming": {
+              "title": "Thời vận 10 năm tại cung Tài Bạch (Độ tuổi 43 - 52, năm 2022 - 2031)",
+              "state": "active",
+              "index": 0,
+              "ageRange": [
+                43,
+                52
+              ],
+              "yearRange": [
+                2022,
+                2031
+              ],
+              "palaceId": "ziwei.palace.wealth",
+              "narrative": "Bước vào giai đoạn đại vận 10 năm từ 43 đến 52 tuổi (giai đoạn 2022 - 2031) quản trị tại cung Tài Bạch ở Dần, các vấn đề gia đạo và mối quan hệ lứa đôi chuyển sang một chu kỳ thử thách mới. Trong đại vận này, cung Phu Thê lưu vận an tại Tý chịu ảnh hưởng trực tiếp từ Thiên Cơ Hóa Kỵ. Thiên Cơ đại diện cho suy nghĩ, kế hoạch và sự điều động; khi Hóa Kỵ xâm lấn, vợ chồng rất dễ nảy sinh nghi ngờ, hiểu lầm về các quyết định chung hoặc đối mặt với tình trạng biến động công việc làm xáo trộn thời gian bên nhau. Đồng thời, cung Phúc Đức gốc tại Thìn trong đại vận đón nhận sự can thiệp của sao Đà La và Thái Âm Hóa Quyền, cho thấy người bạn đời có xu hướng nắm quyền kiểm soát nhiều hơn, tính khí trở nên cứng rắn và ít nhượng bộ hơn trước. Trạng thái dồn nén cảm xúc từ phía đối phương có thể tạo ra áp lực nặng nề cho đời sống chung. Đây là thập kỷ đòi hỏi đương số phải cực kỳ bình tĩnh, chủ động minh bạch hóa các kế hoạch làm ăn và lắng nghe người bạn đời để tránh tình trạng xa mặt cách lòng.",
+              "evidenceKeys": [
+                "decadal.age-range.43-52",
+                "decadal.year-range.2022-2031",
+                "decadal.palace.ziwei.palace.wealth",
+                "decadal.palace.ziwei.palace.spouse.transformation.ziwei.transformation.obstacle.ziwei.star.tianji",
+                "decadal.palace.ziwei.palace.fortune.transformation.ziwei.transformation.power.ziwei.star.taiyin",
+                "decadal.palace.ziwei.palace.fortune.star.ziwei.star.tuoluo"
+              ]
+            },
+            "actions": [
+              {
+                "recommendation": "Thiết lập quy tắc đối thoại định kỳ và tôn trọng khoảng không gian cá nhân của người phối ngẫu.",
+                "rationale": "Sự hiện diện của Cự Môn tại Mệnh kết hợp với Thái Âm và Địa Không tại Phu Thê dễ biến các cuộc tranh luận thông thường thành sự chỉ trích gay gắt, đẩy đối phương vào thế khép kín nội tâm.",
+                "avoid": "Không truy vấn dồn dập, không sử dụng lời lẽ mỉa mai khi nhận thấy đối phương đang trong trạng thái căng thẳng hoặc muốn giữ im lặng.",
+                "evidenceKeys": [
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.star.taiyin",
+                  "natal.ziwei.star.dikong",
+                  "natal.ziwei.star.dijie"
+                ]
+              },
+              {
+                "recommendation": "Minh bạch hóa kế hoạch tài chính gia đình và thảo luận rõ ràng các khoản chi viện cho thân tộc.",
+                "rationale": "Cung Thân tại Phúc Đức có Lộc Tồn nhưng bị Thiên Đồng Hóa Kỵ quấy nhiễu, khiến các bất đồng về dòng tiền và trách nhiệm họ hàng dễ làm tổn hại đến niềm tin lứa đôi.",
+                "avoid": "Tránh việc tự ý quyết định các khoản đầu tư lớn hoặc cho vay mượn cá nhân mà không có sự đồng thuận từ người bạn đời.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.fortune",
+                  "natal.ziwei.star.lucun",
+                  "natal.ziwei.transformation.obstacle",
+                  "natal.ziwei.star.tiantong"
+                ]
+              },
+              {
+                "recommendation": "Lấy sự chăm sóc, giáo dục con cái làm nền tảng kết nối và giải tỏa mâu thuẫn giữa hai vợ chồng.",
+                "rationale": "Cung Tử Tức hội tụ nhiều sao tốt như Thiên Phủ, Tả Phụ và Văn Xương, đóng vai trò trợ lực vững chãi giúp chuyển hóa áp lực từ trục Mệnh - Phu Thê.",
+                "avoid": "Không đem bất hòa của người lớn làm ảnh hưởng tiêu cực đến con trẻ hoặc đùn đẩy trách nhiệm chăm sóc gia đình cho đối phương.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.children",
+                  "natal.ziwei.star.tianfu",
+                  "natal.ziwei.star.zuofu",
+                  "natal.ziwei.star.wenchang"
+                ]
+              }
+            ]
+          },
+          "quality": {
+            "ok": true,
+            "findings": [],
+            "advisory": [
+              {
+                "sectionKey": "thematicDimensions[communication_and_temperament]",
+                "code": "DISCOURAGED_TERM",
+                "note": "Contains discouraged term: phu thê."
+              },
+              {
+                "sectionKey": "actions[0]",
+                "code": "DISCOURAGED_TERM",
+                "note": "Contains discouraged term: phu thê."
+              },
+              {
+                "sectionKey": "actions[2]",
+                "code": "DISCOURAGED_TERM",
+                "note": "Contains discouraged term: phu thê."
+              }
+            ]
+          },
+          "providerId": "9router-antigravity-native",
+          "modelId": "gemini-3.8-flash-medium"
+        }
+      }
+    },
+    {
+      "slot": "career_wealth:0",
+      "group": "career_wealth",
+      "index": 0,
+      "snapshotHash": "05e3ac3abef0ff987914ccc37ea154ec0126896d0da1d79b86db8e56c329df73",
+      "factsSha256": "b46e542d4c96edc43092c346ed2ddc39c8037282e5a2ad6a1de0a695fd9875bc",
+      "targetYear": 2026,
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "sourceKind": "synthetic_actual_iztro",
+      "status": "quality_passed_pending_manual_review",
+      "attempts": [
+        {
+          "attemptKey": "7e12ed67e68ebab9e7777603b15da6644e580f7daf3a86b72fb456cbe8d0868c",
+          "purpose": "report",
+          "status": "reference_settled",
+          "trace": {
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "pricingSnapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "requestedAlias": "ag/gemini-3.8-flash",
+            "wireModel": "gemini-3.8-flash-medium",
+            "requestId": "agent/252ae665-ed8d-4e54-a10b-4641e903e81a/1791573260369/013a7b5f-bfeb-4c3a-be53-17b58bb864f5/1",
+            "effectiveMaxOutputTokens": 16384,
+            "requestSha256": "be4c1f5374d90d9f31c397ef87d612b2287f0607ffb3aeda4b06b7d6edb407a3"
+          },
+          "reserveVnd": 33368,
+          "reservationId": "20229f59-e896-44f8-8695-f1ca07f38257",
+          "accountingEvidence": {
+            "version": "native.accounting.evidence.v1",
+            "httpStatus": 200,
+            "requestSha256": "be4c1f5374d90d9f31c397ef87d612b2287f0607ffb3aeda4b06b7d6edb407a3",
+            "responseSha256": "b7863712cd586f6165d96b581badcc42fc708bf3a34544daa26c38a3a04b0f7e",
+            "visibleOutputSha256": "6ffd771e25aa2db097054b73ce1aa8b9b465458c21804e02fc27af832e16ca99",
+            "modelVersion": "gemini-3.8-flash",
+            "completionVerified": true,
+            "conflictingUsage": false,
+            "envelopeComplete": false,
+            "billingCountersComplete": false,
+            "metadataRedacted": false,
+            "usageMetadata": {
+              "promptTokenCount": 7509,
+              "candidatesTokenCount": 2992,
+              "totalTokenCount": 12644,
+              "thoughtsTokenCount": 2143
+            },
+            "settlementAuthorized": false,
+            "continuationAuthorized": false
+          },
+          "visibleUnacceptedOutput": "{\n  \"topicId\": \"career_wealth\",\n  \"title\": \"Luận giải chuyên sâu Công việc & Tài lộc\",\n  \"overview\": {\n    \"title\": \"Tổng quan cấu trúc sự nghiệp và tiềm lực tài chính\",\n    \"narrative\": \"Lá số thiết lập bố cục hành động với cung an Thân đặt tại cung Thìn cũng chính là cung giữ nguồn tiền bạc, phản ánh xu hướng cá nhân luôn dồn trọng tâm đời sống vào việc tạo dựng thu nhập và thiết lập nền tảng vật chất. Sự hiện diện của Thái Dương miêu tả năng lực kiếm tiền công khai, dựa trên danh tiếng, chuyên môn minh bạch và sức lan tỏa xã hội. Tại tam hợp chỉ phối sự nghiệp ở cung Tý, Cự Môn đóng vai trò then chốt khi kết hợp cùng Thiên Khôi và Hữu Bật, định hình phong cách làm việc dựa trên ngôn từ, tư duy phân tích, lập luận phản biện và khả năng thuyết phục tập thể. Tuy nhiên, cung Mệnh ngụ tại Thân có Văn Khúc chuyển biến thành Hóa Kỵ ngộ Thiên Không và Kiếp Sát, cảnh báo những sai sót về giấy tờ, văn bản, giao kết hợp đồng hoặc những phán đoán chủ quan trong giao dịch kinh tế. Bố cục này chỉ ra rằng con đường thăng tiến cần xây dựng bằng kỹ năng thực tế, tính minh bạch cao, hạn chế đầu tư rủi ro hoặc tin tưởng mù quáng vào các thỏa ước ngầm thiếu tính pháp lý.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.wealth\",\n      \"natal.ziwei.star.taiyang\",\n      \"natal.ziwei.palace.career\",\n      \"natal.ziwei.star.jumen\",\n      \"natal.ziwei.star.wenqu\",\n      \"natal.ziwei.transformation.obstacle\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.career\",\n      \"title\": \"Trục Quan Lộc: Năng lực ngôn ngữ và vị thế chuyên môn\",\n      \"narrative\": \"Cung Quan Lộc tọa tại cung Tý có Cự Môn giữ vai trò chủ đạo, mang lại lợi thế vượt trội trong các lĩnh vực đòi hỏi diễn đạt, nghiên cứu, tư vấn chiến lược, giảng dạy hoặc đàm phán thương mại. Sự đồng cung của Hữu Bật và Thiên Khôi tạo điều kiện kết nối với mạng lưới trợ lực uy tín, nhận được sự đồng thuận từ các cấp quản lý và cộng sự giàu kinh nghiệm. Dẫu vậy, sự xuất hiện của Tiểu Hao và Phi Liêm tại đây phản ánh môi trường công việc thường xuyên biến động, áp lực tiến độ gấp gáp và có xu hướng phát sinh những đợt chi tiêu đột xuất phục vụ quan hệ công việc. Để duy trì sự ổn định, đương số cần phát huy tối đa tính chuẩn xác trong ngôn từ, hạn chế tranh luận gay gắt không cần thiết và tập trung trau dồi chuyên môn sâu thay vì dàn trải nguồn lực vào nhiều dự án cùng lúc.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.branch.rat\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.tiankui\",\n        \"natal.ziwei.star.youbi\",\n        \"natal.ziwei.star.xiaohao-sq\"\n      ]\n    },\n    {\n      \"palaceId\": \"ziwei.palace.wealth\",\n      \"title\": \"Trục Tài Bạch: Phương thức tạo sinh dòng tiền và tích lũy\",\n      \"narrative\": \"Cung Tài Bạch tọa tại Thìn hội tụ Thái Dương mang tính chất soi sáng, biểu thị dòng tiền thu về chủ yếu bắt nguồn từ công việc đàng hoàng, có vị thế rõ ràng và giá trị phụng sự cộng đồng. Đồng thời, đây là cung Thân cư ngụ nên việc kiểm soát tài chính cá nhân ảnh hưởng trực tiếp đến tư duy và định hướng lâu dài. Sự góp mặt của Quả Tú đặt ra yêu cầu phải thắt chặt chi tiêu, duy trì thói quen kiểm soát dòng tiền độc lập và tránh việc cho vay mượn thiếu cam kết rõ ràng. Đi cùng Thanh Long và Thiên Đức, đương số có cơ hội tiếp cận những nguồn thu chính đáng, hạn chế được rủi ro gian lận thương mại nếu tuân thủ pháp luật. Mặc dù vậy, cấu trúc tam hợp hướng về Văn Khúc Hóa Kỵ đòi hỏi mọi quyết định thanh toán hay giải ngân đều phải được kiểm tra chứng từ kỹ lưỡng để tránh tổn thất ngoài dự kiến.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.branch.dragon\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.star.guasu\",\n        \"natal.ziwei.star.qinglong\",\n        \"natal.ziwei.star.tiande\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"career_trajectory\",\n      \"title\": \"Xu hướng phát triển công việc và năng lực thực thi\",\n      \"narrative\": \"Hệ thống tam hợp Mệnh - Quan - Tài nằm trên các trục Thân - Tý - Thìn thiết lập mô hình làm việc thiên về trí tuệ, tổ chức và phát triển dịch vụ chuyên nghiệp. Cự Môn tại Tý là hình tượng của sự khảo sát, phân tích chi tiết và đối thoại, giúp đương số dễ dàng đảm nhận các vị trí cố vấn, kiểm toán, ngoại giao, luật hoặc truyền thông. Việc hội tụ Thiên Khôi cùng Hữu Bật khẳng định khả năng điều phối nhân sự và nắm bắt cơ hội nâng cao chuyên môn từ môi trường xung quanh. Tuy nhiên, trục xung chiếu từ cung Di có Thiên Đồng và Thiên Lương Hóa Khoa kết hợp Linh Tinh tạo áp lực cạnh tranh khi bước ra không gian bên ngoài. Đương số cần liên tục nâng cấp chứng chỉ chuyên môn, giữ vững tính liêm chính và sự nhạy bén trong xử lý tình huống để thiết lập chỗ đứng vững chắc trước sự biến động của thị trường.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.tianliang\",\n        \"natal.ziwei.transformation.fame\",\n        \"natal.ziwei.star.lingxing\",\n        \"natal.ziwei.palace.travel\"\n      ]\n    },\n    {\n      \"key\": \"wealth_accumulation\",\n      \"title\": \"Cơ chế quản lý dòng tiền và an toàn nguồn vốn\",\n      \"narrative\": \"Khả năng tích lũy của bản số chịu sự chi phối mạnh mẽ từ sao Thái Dương tại Thìn kết hợp Quả Tú, tạo nên phương thức gom góp từ tốn, chú trọng tính an toàn thay vì mạo hiểm đầu tư ngắn hạn. Cung Điền Trạch tại Hợi có Liêm Trinh và Tham Lang hãm địa đi cùng Tham Lang Hóa Quyền cho thấy tài sản bất động sản hoặc tư liệu sản xuất có thể trải qua giai đoạn thăng trầm, đòi hỏi sự kiên nhẫn và chiến lược dài hạn. Nguy cơ rò rỉ ngân sách chủ yếu xuất phát từ Văn Khúc Hóa Kỵ tại Thân cùng Kiếp Sát và Thiên Không chiếu về, đại diện cho những sơ hở trong giao kết kinh doanh, ủy thác vốn sai người hoặc chi phí phát sinh bất ngờ. Để duy trì thặng dư tài chính, giải pháp tối ưu là chuyển hóa dòng tiền nhàn rỗi thành các tài sản có tính thanh khoản ổn định, ghi chép sổ sách minh bạch và tuyệt đối tránh tâm lý chạy theo lợi nhuận tức thời.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.lianzhen\",\n        \"natal.ziwei.star.tanlang\",\n        \"natal.ziwei.transformation.power\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Thời vận mười năm tại cung Thìn (Độ tuổi 44 - 53, giai đoạn 2022 - 2031)\",\n    \"state\": \"active\",\n    \"index\": 2,\n    \"ageRange\": [\n      44,\n      53\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Bước vào chu kỳ mười năm từ 44 đến 53 tuổi (năm 2022 đến 2031) đóng tại cung Tài Bạch gốc mang can Mậu, trọng tâm vận trình xoay quanh việc tái cấu trúc nguồn thu và bảo vệ thành quả kinh tế. Tại đây xuất hiện Đà La thuộc chu kỳ đại vận đóng ở Thìn, tạo cảm giác công việc có những thời điểm tiến triển chậm chạp, đòi hỏi sự bền bỉ để tháo gỡ rào cản hành chính hoặc thủ tục pháp lý. Cung Quan Lộc đại vận tại Thân có Văn Xương hội tụ, thúc đẩy nhu cầu học tập, bổ sung chứng chỉ và chuẩn hóa quy trình điều hành. Cung Tài Bạch đại vận tại Tý đón nhận Hữu Bật Hóa Khoa, mang đến cơ hội gia tăng uy tín cá nhân, được đối tác ghi nhận và có nguồn thu nhập phụ trợ thông qua các dự án cộng tác. Đây là giai đoạn cần duy trì sự thận trọng tối đa, củng cố nội lực, tránh mở rộng kinh doanh quá mức để bảo toàn nguồn vốn.\",\n    \"evidenceKeys\": [\n      \"decadal.state.active\",\n      \"decadal.index.2\",\n      \"decadal.age-range.44-53\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.life.star.ziwei.star.tuoluo\",\n      \"decadal.palace.ziwei.palace.wealth.transformation.ziwei.transformation.fame.ziwei.star.youbi\",\n      \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenchang\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Thiết lập hệ thống kiểm soát chứng từ chặt chẽ và nhờ luật sư thẩm định mọi hợp đồng kinh tế trước khi ký kết.\",\n      \"rationale\": \"Cung Mệnh có Văn Khúc Hóa Kỵ đồng cung Thiên Không và Kiếp Sát dễ dẫn đến tranh chấp pháp lý hoặc thiệt hại tài chính do điều khoản văn bản thiếu minh bạch.\",\n      \"avoid\": \"Tránh ký thỏa thuận bằng sự tin tưởng cá nhân hoặc giao dịch qua lời nói mà không có biên bản xác nhận cụ thể.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.star.wenqu\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tiankong\"\n      ]\n    },\n    {\n      \"recommendation\": \"Tận dụng ưu thế đối thoại và kỹ năng đàm phán của Cự Môn để xây dựng hình ảnh chuyên gia tư vấn hoặc đào tạo nội bộ.\",\n      \"rationale\": \"Cung Quan Lộc có Cự Môn vượng địa hội tụ Thiên Khôi và Hữu Bật hỗ trợ việc nâng cao uy tín thông qua ngôn luận và chia sẻ kiến thức chuyên sâu.\",\n      \"avoid\": \"Tránh tham gia vào các cuộc tranh luận đối kháng trực diện tại nơi làm việc làm rạn nứt mối liên kết đồng nghiệp.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.tiankui\",\n        \"natal.ziwei.star.youbi\"\n      ]\n    },\n    {\n      \"recommendation\": \"Kiên nhẫn xử lý các nút thắt trong công việc theo từng bước nhỏ trong giai đoạn 44 đến 53 tuổi nhằm tích lũy kinh nghiệm.\",\n      \"rationale\": \"Đại vận tại Thìn có Đà La và Cung Quan Lộc đại vận có Văn Xương đòi hỏi sự kiên trì hoàn thiện quy chuẩn thay vì kỳ vọng kết quả nhanh chóng.\",\n      \"avoid\": \"Tránh nôn nóng đầu tư mở rộng quy mô quá lớn hoặc thay đổi định hướng nghề nghiệp một cách vội vã.\",\n      \"evidenceKeys\": [\n        \"decadal.palace.ziwei.palace.wealth\",\n        \"decadal.palace.ziwei.palace.life.star.ziwei.star.tuoluo\",\n        \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenchang\",\n        \"decadal.age-range.44-53\"\n      ]\n    }\n  ]\n}",
+          "receipt": {
+            "modelVersion": "gemini-3.8-flash",
+            "usageMetadata": {
+              "promptTokenCount": 7509,
+              "candidatesTokenCount": 2992,
+              "totalTokenCount": 12644,
+              "thoughtsTokenCount": 2143
+            }
+          },
+          "quote": {
+            "quoteKind": "owner_approved_model_bound_API_reference",
+            "accountingStatus": "api_reference_model_bound",
+            "referenceMode": "FD123-model-bounds-v2",
+            "quoteVnd": "33368",
+            "quoteMicroVnd": "33367326720",
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "snapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "tokenBounds": {
+              "inputTokens": 1048576,
+              "outputTokens": 65536,
+              "reasoningTokens": 65536
+            },
+            "unknownNativeCounters": [
+              "cachedContentTokenCount"
+            ],
+            "nativeEnvelopeComplete": false,
+            "tokensUnknown": true,
+            "actualUsageVerified": false,
+            "providerBillingVerified": false,
+            "exposureReduced": false,
+            "ownerDecision": "FD-123"
+          },
+          "outputSha256": "6ffd771e25aa2db097054b73ce1aa8b9b465458c21804e02fc27af832e16ca99",
+          "outputText": "{\n  \"topicId\": \"career_wealth\",\n  \"title\": \"Luận giải chuyên sâu Công việc & Tài lộc\",\n  \"overview\": {\n    \"title\": \"Tổng quan cấu trúc sự nghiệp và tiềm lực tài chính\",\n    \"narrative\": \"Lá số thiết lập bố cục hành động với cung an Thân đặt tại cung Thìn cũng chính là cung giữ nguồn tiền bạc, phản ánh xu hướng cá nhân luôn dồn trọng tâm đời sống vào việc tạo dựng thu nhập và thiết lập nền tảng vật chất. Sự hiện diện của Thái Dương miêu tả năng lực kiếm tiền công khai, dựa trên danh tiếng, chuyên môn minh bạch và sức lan tỏa xã hội. Tại tam hợp chỉ phối sự nghiệp ở cung Tý, Cự Môn đóng vai trò then chốt khi kết hợp cùng Thiên Khôi và Hữu Bật, định hình phong cách làm việc dựa trên ngôn từ, tư duy phân tích, lập luận phản biện và khả năng thuyết phục tập thể. Tuy nhiên, cung Mệnh ngụ tại Thân có Văn Khúc chuyển biến thành Hóa Kỵ ngộ Thiên Không và Kiếp Sát, cảnh báo những sai sót về giấy tờ, văn bản, giao kết hợp đồng hoặc những phán đoán chủ quan trong giao dịch kinh tế. Bố cục này chỉ ra rằng con đường thăng tiến cần xây dựng bằng kỹ năng thực tế, tính minh bạch cao, hạn chế đầu tư rủi ro hoặc tin tưởng mù quáng vào các thỏa ước ngầm thiếu tính pháp lý.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.wealth\",\n      \"natal.ziwei.star.taiyang\",\n      \"natal.ziwei.palace.career\",\n      \"natal.ziwei.star.jumen\",\n      \"natal.ziwei.star.wenqu\",\n      \"natal.ziwei.transformation.obstacle\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.career\",\n      \"title\": \"Trục Quan Lộc: Năng lực ngôn ngữ và vị thế chuyên môn\",\n      \"narrative\": \"Cung Quan Lộc tọa tại cung Tý có Cự Môn giữ vai trò chủ đạo, mang lại lợi thế vượt trội trong các lĩnh vực đòi hỏi diễn đạt, nghiên cứu, tư vấn chiến lược, giảng dạy hoặc đàm phán thương mại. Sự đồng cung của Hữu Bật và Thiên Khôi tạo điều kiện kết nối với mạng lưới trợ lực uy tín, nhận được sự đồng thuận từ các cấp quản lý và cộng sự giàu kinh nghiệm. Dẫu vậy, sự xuất hiện của Tiểu Hao và Phi Liêm tại đây phản ánh môi trường công việc thường xuyên biến động, áp lực tiến độ gấp gáp và có xu hướng phát sinh những đợt chi tiêu đột xuất phục vụ quan hệ công việc. Để duy trì sự ổn định, đương số cần phát huy tối đa tính chuẩn xác trong ngôn từ, hạn chế tranh luận gay gắt không cần thiết và tập trung trau dồi chuyên môn sâu thay vì dàn trải nguồn lực vào nhiều dự án cùng lúc.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.branch.rat\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.tiankui\",\n        \"natal.ziwei.star.youbi\",\n        \"natal.ziwei.star.xiaohao-sq\"\n      ]\n    },\n    {\n      \"palaceId\": \"ziwei.palace.wealth\",\n      \"title\": \"Trục Tài Bạch: Phương thức tạo sinh dòng tiền và tích lũy\",\n      \"narrative\": \"Cung Tài Bạch tọa tại Thìn hội tụ Thái Dương mang tính chất soi sáng, biểu thị dòng tiền thu về chủ yếu bắt nguồn từ công việc đàng hoàng, có vị thế rõ ràng và giá trị phụng sự cộng đồng. Đồng thời, đây là cung Thân cư ngụ nên việc kiểm soát tài chính cá nhân ảnh hưởng trực tiếp đến tư duy và định hướng lâu dài. Sự góp mặt của Quả Tú đặt ra yêu cầu phải thắt chặt chi tiêu, duy trì thói quen kiểm soát dòng tiền độc lập và tránh việc cho vay mượn thiếu cam kết rõ ràng. Đi cùng Thanh Long và Thiên Đức, đương số có cơ hội tiếp cận những nguồn thu chính đáng, hạn chế được rủi ro gian lận thương mại nếu tuân thủ pháp luật. Mặc dù vậy, cấu trúc tam hợp hướng về Văn Khúc Hóa Kỵ đòi hỏi mọi quyết định thanh toán hay giải ngân đều phải được kiểm tra chứng từ kỹ lưỡng để tránh tổn thất ngoài dự kiến.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.branch.dragon\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.star.guasu\",\n        \"natal.ziwei.star.qinglong\",\n        \"natal.ziwei.star.tiande\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"career_trajectory\",\n      \"title\": \"Xu hướng phát triển công việc và năng lực thực thi\",\n      \"narrative\": \"Hệ thống tam hợp Mệnh - Quan - Tài nằm trên các trục Thân - Tý - Thìn thiết lập mô hình làm việc thiên về trí tuệ, tổ chức và phát triển dịch vụ chuyên nghiệp. Cự Môn tại Tý là hình tượng của sự khảo sát, phân tích chi tiết và đối thoại, giúp đương số dễ dàng đảm nhận các vị trí cố vấn, kiểm toán, ngoại giao, luật hoặc truyền thông. Việc hội tụ Thiên Khôi cùng Hữu Bật khẳng định khả năng điều phối nhân sự và nắm bắt cơ hội nâng cao chuyên môn từ môi trường xung quanh. Tuy nhiên, trục xung chiếu từ cung Di có Thiên Đồng và Thiên Lương Hóa Khoa kết hợp Linh Tinh tạo áp lực cạnh tranh khi bước ra không gian bên ngoài. Đương số cần liên tục nâng cấp chứng chỉ chuyên môn, giữ vững tính liêm chính và sự nhạy bén trong xử lý tình huống để thiết lập chỗ đứng vững chắc trước sự biến động của thị trường.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.tianliang\",\n        \"natal.ziwei.transformation.fame\",\n        \"natal.ziwei.star.lingxing\",\n        \"natal.ziwei.palace.travel\"\n      ]\n    },\n    {\n      \"key\": \"wealth_accumulation\",\n      \"title\": \"Cơ chế quản lý dòng tiền và an toàn nguồn vốn\",\n      \"narrative\": \"Khả năng tích lũy của bản số chịu sự chi phối mạnh mẽ từ sao Thái Dương tại Thìn kết hợp Quả Tú, tạo nên phương thức gom góp từ tốn, chú trọng tính an toàn thay vì mạo hiểm đầu tư ngắn hạn. Cung Điền Trạch tại Hợi có Liêm Trinh và Tham Lang hãm địa đi cùng Tham Lang Hóa Quyền cho thấy tài sản bất động sản hoặc tư liệu sản xuất có thể trải qua giai đoạn thăng trầm, đòi hỏi sự kiên nhẫn và chiến lược dài hạn. Nguy cơ rò rỉ ngân sách chủ yếu xuất phát từ Văn Khúc Hóa Kỵ tại Thân cùng Kiếp Sát và Thiên Không chiếu về, đại diện cho những sơ hở trong giao kết kinh doanh, ủy thác vốn sai người hoặc chi phí phát sinh bất ngờ. Để duy trì thặng dư tài chính, giải pháp tối ưu là chuyển hóa dòng tiền nhàn rỗi thành các tài sản có tính thanh khoản ổn định, ghi chép sổ sách minh bạch và tuyệt đối tránh tâm lý chạy theo lợi nhuận tức thời.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.lianzhen\",\n        \"natal.ziwei.star.tanlang\",\n        \"natal.ziwei.transformation.power\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Thời vận mười năm tại cung Thìn (Độ tuổi 44 - 53, giai đoạn 2022 - 2031)\",\n    \"state\": \"active\",\n    \"index\": 2,\n    \"ageRange\": [\n      44,\n      53\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Bước vào chu kỳ mười năm từ 44 đến 53 tuổi (năm 2022 đến 2031) đóng tại cung Tài Bạch gốc mang can Mậu, trọng tâm vận trình xoay quanh việc tái cấu trúc nguồn thu và bảo vệ thành quả kinh tế. Tại đây xuất hiện Đà La thuộc chu kỳ đại vận đóng ở Thìn, tạo cảm giác công việc có những thời điểm tiến triển chậm chạp, đòi hỏi sự bền bỉ để tháo gỡ rào cản hành chính hoặc thủ tục pháp lý. Cung Quan Lộc đại vận tại Thân có Văn Xương hội tụ, thúc đẩy nhu cầu học tập, bổ sung chứng chỉ và chuẩn hóa quy trình điều hành. Cung Tài Bạch đại vận tại Tý đón nhận Hữu Bật Hóa Khoa, mang đến cơ hội gia tăng uy tín cá nhân, được đối tác ghi nhận và có nguồn thu nhập phụ trợ thông qua các dự án cộng tác. Đây là giai đoạn cần duy trì sự thận trọng tối đa, củng cố nội lực, tránh mở rộng kinh doanh quá mức để bảo toàn nguồn vốn.\",\n    \"evidenceKeys\": [\n      \"decadal.state.active\",\n      \"decadal.index.2\",\n      \"decadal.age-range.44-53\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.life.star.ziwei.star.tuoluo\",\n      \"decadal.palace.ziwei.palace.wealth.transformation.ziwei.transformation.fame.ziwei.star.youbi\",\n      \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenchang\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Thiết lập hệ thống kiểm soát chứng từ chặt chẽ và nhờ luật sư thẩm định mọi hợp đồng kinh tế trước khi ký kết.\",\n      \"rationale\": \"Cung Mệnh có Văn Khúc Hóa Kỵ đồng cung Thiên Không và Kiếp Sát dễ dẫn đến tranh chấp pháp lý hoặc thiệt hại tài chính do điều khoản văn bản thiếu minh bạch.\",\n      \"avoid\": \"Tránh ký thỏa thuận bằng sự tin tưởng cá nhân hoặc giao dịch qua lời nói mà không có biên bản xác nhận cụ thể.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.star.wenqu\",\n        \"natal.ziwei.transformation.obstacle\",\n        \"natal.ziwei.star.tiankong\"\n      ]\n    },\n    {\n      \"recommendation\": \"Tận dụng ưu thế đối thoại và kỹ năng đàm phán của Cự Môn để xây dựng hình ảnh chuyên gia tư vấn hoặc đào tạo nội bộ.\",\n      \"rationale\": \"Cung Quan Lộc có Cự Môn vượng địa hội tụ Thiên Khôi và Hữu Bật hỗ trợ việc nâng cao uy tín thông qua ngôn luận và chia sẻ kiến thức chuyên sâu.\",\n      \"avoid\": \"Tránh tham gia vào các cuộc tranh luận đối kháng trực diện tại nơi làm việc làm rạn nứt mối liên kết đồng nghiệp.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.star.tiankui\",\n        \"natal.ziwei.star.youbi\"\n      ]\n    },\n    {\n      \"recommendation\": \"Kiên nhẫn xử lý các nút thắt trong công việc theo từng bước nhỏ trong giai đoạn 44 đến 53 tuổi nhằm tích lũy kinh nghiệm.\",\n      \"rationale\": \"Đại vận tại Thìn có Đà La và Cung Quan Lộc đại vận có Văn Xương đòi hỏi sự kiên trì hoàn thiện quy chuẩn thay vì kỳ vọng kết quả nhanh chóng.\",\n      \"avoid\": \"Tránh nôn nóng đầu tư mở rộng quy mô quá lớn hoặc thay đổi định hướng nghề nghiệp một cách vội vã.\",\n      \"evidenceKeys\": [\n        \"decadal.palace.ziwei.palace.wealth\",\n        \"decadal.palace.ziwei.palace.life.star.ziwei.star.tuoluo\",\n        \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenchang\",\n        \"decadal.age-range.44-53\"\n      ]\n    }\n  ]\n}",
+          "rawSha256": "6ffd771e25aa2db097054b73ce1aa8b9b465458c21804e02fc27af832e16ca99",
+          "parsedSha256": "a3205379e16c270f1889cab4c692fae61966ebd8f738451bf072798a2e8ecc9b",
+          "normalization": "none"
+        }
+      ],
+      "manualAccepted": false,
+      "result": {
+        "ok": true,
+        "value": {
+          "content": {
+            "topicId": "career_wealth",
+            "title": "Luận giải chuyên sâu Công việc & Tài lộc",
+            "overview": {
+              "title": "Tổng quan cấu trúc sự nghiệp và tiềm lực tài chính",
+              "narrative": "Lá số thiết lập bố cục hành động với cung an Thân đặt tại cung Thìn cũng chính là cung giữ nguồn tiền bạc, phản ánh xu hướng cá nhân luôn dồn trọng tâm đời sống vào việc tạo dựng thu nhập và thiết lập nền tảng vật chất. Sự hiện diện của Thái Dương miêu tả năng lực kiếm tiền công khai, dựa trên danh tiếng, chuyên môn minh bạch và sức lan tỏa xã hội. Tại tam hợp chỉ phối sự nghiệp ở cung Tý, Cự Môn đóng vai trò then chốt khi kết hợp cùng Thiên Khôi và Hữu Bật, định hình phong cách làm việc dựa trên ngôn từ, tư duy phân tích, lập luận phản biện và khả năng thuyết phục tập thể. Tuy nhiên, cung Mệnh ngụ tại Thân có Văn Khúc chuyển biến thành Hóa Kỵ ngộ Thiên Không và Kiếp Sát, cảnh báo những sai sót về giấy tờ, văn bản, giao kết hợp đồng hoặc những phán đoán chủ quan trong giao dịch kinh tế. Bố cục này chỉ ra rằng con đường thăng tiến cần xây dựng bằng kỹ năng thực tế, tính minh bạch cao, hạn chế đầu tư rủi ro hoặc tin tưởng mù quáng vào các thỏa ước ngầm thiếu tính pháp lý.",
+              "evidenceKeys": [
+                "natal.ziwei.palace.wealth",
+                "natal.ziwei.star.taiyang",
+                "natal.ziwei.palace.career",
+                "natal.ziwei.star.jumen",
+                "natal.ziwei.star.wenqu",
+                "natal.ziwei.transformation.obstacle"
+              ]
+            },
+            "palaceAnchors": [
+              {
+                "title": "Trục Quan Lộc: Năng lực ngôn ngữ và vị thế chuyên môn",
+                "narrative": "Cung Quan Lộc tọa tại cung Tý có Cự Môn giữ vai trò chủ đạo, mang lại lợi thế vượt trội trong các lĩnh vực đòi hỏi diễn đạt, nghiên cứu, tư vấn chiến lược, giảng dạy hoặc đàm phán thương mại. Sự đồng cung của Hữu Bật và Thiên Khôi tạo điều kiện kết nối với mạng lưới trợ lực uy tín, nhận được sự đồng thuận từ các cấp quản lý và cộng sự giàu kinh nghiệm. Dẫu vậy, sự xuất hiện của Tiểu Hao và Phi Liêm tại đây phản ánh môi trường công việc thường xuyên biến động, áp lực tiến độ gấp gáp và có xu hướng phát sinh những đợt chi tiêu đột xuất phục vụ quan hệ công việc. Để duy trì sự ổn định, đương số cần phát huy tối đa tính chuẩn xác trong ngôn từ, hạn chế tranh luận gay gắt không cần thiết và tập trung trau dồi chuyên môn sâu thay vì dàn trải nguồn lực vào nhiều dự án cùng lúc.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.branch.rat",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.star.tiankui",
+                  "natal.ziwei.star.youbi",
+                  "natal.ziwei.star.xiaohao-sq"
+                ],
+                "palaceId": "ziwei.palace.career"
+              },
+              {
+                "title": "Trục Tài Bạch: Phương thức tạo sinh dòng tiền và tích lũy",
+                "narrative": "Cung Tài Bạch tọa tại Thìn hội tụ Thái Dương mang tính chất soi sáng, biểu thị dòng tiền thu về chủ yếu bắt nguồn từ công việc đàng hoàng, có vị thế rõ ràng và giá trị phụng sự cộng đồng. Đồng thời, đây là cung Thân cư ngụ nên việc kiểm soát tài chính cá nhân ảnh hưởng trực tiếp đến tư duy và định hướng lâu dài. Sự góp mặt của Quả Tú đặt ra yêu cầu phải thắt chặt chi tiêu, duy trì thói quen kiểm soát dòng tiền độc lập và tránh việc cho vay mượn thiếu cam kết rõ ràng. Đi cùng Thanh Long và Thiên Đức, đương số có cơ hội tiếp cận những nguồn thu chính đáng, hạn chế được rủi ro gian lận thương mại nếu tuân thủ pháp luật. Mặc dù vậy, cấu trúc tam hợp hướng về Văn Khúc Hóa Kỵ đòi hỏi mọi quyết định thanh toán hay giải ngân đều phải được kiểm tra chứng từ kỹ lưỡng để tránh tổn thất ngoài dự kiến.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.branch.dragon",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.star.guasu",
+                  "natal.ziwei.star.qinglong",
+                  "natal.ziwei.star.tiande"
+                ],
+                "palaceId": "ziwei.palace.wealth"
+              }
+            ],
+            "thematicDimensions": [
+              {
+                "title": "Xu hướng phát triển công việc và năng lực thực thi",
+                "narrative": "Hệ thống tam hợp Mệnh - Quan - Tài nằm trên các trục Thân - Tý - Thìn thiết lập mô hình làm việc thiên về trí tuệ, tổ chức và phát triển dịch vụ chuyên nghiệp. Cự Môn tại Tý là hình tượng của sự khảo sát, phân tích chi tiết và đối thoại, giúp đương số dễ dàng đảm nhận các vị trí cố vấn, kiểm toán, ngoại giao, luật hoặc truyền thông. Việc hội tụ Thiên Khôi cùng Hữu Bật khẳng định khả năng điều phối nhân sự và nắm bắt cơ hội nâng cao chuyên môn từ môi trường xung quanh. Tuy nhiên, trục xung chiếu từ cung Di có Thiên Đồng và Thiên Lương Hóa Khoa kết hợp Linh Tinh tạo áp lực cạnh tranh khi bước ra không gian bên ngoài. Đương số cần liên tục nâng cấp chứng chỉ chuyên môn, giữ vững tính liêm chính và sự nhạy bén trong xử lý tình huống để thiết lập chỗ đứng vững chắc trước sự biến động của thị trường.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.star.tianliang",
+                  "natal.ziwei.transformation.fame",
+                  "natal.ziwei.star.lingxing",
+                  "natal.ziwei.palace.travel"
+                ],
+                "key": "career_trajectory"
+              },
+              {
+                "title": "Cơ chế quản lý dòng tiền và an toàn nguồn vốn",
+                "narrative": "Khả năng tích lũy của bản số chịu sự chi phối mạnh mẽ từ sao Thái Dương tại Thìn kết hợp Quả Tú, tạo nên phương thức gom góp từ tốn, chú trọng tính an toàn thay vì mạo hiểm đầu tư ngắn hạn. Cung Điền Trạch tại Hợi có Liêm Trinh và Tham Lang hãm địa đi cùng Tham Lang Hóa Quyền cho thấy tài sản bất động sản hoặc tư liệu sản xuất có thể trải qua giai đoạn thăng trầm, đòi hỏi sự kiên nhẫn và chiến lược dài hạn. Nguy cơ rò rỉ ngân sách chủ yếu xuất phát từ Văn Khúc Hóa Kỵ tại Thân cùng Kiếp Sát và Thiên Không chiếu về, đại diện cho những sơ hở trong giao kết kinh doanh, ủy thác vốn sai người hoặc chi phí phát sinh bất ngờ. Để duy trì thặng dư tài chính, giải pháp tối ưu là chuyển hóa dòng tiền nhàn rỗi thành các tài sản có tính thanh khoản ổn định, ghi chép sổ sách minh bạch và tuyệt đối tránh tâm lý chạy theo lợi nhuận tức thời.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.lianzhen",
+                  "natal.ziwei.star.tanlang",
+                  "natal.ziwei.transformation.power"
+                ],
+                "key": "wealth_accumulation"
+              }
+            ],
+            "decadalTiming": {
+              "title": "Thời vận mười năm tại cung Thìn (Độ tuổi 44 - 53, giai đoạn 2022 - 2031)",
+              "state": "active",
+              "index": 2,
+              "ageRange": [
+                44,
+                53
+              ],
+              "yearRange": [
+                2022,
+                2031
+              ],
+              "palaceId": "ziwei.palace.wealth",
+              "narrative": "Bước vào chu kỳ mười năm từ 44 đến 53 tuổi (năm 2022 đến 2031) đóng tại cung Tài Bạch gốc mang can Mậu, trọng tâm vận trình xoay quanh việc tái cấu trúc nguồn thu và bảo vệ thành quả kinh tế. Tại đây xuất hiện Đà La thuộc chu kỳ đại vận đóng ở Thìn, tạo cảm giác công việc có những thời điểm tiến triển chậm chạp, đòi hỏi sự bền bỉ để tháo gỡ rào cản hành chính hoặc thủ tục pháp lý. Cung Quan Lộc đại vận tại Thân có Văn Xương hội tụ, thúc đẩy nhu cầu học tập, bổ sung chứng chỉ và chuẩn hóa quy trình điều hành. Cung Tài Bạch đại vận tại Tý đón nhận Hữu Bật Hóa Khoa, mang đến cơ hội gia tăng uy tín cá nhân, được đối tác ghi nhận và có nguồn thu nhập phụ trợ thông qua các dự án cộng tác. Đây là giai đoạn cần duy trì sự thận trọng tối đa, củng cố nội lực, tránh mở rộng kinh doanh quá mức để bảo toàn nguồn vốn.",
+              "evidenceKeys": [
+                "decadal.state.active",
+                "decadal.index.2",
+                "decadal.age-range.44-53",
+                "decadal.year-range.2022-2031",
+                "decadal.palace.ziwei.palace.wealth",
+                "decadal.palace.ziwei.palace.life.star.ziwei.star.tuoluo",
+                "decadal.palace.ziwei.palace.wealth.transformation.ziwei.transformation.fame.ziwei.star.youbi",
+                "decadal.palace.ziwei.palace.career.star.ziwei.star.wenchang"
+              ]
+            },
+            "actions": [
+              {
+                "recommendation": "Thiết lập hệ thống kiểm soát chứng từ chặt chẽ và nhờ luật sư thẩm định mọi hợp đồng kinh tế trước khi ký kết.",
+                "rationale": "Cung Mệnh có Văn Khúc Hóa Kỵ đồng cung Thiên Không và Kiếp Sát dễ dẫn đến tranh chấp pháp lý hoặc thiệt hại tài chính do điều khoản văn bản thiếu minh bạch.",
+                "avoid": "Tránh ký thỏa thuận bằng sự tin tưởng cá nhân hoặc giao dịch qua lời nói mà không có biên bản xác nhận cụ thể.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.life",
+                  "natal.ziwei.star.wenqu",
+                  "natal.ziwei.transformation.obstacle",
+                  "natal.ziwei.star.tiankong"
+                ]
+              },
+              {
+                "recommendation": "Tận dụng ưu thế đối thoại và kỹ năng đàm phán của Cự Môn để xây dựng hình ảnh chuyên gia tư vấn hoặc đào tạo nội bộ.",
+                "rationale": "Cung Quan Lộc có Cự Môn vượng địa hội tụ Thiên Khôi và Hữu Bật hỗ trợ việc nâng cao uy tín thông qua ngôn luận và chia sẻ kiến thức chuyên sâu.",
+                "avoid": "Tránh tham gia vào các cuộc tranh luận đối kháng trực diện tại nơi làm việc làm rạn nứt mối liên kết đồng nghiệp.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.star.tiankui",
+                  "natal.ziwei.star.youbi"
+                ]
+              },
+              {
+                "recommendation": "Kiên nhẫn xử lý các nút thắt trong công việc theo từng bước nhỏ trong giai đoạn 44 đến 53 tuổi nhằm tích lũy kinh nghiệm.",
+                "rationale": "Đại vận tại Thìn có Đà La và Cung Quan Lộc đại vận có Văn Xương đòi hỏi sự kiên trì hoàn thiện quy chuẩn thay vì kỳ vọng kết quả nhanh chóng.",
+                "avoid": "Tránh nôn nóng đầu tư mở rộng quy mô quá lớn hoặc thay đổi định hướng nghề nghiệp một cách vội vã.",
+                "evidenceKeys": [
+                  "decadal.palace.ziwei.palace.wealth",
+                  "decadal.palace.ziwei.palace.life.star.ziwei.star.tuoluo",
+                  "decadal.palace.ziwei.palace.career.star.ziwei.star.wenchang",
+                  "decadal.age-range.44-53"
+                ]
+              }
+            ]
+          },
+          "quality": {
+            "ok": true,
+            "findings": [],
+            "advisory": [
+              {
+                "sectionKey": "decadalTiming",
+                "code": "DISCOURAGED_TERM",
+                "note": "Contains discouraged term: vận trình."
+              }
+            ]
+          },
+          "providerId": "9router-antigravity-native",
+          "modelId": "gemini-3.8-flash-medium"
+        }
+      }
+    },
+    {
+      "slot": "career_wealth:1",
+      "group": "career_wealth",
+      "index": 1,
+      "snapshotHash": "560773f5a1a343176f97ed89c1a3a53628a87874a6eae945013d20f634ff31e6",
+      "factsSha256": "d7eead203c3480b7e36b414850f9acce1c1040e2e41af20e1bab630a507d1368",
+      "targetYear": 2026,
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "sourceKind": "synthetic_actual_iztro",
+      "status": "quality_passed_pending_manual_review",
+      "attempts": [
+        {
+          "attemptKey": "bdcfafd62d1ea6c508f62d4c27c29efd139ab36b21141da787228109605f14cb",
+          "purpose": "report",
+          "status": "reference_settled",
+          "trace": {
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "pricingSnapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "requestedAlias": "ag/gemini-3.8-flash",
+            "wireModel": "gemini-3.8-flash-medium",
+            "requestId": "agent/f52e04a2-5bc8-48ba-98d6-87df50058110/1791573281051/6a946c1c-22aa-4ecd-b8cf-5273ae686c16/1",
+            "effectiveMaxOutputTokens": 16384,
+            "requestSha256": "75238ce00239b4a267a8063c3ab7355d9998655153d24d54c0d5c27b0b867693"
+          },
+          "reserveVnd": 33368,
+          "reservationId": "924d3564-f906-4853-9ea4-43a3812cc5a3",
+          "accountingEvidence": {
+            "version": "native.accounting.evidence.v1",
+            "httpStatus": 200,
+            "requestSha256": "75238ce00239b4a267a8063c3ab7355d9998655153d24d54c0d5c27b0b867693",
+            "responseSha256": "614c3b5064a6a34bd1c338f5bb96c2a84b6258f496d62c0167deb43c48b00435",
+            "visibleOutputSha256": "0e9e683b875d15f208d9eb699913dd6069e7363cd2aad269a64952f8140bc82e",
+            "modelVersion": "gemini-3.8-flash",
+            "completionVerified": true,
+            "conflictingUsage": false,
+            "envelopeComplete": false,
+            "billingCountersComplete": false,
+            "metadataRedacted": false,
+            "usageMetadata": {
+              "promptTokenCount": 7567,
+              "candidatesTokenCount": 4100,
+              "totalTokenCount": 16070,
+              "thoughtsTokenCount": 4403
+            },
+            "settlementAuthorized": false,
+            "continuationAuthorized": false
+          },
+          "visibleUnacceptedOutput": "{\n  \"topicId\": \"career_wealth\",\n  \"title\": \"Luận giải chuyên sâu Công việc & Tài chính\",\n  \"overview\": {\n    \"title\": \"Tổng quan cấu trúc Sự nghiệp và Tài chính\",\n    \"narrative\": \"Lá số cho thấy cấu trúc cung Quan Lộc tọa tại Tuất với sao Thái Dương ở trạng thái Nhược nhưng đi cùng Hóa Lộc, tạo nên xu hướng phát triển chuyên môn cần sự kiên trì bền bỉ và minh bạch thông tin. Thái Dương tượng trưng cho sự lan tỏa, ánh sáng tri thức và hoạt động xã hội rộng lớn; khi đi cùng Hóa Lộc, nguồn thu nhập chính thường gắn chặt với năng lực xây dựng uy tín cá nhân, xử lý công việc đối ngoại hoặc các lĩnh vực đòi hỏi chuyên môn cao. Cung Tài Bạch tọa tại Dần không có chính tinh trực chiếu, hội hợp cùng Thiên Mã mang trạng thái Bình và Đại Hao, biểu thị dòng tiền lưu chuyển nhanh, có sự dịch chuyển địa bàn thường xuyên và khó giữ tiền tích lũy nếu thiếu phương án quản trị ngân sách chặt chẽ. Sự hiện diện của Cự Môn Vượng tại Mệnh ở Ngọ kết hợp Địa Kiếp mang lại tư duy phản biện sắc bén, khả năng dùng lời nói và năng lực đàm phán để khai phá cơ hội nghề nghiệp. Dù vậy, các yếu tố này cũng cảnh báo việc tiền bạc dễ đến nhanh nhưng cũng đi nhanh nếu đầu tư vào các kênh mang tính may rủi. Việc định vị công việc dựa trên năng lực giải quyết vấn đề và chủ động kiểm soát chi tiêu là chìa khóa then chốt để củng cố nền tảng kinh tế bền vững theo thời gian.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.career\",\n      \"natal.ziwei.palace.wealth\",\n      \"natal.ziwei.star.taiyang\",\n      \"natal.ziwei.transformation.prosperity\",\n      \"natal.ziwei.star.tianma\",\n      \"natal.ziwei.star.dahao\",\n      \"natal.ziwei.star.jumen\",\n      \"natal.ziwei.star.dijie\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.career\",\n      \"title\": \"Phân tích cung Quan Lộc tại Tuất\",\n      \"narrative\": \"Cung Quan Lộc đóng tại Tuất do Thái Dương tọa thủ ở trạng thái Nhược nhưng nhận được Hóa Lộc, tạo ra bức tranh nghề nghiệp nhiều thử thách ban đầu nhưng có tiềm năng tài chính từ chính năng lực chuyên sâu. Thái Dương dù không ở vị trí sáng mạnh nhất vẫn giữ bản chất nhiệt huyết, trách nhiệm cao và hướng đến việc cống hiến cho tập thể hoặc công chúng. Nhờ có Hóa Lộc đồng cung, đương số có cơ hội chuyển đổi những ý tưởng chuyên môn thành giá trị vật chất thực tế, đặc biệt thích hợp với các lĩnh vực đòi hỏi giao tiếp, tư vấn, dịch vụ hoặc công việc gắn liền với việc mở rộng thị trường. Tuy nhiên, sự xuất hiện của Thiên Khốc, Phục Binh và Tang Môn hội tụ tại cung này nhắc nhở rằng môi trường làm việc thường xuyên tiềm ẩn những áp lực vô hình, cạnh tranh ngầm hoặc những lúc thiếu sự đồng thuận từ cộng sự. Để tiến xa, bản thân cần duy trì quy trình làm việc chuẩn mực, rõ ràng về mặt pháp lý và giấy tờ nhằm vô hiệu hóa rủi ro từ Phục Binh, đồng thời giữ vững sự bền bỉ trước những giai đoạn công việc đòi hỏi phải làm việc quá giờ hay đối diện với áp lực tiến độ.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.brightness.weak\",\n        \"natal.ziwei.transformation.prosperity\",\n        \"natal.ziwei.star.tianku\",\n        \"natal.ziwei.star.fubing\",\n        \"natal.ziwei.star.sangmen\"\n      ]\n    },\n    {\n      \"palaceId\": \"ziwei.palace.wealth\",\n      \"title\": \"Phân tích cung Tài Bạch tại Dần\",\n      \"narrative\": \"Cung Tài Bạch tọa lạc tại Dần ở thế vô chính diệu, chịu ảnh hưởng từ các sao phụ tá như Thiên Mã, Phượng Các, Thiên Tài cùng với Đại Hao. Cấu trúc này cho thấy phương thức tạo lập tài chính không đi theo con đường thụ động hay ngồi một chỗ hưởng lợi, mà phụ thuộc rất lớn vào sự linh hoạt, năng động và khả năng đi lại khảo sát thực tế. Thiên Mã tại đây đóng vai trò là động lực thúc đẩy việc khai thác các nguồn thu từ xa, giao thương liên tỉnh hoặc thực hiện những dự án đòi hỏi di chuyển liên tục. Phượng Các và Thiên Tài hỗ trợ thêm sự khéo léo trong thẩm mỹ, tư duy phân tích và kỹ năng giải quyết công việc tinh tế. Mặc dù vậy, sự góp mặt của Đại Hao cùng Thiên Hư đặt ra thách thức rất lớn về khả năng giữ tiền. Tiền bạc có xu hướng ra vào liên tục với những khoản chi tiêu quy mô lớn cho việc tái đầu tư, mua sắm tài sản cố định hoặc hỗ trợ công việc. Nếu không xây dựng quỹ dự phòng riêng biệt và kỷ luật quản lý chi phí cá nhân, đương số rất dễ rơi vào tình trạng tài chính bấp bênh dù tổng thu nhập kiếm được không hề nhỏ.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.star.tianma\",\n        \"natal.ziwei.brightness.neutral\",\n        \"natal.ziwei.star.fengge\",\n        \"natal.ziwei.star.tiancai\",\n        \"natal.ziwei.star.dahao\",\n        \"natal.ziwei.star.tianxu\"\n      ]\n    },\n    {\n      \"palaceId\": \"ziwei.palace.property\",\n      \"title\": \"Phân tích cung Điền Trạch tại Dậu\",\n      \"narrative\": \"Cung Điền Trạch tại Dậu giữ vai trò tối quan trọng trong việc cân bằng tài chính của toàn bộ lá số nhờ sự kết hợp giữa Vũ Khúc Bình hòa và Thất Sát Miếu, có thêm Hóa Quyền, Hỏa Tinh Đắc và Kình Dương Nhược. Vũ Khúc là tài tinh khi đi cùng Thất Sát và Hóa Quyền mang lại năng lực quản lý tài sản vô cùng quyết đoán, có xu hướng sở hữu và tích lũy đất đai hoặc bất động sản có giá trị thực tế sau những nỗ lực cá nhân mạnh mẽ. Hóa Quyền trao quyền kiểm soát và định đoạt các cơ sở vật chất, giúp đương số chủ động trong việc mua bán hoặc cải tạo không gian sống và làm việc. Tuy nhiên, sự hội tụ của Hỏa Tinh và Kình Dương tại đây báo hiệu việc mua bán nhà đất hoặc giấy tờ sở hữu thường trải qua những đợt biến động nhanh, cạnh tranh gay gắt hoặc có tranh chấp thủ tục trước khi hoàn tất. Nguồn lực tích lũy qua kênh Điền Trạch chính là chiếc mỏ neo tài chính vững chắc nhất để hấp thụ bớt áp lực hao tổn tiền bạc từ cung Tài Bạch, biến dòng tiền lưu động thành tài sản tích lũy dài hạn ổn định.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.wuqu\",\n        \"natal.ziwei.star.qisha\",\n        \"natal.ziwei.brightness.exalted\",\n        \"natal.ziwei.transformation.power\",\n        \"natal.ziwei.star.huoxing\",\n        \"natal.ziwei.star.qingyang\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"career_trajectory\",\n      \"title\": \"Khuynh hướng và Cơ hội Phát triển Chuyên môn\",\n      \"narrative\": \"Đường hướng nghề nghiệp của lá số được định hình mạnh mẽ bởi sự tương tác giữa Cự Môn Vượng tại Mệnh ở Ngọ và Thái Dương Hóa Lộc tại Quan Lộc ở Tuất. Cự Môn mang lại khả năng phân tích chiều sâu, tài hùng biện, sự cẩn trọng trong tư duy logic và năng khiếu phản biện sắc bén. Khi kết hợp cùng Thái Dương có Hóa Lộc, đương số thích hợp phát triển trong các lĩnh vực yêu cầu phát ngôn, giảng dạy, tư vấn luật pháp, truyền thông, giải pháp công nghệ hoặc đại diện đối ngoại cho các tổ chức. Việc Thái Dương nhận Hóa Lộc khẳng định rằng càng chia sẻ tri thức, tạo dựng giá trị thực cho cộng đồng và mở rộng mạng lưới giao lưu chuyên môn thì vị thế nghề nghiệp càng được nâng cao. Tuy nhiên, do ảnh hưởng của Địa Kiếp tại Mệnh và Phục Binh tại Quan Lộc, con đường sự nghiệp không hoàn toàn bằng phẳng mà thường xuyên trải qua những giai đoạn tái cấu trúc bất ngờ hoặc phải đối diện với sự nghi kỵ từ đối thủ cạnh tranh. Thay vì chọn các giải pháp đi đường tắt, việc duy trì phong cách làm việc công khai, dựa trên các hợp đồng minh bạch và nguyên tắc bảo mật thông tin sẽ giúp đương số thiết lập một chỗ đứng vững chắc và hạn chế tối đa các trở ngại tiềm ẩn.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.brightness.prosperous\",\n        \"natal.ziwei.star.dijie\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.transformation.prosperity\",\n        \"natal.ziwei.star.fubing\"\n      ]\n    },\n    {\n      \"key\": \"wealth_accumulation\",\n      \"title\": \"Cơ chế Dòng tiền và Tích lũy Tài chính\",\n      \"narrative\": \"Cơ chế tạo lập và bảo toàn tài chính của đương số mang đặc tính động lực kép: kiếm tiền từ chuyên môn linh hoạt nhưng tích lũy phải thông qua tài sản cố định. Cung Tài Bạch vô chính diệu hội tụ Thiên Mã và Đại Hao khiến dòng tiền ngắn hạn luôn trong trạng thái luân chuyển không ngừng. Tiền bạc kiếm được có xu hướng được chi dùng cho việc mở rộng quan hệ đối tác, đầu tư công cụ làm việc hoặc trang trải cho các nhu cầu di chuyển đối ngoại. Sự hiện diện của Đại Hao cho thấy đương số khó giữ được nhiều tiền mặt trong tài khoản mà không bị phân tán. Do đó, điểm mấu chốt để giữ vững nền tảng kinh tế nằm ở cung Điền Trạch, nơi có Vũ Khúc Hóa Quyền kết hợp Thất Sát Miếu. Cơ chế tối ưu nhất là mỗi khi thu được lợi nhuận từ các hoạt động chuyên môn có Thái Dương Hóa Lộc bảo trợ, đương số cần nhanh chóng chuyển đổi phần lớn thặng dư tiền mặt thành bất động sản hoặc các tài sản có tính thanh khoản thấp nhưng giá trị ổn định lâu dài. Việc ép bản thân vào kỷ luật trả góp tài sản hoặc tích lũy tài sản cố định sẽ giúp chế ngự tác động tiêu hao từ Đại Hao và Thiên Hư, đảm bảo sự an toàn tài chính về lâu dài.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.tianma\",\n        \"natal.ziwei.star.dahao\",\n        \"natal.ziwei.star.wuqu\",\n        \"natal.ziwei.transformation.power\",\n        \"natal.ziwei.star.qisha\",\n        \"natal.ziwei.transformation.prosperity\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Phân tích Đại vận 10 năm (Độ tuổi 43 - 52, Năm 2022 - 2031)\",\n    \"state\": \"active\",\n    \"index\": 0,\n    \"ageRange\": [\n      43,\n      52\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Giai đoạn từ 43 đến 52 tuổi tương ứng với các năm từ 2022 đến 2031, đại vận vận hành trực tiếp tại cung Dần, vốn là cung Tài Bạch trên bản đồ gốc. Đây là chu kỳ 10 năm trọng điểm tập trung toàn bộ năng lượng vào việc tái cơ cấu nguồn thu và phương thức vận hành tài chính cá nhân. Tại đại vận này, cung Quan Lộc của đại vận an tại Ngọ (trùng cung Mệnh gốc) có Kình Dương và Văn Khúc hội chiếu, cho thấy môi trường công việc đòi hỏi sự dấn thân quyết liệt, tính cạnh tranh tăng cao và phải xử lý nhiều văn bản, hợp đồng quan trọng. Áp lực công việc trong chu kỳ này khá lớn, đòi hỏi đương số phải liên tục thích ứng và giải quyết các tình huống phát sinh nhanh chóng. Cung Điền Trạch của đại vận nằm tại Tỵ có Lộc Tồn và nhận Hóa Lộc từ Tham Lang, tạo nên một cơ hội rất thuận lợi cho việc gia tăng tài sản bất động sản hoặc nhận được nguồn thu nhập gián tiếp thông qua việc khai thác mặt bằng, tích lũy đất đai. Tuy nhiên, do bản cung đại vận ở Dần mang tính chất biến động mạnh với sự dịch chuyển của Thiên Mã và tác động tiêu trừ của Đại Hao, đương số cần tránh tuyệt đối các quyết định đầu tư lướt sóng hoặc vay mượn quá mức. Chiến lược khôn ngoan nhất trong suốt giai đoạn 2022 - 2031 là lấy công việc chuyên môn làm đòn bẩy, hạn chế giữ tiền mặt rảnh rỗi và ưu tiên chuyển hóa lợi nhuận vào các kênh tài sản thực tế an toàn.\",\n    \"evidenceKeys\": [\n      \"decadal.age-range.43-52\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.life.branch.ziwei.branch.tiger\",\n      \"decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse\",\n      \"decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang\",\n      \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu\",\n      \"decadal.palace.ziwei.palace.property.star.ziwei.star.lucun\",\n      \"decadal.palace.ziwei.palace.property.transformation.ziwei.transformation.prosperity.ziwei.star.tanlang\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Xây dựng cơ chế tích lũy tài chính tự động bằng cách chuyển hóa ngay nguồn tiền thu được thành tài sản cố định hoặc bất động sản có giấy tờ pháp lý rõ ràng.\",\n      \"rationale\": \"Cung Tài Bạch có Đại Hao và Thiên Mã khiến tiền mặt dễ bị tiêu hao nhanh chóng, trong khi cung Điền Trạch có Vũ Khúc Hóa Quyền và Thất Sát Miếu hỗ trợ rất mạnh cho việc gìn giữ giá trị qua nhà đất.\",\n      \"avoid\": \"Tránh giữ lượng lớn tiền mặt nhàn rỗi trong tài khoản cá nhân hoặc đầu tư vào các kênh tài chính mang tính đầu cơ ngắn hạn thiếu cơ sở bảo đảm.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.star.dahao\",\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.wuqu\",\n        \"natal.ziwei.transformation.power\"\n      ]\n    },\n    {\n      \"recommendation\": \"Tập trung nâng cao giá trị thương hiệu chuyên môn và sử dụng năng lực tư vấn, đàm phán minh bạch làm nền tảng tạo dựng thu nhập chính.\",\n      \"rationale\": \"Sự phối hợp giữa Cự Môn Vượng tại Mệnh và Thái Dương Hóa Lộc tại Quan Lộc cho thấy nguồn thu nhập bền vững nhất đến từ việc lan tỏa kiến thức, uy tín và kỹ năng giao tiếp chuyên sâu.\",\n      \"avoid\": \"Tránh tham gia vào các thỏa thuận ngầm, những giao dịch thiếu tính minh bạch hoặc các dự án công việc có tính chất mập mờ về vai trò pháp lý.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.transformation.prosperity\"\n      ]\n    },\n    {\n      \"recommendation\": \"Trong chu kỳ đại vận từ 43 đến 52 tuổi, chủ động rà soát kỹ lưỡng các điều khoản văn bản hợp đồng trước khi triển khai các dự án hợp tác quy mô lớn.\",\n      \"rationale\": \"Cung Quan Lộc của đại vận tại Ngọ có sự xuất hiện của Kình Dương và Văn Khúc, cảnh báo các rủi ro phát sinh từ tranh chấp cam kết hoặc sai sót thủ tục hành chính.\",\n      \"avoid\": \"Tránh ký kết hợp đồng dựa trên sự tin tưởng cảm tính hoặc chủ quan bỏ qua các bước kiểm tra pháp lý chi tiết trong quá trình hợp tác làm việc.\",\n      \"evidenceKeys\": [\n        \"decadal.age-range.43-52\",\n        \"decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse\",\n        \"decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang\",\n        \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu\"\n      ]\n    }\n  ]\n}",
+          "receipt": {
+            "modelVersion": "gemini-3.8-flash",
+            "usageMetadata": {
+              "promptTokenCount": 7567,
+              "candidatesTokenCount": 4100,
+              "totalTokenCount": 16070,
+              "thoughtsTokenCount": 4403
+            }
+          },
+          "quote": {
+            "quoteKind": "owner_approved_model_bound_API_reference",
+            "accountingStatus": "api_reference_model_bound",
+            "referenceMode": "FD123-model-bounds-v2",
+            "quoteVnd": "33368",
+            "quoteMicroVnd": "33367326720",
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "snapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "tokenBounds": {
+              "inputTokens": 1048576,
+              "outputTokens": 65536,
+              "reasoningTokens": 65536
+            },
+            "unknownNativeCounters": [
+              "cachedContentTokenCount"
+            ],
+            "nativeEnvelopeComplete": false,
+            "tokensUnknown": true,
+            "actualUsageVerified": false,
+            "providerBillingVerified": false,
+            "exposureReduced": false,
+            "ownerDecision": "FD-123"
+          },
+          "outputSha256": "0e9e683b875d15f208d9eb699913dd6069e7363cd2aad269a64952f8140bc82e",
+          "outputText": "{\n  \"topicId\": \"career_wealth\",\n  \"title\": \"Luận giải chuyên sâu Công việc & Tài chính\",\n  \"overview\": {\n    \"title\": \"Tổng quan cấu trúc Sự nghiệp và Tài chính\",\n    \"narrative\": \"Lá số cho thấy cấu trúc cung Quan Lộc tọa tại Tuất với sao Thái Dương ở trạng thái Nhược nhưng đi cùng Hóa Lộc, tạo nên xu hướng phát triển chuyên môn cần sự kiên trì bền bỉ và minh bạch thông tin. Thái Dương tượng trưng cho sự lan tỏa, ánh sáng tri thức và hoạt động xã hội rộng lớn; khi đi cùng Hóa Lộc, nguồn thu nhập chính thường gắn chặt với năng lực xây dựng uy tín cá nhân, xử lý công việc đối ngoại hoặc các lĩnh vực đòi hỏi chuyên môn cao. Cung Tài Bạch tọa tại Dần không có chính tinh trực chiếu, hội hợp cùng Thiên Mã mang trạng thái Bình và Đại Hao, biểu thị dòng tiền lưu chuyển nhanh, có sự dịch chuyển địa bàn thường xuyên và khó giữ tiền tích lũy nếu thiếu phương án quản trị ngân sách chặt chẽ. Sự hiện diện của Cự Môn Vượng tại Mệnh ở Ngọ kết hợp Địa Kiếp mang lại tư duy phản biện sắc bén, khả năng dùng lời nói và năng lực đàm phán để khai phá cơ hội nghề nghiệp. Dù vậy, các yếu tố này cũng cảnh báo việc tiền bạc dễ đến nhanh nhưng cũng đi nhanh nếu đầu tư vào các kênh mang tính may rủi. Việc định vị công việc dựa trên năng lực giải quyết vấn đề và chủ động kiểm soát chi tiêu là chìa khóa then chốt để củng cố nền tảng kinh tế bền vững theo thời gian.\",\n    \"evidenceKeys\": [\n      \"natal.ziwei.palace.career\",\n      \"natal.ziwei.palace.wealth\",\n      \"natal.ziwei.star.taiyang\",\n      \"natal.ziwei.transformation.prosperity\",\n      \"natal.ziwei.star.tianma\",\n      \"natal.ziwei.star.dahao\",\n      \"natal.ziwei.star.jumen\",\n      \"natal.ziwei.star.dijie\"\n    ]\n  },\n  \"palaceAnchors\": [\n    {\n      \"palaceId\": \"ziwei.palace.career\",\n      \"title\": \"Phân tích cung Quan Lộc tại Tuất\",\n      \"narrative\": \"Cung Quan Lộc đóng tại Tuất do Thái Dương tọa thủ ở trạng thái Nhược nhưng nhận được Hóa Lộc, tạo ra bức tranh nghề nghiệp nhiều thử thách ban đầu nhưng có tiềm năng tài chính từ chính năng lực chuyên sâu. Thái Dương dù không ở vị trí sáng mạnh nhất vẫn giữ bản chất nhiệt huyết, trách nhiệm cao và hướng đến việc cống hiến cho tập thể hoặc công chúng. Nhờ có Hóa Lộc đồng cung, đương số có cơ hội chuyển đổi những ý tưởng chuyên môn thành giá trị vật chất thực tế, đặc biệt thích hợp với các lĩnh vực đòi hỏi giao tiếp, tư vấn, dịch vụ hoặc công việc gắn liền với việc mở rộng thị trường. Tuy nhiên, sự xuất hiện của Thiên Khốc, Phục Binh và Tang Môn hội tụ tại cung này nhắc nhở rằng môi trường làm việc thường xuyên tiềm ẩn những áp lực vô hình, cạnh tranh ngầm hoặc những lúc thiếu sự đồng thuận từ cộng sự. Để tiến xa, bản thân cần duy trì quy trình làm việc chuẩn mực, rõ ràng về mặt pháp lý và giấy tờ nhằm vô hiệu hóa rủi ro từ Phục Binh, đồng thời giữ vững sự bền bỉ trước những giai đoạn công việc đòi hỏi phải làm việc quá giờ hay đối diện với áp lực tiến độ.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.brightness.weak\",\n        \"natal.ziwei.transformation.prosperity\",\n        \"natal.ziwei.star.tianku\",\n        \"natal.ziwei.star.fubing\",\n        \"natal.ziwei.star.sangmen\"\n      ]\n    },\n    {\n      \"palaceId\": \"ziwei.palace.wealth\",\n      \"title\": \"Phân tích cung Tài Bạch tại Dần\",\n      \"narrative\": \"Cung Tài Bạch tọa lạc tại Dần ở thế vô chính diệu, chịu ảnh hưởng từ các sao phụ tá như Thiên Mã, Phượng Các, Thiên Tài cùng với Đại Hao. Cấu trúc này cho thấy phương thức tạo lập tài chính không đi theo con đường thụ động hay ngồi một chỗ hưởng lợi, mà phụ thuộc rất lớn vào sự linh hoạt, năng động và khả năng đi lại khảo sát thực tế. Thiên Mã tại đây đóng vai trò là động lực thúc đẩy việc khai thác các nguồn thu từ xa, giao thương liên tỉnh hoặc thực hiện những dự án đòi hỏi di chuyển liên tục. Phượng Các và Thiên Tài hỗ trợ thêm sự khéo léo trong thẩm mỹ, tư duy phân tích và kỹ năng giải quyết công việc tinh tế. Mặc dù vậy, sự góp mặt của Đại Hao cùng Thiên Hư đặt ra thách thức rất lớn về khả năng giữ tiền. Tiền bạc có xu hướng ra vào liên tục với những khoản chi tiêu quy mô lớn cho việc tái đầu tư, mua sắm tài sản cố định hoặc hỗ trợ công việc. Nếu không xây dựng quỹ dự phòng riêng biệt và kỷ luật quản lý chi phí cá nhân, đương số rất dễ rơi vào tình trạng tài chính bấp bênh dù tổng thu nhập kiếm được không hề nhỏ.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.star.tianma\",\n        \"natal.ziwei.brightness.neutral\",\n        \"natal.ziwei.star.fengge\",\n        \"natal.ziwei.star.tiancai\",\n        \"natal.ziwei.star.dahao\",\n        \"natal.ziwei.star.tianxu\"\n      ]\n    },\n    {\n      \"palaceId\": \"ziwei.palace.property\",\n      \"title\": \"Phân tích cung Điền Trạch tại Dậu\",\n      \"narrative\": \"Cung Điền Trạch tại Dậu giữ vai trò tối quan trọng trong việc cân bằng tài chính của toàn bộ lá số nhờ sự kết hợp giữa Vũ Khúc Bình hòa và Thất Sát Miếu, có thêm Hóa Quyền, Hỏa Tinh Đắc và Kình Dương Nhược. Vũ Khúc là tài tinh khi đi cùng Thất Sát và Hóa Quyền mang lại năng lực quản lý tài sản vô cùng quyết đoán, có xu hướng sở hữu và tích lũy đất đai hoặc bất động sản có giá trị thực tế sau những nỗ lực cá nhân mạnh mẽ. Hóa Quyền trao quyền kiểm soát và định đoạt các cơ sở vật chất, giúp đương số chủ động trong việc mua bán hoặc cải tạo không gian sống và làm việc. Tuy nhiên, sự hội tụ của Hỏa Tinh và Kình Dương tại đây báo hiệu việc mua bán nhà đất hoặc giấy tờ sở hữu thường trải qua những đợt biến động nhanh, cạnh tranh gay gắt hoặc có tranh chấp thủ tục trước khi hoàn tất. Nguồn lực tích lũy qua kênh Điền Trạch chính là chiếc mỏ neo tài chính vững chắc nhất để hấp thụ bớt áp lực hao tổn tiền bạc từ cung Tài Bạch, biến dòng tiền lưu động thành tài sản tích lũy dài hạn ổn định.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.wuqu\",\n        \"natal.ziwei.star.qisha\",\n        \"natal.ziwei.brightness.exalted\",\n        \"natal.ziwei.transformation.power\",\n        \"natal.ziwei.star.huoxing\",\n        \"natal.ziwei.star.qingyang\"\n      ]\n    }\n  ],\n  \"thematicDimensions\": [\n    {\n      \"key\": \"career_trajectory\",\n      \"title\": \"Khuynh hướng và Cơ hội Phát triển Chuyên môn\",\n      \"narrative\": \"Đường hướng nghề nghiệp của lá số được định hình mạnh mẽ bởi sự tương tác giữa Cự Môn Vượng tại Mệnh ở Ngọ và Thái Dương Hóa Lộc tại Quan Lộc ở Tuất. Cự Môn mang lại khả năng phân tích chiều sâu, tài hùng biện, sự cẩn trọng trong tư duy logic và năng khiếu phản biện sắc bén. Khi kết hợp cùng Thái Dương có Hóa Lộc, đương số thích hợp phát triển trong các lĩnh vực yêu cầu phát ngôn, giảng dạy, tư vấn luật pháp, truyền thông, giải pháp công nghệ hoặc đại diện đối ngoại cho các tổ chức. Việc Thái Dương nhận Hóa Lộc khẳng định rằng càng chia sẻ tri thức, tạo dựng giá trị thực cho cộng đồng và mở rộng mạng lưới giao lưu chuyên môn thì vị thế nghề nghiệp càng được nâng cao. Tuy nhiên, do ảnh hưởng của Địa Kiếp tại Mệnh và Phục Binh tại Quan Lộc, con đường sự nghiệp không hoàn toàn bằng phẳng mà thường xuyên trải qua những giai đoạn tái cấu trúc bất ngờ hoặc phải đối diện với sự nghi kỵ từ đối thủ cạnh tranh. Thay vì chọn các giải pháp đi đường tắt, việc duy trì phong cách làm việc công khai, dựa trên các hợp đồng minh bạch và nguyên tắc bảo mật thông tin sẽ giúp đương số thiết lập một chỗ đứng vững chắc và hạn chế tối đa các trở ngại tiềm ẩn.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.brightness.prosperous\",\n        \"natal.ziwei.star.dijie\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.transformation.prosperity\",\n        \"natal.ziwei.star.fubing\"\n      ]\n    },\n    {\n      \"key\": \"wealth_accumulation\",\n      \"title\": \"Cơ chế Dòng tiền và Tích lũy Tài chính\",\n      \"narrative\": \"Cơ chế tạo lập và bảo toàn tài chính của đương số mang đặc tính động lực kép: kiếm tiền từ chuyên môn linh hoạt nhưng tích lũy phải thông qua tài sản cố định. Cung Tài Bạch vô chính diệu hội tụ Thiên Mã và Đại Hao khiến dòng tiền ngắn hạn luôn trong trạng thái luân chuyển không ngừng. Tiền bạc kiếm được có xu hướng được chi dùng cho việc mở rộng quan hệ đối tác, đầu tư công cụ làm việc hoặc trang trải cho các nhu cầu di chuyển đối ngoại. Sự hiện diện của Đại Hao cho thấy đương số khó giữ được nhiều tiền mặt trong tài khoản mà không bị phân tán. Do đó, điểm mấu chốt để giữ vững nền tảng kinh tế nằm ở cung Điền Trạch, nơi có Vũ Khúc Hóa Quyền kết hợp Thất Sát Miếu. Cơ chế tối ưu nhất là mỗi khi thu được lợi nhuận từ các hoạt động chuyên môn có Thái Dương Hóa Lộc bảo trợ, đương số cần nhanh chóng chuyển đổi phần lớn thặng dư tiền mặt thành bất động sản hoặc các tài sản có tính thanh khoản thấp nhưng giá trị ổn định lâu dài. Việc ép bản thân vào kỷ luật trả góp tài sản hoặc tích lũy tài sản cố định sẽ giúp chế ngự tác động tiêu hao từ Đại Hao và Thiên Hư, đảm bảo sự an toàn tài chính về lâu dài.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.tianma\",\n        \"natal.ziwei.star.dahao\",\n        \"natal.ziwei.star.wuqu\",\n        \"natal.ziwei.transformation.power\",\n        \"natal.ziwei.star.qisha\",\n        \"natal.ziwei.transformation.prosperity\"\n      ]\n    }\n  ],\n  \"decadalTiming\": {\n    \"title\": \"Phân tích Đại vận 10 năm (Độ tuổi 43 - 52, Năm 2022 - 2031)\",\n    \"state\": \"active\",\n    \"index\": 0,\n    \"ageRange\": [\n      43,\n      52\n    ],\n    \"yearRange\": [\n      2022,\n      2031\n    ],\n    \"palaceId\": \"ziwei.palace.wealth\",\n    \"narrative\": \"Giai đoạn từ 43 đến 52 tuổi tương ứng với các năm từ 2022 đến 2031, đại vận vận hành trực tiếp tại cung Dần, vốn là cung Tài Bạch trên bản đồ gốc. Đây là chu kỳ 10 năm trọng điểm tập trung toàn bộ năng lượng vào việc tái cơ cấu nguồn thu và phương thức vận hành tài chính cá nhân. Tại đại vận này, cung Quan Lộc của đại vận an tại Ngọ (trùng cung Mệnh gốc) có Kình Dương và Văn Khúc hội chiếu, cho thấy môi trường công việc đòi hỏi sự dấn thân quyết liệt, tính cạnh tranh tăng cao và phải xử lý nhiều văn bản, hợp đồng quan trọng. Áp lực công việc trong chu kỳ này khá lớn, đòi hỏi đương số phải liên tục thích ứng và giải quyết các tình huống phát sinh nhanh chóng. Cung Điền Trạch của đại vận nằm tại Tỵ có Lộc Tồn và nhận Hóa Lộc từ Tham Lang, tạo nên một cơ hội rất thuận lợi cho việc gia tăng tài sản bất động sản hoặc nhận được nguồn thu nhập gián tiếp thông qua việc khai thác mặt bằng, tích lũy đất đai. Tuy nhiên, do bản cung đại vận ở Dần mang tính chất biến động mạnh với sự dịch chuyển của Thiên Mã và tác động tiêu trừ của Đại Hao, đương số cần tránh tuyệt đối các quyết định đầu tư lướt sóng hoặc vay mượn quá mức. Chiến lược khôn ngoan nhất trong suốt giai đoạn 2022 - 2031 là lấy công việc chuyên môn làm đòn bẩy, hạn chế giữ tiền mặt rảnh rỗi và ưu tiên chuyển hóa lợi nhuận vào các kênh tài sản thực tế an toàn.\",\n    \"evidenceKeys\": [\n      \"decadal.age-range.43-52\",\n      \"decadal.year-range.2022-2031\",\n      \"decadal.palace.ziwei.palace.wealth\",\n      \"decadal.palace.ziwei.palace.life.branch.ziwei.branch.tiger\",\n      \"decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse\",\n      \"decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang\",\n      \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu\",\n      \"decadal.palace.ziwei.palace.property.star.ziwei.star.lucun\",\n      \"decadal.palace.ziwei.palace.property.transformation.ziwei.transformation.prosperity.ziwei.star.tanlang\"\n    ]\n  },\n  \"actions\": [\n    {\n      \"recommendation\": \"Xây dựng cơ chế tích lũy tài chính tự động bằng cách chuyển hóa ngay nguồn tiền thu được thành tài sản cố định hoặc bất động sản có giấy tờ pháp lý rõ ràng.\",\n      \"rationale\": \"Cung Tài Bạch có Đại Hao và Thiên Mã khiến tiền mặt dễ bị tiêu hao nhanh chóng, trong khi cung Điền Trạch có Vũ Khúc Hóa Quyền và Thất Sát Miếu hỗ trợ rất mạnh cho việc gìn giữ giá trị qua nhà đất.\",\n      \"avoid\": \"Tránh giữ lượng lớn tiền mặt nhàn rỗi trong tài khoản cá nhân hoặc đầu tư vào các kênh tài chính mang tính đầu cơ ngắn hạn thiếu cơ sở bảo đảm.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.wealth\",\n        \"natal.ziwei.star.dahao\",\n        \"natal.ziwei.palace.property\",\n        \"natal.ziwei.star.wuqu\",\n        \"natal.ziwei.transformation.power\"\n      ]\n    },\n    {\n      \"recommendation\": \"Tập trung nâng cao giá trị thương hiệu chuyên môn và sử dụng năng lực tư vấn, đàm phán minh bạch làm nền tảng tạo dựng thu nhập chính.\",\n      \"rationale\": \"Sự phối hợp giữa Cự Môn Vượng tại Mệnh và Thái Dương Hóa Lộc tại Quan Lộc cho thấy nguồn thu nhập bền vững nhất đến từ việc lan tỏa kiến thức, uy tín và kỹ năng giao tiếp chuyên sâu.\",\n      \"avoid\": \"Tránh tham gia vào các thỏa thuận ngầm, những giao dịch thiếu tính minh bạch hoặc các dự án công việc có tính chất mập mờ về vai trò pháp lý.\",\n      \"evidenceKeys\": [\n        \"natal.ziwei.palace.life\",\n        \"natal.ziwei.star.jumen\",\n        \"natal.ziwei.palace.career\",\n        \"natal.ziwei.star.taiyang\",\n        \"natal.ziwei.transformation.prosperity\"\n      ]\n    },\n    {\n      \"recommendation\": \"Trong chu kỳ đại vận từ 43 đến 52 tuổi, chủ động rà soát kỹ lưỡng các điều khoản văn bản hợp đồng trước khi triển khai các dự án hợp tác quy mô lớn.\",\n      \"rationale\": \"Cung Quan Lộc của đại vận tại Ngọ có sự xuất hiện của Kình Dương và Văn Khúc, cảnh báo các rủi ro phát sinh từ tranh chấp cam kết hoặc sai sót thủ tục hành chính.\",\n      \"avoid\": \"Tránh ký kết hợp đồng dựa trên sự tin tưởng cảm tính hoặc chủ quan bỏ qua các bước kiểm tra pháp lý chi tiết trong quá trình hợp tác làm việc.\",\n      \"evidenceKeys\": [\n        \"decadal.age-range.43-52\",\n        \"decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse\",\n        \"decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang\",\n        \"decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu\"\n      ]\n    }\n  ]\n}",
+          "rawSha256": "0e9e683b875d15f208d9eb699913dd6069e7363cd2aad269a64952f8140bc82e",
+          "parsedSha256": "da966cb1c863bbec1818b2dc8366508b0cc9884342168d9d29f59b7e53b44f11",
+          "normalization": "none"
+        }
+      ],
+      "manualAccepted": false,
+      "result": {
+        "ok": true,
+        "value": {
+          "content": {
+            "topicId": "career_wealth",
+            "title": "Luận giải chuyên sâu Công việc & Tài chính",
+            "overview": {
+              "title": "Tổng quan cấu trúc Sự nghiệp và Tài chính",
+              "narrative": "Lá số cho thấy cấu trúc cung Quan Lộc tọa tại Tuất với sao Thái Dương ở trạng thái Nhược nhưng đi cùng Hóa Lộc, tạo nên xu hướng phát triển chuyên môn cần sự kiên trì bền bỉ và minh bạch thông tin. Thái Dương tượng trưng cho sự lan tỏa, ánh sáng tri thức và hoạt động xã hội rộng lớn; khi đi cùng Hóa Lộc, nguồn thu nhập chính thường gắn chặt với năng lực xây dựng uy tín cá nhân, xử lý công việc đối ngoại hoặc các lĩnh vực đòi hỏi chuyên môn cao. Cung Tài Bạch tọa tại Dần không có chính tinh trực chiếu, hội hợp cùng Thiên Mã mang trạng thái Bình và Đại Hao, biểu thị dòng tiền lưu chuyển nhanh, có sự dịch chuyển địa bàn thường xuyên và khó giữ tiền tích lũy nếu thiếu phương án quản trị ngân sách chặt chẽ. Sự hiện diện của Cự Môn Vượng tại Mệnh ở Ngọ kết hợp Địa Kiếp mang lại tư duy phản biện sắc bén, khả năng dùng lời nói và năng lực đàm phán để khai phá cơ hội nghề nghiệp. Dù vậy, các yếu tố này cũng cảnh báo việc tiền bạc dễ đến nhanh nhưng cũng đi nhanh nếu đầu tư vào các kênh mang tính may rủi. Việc định vị công việc dựa trên năng lực giải quyết vấn đề và chủ động kiểm soát chi tiêu là chìa khóa then chốt để củng cố nền tảng kinh tế bền vững theo thời gian.",
+              "evidenceKeys": [
+                "natal.ziwei.palace.career",
+                "natal.ziwei.palace.wealth",
+                "natal.ziwei.star.taiyang",
+                "natal.ziwei.transformation.prosperity",
+                "natal.ziwei.star.tianma",
+                "natal.ziwei.star.dahao",
+                "natal.ziwei.star.jumen",
+                "natal.ziwei.star.dijie"
+              ]
+            },
+            "palaceAnchors": [
+              {
+                "title": "Phân tích cung Quan Lộc tại Tuất",
+                "narrative": "Cung Quan Lộc đóng tại Tuất do Thái Dương tọa thủ ở trạng thái Nhược nhưng nhận được Hóa Lộc, tạo ra bức tranh nghề nghiệp nhiều thử thách ban đầu nhưng có tiềm năng tài chính từ chính năng lực chuyên sâu. Thái Dương dù không ở vị trí sáng mạnh nhất vẫn giữ bản chất nhiệt huyết, trách nhiệm cao và hướng đến việc cống hiến cho tập thể hoặc công chúng. Nhờ có Hóa Lộc đồng cung, đương số có cơ hội chuyển đổi những ý tưởng chuyên môn thành giá trị vật chất thực tế, đặc biệt thích hợp với các lĩnh vực đòi hỏi giao tiếp, tư vấn, dịch vụ hoặc công việc gắn liền với việc mở rộng thị trường. Tuy nhiên, sự xuất hiện của Thiên Khốc, Phục Binh và Tang Môn hội tụ tại cung này nhắc nhở rằng môi trường làm việc thường xuyên tiềm ẩn những áp lực vô hình, cạnh tranh ngầm hoặc những lúc thiếu sự đồng thuận từ cộng sự. Để tiến xa, bản thân cần duy trì quy trình làm việc chuẩn mực, rõ ràng về mặt pháp lý và giấy tờ nhằm vô hiệu hóa rủi ro từ Phục Binh, đồng thời giữ vững sự bền bỉ trước những giai đoạn công việc đòi hỏi phải làm việc quá giờ hay đối diện với áp lực tiến độ.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.brightness.weak",
+                  "natal.ziwei.transformation.prosperity",
+                  "natal.ziwei.star.tianku",
+                  "natal.ziwei.star.fubing",
+                  "natal.ziwei.star.sangmen"
+                ],
+                "palaceId": "ziwei.palace.career"
+              },
+              {
+                "title": "Phân tích cung Tài Bạch tại Dần",
+                "narrative": "Cung Tài Bạch tọa lạc tại Dần ở thế vô chính diệu, chịu ảnh hưởng từ các sao phụ tá như Thiên Mã, Phượng Các, Thiên Tài cùng với Đại Hao. Cấu trúc này cho thấy phương thức tạo lập tài chính không đi theo con đường thụ động hay ngồi một chỗ hưởng lợi, mà phụ thuộc rất lớn vào sự linh hoạt, năng động và khả năng đi lại khảo sát thực tế. Thiên Mã tại đây đóng vai trò là động lực thúc đẩy việc khai thác các nguồn thu từ xa, giao thương liên tỉnh hoặc thực hiện những dự án đòi hỏi di chuyển liên tục. Phượng Các và Thiên Tài hỗ trợ thêm sự khéo léo trong thẩm mỹ, tư duy phân tích và kỹ năng giải quyết công việc tinh tế. Mặc dù vậy, sự góp mặt của Đại Hao cùng Thiên Hư đặt ra thách thức rất lớn về khả năng giữ tiền. Tiền bạc có xu hướng ra vào liên tục với những khoản chi tiêu quy mô lớn cho việc tái đầu tư, mua sắm tài sản cố định hoặc hỗ trợ công việc. Nếu không xây dựng quỹ dự phòng riêng biệt và kỷ luật quản lý chi phí cá nhân, đương số rất dễ rơi vào tình trạng tài chính bấp bênh dù tổng thu nhập kiếm được không hề nhỏ.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.star.tianma",
+                  "natal.ziwei.brightness.neutral",
+                  "natal.ziwei.star.fengge",
+                  "natal.ziwei.star.tiancai",
+                  "natal.ziwei.star.dahao",
+                  "natal.ziwei.star.tianxu"
+                ],
+                "palaceId": "ziwei.palace.wealth"
+              },
+              {
+                "title": "Phân tích cung Điền Trạch tại Dậu",
+                "narrative": "Cung Điền Trạch tại Dậu giữ vai trò tối quan trọng trong việc cân bằng tài chính của toàn bộ lá số nhờ sự kết hợp giữa Vũ Khúc Bình hòa và Thất Sát Miếu, có thêm Hóa Quyền, Hỏa Tinh Đắc và Kình Dương Nhược. Vũ Khúc là tài tinh khi đi cùng Thất Sát và Hóa Quyền mang lại năng lực quản lý tài sản vô cùng quyết đoán, có xu hướng sở hữu và tích lũy đất đai hoặc bất động sản có giá trị thực tế sau những nỗ lực cá nhân mạnh mẽ. Hóa Quyền trao quyền kiểm soát và định đoạt các cơ sở vật chất, giúp đương số chủ động trong việc mua bán hoặc cải tạo không gian sống và làm việc. Tuy nhiên, sự hội tụ của Hỏa Tinh và Kình Dương tại đây báo hiệu việc mua bán nhà đất hoặc giấy tờ sở hữu thường trải qua những đợt biến động nhanh, cạnh tranh gay gắt hoặc có tranh chấp thủ tục trước khi hoàn tất. Nguồn lực tích lũy qua kênh Điền Trạch chính là chiếc mỏ neo tài chính vững chắc nhất để hấp thụ bớt áp lực hao tổn tiền bạc từ cung Tài Bạch, biến dòng tiền lưu động thành tài sản tích lũy dài hạn ổn định.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.wuqu",
+                  "natal.ziwei.star.qisha",
+                  "natal.ziwei.brightness.exalted",
+                  "natal.ziwei.transformation.power",
+                  "natal.ziwei.star.huoxing",
+                  "natal.ziwei.star.qingyang"
+                ],
+                "palaceId": "ziwei.palace.property"
+              }
+            ],
+            "thematicDimensions": [
+              {
+                "title": "Khuynh hướng và Cơ hội Phát triển Chuyên môn",
+                "narrative": "Đường hướng nghề nghiệp của lá số được định hình mạnh mẽ bởi sự tương tác giữa Cự Môn Vượng tại Mệnh ở Ngọ và Thái Dương Hóa Lộc tại Quan Lộc ở Tuất. Cự Môn mang lại khả năng phân tích chiều sâu, tài hùng biện, sự cẩn trọng trong tư duy logic và năng khiếu phản biện sắc bén. Khi kết hợp cùng Thái Dương có Hóa Lộc, đương số thích hợp phát triển trong các lĩnh vực yêu cầu phát ngôn, giảng dạy, tư vấn luật pháp, truyền thông, giải pháp công nghệ hoặc đại diện đối ngoại cho các tổ chức. Việc Thái Dương nhận Hóa Lộc khẳng định rằng càng chia sẻ tri thức, tạo dựng giá trị thực cho cộng đồng và mở rộng mạng lưới giao lưu chuyên môn thì vị thế nghề nghiệp càng được nâng cao. Tuy nhiên, do ảnh hưởng của Địa Kiếp tại Mệnh và Phục Binh tại Quan Lộc, con đường sự nghiệp không hoàn toàn bằng phẳng mà thường xuyên trải qua những giai đoạn tái cấu trúc bất ngờ hoặc phải đối diện với sự nghi kỵ từ đối thủ cạnh tranh. Thay vì chọn các giải pháp đi đường tắt, việc duy trì phong cách làm việc công khai, dựa trên các hợp đồng minh bạch và nguyên tắc bảo mật thông tin sẽ giúp đương số thiết lập một chỗ đứng vững chắc và hạn chế tối đa các trở ngại tiềm ẩn.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.life",
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.brightness.prosperous",
+                  "natal.ziwei.star.dijie",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.transformation.prosperity",
+                  "natal.ziwei.star.fubing"
+                ],
+                "key": "career_trajectory"
+              },
+              {
+                "title": "Cơ chế Dòng tiền và Tích lũy Tài chính",
+                "narrative": "Cơ chế tạo lập và bảo toàn tài chính của đương số mang đặc tính động lực kép: kiếm tiền từ chuyên môn linh hoạt nhưng tích lũy phải thông qua tài sản cố định. Cung Tài Bạch vô chính diệu hội tụ Thiên Mã và Đại Hao khiến dòng tiền ngắn hạn luôn trong trạng thái luân chuyển không ngừng. Tiền bạc kiếm được có xu hướng được chi dùng cho việc mở rộng quan hệ đối tác, đầu tư công cụ làm việc hoặc trang trải cho các nhu cầu di chuyển đối ngoại. Sự hiện diện của Đại Hao cho thấy đương số khó giữ được nhiều tiền mặt trong tài khoản mà không bị phân tán. Do đó, điểm mấu chốt để giữ vững nền tảng kinh tế nằm ở cung Điền Trạch, nơi có Vũ Khúc Hóa Quyền kết hợp Thất Sát Miếu. Cơ chế tối ưu nhất là mỗi khi thu được lợi nhuận từ các hoạt động chuyên môn có Thái Dương Hóa Lộc bảo trợ, đương số cần nhanh chóng chuyển đổi phần lớn thặng dư tiền mặt thành bất động sản hoặc các tài sản có tính thanh khoản thấp nhưng giá trị ổn định lâu dài. Việc ép bản thân vào kỷ luật trả góp tài sản hoặc tích lũy tài sản cố định sẽ giúp chế ngự tác động tiêu hao từ Đại Hao và Thiên Hư, đảm bảo sự an toàn tài chính về lâu dài.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.tianma",
+                  "natal.ziwei.star.dahao",
+                  "natal.ziwei.star.wuqu",
+                  "natal.ziwei.transformation.power",
+                  "natal.ziwei.star.qisha",
+                  "natal.ziwei.transformation.prosperity"
+                ],
+                "key": "wealth_accumulation"
+              }
+            ],
+            "decadalTiming": {
+              "title": "Phân tích Đại vận 10 năm (Độ tuổi 43 - 52, Năm 2022 - 2031)",
+              "state": "active",
+              "index": 0,
+              "ageRange": [
+                43,
+                52
+              ],
+              "yearRange": [
+                2022,
+                2031
+              ],
+              "palaceId": "ziwei.palace.wealth",
+              "narrative": "Giai đoạn từ 43 đến 52 tuổi tương ứng với các năm từ 2022 đến 2031, đại vận vận hành trực tiếp tại cung Dần, vốn là cung Tài Bạch trên bản đồ gốc. Đây là chu kỳ 10 năm trọng điểm tập trung toàn bộ năng lượng vào việc tái cơ cấu nguồn thu và phương thức vận hành tài chính cá nhân. Tại đại vận này, cung Quan Lộc của đại vận an tại Ngọ (trùng cung Mệnh gốc) có Kình Dương và Văn Khúc hội chiếu, cho thấy môi trường công việc đòi hỏi sự dấn thân quyết liệt, tính cạnh tranh tăng cao và phải xử lý nhiều văn bản, hợp đồng quan trọng. Áp lực công việc trong chu kỳ này khá lớn, đòi hỏi đương số phải liên tục thích ứng và giải quyết các tình huống phát sinh nhanh chóng. Cung Điền Trạch của đại vận nằm tại Tỵ có Lộc Tồn và nhận Hóa Lộc từ Tham Lang, tạo nên một cơ hội rất thuận lợi cho việc gia tăng tài sản bất động sản hoặc nhận được nguồn thu nhập gián tiếp thông qua việc khai thác mặt bằng, tích lũy đất đai. Tuy nhiên, do bản cung đại vận ở Dần mang tính chất biến động mạnh với sự dịch chuyển của Thiên Mã và tác động tiêu trừ của Đại Hao, đương số cần tránh tuyệt đối các quyết định đầu tư lướt sóng hoặc vay mượn quá mức. Chiến lược khôn ngoan nhất trong suốt giai đoạn 2022 - 2031 là lấy công việc chuyên môn làm đòn bẩy, hạn chế giữ tiền mặt rảnh rỗi và ưu tiên chuyển hóa lợi nhuận vào các kênh tài sản thực tế an toàn.",
+              "evidenceKeys": [
+                "decadal.age-range.43-52",
+                "decadal.year-range.2022-2031",
+                "decadal.palace.ziwei.palace.wealth",
+                "decadal.palace.ziwei.palace.life.branch.ziwei.branch.tiger",
+                "decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse",
+                "decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang",
+                "decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu",
+                "decadal.palace.ziwei.palace.property.star.ziwei.star.lucun",
+                "decadal.palace.ziwei.palace.property.transformation.ziwei.transformation.prosperity.ziwei.star.tanlang"
+              ]
+            },
+            "actions": [
+              {
+                "recommendation": "Xây dựng cơ chế tích lũy tài chính tự động bằng cách chuyển hóa ngay nguồn tiền thu được thành tài sản cố định hoặc bất động sản có giấy tờ pháp lý rõ ràng.",
+                "rationale": "Cung Tài Bạch có Đại Hao và Thiên Mã khiến tiền mặt dễ bị tiêu hao nhanh chóng, trong khi cung Điền Trạch có Vũ Khúc Hóa Quyền và Thất Sát Miếu hỗ trợ rất mạnh cho việc gìn giữ giá trị qua nhà đất.",
+                "avoid": "Tránh giữ lượng lớn tiền mặt nhàn rỗi trong tài khoản cá nhân hoặc đầu tư vào các kênh tài chính mang tính đầu cơ ngắn hạn thiếu cơ sở bảo đảm.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.wealth",
+                  "natal.ziwei.star.dahao",
+                  "natal.ziwei.palace.property",
+                  "natal.ziwei.star.wuqu",
+                  "natal.ziwei.transformation.power"
+                ]
+              },
+              {
+                "recommendation": "Tập trung nâng cao giá trị thương hiệu chuyên môn và sử dụng năng lực tư vấn, đàm phán minh bạch làm nền tảng tạo dựng thu nhập chính.",
+                "rationale": "Sự phối hợp giữa Cự Môn Vượng tại Mệnh và Thái Dương Hóa Lộc tại Quan Lộc cho thấy nguồn thu nhập bền vững nhất đến từ việc lan tỏa kiến thức, uy tín và kỹ năng giao tiếp chuyên sâu.",
+                "avoid": "Tránh tham gia vào các thỏa thuận ngầm, những giao dịch thiếu tính minh bạch hoặc các dự án công việc có tính chất mập mờ về vai trò pháp lý.",
+                "evidenceKeys": [
+                  "natal.ziwei.palace.life",
+                  "natal.ziwei.star.jumen",
+                  "natal.ziwei.palace.career",
+                  "natal.ziwei.star.taiyang",
+                  "natal.ziwei.transformation.prosperity"
+                ]
+              },
+              {
+                "recommendation": "Trong chu kỳ đại vận từ 43 đến 52 tuổi, chủ động rà soát kỹ lưỡng các điều khoản văn bản hợp đồng trước khi triển khai các dự án hợp tác quy mô lớn.",
+                "rationale": "Cung Quan Lộc của đại vận tại Ngọ có sự xuất hiện của Kình Dương và Văn Khúc, cảnh báo các rủi ro phát sinh từ tranh chấp cam kết hoặc sai sót thủ tục hành chính.",
+                "avoid": "Tránh ký kết hợp đồng dựa trên sự tin tưởng cảm tính hoặc chủ quan bỏ qua các bước kiểm tra pháp lý chi tiết trong quá trình hợp tác làm việc.",
+                "evidenceKeys": [
+                  "decadal.age-range.43-52",
+                  "decadal.palace.ziwei.palace.career.branch.ziwei.branch.horse",
+                  "decadal.palace.ziwei.palace.career.star.ziwei.star.qingyang",
+                  "decadal.palace.ziwei.palace.career.star.ziwei.star.wenqu"
+                ]
+              }
+            ]
+          },
+          "quality": {
+            "ok": true,
+            "findings": [],
+            "advisory": []
+          },
+          "providerId": "9router-antigravity-native",
+          "modelId": "gemini-3.8-flash-medium"
+        }
+      }
+    },
+    {
+      "slot": "monthly:0",
+      "group": "monthly",
+      "index": 0,
+      "snapshotHash": "d1d9bfbe7827f53acb92a12c4ff46d51fe7074517428854a5eee4a7c18d289a0",
+      "factsSha256": "d12e146e8941a368dfa8a6e5665857a7495af81f434acf6d172f238c5b915043",
+      "targetYear": 2026,
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2",
+      "sourceKind": "synthetic_actual_iztro",
+      "status": "failed",
+      "attempts": [
+        {
+          "attemptKey": "f50de85b8028490e6b569ee64e30cfc8088c58c1fdb90b85c0b4d4047f396819",
+          "purpose": "report",
+          "status": "reference_settled",
+          "trace": {
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "pricingSnapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "requestedAlias": "ag/gemini-3.8-flash",
+            "wireModel": "gemini-3.8-flash-medium",
+            "requestId": "agent/d6ce8282-d97c-477f-a7fc-3d21aa7063aa/1791573308944/694e03e5-4442-41e7-b5fc-899307b358c5/1",
+            "effectiveMaxOutputTokens": 16384,
+            "requestSha256": "0ac532cdb4c19973c6b02e34ca386926beef9b29963c3d248328535fc3119a47"
+          },
+          "reserveVnd": 33368,
+          "reservationId": "ead05a93-0363-44c0-947f-5eb13de46527",
+          "accountingEvidence": {
+            "version": "native.accounting.evidence.v1",
+            "httpStatus": 200,
+            "requestSha256": "0ac532cdb4c19973c6b02e34ca386926beef9b29963c3d248328535fc3119a47",
+            "responseSha256": "04a1c3395829543815030d1b8500a6414f6486982f679f7ff80590e9cf7255fb",
+            "visibleOutputSha256": "4162eae5d3e44a6fa7ec99b7a2ddc3a9cd5794b9a89853e18cccbe17cc609971",
+            "modelVersion": "gemini-3.8-flash",
+            "completionVerified": true,
+            "conflictingUsage": false,
+            "envelopeComplete": false,
+            "billingCountersComplete": false,
+            "metadataRedacted": false,
+            "usageMetadata": {
+              "promptTokenCount": 1144,
+              "candidatesTokenCount": 1726,
+              "totalTokenCount": 3250,
+              "thoughtsTokenCount": 380
+            },
+            "settlementAuthorized": false,
+            "continuationAuthorized": false
+          },
+          "visibleUnacceptedOutput": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"version\": 1,\n  \"contentVersion\": \"ziwei.period-reading.v1\",\n  \"locale\": \"vi\",\n  \"kind\": \"monthly\",\n  \"targetYear\": 2026,\n  \"calendar\": \"lunar\",\n  \"periodKey\": \"2026-08-regular\",\n  \"title\": \"Luận giải chi tiết vận trình tháng 8 âm lịch năm 2026\",\n  \"overview\": {\n    \"narrative\": \"Bản luận giải tháng 8 âm lịch năm 2026 được xây dựng nhằm giúp bạn nhận diện rõ nét bức tranh năng lượng tổng quan và các xu hướng tương tác trọng tâm trong tháng. Trong bối cảnh lưu niên tập trung vào cung Phu Thê (khu vực chủ về đời sống tình cảm, hôn nhân và mối quan hệ lứa đôi), chặng đường của tháng 8 âm lịch này lại dịch chuyển tâm điểm sang cung Huynh Đệ (khu vực đại diện cho mối quan hệ với anh chị em ruột thịt, bạn bè thân thiết, đồng nghiệp đồng cấp và đối tác cùng tầng lớp hợp tác). Nhìn chung, đây là khoảng thời gian mang tính bước ngoặt, mở ra những cơ hội để bạn chủ động tái thiết lập các liên kết xã hội, sắp xếp lại mục tiêu cá nhân và định hình rõ ràng hơn vị thế của mình trong tập thể. Thay vì đưa ra những lời phán đoán bất biến, phần tổng quan này đóng vai trò như một cẩm nang định hướng giúp bạn chủ động chuẩn bị tâm thế, nắm bắt thời cơ phát triển và khéo léo thích ứng với những biến động tự nhiên của đời sống.\",\n    \"evidenceKeys\": [\n      \"annual.2026.palace.ziwei.palace.spouse\",\n      \"period.2026-08-regular-normal.palace.ziwei.palace.siblings\",\n      \"period.2026-08-regular-normal.star.ziwei.star.ziwei\",\n      \"period.2026-08-regular-normal.star.ziwei.star.pojun\",\n      \"period.2026-08-regular-normal.star.ziwei.star.dikong\",\n      \"period.2026-08-regular-normal.star.ziwei.star.qingyang\"\n    ]\n  },\n  \"periods\": [\n    {\n      \"periodId\": \"2026-08-regular-normal\",\n      \"title\": \"Vận trình tháng 8 âm lịch năm 2026 tại cung Huynh Đệ\",\n      \"narrative\": \"Trong tháng 8 âm lịch năm 2026, vận trình tháng hội tụ tại cung Huynh Đệ với sự xuất hiện của các sao Tử Vi, Phá Quân, Địa Không và Kình Dương. Để việc tiếp cận lá số trở nên rõ ràng và thực tế, chúng ta hãy cùng tìm hiểu bản chất của từng tinh tú theo ngôn ngữ đời sống hiện đại. Sao Tử Vi được xem là đế tinh, đại diện cho năng lực lãnh đạo, sự tự tôn, tầm nhìn bao quát và bản lĩnh làm chủ tình thế. Đi cùng với Tử Vi là sao Phá Quân, một ngôi sao mang tính tiên phong, tượng trưng cho tinh thần đổi mới, sự dũng cảm dám phá bỏ lối mòn cũ kỹ để mở ra những hướng đi mang tính đột phá. Bên cạnh đó, sự hiện diện của Địa Không - ngôi sao của tư duy khác biệt, sự biến hóa và tính ngẫu nhiên bất ngờ - kết hợp cùng Kình Dương - ngôi sao chủ về sự dứt khoát, nghị lực hành động kiên quyết và ý chí cạnh tranh mạnh mẽ - tạo nên một tổ hợp năng lượng vô cùng sống động và đa chiều. Trong mối quan hệ với đồng nghiệp, cộng sự hay anh chị em trong gia đình, bạn sẽ thấy mình có xu hướng muốn đứng ra nhận trách nhiệm, định hướng công việc chung và giải quyết triệt để các khúc mắc tồn đọng từ trước. Tinh thần của Phá Quân thôi thúc bạn tìm kiếm những giải pháp mới mẻ trong việc phân chia nhiệm vụ và cách thức làm việc nhóm, không còn muốn duy trì những thói quen thụ động hay trì trệ. Bạn có thể nảy sinh những ý tưởng rất độc đáo, mang đậm dấu ấn sáng tạo cá nhân nhờ tính chất trừu tượng và khoáng đạt của Địa Không. Tuy nhiên, tính cách dứt khoát và thẳng thắn của Kình Dương đòi hỏi bạn cần có sự khéo léo trong lời ăn tiếng nói. Đôi khi sự bộc trực và mong muốn đẩy nhanh tiến độ công việc có thể khiến người xung quanh cảm thấy bị thúc ép hoặc tạo ra những khoảng cách không đáng có trong giao tiếp hàng ngày. Về mặt công việc và tài chính cá nhân, đây là tháng phù hợp để rà soát lại các dự án chung, thanh lọc các mối hợp tác kém hiệu quả và mạnh dạn tái cơ cấu kế hoạch hành động. Thay vì cố gắng níu giữ những mô hình đã lỗi thời, việc chủ động mở rộng tư duy và áp dụng các phương thức linh hoạt sẽ mang lại cho bạn nhiều dư địa phát triển. Năng lượng Tử Vi nhắc nhở bạn luôn giữ vững tư cách đàng hoàng, lấy uy tín và năng lực thực tế làm gốc rễ để mọi người xung quanh nể phục và tin tưởng. Đối với sức khỏe tổng thể, nhịp sống năng động và nhiều thay đổi trong tháng này đòi hỏi bạn phải chú ý duy trì thể lực dẻo dai, tránh làm việc quá sức gây căng thẳng thần kinh hay ảnh hưởng đến dạ dày và hệ tiêu hóa. Nhìn tổng thể, bức tranh tháng 8 âm lịch không hề mang tính áp đặt mà chính là không gian để bạn thể hiện bản lĩnh dẫn dắt, tôi luyện sự kiên nhẫn và xây dựng tinh thần đồng đội vững chắc trên con đường hoàn thiện bản thân.\",\n      \"recommendations\": [\n        \"Chủ động lắng nghe ý kiến đóng góp từ đồng nghiệp và anh chị em trước khi đưa ra quyết định thay đổi quan trọng, kết hợp hài hòa giữa tính quyết đoán và sự tôn trọng tập thể.\",\n        \"Thiết lập kế hoạch tài chính rõ ràng, minh bạch hóa các khoản thu chi trong các dự án hợp tác chung để củng cố niềm tin lâu dài giữa các bên.\",\n        \"Dành thời gian rà soát, tái cấu trúc quy trình làm việc theo hướng tinh gọn và linh hoạt, loại bỏ các bước rườm rà không cần thiết.\",\n        \"Duy trì chế độ sinh hoạt điều độ, cân bằng giữa thời gian cống hiến cho công việc và nghỉ ngơi để bảo vệ sức khỏe hệ tiêu hóa và tinh thần.\"\n      ],\n      \"cautions\": [\n        \"Tránh thể hiện quan điểm quá gay gắt hoặc áp đặt ý chí cá nhân lên cộng sự trong lúc thảo luận, nhằm giữ gìn sự hòa khí và thấu hiểu lẫn nhau.\",\n        \"Không nên vội vã đưa ra quyết định tài chính dựa hoàn toàn vào cảm hứng nhất thời; cần cân nhắc kỹ các phương án dự phòng an toàn.\"\n      ],\n      \"evidenceKeys\": [\n        \"period.2026-08-regular-normal.palace.ziwei.palace.siblings\",\n        \"period.2026-08-regular-normal.star.ziwei.star.ziwei\",\n        \"period.2026-08-regular-normal.star.ziwei.star.pojun\",\n        \"period.2026-08-regular-normal.star.ziwei.star.dikong\",\n        \"period.2026-08-regular-normal.star.ziwei.star.qingyang\"\n      ]\n    }\n  ]\n}",
+          "receipt": {
+            "modelVersion": "gemini-3.8-flash",
+            "usageMetadata": {
+              "promptTokenCount": 1144,
+              "candidatesTokenCount": 1726,
+              "totalTokenCount": 3250,
+              "thoughtsTokenCount": 380
+            }
+          },
+          "quote": {
+            "quoteKind": "owner_approved_model_bound_API_reference",
+            "accountingStatus": "api_reference_model_bound",
+            "referenceMode": "FD123-model-bounds-v2",
+            "quoteVnd": "33368",
+            "quoteMicroVnd": "33367326720",
+            "pricingVersion": "gemini-3.8-flash-standard-20261006-fx26110",
+            "snapshotSha256": "b39b4ffc688d2927699c28ca6abe0cb67d5322656b9aa89b0c4f7469d7d8b114",
+            "tokenBounds": {
+              "inputTokens": 1048576,
+              "outputTokens": 65536,
+              "reasoningTokens": 65536
+            },
+            "unknownNativeCounters": [
+              "cachedContentTokenCount"
+            ],
+            "nativeEnvelopeComplete": false,
+            "tokensUnknown": true,
+            "actualUsageVerified": false,
+            "providerBillingVerified": false,
+            "exposureReduced": false,
+            "ownerDecision": "FD-123"
+          },
+          "outputSha256": "4162eae5d3e44a6fa7ec99b7a2ddc3a9cd5794b9a89853e18cccbe17cc609971",
+          "outputText": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"version\": 1,\n  \"contentVersion\": \"ziwei.period-reading.v1\",\n  \"locale\": \"vi\",\n  \"kind\": \"monthly\",\n  \"targetYear\": 2026,\n  \"calendar\": \"lunar\",\n  \"periodKey\": \"2026-08-regular\",\n  \"title\": \"Luận giải chi tiết vận trình tháng 8 âm lịch năm 2026\",\n  \"overview\": {\n    \"narrative\": \"Bản luận giải tháng 8 âm lịch năm 2026 được xây dựng nhằm giúp bạn nhận diện rõ nét bức tranh năng lượng tổng quan và các xu hướng tương tác trọng tâm trong tháng. Trong bối cảnh lưu niên tập trung vào cung Phu Thê (khu vực chủ về đời sống tình cảm, hôn nhân và mối quan hệ lứa đôi), chặng đường của tháng 8 âm lịch này lại dịch chuyển tâm điểm sang cung Huynh Đệ (khu vực đại diện cho mối quan hệ với anh chị em ruột thịt, bạn bè thân thiết, đồng nghiệp đồng cấp và đối tác cùng tầng lớp hợp tác). Nhìn chung, đây là khoảng thời gian mang tính bước ngoặt, mở ra những cơ hội để bạn chủ động tái thiết lập các liên kết xã hội, sắp xếp lại mục tiêu cá nhân và định hình rõ ràng hơn vị thế của mình trong tập thể. Thay vì đưa ra những lời phán đoán bất biến, phần tổng quan này đóng vai trò như một cẩm nang định hướng giúp bạn chủ động chuẩn bị tâm thế, nắm bắt thời cơ phát triển và khéo léo thích ứng với những biến động tự nhiên của đời sống.\",\n    \"evidenceKeys\": [\n      \"annual.2026.palace.ziwei.palace.spouse\",\n      \"period.2026-08-regular-normal.palace.ziwei.palace.siblings\",\n      \"period.2026-08-regular-normal.star.ziwei.star.ziwei\",\n      \"period.2026-08-regular-normal.star.ziwei.star.pojun\",\n      \"period.2026-08-regular-normal.star.ziwei.star.dikong\",\n      \"period.2026-08-regular-normal.star.ziwei.star.qingyang\"\n    ]\n  },\n  \"periods\": [\n    {\n      \"periodId\": \"2026-08-regular-normal\",\n      \"title\": \"Vận trình tháng 8 âm lịch năm 2026 tại cung Huynh Đệ\",\n      \"narrative\": \"Trong tháng 8 âm lịch năm 2026, vận trình tháng hội tụ tại cung Huynh Đệ với sự xuất hiện của các sao Tử Vi, Phá Quân, Địa Không và Kình Dương. Để việc tiếp cận lá số trở nên rõ ràng và thực tế, chúng ta hãy cùng tìm hiểu bản chất của từng tinh tú theo ngôn ngữ đời sống hiện đại. Sao Tử Vi được xem là đế tinh, đại diện cho năng lực lãnh đạo, sự tự tôn, tầm nhìn bao quát và bản lĩnh làm chủ tình thế. Đi cùng với Tử Vi là sao Phá Quân, một ngôi sao mang tính tiên phong, tượng trưng cho tinh thần đổi mới, sự dũng cảm dám phá bỏ lối mòn cũ kỹ để mở ra những hướng đi mang tính đột phá. Bên cạnh đó, sự hiện diện của Địa Không - ngôi sao của tư duy khác biệt, sự biến hóa và tính ngẫu nhiên bất ngờ - kết hợp cùng Kình Dương - ngôi sao chủ về sự dứt khoát, nghị lực hành động kiên quyết và ý chí cạnh tranh mạnh mẽ - tạo nên một tổ hợp năng lượng vô cùng sống động và đa chiều. Trong mối quan hệ với đồng nghiệp, cộng sự hay anh chị em trong gia đình, bạn sẽ thấy mình có xu hướng muốn đứng ra nhận trách nhiệm, định hướng công việc chung và giải quyết triệt để các khúc mắc tồn đọng từ trước. Tinh thần của Phá Quân thôi thúc bạn tìm kiếm những giải pháp mới mẻ trong việc phân chia nhiệm vụ và cách thức làm việc nhóm, không còn muốn duy trì những thói quen thụ động hay trì trệ. Bạn có thể nảy sinh những ý tưởng rất độc đáo, mang đậm dấu ấn sáng tạo cá nhân nhờ tính chất trừu tượng và khoáng đạt của Địa Không. Tuy nhiên, tính cách dứt khoát và thẳng thắn của Kình Dương đòi hỏi bạn cần có sự khéo léo trong lời ăn tiếng nói. Đôi khi sự bộc trực và mong muốn đẩy nhanh tiến độ công việc có thể khiến người xung quanh cảm thấy bị thúc ép hoặc tạo ra những khoảng cách không đáng có trong giao tiếp hàng ngày. Về mặt công việc và tài chính cá nhân, đây là tháng phù hợp để rà soát lại các dự án chung, thanh lọc các mối hợp tác kém hiệu quả và mạnh dạn tái cơ cấu kế hoạch hành động. Thay vì cố gắng níu giữ những mô hình đã lỗi thời, việc chủ động mở rộng tư duy và áp dụng các phương thức linh hoạt sẽ mang lại cho bạn nhiều dư địa phát triển. Năng lượng Tử Vi nhắc nhở bạn luôn giữ vững tư cách đàng hoàng, lấy uy tín và năng lực thực tế làm gốc rễ để mọi người xung quanh nể phục và tin tưởng. Đối với sức khỏe tổng thể, nhịp sống năng động và nhiều thay đổi trong tháng này đòi hỏi bạn phải chú ý duy trì thể lực dẻo dai, tránh làm việc quá sức gây căng thẳng thần kinh hay ảnh hưởng đến dạ dày và hệ tiêu hóa. Nhìn tổng thể, bức tranh tháng 8 âm lịch không hề mang tính áp đặt mà chính là không gian để bạn thể hiện bản lĩnh dẫn dắt, tôi luyện sự kiên nhẫn và xây dựng tinh thần đồng đội vững chắc trên con đường hoàn thiện bản thân.\",\n      \"recommendations\": [\n        \"Chủ động lắng nghe ý kiến đóng góp từ đồng nghiệp và anh chị em trước khi đưa ra quyết định thay đổi quan trọng, kết hợp hài hòa giữa tính quyết đoán và sự tôn trọng tập thể.\",\n        \"Thiết lập kế hoạch tài chính rõ ràng, minh bạch hóa các khoản thu chi trong các dự án hợp tác chung để củng cố niềm tin lâu dài giữa các bên.\",\n        \"Dành thời gian rà soát, tái cấu trúc quy trình làm việc theo hướng tinh gọn và linh hoạt, loại bỏ các bước rườm rà không cần thiết.\",\n        \"Duy trì chế độ sinh hoạt điều độ, cân bằng giữa thời gian cống hiến cho công việc và nghỉ ngơi để bảo vệ sức khỏe hệ tiêu hóa và tinh thần.\"\n      ],\n      \"cautions\": [\n        \"Tránh thể hiện quan điểm quá gay gắt hoặc áp đặt ý chí cá nhân lên cộng sự trong lúc thảo luận, nhằm giữ gìn sự hòa khí và thấu hiểu lẫn nhau.\",\n        \"Không nên vội vã đưa ra quyết định tài chính dựa hoàn toàn vào cảm hứng nhất thời; cần cân nhắc kỹ các phương án dự phòng an toàn.\"\n      ],\n      \"evidenceKeys\": [\n        \"period.2026-08-regular-normal.palace.ziwei.palace.siblings\",\n        \"period.2026-08-regular-normal.star.ziwei.star.ziwei\",\n        \"period.2026-08-regular-normal.star.ziwei.star.pojun\",\n        \"period.2026-08-regular-normal.star.ziwei.star.dikong\",\n        \"period.2026-08-regular-normal.star.ziwei.star.qingyang\"\n      ]\n    }\n  ]\n}",
+          "rawSha256": "4162eae5d3e44a6fa7ec99b7a2ddc3a9cd5794b9a89853e18cccbe17cc609971",
+          "parsedSha256": "1f2c7058fdc8598bcbae1dd09a400c3117c4a728b90da5881587d727b63c01bd",
+          "normalization": "none"
+        }
+      ],
+      "manualAccepted": false,
+      "result": {
+        "ok": false,
+        "error": {
+          "code": "AI_OUTPUT_INVALID",
+          "retryable": false
+        }
+      }
+    }
+  ],
+  "stopSlot": "monthly:0",
+  "budget": {
+    "totalVnd": 133472,
+    "byCampaign": {
+      "v4.2-report": 133472
+    },
+    "openReservations": 0,
+    "capVnd": 600624
+  },
+  "recoveryEvents": [
+    {
+      "ownerDecision": "FD-123",
+      "referenceMode": "FD123-model-bounds-v2",
+      "priorManifestSha256": "6960dd003e44daedafacdd45ddac1837a3b1ad14e9a0ed71a10c3ed280096502",
+      "previousStatus": "stopped",
+      "previousStopSlot": "relationship_marriage:1",
+      "previousRowStatus": "failed",
+      "previousAttemptStatus": "stopped",
+      "previousErrorCode": "ROUTER_ACCOUNTING_EVIDENCE_INCOMPLETE",
+      "requestSha256": "f88490536cf0dffb3af25e2523c0124062eed172aa93a9f48b0505d7911ac1c7",
+      "responseSha256": "a7f53f31bbe35beeb4416d0017f0f59a2925c1aa47ad5c38dbe2b05859bad63b",
+      "rawOutputSha256": "64c779ddc128efc1806044357f2a6433c23e268475040c50e06dbb80bdd18344",
+      "noPhysicalReplay": true,
+      "status": "prepared",
+      "recordedAt": "2026-10-09T19:14:20.056Z"
+    },
+    {
+      "status": "completed",
+      "noPhysicalReplay": true,
+      "recordedAt": "2026-10-09T19:14:20.132Z"
+    }
+  ],
+  "referenceMode": "FD123-model-bounds-v2"
+}

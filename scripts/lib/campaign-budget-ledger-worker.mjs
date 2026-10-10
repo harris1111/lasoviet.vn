@@ -2,6 +2,7 @@ import { closeSync, constants, fstatSync, fsyncSync, openSync, readFileSync, rea
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { API_REFERENCE_PRICING, quoteNativeApiReference } from "./native-campaign-api-pricing.mjs";
+import { FD123_POLICY, FD123_RESERVE_VND, isFd123AttemptKey, fd123RewritePrerequisite, quoteFd123ReferenceSettlement } from "./fd123-reference-continuation.mjs";
 
 // Invoked only beneath the parent's OS flock; direct invocation is unsupported.
 let fd;
@@ -12,7 +13,13 @@ const exactKeys = (value, keys) => value !== null && typeof value === "object" &
 const traceKeys = ["pricingVersion", "pricingSnapshotSha256", "requestedAlias", "wireModel", "requestId", "effectiveMaxOutputTokens", "requestSha256"];
 const validTrace = trace => exactKeys(trace, traceKeys) && trace.pricingVersion === API_REFERENCE_PRICING.version && trace.pricingSnapshotSha256 === API_REFERENCE_PRICING.snapshotSha256 && trace.requestedAlias === "ag/gemini-3.8-flash" && trace.wireModel === "gemini-3.8-flash-medium" && /^agent\/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\/\d{13}\/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\/1$/.test(trace.requestId) && integer(trace.effectiveMaxOutputTokens) && trace.effectiveMaxOutputTokens >= 16_384 && trace.effectiveMaxOutputTokens <= 64_000 && sha(trace.requestSha256);
 const receiptKeys = ["rawCountersComplete", "accountingStatus", "modelVersion", "inputTokens", "outputTokens", "cachedTokens", "reasoningTokens", "totalTokens"];
-function validateSettlement(value, item, at) {
+function validateSettlement(value, item, at, referenceContinuation) {
+  if (referenceContinuation === FD123_POLICY) {
+    let quote;
+    try { quote = quoteFd123ReferenceSettlement(value, item.trace, { at: new Date(at) }); } catch { fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID"); }
+    if (BigInt(quote.quoteVnd) > BigInt(item.vnd)) fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID");
+    return Number(quote.quoteVnd);
+  }
   if (!exactKeys(value, ["receipt", "outputSha256"]) || !sha(value.outputSha256) || !exactKeys(value.receipt, receiptKeys) || value.receipt.accountingStatus !== "unverified") fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID");
   let quote;
   try { quote = quoteNativeApiReference(value.receipt, { at: new Date(at) }); } catch { fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID"); }
@@ -81,11 +88,15 @@ try {
   catch { fail("BUDGET_LEDGER_CORRUPT"); }
   const first = rows.shift();
   if (first.type !== "config" || first.version !== 2 || first.totalCapVnd !== config.totalCapVnd || first.allocationVnd !== config.allocationVnd ||
-      first.settleActualUsage !== config.settleActualUsage) {
+      first.settleActualUsage !== config.settleActualUsage || first.referenceContinuation !== config.referenceContinuation) {
     fail("BUDGET_LEDGER_CONFIG_MISMATCH");
   }
   const reservations = new Map();
   const attempts = new Set();
+  const hasSettledPrerequisite = key => {
+    const prerequisite = fd123RewritePrerequisite(key);
+    return !prerequisite || [...reservations.values()].some(item => item.attemptKey === prerequisite && item.state === "settled");
+  };
   let total = 0;
   for (const row of rows) {
     if (!row || !uuid(row.id) || typeof row.at !== "string" || !Number.isFinite(Date.parse(row.at))) fail("BUDGET_LEDGER_CORRUPT");
@@ -93,6 +104,7 @@ try {
       if (reservations.has(row.id) || row.campaign !== "v4.2-report" || !integer(row.vnd) || !Number.isSafeInteger(total + row.vnd)) fail("BUDGET_LEDGER_CORRUPT");
       const keyed = row.type === "reserve-attempt";
       if (keyed && (!sha(row.attemptKey) || !validTrace(row.trace) || attempts.has(row.attemptKey) || [...reservations.values()].some(item => item.attemptKey && ["reserved", "dispatched"].includes(item.state)))) fail("BUDGET_LEDGER_CORRUPT");
+      if (config.referenceContinuation === FD123_POLICY && (!keyed || row.vnd !== FD123_RESERVE_VND || !isFd123AttemptKey(row.attemptKey) || !hasSettledPrerequisite(row.attemptKey))) fail("BUDGET_LEDGER_CORRUPT");
       if (keyed) attempts.add(row.attemptKey);
       reservations.set(row.id, { vnd: row.vnd, state: "reserved", ...(keyed ? { attemptKey: row.attemptKey, trace: row.trace } : {}) }); total += row.vnd;
     } else {
@@ -102,7 +114,7 @@ try {
       else if (row.type === "release" && item.state === "reserved") { item.state = "released"; total -= item.vnd; }
       else if (row.type === "settle" && item.state === "dispatched" && !item.attemptKey) item.state = "settled";
       else if (row.type === "settle-attempt" && item.state === "dispatched" && item.attemptKey) {
-        const actualVnd = validateSettlement(row.settlement, item, row.at);
+        const actualVnd = validateSettlement(row.settlement, item, row.at, config.referenceContinuation);
         if (config.settleActualUsage === true) total -= item.vnd - actualVnd;
         item.state = "settled";
       }
@@ -118,6 +130,7 @@ try {
     if (!integer(request.vnd) || !Number.isSafeInteger(total + request.vnd)) fail("BUDGET_RESERVATION_INVALID");
     const keyed = action === "reserve-attempt";
     if (keyed && (!sha(request.attemptKey) || !validTrace(request.trace))) fail("BUDGET_ATTEMPT_INVALID");
+    if (config.referenceContinuation === FD123_POLICY && (!keyed || request.vnd !== FD123_RESERVE_VND || !isFd123AttemptKey(request.attemptKey) || !hasSettledPrerequisite(request.attemptKey))) fail("BUDGET_ATTEMPT_INVALID");
     if (keyed && attempts.has(request.attemptKey)) fail("BUDGET_ATTEMPT_ALREADY_CLAIMED");
     if (keyed && [...reservations.values()].some(item => item.attemptKey && ["reserved", "dispatched"].includes(item.state))) fail("BUDGET_ATTEMPT_UNRESOLVED");
     if (total + request.vnd > config.totalCapVnd) fail("BUDGET_TOTAL_CAP_REACHED");
@@ -130,7 +143,7 @@ try {
     else if (action === "release" && item.state === "reserved") append({ type: "release", id: request.id });
     else if (action === "settle" && item.state === "dispatched" && !item.attemptKey) append({ type: "settle", id: request.id });
     else if (action === "settle-attempt" && item.state === "dispatched" && item.attemptKey) {
-      validateSettlement(request.settlement, item, at); append({ type: "settle-attempt", id: request.id, settlement: request.settlement });
+      validateSettlement(request.settlement, item, at, config.referenceContinuation); append({ type: "settle-attempt", id: request.id, settlement: request.settlement });
     }
     else fail("BUDGET_TRANSITION_INVALID");
     value = true;

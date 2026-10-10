@@ -6,6 +6,33 @@ const facts: ZiweiPeriodReadingFactsV1 = { version: 1, kind: "monthly", targetYe
 const prose = (count: number) => "Cân nhắc kế hoạch thực tế và trao đổi rõ ràng với người đồng hành. ".repeat(count);
 function content(): ZiweiPeriodReadingContentV1 { return { version: 1, contentVersion: "ziwei.period-reading.v1", locale: "vi", kind: "monthly", targetYear: 2026, calendar: "lunar", periodKey: facts.periodKey, title: "Tháng tám âm lịch", overview: { narrative: prose(15), evidenceKeys: [evidenceKey] }, periods: [{ periodId: facts.periods[0]!.id, title: "Tháng tám", narrative: prose(55), recommendations: ["Lập kế hoạch.", "Ghi lại ưu tiên."], cautions: ["Tránh nhận quá nhiều việc."], evidenceKeys: [evidenceKey] }] }; }
 describe("period writer fail-closed quality", () => {
+  it.each([
+    "Đây là bối cảnh đòi hỏi sự tỉnh táo cao độ chứ không phải điềm báo chắc chắn về tai họa.",
+    "Đây là ngữ cảnh nhắc nhở bạn nên rà soát kỹ các khoản thanh toán, hạn chế mua sắm vượt quá khả năng thực tế chứ không phải là điều chắc chắn xảy ra rủi ro.",
+    "Đây là bối cảnh cần sự minh bạch và đối thoại ôn hòa để giữ gìn sự yên ấm chứ không phải điềm báo chắc chắn về tranh chấp.",
+    "Không phải điềm báo chắc chắn về tranh chấp.".normalize("NFD"),
+  ])("accepts an immediate explicit denial of certainty: %s", text => {
+    const report = content(); report.periods[0]!.narrative += text;
+    const source = { ...facts, periods: facts.periods.map(period => ({ ...period, obstacleStarIds: ["ziwei.star.lianZhen"] })) };
+    expect(validatePeriodReading(report, source).ok).toBe(true);
+  });
+  it.each([
+    "Bạn chắc chắn sẽ gặp tranh chấp.",
+    "Không phải điềm báo chắc chắn, nhưng bạn chắc chắn sẽ gặp tranh chấp.",
+    "Bạn chắc chắn gặp tranh chấp, không phải điềm báo chắc chắn.",
+    "Không phải điềm báo, chắc chắn sẽ gặp tranh chấp.",
+    "Không phải không chắc chắn sẽ gặp tranh chấp.",
+    "Không phải không phải điềm báo chắc chắn sẽ xảy ra tranh chấp.",
+    "Không thể nói rằng không phải điềm báo chắc chắn sẽ xảy ra tranh chấp.",
+    "Không thể nói rằng, không phải điềm báo chắc chắn sẽ xảy ra tranh chấp.",
+    "Phủ nhận việc đây không phải điềm báo chắc chắn sẽ xảy ra tranh chấp.",
+    "Không chỉ là điều chắc chắn sẽ gặp tranh chấp.",
+    "Không phải điềm báo chắc chắn, hãy mua bùa chú.",
+    "Không phải điềm báo chắc chắn nhưng không tránh khỏi tranh chấp.",
+  ])("preserves affirmative certainty and mixed-content stops: %s", text => {
+    const report = content(); report.periods[0]!.narrative += text;
+    expect(validatePeriodReading(report, facts).findings).toContain("CONTENT_LINE_VIOLATION");
+  });
   it("returns editorial advice after one provider call without corrective billing", async () => {
     const report = content(); report.overview.narrative += " Bản mệnh có thể cân nhắc.";
     const generateStructured = vi.fn().mockResolvedValue({ ok: true, value: { value: report, providerId: "fixture", modelId: "fixture" } });
