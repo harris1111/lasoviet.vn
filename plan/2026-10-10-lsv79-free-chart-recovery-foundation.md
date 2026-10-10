@@ -18,6 +18,7 @@ Implement an immutable private source/first-view authority and disconnected capt
 - Existing `pending-topup-recovery-capture.ts`, `pending-topup-recovery-runner.ts`, `auth-email.ts`: shared cap and generic sender exclusion only.
 - `packages/backend/src/privacy/anonymous-retention.repository.ts` (pre-cascade coordination only), `privacy/deletion.repository.ts`, `ziwei/free-palace-artifact.repository.ts`, `birth-profile/birth-profile.repository.ts`: source/captured payload lifecycle purge and necessary existing coordination fences only.
 - `packages/backend/src/notifications/free-chart-recovery.integration.test.ts`: meaningful real PostgreSQL acceptance.
+- `packages/database/src/schema/schema.integration.test.ts`: disposable historical-schema rewind support for the new migration only.
 
 No backend root export, API/BFF route, worker construction, frontend, runtime flag, operator, native campaign, SMTP, provider, wallet/order or held commercial policy change is allowed.
 
@@ -56,3 +57,11 @@ The first working review identified a real existing anonymous consent/delete loc
 - Independent review found the anonymous consent/delete lock cycle above; pre-row fence and actual concurrent FK regression fix it. Corrected seven-file focused suite:136/136 PASS. Latest source additionally verifies actual official anonymous linking with a frozen Date and a committed purchase behind a busy chart mutex:50/50 free-chart integration cases PASS.
 - Required i18n/lint/typecheck passed; four existing frontend warnings, zero lint errors. A final required-check run is binding to the final corrected source before push.
 - Exact twenty-two bounded files: original twenty-one plus independently approved anonymous pre-cascade fence. No private service runtime caller/root export, public UI producer, worker construction, outbound/native/provider operation or commerce policy activation. These isolated private mechanics are not full LSV79 or LSV85 acceptance.
+
+## CI historical-schema fixture amendment
+
+Both original source CI runs (38087739778 push and 38087742758 pull request at 82346cec) actually failed in the existing historical-schema integration fixture. Its three checkpoint rewinds retained the new 0072 enum value/table/function, so replay failed on the duplicate enum value and subsequent tests observed the incomplete historical schema. Preserve these failures; they are not infrastructure cancellations.
+
+Independent PLAN_GO authorizes exactly the existing database schema integration test and this brief. In its disposable PostgreSQL only, a transaction asserts no new-kind delivery exists, drops the new source table/function, recreates the notification enum with all nine previous labels, casts and preserves existing delivery rows, and removes the old enum without CASCADE. Invoke before each of the three historical journal rewinds, then verify the new enum/table/immutable trigger after normal forward migration. Production SQL, journal, migration runner and all runtime bytes remain unchanged. Run the entire database schema integration suite, mandatory checks and independent source/evidence review before a new push; both fresh CI remain mandatory.
+
+Actual corrected full database schema PostgreSQL suite:25/25 PASS, process exit0 consumed. All three historical checkpoints replay normally and recover the source table, enum label and enabled immutable trigger. The earlier exact foundation50/50 PASS and all runtime hashes remain unchanged; the amendment adds only this QA file (twenty-three owned files total).

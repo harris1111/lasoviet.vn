@@ -80,6 +80,59 @@ describe("database schema integration", () => {
     | undefined;
   let databaseUrl: string;
 
+  async function removeFreeChartRecoveryForRewind(
+    client: ReturnType<typeof postgres>,
+  ): Promise<void> {
+    // Only this disposable fixture rewinds; production migrations stay immutable.
+    await client.begin(async (transaction) => {
+      const [deliveries] = await transaction<{ count: number }[]>`
+        SELECT count(*)::int AS count FROM notification_deliveries
+        WHERE kind = 'recovery_free_chart'
+      `;
+      expect(deliveries?.count).toBe(0);
+      await transaction`DROP TABLE free_chart_recovery_sources`;
+      await transaction`DROP FUNCTION reject_free_chart_recovery_source_update()`;
+      await transaction`
+        ALTER TYPE notification_delivery_kind
+        RENAME TO notification_delivery_kind_with_free_chart
+      `;
+      await transaction`
+        CREATE TYPE notification_delivery_kind AS ENUM (
+          'email_verification', 'password_reset', 'report_ready', 'report_failed',
+          'nurture_verified_signin', 'han_month_reminder', 'delayed_unlock_completed',
+          'membership_expiry', 'recovery_pending_topup'
+        )
+      `;
+      await transaction`
+        ALTER TABLE notification_deliveries ALTER COLUMN kind
+        TYPE notification_delivery_kind USING kind::text::notification_delivery_kind
+      `;
+      await transaction`DROP TYPE notification_delivery_kind_with_free_chart`;
+    });
+  }
+
+  async function expectCurrentFreeChartRecoverySchema(
+    client: ReturnType<typeof postgres>,
+  ): Promise<void> {
+    const [schema] = await client<{ source_table: string; enum_value: boolean; immutable_trigger: boolean }[]>`
+      SELECT to_regclass('public.free_chart_recovery_sources')::text AS source_table,
+        EXISTS (
+          SELECT 1 FROM pg_enum value JOIN pg_type type ON type.oid = value.enumtypid
+          WHERE type.typname = 'notification_delivery_kind' AND value.enumlabel = 'recovery_free_chart'
+        ) AS enum_value,
+        EXISTS (
+          SELECT 1 FROM pg_trigger
+          WHERE tgrelid = 'public.free_chart_recovery_sources'::regclass
+            AND tgname = 'free_chart_recovery_source_immutable' AND tgenabled = 'O'
+        ) AS immutable_trigger
+    `;
+    expect(schema).toEqual({
+      source_table: "free_chart_recovery_sources",
+      enum_value: true,
+      immutable_trigger: true,
+    });
+  }
+
   async function synchronizeWalletFixtureLots(transaction: Pick<ReturnType<typeof createDatabase>, "execute">, walletId: string): Promise<void> {
     // Raw SQL fixtures post both the immutable events and their lot balance.
     // Recognition inputs stay independently specified by each test.
@@ -231,6 +284,7 @@ describe("database schema integration", () => {
     const checkpointId = "62000000-0000-4000-8000-000000000001";
     const candidateId = "62000000-0000-4000-8000-000000000002";
     try {
+      await removeFreeChartRecoveryForRewind(client);
       await removeFrozenPurchaseTermsForRewind(client);
       await client`
         ALTER TABLE report_section_quality_candidates
@@ -285,6 +339,7 @@ describe("database schema integration", () => {
       `;
 
       await runMigrations(databaseUrl);
+      await expectCurrentFreeChartRecoverySchema(client);
       const [candidate] = await client<{
         id: string;
         candidate_hash: string;
@@ -560,6 +615,7 @@ describe("database schema integration", () => {
     });
 
     try {
+      await removeFreeChartRecoveryForRewind(client);
       await removeFrozenPurchaseTermsForRewind(client);
       await client`
         ALTER TABLE wallet_purchase_intents
@@ -632,6 +688,7 @@ describe("database schema integration", () => {
       `;
 
       await runMigrations(databaseUrl);
+      await expectCurrentFreeChartRecoverySchema(client);
       await expectCurrentClaudePricingAndJournal(client);
       const [provenanceTableCheck] = await client<{ exists: boolean }[]>`
         SELECT EXISTS (
@@ -3526,6 +3583,7 @@ describe("database schema integration", () => {
     const eventId = "checkpoint-upgrade-event";
 
     try {
+    await removeFreeChartRecoveryForRewind(client);
     await removeFrozenPurchaseTermsForRewind(client);
     await database.insert(authUsers).values({
       id: userId,
@@ -3821,6 +3879,7 @@ describe("database schema integration", () => {
     expect(Number(latestBefore?.created_at)).toBe(1789977600000);
 
     await runMigrations(databaseUrl);
+    await expectCurrentFreeChartRecoverySchema(client);
 
     const [latestAfter] = await client<{ created_at: string }[]>`
       SELECT created_at FROM drizzle.__drizzle_migrations ORDER BY created_at DESC LIMIT 1
