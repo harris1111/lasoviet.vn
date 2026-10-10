@@ -2,8 +2,8 @@ import { LaSkuSchema, isQualifyingRolloverSku, SINGLE_PALACE_SKUS, ROLLOVER_WIND
 import type { walletPurchaseIntents } from "@lasoviet/database";
 
 export const creditProofSchema = z.object({
-  version: z.literal(1),
-  creditLa: z.number().int().positive().max(960),
+  version: z.union([z.literal(1), z.literal(2)]),
+  creditLa: z.number().int().positive().max(1200),
   sources: z.array(z.object({
     spendId: z.string().uuid(),
     sku: LaSkuSchema.refine(isQualifyingRolloverSku),
@@ -15,7 +15,7 @@ export const creditProofSchema = z.object({
   if (new Set(proof.sources.map(source => source.spendId)).size !== proof.sources.length ||
       proof.sources.some(source => source.creditedLa > source.amountLa) ||
       proof.sources.reduce((sum, source) => sum + source.creditedLa, 0) !== proof.creditLa ||
-      Math.min(960, proof.sources.reduce((sum, source) => sum + source.amountLa, 0)) !== proof.creditLa) {
+      Math.min(proof.version === 1 ? 960 : 1200, proof.sources.reduce((sum, source) => sum + source.amountLa, 0)) !== proof.creditLa) {
     context.addIssue({ code: "custom", message: "Credit proof must match unique original spend allocations" });
   }
 });
@@ -32,25 +32,33 @@ const historicalBasePrices: Readonly<Record<string, number>> = {
   "MEMBERSHIP-YEARLY-P0": 8000, "MEMBERSHIP-YEARLY-8000": 8000,
   ...Object.fromEntries(SINGLE_PALACE_SKUS.map(sku => [sku, 120])),
 };
+export type PurchaseCommercialPolicy = "pre-fd119" | "fd119";
+const postFd119BasePrices: Readonly<Record<string, number>> = {...historicalBasePrices, "ZIWEI-IDENTITY-P0": 1200};
+
+function guaranteeFor(policy: PurchaseCommercialPolicy, chargedLa: number): "none" | "full" | "half" {
+  return chargedLa === 0 ? "none" : chargedLa < 500 ? "full" : policy === "fd119" ? "half" : "none";
+}
+
 const CommercialTermsSchema = z.object({
-  version: z.literal(1), policy: z.literal("pre-fd119"),
+  version: z.union([z.literal(1), z.literal(2)]), policy: z.enum(["pre-fd119", "fd119"]),
   ownerId: z.string().min(1), chartId: z.string().min(1), chartVersionId: z.string().min(1),
   sku: z.string().min(1), locale: z.enum(["vi", "en"]), periodKey: z.string().min(1),
   createdAt: z.iso.datetime({ offset: true }),
   basePriceLa: z.number().int().positive(), chargedLa: z.number().int().nonnegative(),
   creditLa: z.number().int().nonnegative(), discountLa: z.number().int().nonnegative(),
-  guarantee: z.enum(["full", "none"]),
+  guarantee: z.enum(["full", "none", "half"]),
   discountBasis: z.enum(["none", "membership", "rollover", "monthly_grant", "legacy_unknown"]),
   creditExpiresAt: z.iso.datetime({ offset: true }).optional(),
   creditProof: creditProofSchema.optional(),
 }).strict().superRefine((terms, context) => {
-  const expected = historicalBasePrices[terms.sku];
-  const invalid = expected === undefined || terms.basePriceLa !== expected ||
+  const expected = (terms.policy === "pre-fd119" ? historicalBasePrices : postFd119BasePrices)[terms.sku];
+  const invalid = terms.version !== (terms.policy === "pre-fd119" ? 1 : 2) || expected === undefined || terms.basePriceLa !== expected ||
     terms.basePriceLa !== terms.chargedLa + terms.creditLa + terms.discountLa ||
-    terms.guarantee !== (terms.chargedLa > 0 && terms.chargedLa < 500 ? "full" : "none") ||
+    terms.guarantee !== guaranteeFor(terms.policy, terms.chargedLa) ||
+    (terms.guarantee === "half" && terms.chargedLa % 2 !== 0) ||
     (terms.creditLa > 0
       ? terms.sku !== "ZIWEI-IDENTITY-P0" || terms.discountLa !== 0 ||
-        terms.creditProof?.creditLa !== terms.creditLa || !terms.creditExpiresAt ||
+        terms.creditProof?.creditLa !== terms.creditLa || terms.creditProof?.version !== (terms.policy === "pre-fd119" ? 1 : 2) || !terms.creditExpiresAt ||
         Date.parse(terms.creditExpiresAt) <= Date.parse(terms.createdAt)
       : terms.creditProof !== undefined || terms.creditExpiresAt !== undefined) ||
     (terms.creditProof !== undefined && (terms.creditProof.sources.some(source => Date.parse(source.spentAt) > Date.parse(terms.createdAt)) ||
@@ -99,12 +107,12 @@ function parseBoundTerms(intent: IntentTerms, value: unknown): PurchaseCommercia
 /** Private server factory; clients cannot submit commercial policy or refund authority. */
 export function freezePurchaseCommercialTerms(intent: Omit<IntentTerms, "commercialTerms">, quote?: {
   creditLa?: number; creditExpiresAt?: string; creditProof?: CreditProof;
-}): Record<string, unknown> {
-  const basePriceLa = historicalBasePrices[intent.sku];
+}, policy: PurchaseCommercialPolicy = "fd119"): Record<string, unknown> {
+  const basePriceLa = (policy === "pre-fd119" ? historicalBasePrices : postFd119BasePrices)[intent.sku];
   const creditLa = quote?.creditLa ?? 0;
-  return CommercialTermsSchema.parse({ ...binding(intent), version: 1, policy: "pre-fd119",
+  return CommercialTermsSchema.parse({ ...binding(intent), version: policy === "pre-fd119" ? 1 : 2, policy,
     basePriceLa, chargedLa: intent.priceLa, creditLa, discountLa: basePriceLa! - intent.priceLa - creditLa,
-    guarantee: intent.priceLa > 0 && intent.priceLa < 500 ? "full" : "none",
+    guarantee: guaranteeFor(policy, intent.priceLa),
     discountBasis: creditLa > 0 ? "rollover" : intent.sku === "ZIWEI-MONTHLY-P0" && intent.priceLa === 0
       ? "monthly_grant" : intent.priceLa < basePriceLa! ? "membership" : "none",
     ...(creditLa > 0 ? { creditExpiresAt: quote?.creditExpiresAt, creditProof: quote?.creditProof } : {}),

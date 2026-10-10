@@ -1,3 +1,4 @@
+import { createGuaranteeFeedbackService } from "./guarantee-feedback.service.js";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { randomUUID } from "node:crypto";
@@ -334,8 +335,9 @@ describe("commerce repository - library and order history (WP-03)", () => {
     const owner = await createOwnerFixture({ displayName: "Restored wallet library owner" });
     const audit = await createOwnerFixture({ displayName: "Restored wallet library audit" });
     const authority = { token: {}, actorId: audit.userId };
-    const walletRepository = createDatabaseWalletRepository(database, { trustedGrantAuthority: authority });
-    const unlock = createWalletUnlockService(database, createWalletService(walletRepository));
+    const fixed = new Date("2026-10-08T00:00:00Z");
+    const walletRepository = createDatabaseWalletRepository(database, { trustedGrantAuthority: authority, now: () => fixed });
+    const unlock = createWalletUnlockService(database, createWalletService(walletRepository), {now: () => fixed});
     const grant = await walletRepository.grant({
       targetOwnerId: owner.userId,
       trustedGrantToken: authority.token,
@@ -413,7 +415,11 @@ describe("commerce repository - library and order history (WP-03)", () => {
         expectedWalletVersion: 3,
       },
     });
-    if (!restored.ok) throw new Error(`wallet restoration failed: ${restored.error.code}`);
+    expect(restored).toMatchObject({ok: false, error: {code: "WALLET_INVALID_COMMAND"}});
+    const claimed = await createGuaranteeFeedbackService(database, {now: () => fixed}).claimGuarantee(owner.actor, {
+      chartId: owner.chartId, partId: "ZIWEI-NATAL-EXCERPT-P0", rating: "inaccurate", idempotencyKey: randomUUID(),
+    });
+    expect(claimed).toMatchObject({ok: true, value: {amountLaRestored: 240}});
     await expect(repo.readAccountLibraryV2(owner.actor)).resolves.toEqual({
       version: 2,
       items: [],

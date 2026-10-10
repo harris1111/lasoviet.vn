@@ -1,3 +1,4 @@
+import { freezePurchaseCommercialTerms } from "../commerce/purchase-commercial-terms.js";
 import { randomUUID } from "node:crypto";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -55,7 +56,9 @@ describe("pending top-up recovery capture with isolated PostgreSQL", () => {
       normalizedOutput: {}, privateRawSnapshot: {}, warnings: [], provenance: {}, createdAt: CREATED });
     const intentId = randomUUID(); const orderId = randomUUID();
     await database.insert(walletPurchaseIntents).values({ id: intentId, ownerId: userId, chartId, chartVersionId,
-      sku, locale, priceLa, createdAt: CREATED });
+      sku, locale, priceLa, createdAt: CREATED,
+      ...(priceLa === 1200 ? {commercialTerms: freezePurchaseCommercialTerms({ownerId: userId, chartId, chartVersionId,
+        sku, locale, periodKey: "lifetime", priceLa, createdAt: CREATED})} : {}) });
     await addOrder(orderId, intentId, userId, locale, priceLa);
     return { userId, email, chartId, chartVersionId, profileId, revisionId, runId, consentId, intentId, orderId };
   }
@@ -240,4 +243,14 @@ describe("pending top-up recovery capture with isolated PostgreSQL", () => {
       documentKey: "offers", documentVersion: "test-v2", purposes: ["offers"], grantedAt: NOW });
     expect(await service().scanAndCapture()).toBe(1);
   });
+  it("uses each purchase's frozen base across the FD119 catalog change", async () => {
+    const original = await fixture("vi", 960); const current = await fixture("vi", 1200);
+    expect(await service().scanAndCapture()).toBe(2);
+    const records = await captures();
+    expect(records.find(item => item.requestPayload.orderId === original.orderId)!.requestPayload.amountLa).toBe(960);
+    expect(records.find(item => item.requestPayload.orderId === current.orderId)!.requestPayload.amountLa).toBe(1200);
+    expect(records.every(item => item.status === "captured" && item.sentAt === null)).toBe(true);
+    expect(await database.select().from(walletTransactions)).toHaveLength(0);
+  });
+
 });

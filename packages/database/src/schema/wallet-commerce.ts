@@ -116,7 +116,7 @@ export const walletPurchaseIntents = pgTable("wallet_purchase_intents", {
   uniqueIndex("wallet_purchase_intents_owner_chart_sku_pending_unique").on(table.ownerId, table.chartId, table.sku).where(sql`${table.status} = 'pending'`),
   check("wallet_purchase_intents_valid", sql`(
     (${table.sku} = 'ZIWEI-NATAL-EXCERPT-P0' AND ${table.locale} = 'vi' AND ${table.priceLa} IN (240, 192))
-    OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} >= 0 AND ${table.priceLa} <= 960)
+    OR (${table.sku} = 'ZIWEI-IDENTITY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} >= 0 AND ${table.priceLa} <= 1200)
     OR (${table.sku} = 'ZIWEI-RELATIONSHIP-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-CAREER-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} IN (480, 384))
     OR (${table.sku} = 'ZIWEI-TODAY-P0' AND ${table.locale} IN ('vi', 'en') AND ${table.priceLa} = 60)
