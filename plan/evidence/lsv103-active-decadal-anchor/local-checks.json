@@ -1,0 +1,54 @@
+{
+  "status": "LOCAL_SOURCE_CHECKS_PASSED_REQUIRES_INDEPENDENT_REVIEW",
+  "observedAt": "2026-10-10T20:11:34.965908+00:00",
+  "baseSha": "1466aeb081c26be640225e6ff70956e2765ae2e3",
+  "sourceHashes": {
+    "packages/backend/src/reports/topic-deep-dive-quality-v4.ts": "ec9164b58550d0e6db299ef467744d7a0bc5469222d9aa241da496612eae0e77",
+    "packages/backend/src/reports/topic-deep-dive-quality-v4.test.ts": "d1c386bec3d0e6bde868110380f9d77a94f4de120194382685cb3e96bd227278",
+    "packages/backend/src/reports/topic-report-config.ts": "fc2e7931cf556a63a78bf8a9464642deb5fea31b6493deacad3e005ee60249cf",
+    "packages/backend/src/reports/reading-content-line.test.ts": "533e1dc913cdcf8c1e2b5ba030b0d0a6b3931fae46129e4c08e26896c1795d85"
+  },
+  "checks": {
+    "focusedQualityTupleQuery": {
+      "logSha256": "cdb2c932220a0f8ebe650ed4b9b9837e2f639e8d60aec045688433add3edd610",
+      "exitCode": 0,
+      "passedTests": 227
+    },
+    "focusedWriterDelivery": {
+      "logSha256": "08dea3888503d89544f8df7fd82b0cf9781bfe19d498b8ee91694a006bf169ef",
+      "exitCode": 0,
+      "passedTests": 12
+    },
+    "historicalScriptChecks": {
+      "logSha256": "b475e2ec0b4483e3caa7dc3595da7049c5b4cf1c89fdd512dc32f548c6598bbd",
+      "exitCode": 0,
+      "passedTests": 150
+    },
+    "mandatoryChecks": {
+      "logSha256": "d9eb294b976d6409665a082b7d1f17b6dd8c792fc60bc65040992db148bd1839",
+      "exitCode": 0,
+      "passedTests": null
+    }
+  },
+  "focusedPassedTests": 239,
+  "scriptPassedTests": 150,
+  "mandatory": [
+    "i18n:check",
+    "lint",
+    "typecheck"
+  ],
+  "lintWarnings": "Four existing web warnings; no lint errors",
+  "topicQualityVersion": "ziwei.topic-deep-dive.quality.v6",
+  "periodQualityVersion": "ziwei.period-reading.quality.v4",
+  "historicalTopicVersionsPreserved": [
+    "v1",
+    "v2",
+    "v3",
+    "v4",
+    "v5"
+  ],
+  "providerCalls": 0,
+  "databaseCalls": 0,
+  "authorityWrites": 0,
+  "deploymentProven": false
+}

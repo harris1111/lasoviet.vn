@@ -365,6 +365,66 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
     expect(coordinateFindings("Cung Phúc Đức tại Thìn.")).toEqual([]);
   });
 
+  it.each([
+    "Đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Đại vận tọa thủ tại cung Phúc Đức ở Canh Thìn.",
+    "Đại vận tọa thủ tại cung Phúc Đức ở Canh Thân.",
+    "Đại vận tọa thủ tại cung Phúc Đức ở Giáp Thìn.",
+    "Không phải chưa thể khẳng định đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Tôi không phủ nhận đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Chưa thể khẳng định đại vận tọa thủ tại cung Phúc Đức ở Thìn; đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Tôi phủ nhận đại vận tọa thủ tại cung Phúc Đức ở Thìn, nhưng đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Đại vận hiện tại đang tọa lạc tại cung Phúc Đức ở Thìn.",
+    "Đại vận đóng tại cung Tài Bạch.",
+    "Đại vận an ở Phúc Đức tại Thân, với can Canh.",
+    "Đại vận tọa thủ tại cung Phúc Đức ở Thân, với can Giáp/Canh.",
+    "Không phải không phải đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Không thể nói rằng không phải đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Không phải đại vận tọa thủ tại cung Phúc Đức ở Thìn. Đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Nếu giờ sinh khác, đại vận tọa thủ tại cung Phúc Đức ở Thìn; đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Không phải đại vận tọa thủ tại cung Phúc Đức ở Thìn, nhưng đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+  ])("checks affirmative active anchor independently from a rotated role: %s", sentence => {
+    for (const form of ["NFC", "NFD"] as const) {
+      expect(coordinateFindings(sentence.normalize(form))).toEqual(expect.arrayContaining([
+        expect.objectContaining({code: "DECADAL_TIMING_MISMATCH", note: expect.stringContaining("Explicit active decadal placement")}),
+      ]));
+    }
+  });
+
+  it.each([
+    "Đại vận tọa thủ tại cung Phúc Đức ở Thân, với can Giáp.",
+    "Đại vận tọa thủ tại cung Phúc Đức ở Giáp Thân.",
+    "Chưa thể khẳng định đại vận tọa thủ tại cung Phúc Đức ở Canh Thìn.",
+    "Chưa thể kết luận rằng đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Tôi phủ nhận đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Đại vận hiện hành đang đóng tại cung Phúc Đức gốc ở Thân.",
+    "Đại vận này an tại Phúc Đức.",
+    "Cung Phúc Đức của đại vận ở Thìn, với can Giáp.",
+    "Không phải đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Chẳng phải là đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Đại vận không tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Nếu giờ sinh khác, đại vận tọa thủ tại cung Phúc Đức ở Thìn.",
+    "Đại vận tọa thủ tại cung Phúc Đức ở Thìn nếu giờ sinh khác.",
+    "Không phải đại vận tọa thủ tại cung Phúc Đức ở Thìn; đại vận tọa thủ tại cung Phúc Đức ở Thân.",
+    "Không nên suy đoán vị trí đại vận khi chưa có dữ liệu giờ sinh.",
+  ])("preserves sourced placement, explicit rotated roles and local qualifications: %s", sentence => {
+    expect(coordinateFindings(sentence.normalize("NFD"))).toEqual([]);
+  });
+
+  it("allows an active anchor coinciding with its rotated same-named role", () => {
+    const source = coordinateFacts();
+    if (source.timing.decadal.state !== "active") throw new Error("Active fixture required");
+    source.timing.decadal.palaces.find(palace => palace.palaceId === "ziwei.palace.fortune")!.earthlyBranchId = "ziwei.branch.monkey";
+    expect(coordinateFindings("Đại vận tọa thủ tại cung Phúc Đức ở Thân. Cung Phúc Đức đại vận ở Thân.", source)).toEqual([]);
+  });
+
+  it("rejects explicit active placement before decadal timing starts", () => {
+    const source = coordinateFacts();
+    source.timing.decadal = {state: "not_started", firstCycleStartAge: 6, firstCycleStartYear: 2032};
+    expect(coordinateFindings("Đại vận tọa thủ tại cung Phúc Đức ở Thân.", source).some(finding =>
+      finding.code === "DECADAL_TIMING_MISMATCH" && finding.note.includes("Explicit active decadal placement"))).toBe(true);
+  });
+
   it("rejects an explicit decadal coordinate when no active role is available", () => {
     const source = coordinateFacts();
     source.timing.decadal = { state: "not_started", firstCycleStartAge: 6, firstCycleStartYear: 2032 };
