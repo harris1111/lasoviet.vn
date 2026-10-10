@@ -1,0 +1,54 @@
+{
+  "status": "LOCAL_CHECKS_PASS_NOT_RELEASED",
+  "observedAt": "2026-10-10T18:46:17.580424+00:00",
+  "baseSha": "54dca85da9f8ef64b1727ceb11f7ca9132a5fd0e",
+  "scope": "Objective source-fact guard holes and bounded ordinary-language false positives; no style hardening/native/authority/FE writes",
+  "focusedTests": {
+    "files": 5,
+    "passed": 278,
+    "failed": 0
+  },
+  "mandatoryChecks": {
+    "i18n": "PASS",
+    "lint": "PASS_WITH_4_EXISTING_FE_WARNINGS",
+    "typecheck": "PASS"
+  },
+  "logs": {
+    "focused": {
+      "path": "/tmp/lasoviet-paid-factual-guard-focused-final-20261010.log",
+      "sha256": "99da546726a1262b27712b235bf689b568ed1582ed22e0842b780c2e0da3fbd7"
+    },
+    "required": {
+      "path": "/tmp/lasoviet-paid-factual-guard-required-final-20261010.log",
+      "sha256": "be8200291d3974b1d7ac96ff8cf5b0f10e2a49c56360c01952630ba9b275d1ac"
+    }
+  },
+  "compiled": [
+    {
+      "module": "topic-deep-dive-quality-v4",
+      "sourceSha256": "925b87a75ba0c2ac74206311a36f0acb5052b02652531681d500928a783faa9c",
+      "distSha256": "df62a5106bf2121f0de3e86f922aebb52dc09d0ba576cd294258570bb55379fa",
+      "compiledAfterSource": true
+    },
+    {
+      "module": "period-reading-writer",
+      "sourceSha256": "6bc353bab26ea38ed95dbd708b5fb8545cbbd5b936363b31ed27d79429716f37",
+      "distSha256": "537f8c26b86027379cce878c432f8177cae2c2f4c6463ec503e56467cdeb5c71",
+      "compiledAfterSource": true
+    },
+    {
+      "module": "reading-content-line",
+      "sourceSha256": "8e8e9f189e484849d2f095761d61370581fc0fb6ebd63de0c5d4b75d253efc62",
+      "distSha256": "50be0d7238920de7e1dfaef990002d499f2fc3ad5c585d8e96ba71c1af470abd",
+      "compiledAfterSource": true
+    },
+    {
+      "module": "topic-report-config",
+      "sourceSha256": "9bd11dae847db34c1772c2c799f5bb0d3ac47085635c9ecf2542bd6afd3a66a3",
+      "distSha256": "883104f97de1711b6226b58547b07ac54b70ab9a6cd048bd92ddbee2a5254379",
+      "compiledAfterSource": true
+    }
+  ],
+  "actualOriginalEditorialReceiptSha256": "327ff3de93b8302a54f7e3112d33095685a7d4282bb6a677c4331199a26f06ba",
+  "release": "PENDING independent working/exact review, CI, merge, deploy and installed smoke"
+}

@@ -19,7 +19,7 @@ import {
 } from "./comprehensive-report-quality-v4.js";
 import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "./ziwei-canonical-labels.js";
 import { normalizeComprehensiveReportModelProse } from "./comprehensive-report-writer.js";
-import { hasProhibitedReadingAdvice } from "./reading-content-line.js";
+import { hasProhibitedReadingAdvice, hasProhibitedReadingLifespan } from "./reading-content-line.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
 import {
   REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY,
@@ -87,6 +87,9 @@ function checkExplicitPalaceCoordinates(
   addFinding: (code: TopicDeepDiveQualityFindingCode, note: string) => void,
 ) {
   const branches = branchLabels.map(escapeProsePattern).join("|");
+  const stems = Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+    .filter(([id]) => id.startsWith("ziwei.stem."))
+    .map(([, label]) => escapeProsePattern(label)).join("|");
   for (const palace of facts.natal.palaces) {
     const label = displayFact(palace.palaceId);
     if (!label) continue;
@@ -94,15 +97,19 @@ function checkExplicitPalaceCoordinates(
       ? facts.timing.decadal.palaces.find(role => role.palaceId === palace.palaceId)
       : undefined;
     const layers = [
-      { name: "natal", scope: "gốc", expected: palace.earthlyBranchId, code: "PALACE_FACTS" },
-      { name: "decadal", scope: String.raw`(?:của\s+)?đại\s+vận`, expected: decadal?.earthlyBranchId, code: "DECADAL_TIMING_MISMATCH" },
+      { name: "natal", scope: "gốc", expected: palace.earthlyBranchId, stem: palace.heavenlyStemId, code: "PALACE_FACTS" },
+      { name: "decadal", scope: String.raw`(?:của\s+)?đại\s+vận`, expected: decadal?.earthlyBranchId, stem: decadal?.heavenlyStemId, code: "DECADAL_TIMING_MISMATCH" },
     ] as const;
     for (const layer of layers) {
       // Explicit gốc means natal even within a paragraph about decadal timing.
       // Unqualified palace mentions do not select a coordinate system here.
-      const claim = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:cung\s+)?${escapeProsePattern(label)}\s+${layer.scope}\s+(?:(?:an|tọa|đóng)\s+)?tại\s+(${branches})(?![\p{L}\p{N}])`, "giu");
+      const claim = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:cung\s+)?${escapeProsePattern(label)}\s+${layer.scope}\s+(?:(?:an|tọa(?:\s+lạc)?|đóng)\s+)?(?:tại|ở)\s+(${branches})(?![\p{L}\p{N}])(?:\s*,?\s*(?:(?:với|mang|có)\s+)?(?:thiên\s+)?can\s+((?:${stems})(?:\s*/\s*(?:${stems}))*)(?![\p{L}\p{N}]))?`, "giu");
       for (const match of text.matchAll(claim)) {
         const prefix = text.slice(0, match.index).toLocaleLowerCase("vi");
+        const clausePrefix = prefix.split(/[.!?;\n]|(?<![\p{L}\p{N}])(?:nhưng|còn)(?![\p{L}\p{N}])/u).at(-1)!;
+        const tail = text.slice(match.index! + match[0].length);
+        if (["nếu", "giả sử"].some(term => wholeWord(clausePrefix, term)) ||
+            /^\s*(?:nếu|giả\s+sử|khi\s+(?:giờ\s+sinh|lá\s+số)\s+khác)(?![\p{L}\p{N}])/iu.test(tail)) continue;
         const denial = /(?<![\p{L}\p{N}])không\s+phải(?:\s+là)?\s*$/u.exec(prefix);
         const outerPrefix = denial ? prefix.slice(0, denial.index).split(/[.!?;\n]/u).at(-1)! : "";
         const outerDenial = /(?<![\p{L}\p{N}])(?:không|chưa|chẳng|đừng|tránh|phủ nhận|bác bỏ|chối bỏ)(?![\p{L}\p{N}])/u.test(outerPrefix);
@@ -113,6 +120,105 @@ function checkExplicitPalaceCoordinates(
         if (observed !== layer.expected) {
           addFinding(layer.code, `Explicit ${layer.name} coordinate for ${palace.palaceId} is ${observed}; source requires ${layer.expected ?? "an unavailable decadal role"}.`);
         }
+        if (match[2]) {
+          for (const stemLabel of match[2].split(/\s*\/\s*/u)) {
+            const observedStem = Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+              .find(([id, name]) => id.startsWith("ziwei.stem.") && name.toLowerCase() === stemLabel.toLowerCase())?.[0];
+            if (observedStem !== layer.stem) {
+              addFinding(layer.code, `Explicit ${layer.name} stem for ${palace.palaceId} is ${observedStem}; source requires ${layer.stem ?? "an unavailable stem"}.`);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function checkExplicitBranchOpposition(
+  text: string,
+  addFinding: (code: TopicDeepDiveQualityFindingCode, note: string) => void,
+) {
+  const branches = branchLabels.map(escapeProsePattern).join("|");
+  const palaces = Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+    .filter(([id]) => id.startsWith("ziwei.palace."))
+    .map(([, label]) => escapeProsePattern(label.replace(/^cung\s+/u, ""))).join("|");
+  // Both named palace branches must be explicit. Geometry does not require
+  // guessing whether an unqualified palace is natal or decadal.
+  const claim = new RegExp(String.raw`cung\s+(?:${palaces})[^.!?;:\n]{0,65}?(?:tại|ở)\s+(${branches})(?![\p{L}\p{N}])[^.!?;:\n]{0,130}?(?:đối\s+xung|xung\s+(?:chiếu|đối))\s+(?:(?:sang|với|đến)\s+)?cung\s+(?:${palaces})[^.!?;:\n]{0,65}?(?:tại|ở)\s+(${branches})(?![\p{L}\p{N}])`, "giu");
+  for (const match of text.matchAll(claim)) {
+    const prefix = text.slice(0, match.index).split(/[.!?;\n]|(?<![\p{L}\p{N}])(?:nhưng|còn)(?![\p{L}\p{N}])/iu).at(-1)!;
+    const qualified = `${prefix} ${match[0]}`;
+    if (["nếu", "giả sử"].some(term => wholeWord(qualified, term)) || /không\s+(?:đối\s+xung|xung\s+(?:chiếu|đối))/iu.test(match[0])) continue;
+    const denialContext = prefix.replace(/(?:không\s+phải\s+(?:(?:là|rằng)\s+)?){2}/giu, "");
+    if (/không\s+phải(?:\s+là)?\s*$/iu.test(denialContext)) continue;
+    const left = branchLabels.findIndex(label => label.toLowerCase() === match[1]!.toLowerCase());
+    const right = branchLabels.findIndex(label => label.toLowerCase() === match[2]!.toLowerCase());
+    if ((right - left + 12) % 12 !== 6) {
+      addFinding("PALACE_FACTS", `Explicit branch opposition ${match[1]}/${match[2]} is not six positions apart.`);
+    }
+  }
+}
+
+function checkExplicitStarBrightness(
+  text: string,
+  sectionKey: string,
+  facts: ComprehensiveZiweiFactsV4,
+  addFinding: (code: TopicDeepDiveQualityFindingCode, note: string) => void,
+) {
+  const labels = [...new Set(Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+    .filter(([id]) => id.startsWith("ziwei.star."))
+    .map(([, label]) => label.replace(/^sao\s+/u, "")))].sort((a, b) => b.length - a.length);
+  const star = `(?:${labels.map(escapeProsePattern).join("|")})`;
+  const list = `${star}(?:\\s*(?:,\\s*(?:và\\s+)?|(?:và|cùng)\\s+)(?:sao\\s+)?${star})*`;
+  const brightness = "miếu\\s+vượng|miếu|vượng|đắc(?:\\s+địa)?|hãm(?:\\s+(?:địa|lực))?|bình(?:\\s+hòa)?|nhược";
+  const claim = new RegExp(`(?<![\\p{L}\\p{N}])(${list})\\s+((?:đều\\s+)?(?:ở\\s+)?trạng\\s+thái\\s+|(?:đều\\s+)?(?:ở\\s+|có\\s+độ\\s+sáng\\s+)?)(${brightness})(?![\\p{L}\\p{N}])`, "giu");
+  for (const match of text.matchAll(claim)) {
+    const prefix = text.slice(0, match.index).split(/[.!?;\n]|(?<![\p{L}\p{N}])(?:nhưng|còn)(?![\p{L}\p{N}])/iu).at(-1)!;
+    const tail = text.slice(match.index! + match[0].length);
+    if (["nếu", "giả sử", "khi", "trong trường hợp", "cách giải thích chung", "ví dụ chung", "trong lý thuyết"].some(term => wholeWord(prefix, term)) ||
+        /^\s*(?:,?\s*thì|nếu|giả\s+sử|khi\s+(?:giờ\s+sinh|lá\s+số)\s+khác)(?![\p{L}\p{N}])/iu.test(tail)) continue;
+    const palaceMentions = facts.natal.palaces.flatMap(palace => {
+      const label = displayFact(palace.palaceId);
+      if (!label) return [];
+      const pattern = new RegExp(`cung\\s+${escapeProsePattern(label.replace(/^cung\s+/u, ""))}(?![\\p{L}\\p{N}])`, "giu");
+      return [...prefix.matchAll(pattern)].map(mention => ({ palace, index: mention.index! }));
+    }).sort((a, b) => a.index - b.index);
+    const nearest = palaceMentions.at(-1);
+    const denialPattern = /(?<![\p{L}\p{N}])(?:không\s+(?:hề\s+)?(?:phải(?:\s+(?:là|rằng))?\s+)?|chưa\s+)(?:có(?:\s+sao)?\s*)?$/iu;
+    const denialPrefixes = [prefix, ...(nearest ? [prefix.slice(0, nearest.index)] : [])];
+    if (denialPrefixes.some(context => {
+      const denial = denialPattern.exec(context);
+      if (!denial) return false;
+      const outer = context.slice(0, denial.index);
+      return !["không", "chưa", "chẳng", "phủ nhận", "bác bỏ"].some(term => wholeWord(outer, term));
+    })) continue;
+    const layerContext = nearest ? prefix.slice(nearest.index) : prefix;
+    // Timing role facts do not expose per-star brightness. Never substitute a
+    // natal value for an explicitly different-layer or hypothetical statement.
+    if (!wholeWord(layerContext, "gốc") && ["đại vận", "lưu"].some(term => wholeWord(prefix, term))) continue;
+    const anchorId = /^palaceAnchors\[(.+)\]$/u.exec(sectionKey)?.[1];
+    const bound = nearest?.palace ?? facts.natal.palaces.find(palace => palace.palaceId === anchorId);
+    const namedStars = [...match[1]!.matchAll(new RegExp(star, "giu"))].map(named => named[0]);
+    // Bare enumeration modifies only the immediately preceding star:
+    // "Thiên Khôi, Linh Tinh Đắc" does not assign Đắc to Thiên Khôi.
+    const shared = /(?:đều|trạng\s+thái|có\s+độ\s+sáng)/iu.test(match[2]!);
+    for (const label of shared ? namedStars : namedStars.slice(-1)) {
+      const candidates = (bound ? [bound] : facts.natal.palaces).flatMap(palace => palace.stars
+        .filter(resident => displayFact(resident.id)?.toLocaleLowerCase("vi") === label.toLocaleLowerCase("vi")));
+      // Without an explicit palace, only a unique supplied value is checkable.
+      const sourceValues = [...new Set(candidates.map(resident => resident.brightness))];
+      if (sourceValues.length !== 1) continue;
+      const expected = sourceValues[0] ? displayFact(sourceValues[0]) : undefined;
+      const observed = match[3]!.split(/\s/u)[0]!;
+      // The engine's minor-star score mapping collapses multiple raw weak
+      // scores. It cannot distinguish Hãm from Nhược reliably here.
+      if (["ziwei.brightness.weak", "ziwei.brightness.unfavorable"].includes(sourceValues[0] ?? "") &&
+          ["hãm", "nhược"].includes(observed.toLocaleLowerCase("vi"))) continue;
+      // Combined miếu vượng is a broad favorable category, not an exact Miếu
+      // coordinate. Do not invent more precision than the stated assertion.
+      if (/^miếu\s+vượng$/iu.test(match[3]!) && ["Miếu", "Vượng"].includes(expected ?? "")) continue;
+      if (!expected || expected.toLocaleLowerCase("vi") !== observed.toLocaleLowerCase("vi")) {
+        addFinding("PALACE_FACTS", `Explicit brightness ${observed} for ${label} contradicts ${expected ?? "an unavailable brightness"}${bound ? ` in ${bound.palaceId}` : ""}.`);
       }
     }
   }
@@ -188,6 +294,8 @@ function checkProse(
 
   checkExplicitPalaceCoordinates(rawText, facts, addFinding);
   checkExplicitResidentStarLists(rawText, facts, addFinding);
+  checkExplicitBranchOpposition(rawText, addFinding);
+  checkExplicitStarBrightness(rawText, sectionKey, facts, addFinding);
 
   // Resident-major absence says nothing about the opposite palace. Check
   // explicit named-palace opposition claims against that separate source.
@@ -217,6 +325,9 @@ function checkProse(
   }
 
   // FD077/FD089 hard content boundary.
+  if (hasProhibitedReadingLifespan(normalized)) {
+    addFinding("DEATH_TERM", "Contains prohibited long-life vocabulary.");
+  }
   for (const term of deathTerms) {
     if (wholeWord(normalized, term)) {
       addFinding("DEATH_TERM", `Contains prohibited death/fatalistic term: ${term}.`);

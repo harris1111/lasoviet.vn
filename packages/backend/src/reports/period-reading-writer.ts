@@ -4,15 +4,16 @@ import type { ZiweiReportKnowledgePack } from "./comprehensive-report-retrieval.
 import type { AiProvider } from "../ai/ai-provider.js";
 import { countVietnameseSyllables, hasDiscouragedTerm, ENGLISH_BRIGHTNESS_PATTERN, HAN_IDEOGRAPH_PATTERN, wholeWord } from "./comprehensive-report-quality-v4.js";
 import { REPORT_CONFIG_VERSION_V4_1_1_SECTIONED_SENSITIVITY, REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY } from "./identity-report-config.js";
-import { hasProhibitedReadingAdvice } from "./reading-content-line.js";
+import { hasProhibitedReadingAdvice, hasProhibitedReadingLifespan } from "./reading-content-line.js";
 
 export const PERIOD_READING_QUALITY_VERSION_V1 = "ziwei.period-reading.quality.v1" as const;
 export const PERIOD_READING_QUALITY_VERSION_V2 = "ziwei.period-reading.quality.v2" as const;
 export const PERIOD_READING_QUALITY_VERSION_V3 = "ziwei.period-reading.quality.v3" as const;
+export const PERIOD_READING_QUALITY_VERSION_V4 = "ziwei.period-reading.quality.v4" as const;
 
 export const PERIOD_READING_TUPLE = {
   promptVersion: "ziwei.period-reading.prompt.v1", reportConfigVersion: "ziwei.period-reading.report.v1",
-  qualityVersion: PERIOD_READING_QUALITY_VERSION_V3, contentVersion: "ziwei.period-reading.v1",
+  qualityVersion: PERIOD_READING_QUALITY_VERSION_V4, contentVersion: "ziwei.period-reading.v1",
 } as const;
 const monthWords: Record<string, number> = { một: 1, giêng: 1, hai: 2, ba: 3, tư: 4, bốn: 4, năm: 5, sáu: 6, bảy: 7, tám: 8, chín: 9, mười: 10, "mười một": 11, "mười hai": 12, chạp: 12 };
 const monthPattern = /tháng\s+(mười hai|mười một|giêng|chạp|một|hai|ba|bốn|tư|năm|sáu|bảy|tám|chín|mười|\d{1,2})(?![\p{L}\p{N}])/giu;
@@ -25,6 +26,14 @@ function hasAffirmativeCertainty(text: string, terms: readonly string[]): boolea
       // Only the observed immediate denial governs this occurrence. A later
       // affirmative occurrence or a different configured term still fails.
       const prefix = normalized.slice(0, match.index);
+      const clause = prefix.split(/[.!?;,\n]|(?<![\p{L}\p{N}])(?:nhưng|còn)(?![\p{L}\p{N}])/u).at(-1)!;
+      const suffix = normalized.slice(match.index! + match[0].length);
+      // Steady preparation is not a promised event. These narrow forms require
+      // an actual planning/completion verb and cannot govern an asserted future
+      // outcome or qualify a later separate certainty occurrence.
+      if (term === "chắc chắn" && /^\s*(?:[.!?;,\n]|$)/u.test(suffix) &&
+          !/(?<![\p{L}\p{N}])(?:sẽ|ắt|tất yếu|lợi nhuận|thu nhập|thành công)(?![\p{L}\p{N}])/u.test(clause) &&
+          /(?<![\p{L}\p{N}])(?:điều chỉnh|chuẩn bị|lập|xây dựng|hoàn thiện)\s+(?:(?:kế hoạch|phương án|dự định)\s+)?(?:từng bước|một cách)\s*$/u.test(clause)) continue;
       const denial = /(?<![\p{L}\p{N}])không phải(?: là)? (?:điềm báo|điều)\s*$/u.exec(prefix);
       const outerPrefix = denial ? prefix.slice(0, denial.index).split(/[.!?;\n]/u).at(-1)! : "";
       const outerDenial = /(?<![\p{L}\p{N}])(?:không|chưa|chẳng|đừng|tránh|phủ nhận|bác bỏ|chối bỏ)(?![\p{L}\p{N}])/u.test(outerPrefix);
@@ -47,7 +56,7 @@ export function validatePeriodReading(content: ZiweiPeriodReadingContentV1, fact
     if (countVietnameseSyllables(text) < minimum) findings.push("MINIMUM_DEPTH");
     if (!keys.length || keys.some(key => !allowed.includes(key))) findings.push("EVIDENCE_MISMATCH");
     if (HAN_IDEOGRAPH_PATTERN.test(text) || ENGLISH_BRIGHTNESS_PATTERN.test(text)) findings.push("LOCALE_INVALID");
-    if (config.deathTerms.some(term => wholeWord(text, term)) || hasAffirmativeCertainty(text, config.certaintyPhrases) || hasProhibitedReadingAdvice(text)) findings.push("CONTENT_LINE_VIOLATION");
+    if (config.deathTerms.some(term => wholeWord(text, term)) || hasProhibitedReadingLifespan(text) || hasAffirmativeCertainty(text, config.certaintyPhrases) || hasProhibitedReadingAdvice(text)) findings.push("CONTENT_LINE_VIOLATION");
     if (/\b\d{1,2}[/-]\d{1,2}\b/u.test(text) || /ngày\s+\d{1,2}/iu.test(text)) findings.push("UNCOMPUTED_DAY");
     if ([...text.matchAll(/\b(?:19|20)\d{2}\b/g)].some(match => Number(match[0]) !== facts.targetYear)) findings.push("UNCOMPUTED_YEAR");
     for (const match of text.toLocaleLowerCase("vi").matchAll(monthPattern)) {
