@@ -1,3 +1,4 @@
+import { GuaranteePromiseV1Schema } from "@lasoviet/contracts";
 import { buildReaderUpgradePreview } from "./reader-upgrade-preview.js";
 import { periodKindForSku, isPeriodReportTuple, periodReportVersions } from "./period-report-config.js";
 import { ZiweiPeriodReadingContentV1Schema, ZiweiPeriodReadingFactsV1Schema, projectPeriodReadingPublicContent } from "@lasoviet/contracts";
@@ -193,6 +194,7 @@ function projectOwnedPalaces(
   const palaceReadings = stored.palaceReadings.filter((palace) => palaces.has(palace.palaceId))
     .map(({ palaceId, title, narrative }) => ({ palaceId, title, narrative }));
   return ReportPalacesReadyViewV1Schema.parse({
+    ...readyGuarantee(record),
     version: 1, state: "ready", contentVersion: "ziwei-palaces.v1", locale: "vi",
     reportId: record.reservation.reportId, reportVersionId: record.reservation.reportVersionId,
     sku: record.reservation.sku, fulfillmentStatus: record.reservation.status,
@@ -208,6 +210,13 @@ function projectOwnedPalaces(
     chartSnapshot: buildReportChartSnapshotFromStored(record.chartNormalizedOutput, record.sourceSnapshot, record.reservation.chartVersionId),
     lineage: { supersedesReportVersionId: record.version?.supersedesReportVersionId ?? null },
   });
+}
+
+function readyGuarantee(record: AuthorizedReportQueryRecord) {
+  if (record.source !== "ledger_spend" || record.wallet.guaranteePromise === undefined) return {};
+  const parsed = GuaranteePromiseV1Schema.safeParse(record.wallet.guaranteePromise);
+  if (!parsed.success) throw new ReportQueryDataError();
+  return {guaranteePromise: parsed.data};
 }
 
 export function createReportQueryService(options: {
@@ -383,7 +392,9 @@ export function createReportQueryService(options: {
             (periodKind === "annual" && (reservation.sku === "ZIWEI-YEAR-2026-P0"
               ? content.data.targetYear !== 2026 : content.data.periodKey !== String(content.data.targetYear))) || content.data.periods.length !== facts.data.periods.length ||
             new Set(content.data.periods.map(item => item.periodId)).size !== facts.data.periods.length || content.data.periods.some(item => !facts.data.periods.some(period => period.id === item.periodId))) throw new ReportQueryDataError();
-        const ready = ReportReadyViewV1Schema.safeParse({version: 1, state: "ready", contentVersion: tuple.contentVersion,
+        const ready = ReportReadyViewV1Schema.safeParse({
+          ...readyGuarantee(record),
+          version: 1, state: "ready", contentVersion: tuple.contentVersion,
           reportId: reservation.reportId, reportVersionId: reservation.reportVersionId, locale: "vi", sku: reservation.sku,
           fulfillmentStatus: reservationFulfillmentStatus, chartId: record.chartId, content: projectPeriodReadingPublicContent(content.data),
           lineage: {supersedesReportVersionId: version.supersedesReportVersionId ?? null}});
@@ -398,6 +409,7 @@ export function createReportQueryService(options: {
         const authorized = record.entitlements.some(entitlement => entitlement.active && entitlement.sku === reservation.sku && EntitlementScopeSchema.safeParse(entitlement.scope).data?.sections.includes("topicDeepDive"));
         if (!authorized || !isTopicReportTuple(version) || version.templateVersion !== tuple.templateVersion || version.renderVersion !== tuple.renderVersion || !content.success || content.data.topicId !== topicId) throw new ReportQueryDataError();
         const ready = ReportReadyViewV1Schema.safeParse({
+          ...readyGuarantee(record),
           version: 1, state: "ready", contentVersion: tuple.contentVersion,
           reportId: reservation.reportId, reportVersionId: reservation.reportVersionId,
           locale: "vi", sku: reservation.sku, fulfillmentStatus: reservationFulfillmentStatus, chartId: record.chartId,
@@ -474,6 +486,7 @@ export function createReportQueryService(options: {
             : TIER_1_ENTITLEMENT_SCOPE,
         );
         const readyParse = ReportReadyViewV1Schema.safeParse({
+        ...readyGuarantee(record),
           chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
@@ -548,6 +561,7 @@ export function createReportQueryService(options: {
         );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
+        ...readyGuarantee(record),
           chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
@@ -620,6 +634,7 @@ export function createReportQueryService(options: {
         );
 
         const readyParse = ReportReadyViewV1Schema.safeParse({
+        ...readyGuarantee(record),
           chartVersionId: version.chartVersionId,
           version: 1,
           state: "ready",
@@ -695,6 +710,7 @@ export function createReportQueryService(options: {
           : CANONICAL_PROFESSIONAL_ADVICE_DISCLAIMER_EN;
 
       const readyParse = ReportReadyViewV1Schema.safeParse({
+        ...readyGuarantee(record),
         chartId: record.chartId,
         chartVersionId: version.chartVersionId,
         version: 1,

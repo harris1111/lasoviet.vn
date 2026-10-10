@@ -124,7 +124,7 @@ describe("authorized offer ladder page", () => {
   it("shows API rollover rather than a fixed upgrade price", async () => {
     const value = available();
     const lifetime = value.quotes.find(item => item.sku === "ZIWEI-IDENTITY-P0")!;
-    Object.assign(lifetime, { priceLa: 840, creditLa: 120, creditExpiresAt: "2026-10-10T00:00:00Z", creditSourceSkus: ["ZIWEI-PALACE-LIFE-P0"] });
+    Object.assign(lifetime, { basePriceLa: 960, priceLa: 840, creditLa: 120, creditExpiresAt: "2026-10-10T00:00:00Z", creditSourceSkus: ["ZIWEI-PALACE-LIFE-P0"] });
     vi.mocked(loadWalletQuotes).mockResolvedValue(value as never);
     const html = await render(); expect(html).toContain("chỉ thêm 840 Lá"); expect(html).toContain("Mở – 840 Lá");
   });
@@ -140,7 +140,7 @@ describe("authorized offer ladder page", () => {
   });
   it("allows guest sign-in entry but fails closed when authenticated quote loading fails", async () => {
     vi.mocked(resolveVerifiedAccountActor).mockRejectedValue(new VerifiedAccountResolutionError("ADMIN_AUTH_REQUIRED"));
-    expect(await render()).toContain("Mở – 960 Lá"); expect(loadWalletQuotes).not.toHaveBeenCalled();
+    expect(await render()).toContain("Mở – 1200 Lá"); expect(loadWalletQuotes).not.toHaveBeenCalled();
     vi.mocked(resolveVerifiedAccountActor).mockResolvedValue(actor); vi.mocked(loadWalletQuotes).mockResolvedValue(null);
     const html = await render(); expect(html).toContain("Chưa thể kiểm tra giá hiện tại"); expect(html).not.toContain('data-state="openable"'); expect(html).toContain('data-state="locked"');
   });

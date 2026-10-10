@@ -43,6 +43,9 @@ export function renderPendingTopUpRecoveryEmail(
 ): PendingTopUpRecoveryEmail {
   const product = findLaProduct(input.productSku);
   const pack = WalletTopUpCatalogV1.find(item => item.id === input.topUpSku);
+  // Private callers validate the frozen purchase; previews also retain the closed historical base.
+  const validPrice = input.productSku === "ZIWEI-IDENTITY-P0"
+    ? [960, 1200].includes(input.amountLa) : input.amountLa === product?.priceLa;
   const claims = UnsubscribeTokenClaimsSchema.safeParse({
     userId: input.userId,
     email: input.email.trim().toLowerCase(),
@@ -51,7 +54,7 @@ export function renderPendingTopUpRecoveryEmail(
   if ((input.locale !== "vi" && input.locale !== "en") ||
       !SAFE_ORDER_ID.test(input.orderId) || !DELIVERY_ID.test(input.deliveryId) ||
       !claims.success || !product || product.availability !== "active" ||
-      !product.locales.includes(input.locale) || input.amountLa !== product.priceLa ||
+      !product.locales.includes(input.locale) || !validPrice ||
       !pack || input.topUpVnd !== pack.vndAmount) {
     throw new Error("RECOVERY_EMAIL_INPUT_INVALID");
   }

@@ -1,3 +1,10 @@
+// This suite exercises historical purchases and frozen pre-FD119 promises.
+vi.mock("./purchase-commercial-terms.js", async importOriginal => {
+  const actual = await importOriginal<typeof import("./purchase-commercial-terms.js")>();
+  return {...actual, freezePurchaseCommercialTerms: (intent: Parameters<typeof actual.freezePurchaseCommercialTerms>[0],
+    quote: Parameters<typeof actual.freezePurchaseCommercialTerms>[1], policy: Parameters<typeof actual.freezePurchaseCommercialTerms>[2]) =>
+    actual.freezePurchaseCommercialTerms(intent, quote, policy ?? "pre-fd119")};
+});
 import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/personal-daily-reading-writer.js";
 import { completeTopUpContinuation } from "./wallet-topup-continuation.js";
 import { createDatabaseDeletionRepository } from "../privacy/deletion.repository.js";
@@ -81,10 +88,10 @@ const monthlyCatalogGate = vi.hoisted(() => ({ enabled: false, lifetimePrice: nu
 const dailyCatalogGate = vi.hoisted(() => ({ enabled: false }));
 vi.mock("@lasoviet/contracts", async importOriginal => {
   const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
-  return { ...actual, findLaProduct: (sku: string) => {
+  return { ...actual, getLaPrice: (sku: string) => sku === "ZIWEI-IDENTITY-P0" ? 960 : actual.getLaPrice(sku), findLaProduct: (sku: string) => {
     const original = actual.findLaProduct(sku);
     const product = original && sku === "ZIWEI-IDENTITY-P0" && monthlyCatalogGate.lifetimePrice !== null
-      ? {...original, priceLa: monthlyCatalogGate.lifetimePrice} : original;
+      ? {...original, priceLa: monthlyCatalogGate.lifetimePrice} : original && sku === "ZIWEI-IDENTITY-P0" ? {...original, priceLa: 960} : original;
     return product && ((monthlyCatalogGate.enabled && sku === "ZIWEI-MONTHLY-P0") || (dailyCatalogGate.enabled && sku === "ZIWEI-TODAY-P0")) ? { ...product, availability: "active" } : product;
   }};
 });

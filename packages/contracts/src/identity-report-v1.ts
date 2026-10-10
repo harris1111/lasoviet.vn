@@ -1,3 +1,4 @@
+import { GuaranteePromiseV1Schema } from "./guarantee-promise-v1.js";
 import { isSinglePalaceSku } from "./la-catalog.js";
 import { ZiweiPeriodReadingPublicContentV1Schema } from "./ziwei-period-reading-public-v1.js";
 import { ZiweiTopicDeepDivePublicContentV1Schema } from "./ziwei-topic-deep-dive-v1.js";
@@ -742,6 +743,7 @@ export const ReportUpgradePreviewV1Schema = z.object({
 export type ReportUpgradePreviewV1 = z.infer<typeof ReportUpgradePreviewV1Schema>;
 
 const baseReportReadyViewV1Schema = z.object({
+  guaranteePromise: GuaranteePromiseV1Schema.optional(),
   chartId: z.string().trim().min(1).optional(),
   chartVersionId: z.string().trim().min(1).optional(),
   version: z.literal(1),

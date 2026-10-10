@@ -1,5 +1,5 @@
 import { isPeriodReportTuple } from "../reports/period-report-config.js";
-import { SINGLE_PALACE_SKUS } from "@lasoviet/contracts";
+import { findLaProduct, SINGLE_PALACE_SKUS } from "@lasoviet/contracts";
 import { and, eq, inArray } from "drizzle-orm";
 import { commerceEntitlements, evidenceSets, reportReservations, walletPurchaseIntents, type Database } from "@lasoviet/database";
 import { reportReservationAuthority } from "../reports/natal-report-authority.js";
@@ -11,6 +11,14 @@ export function isComboSku(sku: string): boolean { return sku === COMBO_SKU || s
 export function comboAnnualSku(sku: string): string { return sku === COMBO_SKU ? COMBO_ANNUAL_SKU : "ZIWEI-YEAR-P0"; }
 export function comboComponentSkus(sku: string): string[] { return [COMBO_LIFETIME_SKU, comboAnnualSku(sku)]; }
 export const COMBO_COMPONENT_SKUS = [COMBO_LIFETIME_SKU, COMBO_ANNUAL_SKU] as const;
+
+/** New bundle terms require the bundle and both exact children to be released. */
+export function isComboReleaseReady(sku: string, lookup: typeof findLaProduct = findLaProduct): boolean {
+  return isComboSku(sku) && [sku, ...comboComponentSkus(sku)].every(componentSku => {
+    const product = lookup(componentSku);
+    return product?.availability === "active" && product.locales.includes("vi");
+  });
+}
 
 export function isSupportedComboPrice(priceLa: number): boolean {
   return priceLa === 1300 || priceLa === 1040;

@@ -43,7 +43,7 @@ describe("Lá product catalog contracts", () => {
     expect(MEMBERSHIP_MONTHLY_PRICE_LA).toBe(1500);
     expect(MEMBERSHIP_YEARLY_PRICE_LA).toBe(8000);
     expect(TOPIC_DEEP_DIVE_PRICE_LA).toBe(480);
-    expect(LIFETIME_BASE_PRICE_LA).toBe(960);
+    expect(LIFETIME_BASE_PRICE_LA).toBe(1200);
 
     expect(getLaPrice("ZIWEI-PALACE-LIFE-P0")).toBe(120);
     expect(getLaPrice("ZIWEI-PALACE-CAREER-P0")).toBe(120);
@@ -58,7 +58,7 @@ describe("Lá product catalog contracts", () => {
     expect(getLaPrice("MEMBERSHIP-YEARLY-8000")).toBe(8000);
     expect(getLaPrice("ZIWEI-RELATIONSHIP-P0")).toBe(480);
     expect(getLaPrice("ZIWEI-CAREER-P0")).toBe(480);
-    expect(getLaPrice("ZIWEI-IDENTITY-P0")).toBe(960);
+    expect(getLaPrice("ZIWEI-IDENTITY-P0")).toBe(1200);
   });
 
   it("activates relationship and career topic SKUs at 480 Lá with reserved availability", () => {
@@ -147,7 +147,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
   const T0 = new Date("2026-10-01T10:00:00.000Z");
 
   it("returns base price 960 when there are no qualifying spends", () => {
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends: [],
       now: new Date("2026-10-01T12:00:00.000Z"),
     });
@@ -161,7 +161,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
   });
 
   it("deducts single palace spend (120 Lá) within 7 days: 960 - 120 = 840 Lá", () => {
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends: [{ amountLa: 120, spentAt: T0 }],
       now: new Date("2026-10-02T10:00:00.000Z"), // +1 day
     });
@@ -174,7 +174,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
   });
 
   it("deducts Bản mệnh spend (240 Lá) within 7 days: 960 - 240 = 720 Lá", () => {
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends: [{ amountLa: 240, spentAt: T0 }],
       now: new Date("2026-10-03T10:00:00.000Z"), // +2 days
     });
@@ -185,7 +185,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
   });
 
   it("deducts 2 single palace spends (240 Lá) within 7 days: 960 - 240 = 720 Lá", () => {
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends: [
         { amountLa: 120, spentAt: T0 },
         { amountLa: 120, spentAt: new Date("2026-10-02T10:00:00.000Z") },
@@ -199,7 +199,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
   });
 
   it("deducts combined Bản mệnh (240 Lá) + 1 palace (120 Lá): 960 - 360 = 600 Lá", () => {
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends: [
         { amountLa: 240, spentAt: T0 },
         { amountLa: 120, spentAt: new Date("2026-10-02T15:00:00.000Z") },
@@ -218,7 +218,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
       spentAt: new Date(T0.getTime() + i * 3600 * 1000),
     }));
 
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends,
       now: new Date("2026-10-05T10:00:00.000Z"),
     });
@@ -237,7 +237,7 @@ describe("7-day rollover discount logic with frozen clock", () => {
       })),
     ]; // total = 1080 Lá
 
-    const result = calculateRolloverCredit({
+    const result = calculateRolloverCredit({ basePriceLa: 960,
       spends,
       now: new Date("2026-10-03T10:00:00.000Z"),
     });
@@ -254,20 +254,30 @@ describe("7-day rollover discount logic with frozen clock", () => {
 
     // 1 millisecond before 7 days expire: active
     const justBeforeExpiry = new Date(T0.getTime() + ROLLOVER_WINDOW_MS - 1);
-    const activeResult = calculateRolloverCredit({ spends, now: justBeforeExpiry });
+    const activeResult = calculateRolloverCredit({ basePriceLa: 960, spends, now: justBeforeExpiry });
     expect(activeResult.isWindowActive).toBe(true);
     expect(activeResult.effectivePriceLa).toBe(600);
 
     // Exactly at 7 days: expired
     const atExpiry = new Date(T0.getTime() + ROLLOVER_WINDOW_MS);
-    const expiredResult = calculateRolloverCredit({ spends, now: atExpiry });
+    const expiredResult = calculateRolloverCredit({ basePriceLa: 960, spends, now: atExpiry });
     expect(expiredResult.isWindowActive).toBe(false);
     expect(expiredResult.effectivePriceLa).toBe(960);
 
     // After 7 days: expired
     const afterExpiry = new Date("2026-10-10T10:00:00.000Z");
-    const longAfterResult = calculateRolloverCredit({ spends, now: afterExpiry });
+    const longAfterResult = calculateRolloverCredit({ basePriceLa: 960, spends, now: afterExpiry });
     expect(longAfterResult.isWindowActive).toBe(false);
     expect(longAfterResult.effectivePriceLa).toBe(960);
+  });
+});
+
+describe("FD119 current rollover base", () => {
+  it("uses1200 by default and caps ten palace purchases at the lifetime base", () => {
+    const now = new Date("2026-10-08T00:00:00Z");
+    expect(calculateRolloverCredit({spends: [], now}).effectivePriceLa).toBe(1200);
+    expect(calculateRolloverCredit({spends: [{amountLa: 120, spentAt: now}], now}).effectivePriceLa).toBe(1080);
+    expect(calculateRolloverCredit({spends: Array.from({length: 10}, () => ({amountLa: 120, spentAt: now})), now}))
+      .toMatchObject({basePriceLa: 1200, qualifyingLaSpent: 1200, effectivePriceLa: 0});
   });
 });

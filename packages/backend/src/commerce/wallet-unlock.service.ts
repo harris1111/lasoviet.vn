@@ -1,6 +1,6 @@
 import { freezePurchaseCommercialTerms, readPurchaseCommercialTerms, matchesPurchaseCreditProof } from "./purchase-commercial-terms.js";
 import { creditProofSchema, enqueueCommittedWalletUpgrade, projectCommittedWalletUpgrade, type CreditProof } from "./wallet-upgrade-event.js";
-import { isComboSku, comboComponentSkus, comboAnnualSku, hasCompleteComboAuthority } from "./combo-purchase-authority.js";
+import { isComboSku, comboComponentSkus, comboAnnualSku, hasCompleteComboAuthority, isComboReleaseReady } from "./combo-purchase-authority.js";
 import { reserveComboReports } from "./combo-report-reservation.js";
 import { membershipPrice, readActiveMembership } from "./membership.service.js";
 import { createDailyWalletUnlockService, DAILY_SKU, type DailyReadingWriter } from "./daily-wallet-unlock.service.js";
@@ -383,6 +383,9 @@ async function price(
         or(eq(commerceEntitlements.sku, "ZIWEI-IDENTITY-P0"), and(inArray(commerceEntitlements.sku, annualSkuAliases(comboAnnualSku(sku), periodKey)), eq(commerceEntitlements.periodKey, periodKey))), isNull(commerceEntitlements.revokedAt),
         or(isNotNull(commerceEntitlements.orderId), and(eq(walletTransactions.kind, "spend"), activeSpendCondition(database))))).limit(1);
     if (ownedComponent) return {ok: false, code: "WALLET_ENTITLEMENT_EXISTS"};
+    // Pending terms keep their frozen authority; changing the selected year creates
+    // new terms. Keep this after ownership checks to preserve owned projections.
+    if (!frozenIntent && !isComboReleaseReady(sku)) return {ok: false, code: "WALLET_INTENT_INVALID"};
   }
 
   // Freeze the catalog basis, while rechecking the original membership/rollover eligibility.
@@ -435,7 +438,7 @@ async function price(
     return { ok: true as const, amountLa, creditLa, ...(creditLa > 0 ? {
       creditExpiresAt: rollover.windowExpiresAt!.toISOString(),
       creditSourceSkus: [...new Set(sources.map(spend => spend.sku))],
-      creditProof: creditProofSchema.parse({version: 1, creditLa, sources}),
+      creditProof: creditProofSchema.parse({version: basePriceLa === 960 ? 1 : 2, creditLa, sources}),
     } : {}) };
   }
 
@@ -621,11 +624,11 @@ export function createWalletUnlockService(
           eq(walletPurchaseIntents.locale, input.locale), eq(walletPurchaseIntents.periodKey, periodKey),
           eq(walletPurchaseIntents.status, "pending"))).limit(1);
         let selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey, pending);
-        let usedPending = pending;
+        const retainedPendingPrice = selectedPrice.ok;
+        const usedPending = pending;
         if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && pending && validIntentTerms(pending)) {
           // Expired or refunded credit cannot authorize settlement; a fresh read can offer new terms.
-          usedPending = undefined;
-          selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey);
+          selectedPrice = await price(database, actor.userId, input.chartId, sku, quoteNow, periodKey, pending, false);
         }
         if (!selectedPrice.ok) {
           if (selectedPrice.code === "WALLET_ENTITLEMENT_EXISTS") {
@@ -656,6 +659,12 @@ export function createWalletUnlockService(
             }
             quotes.push({ ...row, state: "owned", ...projection });
           } else quotes.push(row);
+          continue;
+        }
+        // A changed benefit/price offers replacement terms rather than reuse.
+        if (isComboSku(sku) && !isComboReleaseReady(sku) && !(pending && retainedPendingPrice &&
+            pending.priceLa === selectedPrice.amountLa && matchesPurchaseCreditProof(pending, selectedPrice.creditProof))) {
+          quotes.push(row);
           continue;
         }
         const creditLa = selectedPrice.creditLa ?? 0;
@@ -714,7 +723,7 @@ export function createWalletUnlockService(
           purchasePeriodKey(sku, quoteNow, request.targetYear), sameTerms ? pending : undefined);
         const reusedPrice = selectedPrice.ok;
         if (!selectedPrice.ok && selectedPrice.code === "WALLET_INTENT_INVALID" && sameTerms && pending && validIntentTerms(pending)) {
-          selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear));
+          selectedPrice = await price(transaction, ownerId, request.chartId, sku, quoteNow, purchasePeriodKey(sku, quoteNow, request.targetYear), pending, false);
         }
         if (!selectedPrice.ok) return selectedPrice;
         if (pending !== undefined) {
@@ -726,6 +735,9 @@ export function createWalletUnlockService(
           ) {
             return { ok: true as const, value: projectIntent(pending), reused: true };
           }
+          // Repricing the same scope also creates new immutable terms. Refuse
+          // before cancelling the original or touching any bound top-up.
+          if (isComboSku(sku) && !isComboReleaseReady(sku)) return failed("WALLET_INTENT_INVALID");
           // Locale, price, period or chart version changed. Replace unpaid terms with a
           // new immutable intent; a bound top-up keeps the cancelled original authority.
           // Concurrency-safe cancel the stale pending intent to avoid permanent pending-row lockout.
@@ -749,9 +761,13 @@ export function createWalletUnlockService(
           commercialTerms: freezePurchaseCommercialTerms({ownerId, chartId: request.chartId,
             chartVersionId: request.chartVersionId, sku, locale,
             periodKey: purchasePeriodKey(sku, quoteNow, request.targetYear), priceLa: selectedPrice.amountLa,
-            createdAt: quoteNow}, selectedPrice),
+            createdAt: quoteNow}, selectedPrice, sameTerms && pending ? readPurchaseCommercialTerms(pending)?.policy : undefined),
         }).returning();
         if (created === undefined) throw new Error("WALLET_INTENT_CREATE_FAILED");
+        if (pending) await transaction.insert(auditLogs).values({actorId: ownerId, action: "wallet.purchase.offer.replaced",
+          targetType: "wallet_purchase_intent", targetId: created.id, requestId: actor.requestId,
+          reasonCode: sameTerms ? "same_purchase_scope" : "new_purchase_scope",
+          metadata: {originalIntentId: pending.id, replacementIntentId: created.id, preservedPolicy: sameTerms}, createdAt: quoteNow});
         return { ok: true as const, value: projectIntent(created), reused: false };
       });
     },
