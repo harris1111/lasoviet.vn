@@ -1,0 +1,14 @@
+{
+  "status": "WORKING_REVIEW_GO",
+  "baseRelease": "78e6cef3addf2efaa0ed010aae452955811a2257",
+  "postgresTestsPassed": 36,
+  "postgresFilesPassed": 2,
+  "independentReview": "/tmp/lasoviet-lsv101-independent-working-review-20261010.json",
+  "sourceHashes": {
+    "packages/backend/src/commerce/commerce.repository.ts": "996e2a73399e71f4e729b455dc9849d45e127eba7c063f6da71c4555b075532f",
+    "packages/backend/src/reports/annual-report-read.integration.test.ts": "1b0e46afb33243b7b9e4530cc38e25fdae121814fb803dd027f84dceac237707"
+  },
+  "productionDeployed": false,
+  "frontendLibraryAccepted": false,
+  "fullProductAcceptance": false
+}
