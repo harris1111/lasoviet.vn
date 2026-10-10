@@ -27,7 +27,7 @@ import {
   REPORT_QUALITY_VERSION_COMPREHENSIVE_V2_3_SENSITIVITY,
 } from "./identity-report-config.js";
 
-export { REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V2, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V3 } from "./topic-report-config.js";
+export { REPORT_CONFIG_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_PROMPT_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V1, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V2, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V3, REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V4 } from "./topic-report-config.js";
 
 export type ZiweiTopicDeepDiveWriterRewrite = {
   priorContent: ZiweiTopicDeepDiveContentV1;
@@ -69,7 +69,7 @@ Chỉ trả về ĐÚNG MỘT JSON hợp lệ duy nhất tuân thủ nghiêm ng�
 
 NGUYÊN TẮC LUẬN GIẢI CHUYÊN SÂU:
 1. Đào sâu cấu trúc cung vị và tương tác sao: Phân tích cụ thể các cung trọng điểm (Palace Anchors), chính tinh, phụ tinh hội tụ, cung tam hợp và đối cung xung chiếu. Không nhận định chung chung. Sao tọa thủ là sao nằm tại chính cung; sao trực chiếu hoặc xung chiếu phải đọc riêng từ cung đối diện theo oppositePalaceId. Cung không có chính tinh tọa thủ vẫn có thể được chính tinh từ đối cung chiếu sang. Không dùng hai trạng thái này thay cho nhau. Nếu đối cung không có trong dữ kiện giới hạn của chủ đề thì không mô tả sao đối cung và không suy ra rằng đối cung không có chính tinh.
-2. Thời vận 10 năm do hệ thống tính toán (Engine-Computed Decadal Timing): Luận giải đại vận 10 năm dựa CHÍNH XÁC trên thông tin decadal facts được cung cấp (tuổi, năm, cung tọa thủ). Tuyệt đối KHÔNG tự bịa ra năm, tháng hạn hoặc mốc thời gian không có trong facts.
+2. Thời vận 10 năm do hệ thống tính toán (Engine-Computed Decadal Timing): Luận giải đại vận 10 năm dựa CHÍNH XÁC trên thông tin decadal facts được cung cấp (tuổi, năm, cung tọa thủ). Tuyệt đối KHÔNG tự bịa ra năm, tháng hạn hoặc mốc thời gian không có trong facts. Cung gốc trong natalPalaces và vai trò cung đại vận trong decadal.palaces là hai hệ tọa độ riêng: cùng tên cung có thể nằm ở hai địa chi khác nhau. Chỉ gọi “cung gốc” khi đọc đúng natalPalaces; khi dùng cung của đại vận phải ghi rõ vai trò đại vận và đọc địa chi từ decadal.palaces. Không gọi một cung đại vận là cung gốc chỉ vì trùng tên.
 3. Luận giải trực diện theo Tử Vi truyền thống (FD-089): Trình bày thẳng thắn cả vận hạn, hao tài, trắc trở, xung đột hay thử thách; không né tránh hay tô hồng gượng ép.
 4. Ranh giới pháp lý và chất lượng bắt buộc (FD-077, FD-089):
    - CẤM TUYỆT ĐỐI đề cập đến cái chết, tuổi thọ, thọ yểu hay "khắc chết".

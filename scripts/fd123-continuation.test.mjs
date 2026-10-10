@@ -228,7 +228,7 @@ test("model-bound mode preserves non-monetary completion, metadata, model and co
   assert.equal(f.calls(), 0);
 });
 
-test("narrow retained recovery validates original source and default quality and fences all crash phases without dispatch", async () => {
+test("historical reference recovery refuses the newly identified natal coordinate error and preserves all crash fences", async () => {
   const retained = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-first-retained-stop.json", import.meta.url), "utf8"));
   const modules = { backend: await import("../packages/backend/dist/index.js"), contracts: await import("../packages/contracts/dist/index.js"), engine: await import("../packages/engine-adapters/dist/index.js") };
   const { makePaidTrialInput } = await import("./run-paid-manual-trials.mjs");
@@ -236,8 +236,14 @@ test("narrow retained recovery validates original source and default quality and
   const lineage = { originalJournalSha256: retained.originalJournalSha256, originalLedgerSha256: retained.originalLedgerSha256 };
   const before = JSON.stringify(retained);
   const recover = value => prepareFd123RetainedRecovery(value, lineage, input, modules, retained.budget, { at: now() });
-  const recovered = recover(retained); assert.equal(recovered.quality.ok, true); assert.equal(recovered.quote.quoteVnd, "33368");
-  assert.equal(recovered.settlement.referenceMode, FD123_MODEL_BOUND_MODE); assert.equal(JSON.stringify(retained), before);
+  assert.throws(() => recover(retained), { code: "FD123_RECOVERY_QUALITY_FAILED" });
+  const attempt = retained.reports[0].attempts[0];
+  const normalized = normalizeTrialJson(attempt.visibleUnacceptedOutput);
+  const content = modules.contracts.ZiweiTopicDeepDiveContentV1Schema.parse(normalized.value);
+  const quality = modules.backend.validateZiweiTopicDeepDiveQualityV4(content, input.facts);
+  assert.equal(quality.ok, false);
+  assert(quality.findings.some(f => f.code === "PALACE_FACTS" && f.note.includes("ziwei.branch.monkey")));
+  assert.equal(JSON.stringify(retained), before);
   for (const mutate of [m => { m.status = "recovery_prepared"; }, m => { m.recoveryEvents = [{ status: "prepared" }]; },
     m => { m.recoveryEvents = [{ status: "completed" }]; }, m => { m.reports[0].attempts[0].status = "reference_settled_model_bound"; },
     m => { m.reports[0].slot = FD123_SLOTS[1]; }, m => { m.reports.push(m.reports[0]); },
@@ -249,12 +255,7 @@ test("narrow retained recovery validates original source and default quality and
   }
   const rejectedModules = { ...modules, backend: { ...modules.backend, validateZiweiTopicDeepDiveQualityV4: () => ({ ok: false }) } };
   assert.throws(() => prepareFd123RetainedRecovery(retained, lineage, input, rejectedModules, retained.budget, { at: now() }), { code: "FD123_RECOVERY_QUALITY_FAILED" });
-  const { runTrialSequence } = await import("./run-paid-manual-trials.mjs");
-  const manifest = structuredClone(retained); manifest.reports[0].status = "quality_passed_pending_manual_review";
-  const dispatched = [];
-  await runTrialSequence({ inputs: FD123_SLOTS.slice(1).map(slot => { const [group, index] = slot.split(":"); return { group, index: Number(index), facts: {} }; }),
-    manifest, save() {}, generate: async (_, row) => { dispatched.push(row.slot); return { ok: true, value: { quality: { ok: true } } }; } });
-  assert.deepEqual(dispatched, FD123_SLOTS.slice(1)); assert.equal(manifest.reports.length, 9);
+  assert.equal(JSON.stringify(retained), before);
 });
 
 test("only the exact root schema-document annotation normalizes; nested annotations and other extra content fields still reject", async () => {
@@ -326,7 +327,7 @@ test("historical four-row format stop refuses the new source finding while exact
 });
 
 
-test("six-row reconciliation retains seven proofs, rejects the known source claim and bounds one correction before three unrun slots", async () => {
+test("historical six-row recovery refuses the newly identified natal coordinate error while preserving proofs and ledger", async () => {
   const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-annual-retained-stop.json", import.meta.url), "utf8"));
   const original = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-retained.json", import.meta.url), "utf8"));
   const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
@@ -341,7 +342,19 @@ test("six-row reconciliation retains seven proofs, rejects the known source clai
   assert.equal(budget.status().totalVnd, 233576); assert.equal(budget.status().openReservations, 0);
   const ledgerBefore = digest(readFileSync(ledgerPath)), before = JSON.stringify(stopped);
   const recover = value => prepareFd123RetainedQualityRecovery(value, lineage, inputs, modules, budget.status(), { at: now() });
-  const recovered = recover(stopped);
+  assert.throws(() => recover(stopped), { code: "FD123_QUALITY_RECOVERY_CONTENT_OR_REFERENCE_INVALID" });
+  const retainedTopic = normalizeTrialJson(stopped.reports[2].attempts[0].outputText);
+  const topicContent = modules.contracts.ZiweiTopicDeepDiveContentV1Schema.parse(retainedTopic.value);
+  const retainedAnnual = normalizeTrialJson(stopped.reports[5].attempts[1].outputText);
+  const annualContent = modules.contracts.ZiweiPeriodReadingContentV1Schema.parse(retainedAnnual.value);
+  // Read-only diagnoses, not a successful campaign-recovery checkpoint.
+  const recovered = {
+    quality: modules.backend.validatePeriodReading(annualContent, inputs[5].facts),
+    topicRepair: { content: topicContent, quality: modules.backend.validateZiweiTopicDeepDiveQualityV4(topicContent, inputs[2].facts) },
+    rawSha256: retainedAnnual.rawSha256, parsedSha256: retainedAnnual.parsedSha256,
+  };
+  const relationship = stopped.reports[0].result.value.content;
+  assert.equal(modules.backend.validateZiweiTopicDeepDiveQualityV4(relationship, inputs[0].facts).ok, false);
   assert.equal(recovered.quality.ok, true);
   assert.equal(recovered.topicRepair.quality.ok, false);
   assert.deepEqual(recovered.topicRepair.quality.findings.map(f => f.code), ["PALACE_FACTS"]);
@@ -377,11 +390,21 @@ test("six-row reconciliation retains seven proofs, rejects the known source clai
   const wrongVersion = { ...modules, backend: { ...modules.backend, PERIOD_READING_TUPLE: {qualityVersion: "ziwei.period-reading.quality.v2"} } };
   assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, wrongVersion, budget.status(), { at: now() }));
   assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, modules, {...budget.status(), openReservations: 1}, { at: now() }));
-  const manifest = structuredClone(stopped); manifest.reports[5].status = "quality_passed_pending_manual_review";
-  const dispatched = []; const { runTrialSequence } = await import("./run-paid-manual-trials.mjs");
-  await runTrialSequence({ inputs: inputs.slice(6), manifest, save() {}, generate: async (_, row) => {
-    dispatched.push(row.slot); return {ok: true, value: {quality: {ok: true}}};
-  } });
-  assert.deepEqual(dispatched, FD123_SLOTS.slice(6)); assert.equal(manifest.reports.length, 9);
   assert.equal(digest(readFileSync(ledgerPath)), ledgerBefore);
+});
+
+
+test("actual unknown career dispatch cannot re-enter retained quality recovery", async () => {
+  const stopped = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd123-paid-trials.json", import.meta.url), "utf8"));
+  const original = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-retained.json", import.meta.url), "utf8"));
+  const preflight = JSON.parse(readFileSync(new URL("../plan/evidence/2026-10-09-fd121-paid-trials-preflight.json", import.meta.url), "utf8"));
+  const modules = { backend: await import("../packages/backend/dist/index.js"), contracts: await import("../packages/contracts/dist/index.js"), engine: await import("../packages/engine-adapters/dist/index.js") };
+  const inputs = await buildFd123Inputs(original, modules, preflight);
+  const lineage = { originalJournalSha256: stopped.originalJournalSha256, originalLedgerSha256: stopped.originalLedgerSha256 };
+  const before = JSON.stringify(stopped);
+  assert.equal(stopped.reports[2].attempts[1].errorCode, "ROUTER_RESPONSE_INVALID");
+  assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, modules, stopped.budget, { at: now() }), {
+    code: "FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION",
+  });
+  assert.equal(JSON.stringify(stopped), before);
 });

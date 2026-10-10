@@ -1,0 +1,113 @@
+{
+  "checkedAt": "2026-10-10T02:31:29.440Z",
+  "sourceBase": "e4ee69b510710c53b5f72a286af169c7008b5ea0",
+  "status": "PASS",
+  "qualityVersion": "ziwei.topic-deep-dive.quality.v4",
+  "workingSourceSha256": "ddb7c2d14fda6936cbe1d76d9b78d586f01a9ab9c89dbea00dd909cc38b97f84",
+  "selectedStructuralMismatchesRejected": 2,
+  "otherAvailableContinuationRowsDefaultQualityPassed": 4,
+  "rows": [
+    {
+      "slot": "relationship_marriage:1",
+      "defaultQuality": {
+        "ok": false,
+        "findings": [
+          {
+            "sectionKey": "decadalTiming",
+            "code": "PALACE_FACTS",
+            "note": "Explicit natal coordinate for ziwei.palace.fortune is ziwei.branch.dragon; source requires ziwei.branch.monkey."
+          }
+        ],
+        "advisory": [
+          {
+            "sectionKey": "thematicDimensions[communication_and_temperament]",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: phu th\u00ea."
+          },
+          {
+            "sectionKey": "actions[0]",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: phu th\u00ea."
+          },
+          {
+            "sectionKey": "actions[2]",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: phu th\u00ea."
+          }
+        ]
+      },
+      "contentSha256": "e0c2f803d4eefd5963847dfe802824a457aa7e46017ac9863271d10481e0a411"
+    },
+    {
+      "slot": "career_wealth:0",
+      "defaultQuality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          {
+            "sectionKey": "decadalTiming",
+            "code": "DISCOURAGED_TERM",
+            "note": "Contains discouraged term: v\u1eadn tr\u00ecnh."
+          }
+        ]
+      },
+      "contentSha256": "01288ac17f2465c33f5e6e5f83df9daee314aa60853d93fa6a9f6095e8bee470"
+    },
+    {
+      "slot": "career_wealth:1",
+      "defaultQuality": {
+        "ok": false,
+        "findings": [
+          {
+            "sectionKey": "overview",
+            "code": "PALACE_FACTS",
+            "note": "Opposing major-star absence for ziwei.palace.wealth is not supported by ziwei.palace.fortune. Resident-star absence is a separate fact."
+          }
+        ],
+        "advisory": []
+      },
+      "contentSha256": "d6b047aaa1e55cd03a3af21c060ddc7f9cffafaaa9d4de632f3f578ba9871fd1"
+    },
+    {
+      "slot": "monthly:0",
+      "defaultQuality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          "EDITORIAL_TERM"
+        ]
+      },
+      "contentSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a"
+    },
+    {
+      "slot": "monthly:1",
+      "defaultQuality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          "EDITORIAL_TERM"
+        ]
+      },
+      "contentSha256": "29b6adab77e054385f09b4be910e2b6795e88b109fa1cf8f3403678c3e3df795"
+    },
+    {
+      "slot": "current_annual:0",
+      "defaultQuality": {
+        "ok": true,
+        "findings": [],
+        "advisory": [
+          "EDITORIAL_TERM"
+        ]
+      },
+      "contentSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb"
+    }
+  ],
+  "authorityFilesUnchanged": 4,
+  "originalJournalSha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+  "originalLedgerSha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+  "continuationJournalSha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+  "continuationLedgerSha256": "1496236a197afb8e3362113cf45d093d69d495b41c1eed6ec8b8690189367b14",
+  "physicalProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false
+}

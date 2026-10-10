@@ -289,6 +289,88 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
     expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.some(finding => finding.code === "PALACE_FACTS")).toBe(true);
   });
 
+  function coordinateFacts() {
+    const source = buildFactsFixture();
+    const fortune = source.natal.palaces.find(palace => palace.palaceId === "ziwei.palace.fortune")!;
+    const monkey = source.natal.palaces.find(palace => palace.earthlyBranchId === "ziwei.branch.monkey")!;
+    monkey.earthlyBranchId = fortune.earthlyBranchId;
+    fortune.earthlyBranchId = "ziwei.branch.monkey";
+    if (source.timing.decadal.state !== "active") throw new Error("Active fixture required");
+    const role = source.timing.decadal.palaces.find(palace => palace.palaceId === "ziwei.palace.fortune")!;
+    const dragon = source.timing.decadal.palaces.find(palace => palace.earthlyBranchId === "ziwei.branch.dragon")!;
+    dragon.earthlyBranchId = role.earthlyBranchId;
+    role.earthlyBranchId = "ziwei.branch.dragon";
+    return source;
+  }
+
+  function coordinateFindings(sentence: string, source = coordinateFacts()) {
+    const report = makeValidRelationshipReport(source);
+    report.decadalTiming.narrative += ` ${sentence}`;
+    return validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(finding =>
+      finding.code === "PALACE_FACTS" || finding.code === "DECADAL_TIMING_MISMATCH");
+  }
+
+  it.each(["NFC", "NFD"] as const)("rejects the actual natal/decadal mixup in %s prose", form => {
+    expect(coordinateFindings("cung Phúc Đức gốc tại Thìn trong đại vận".normalize(form))).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sectionKey: "decadalTiming", code: "PALACE_FACTS", note: expect.stringContaining("ziwei.branch.monkey") }),
+    ]));
+  });
+
+  it.each([
+    "Cung Phúc Đức gốc tại Thân trong đại vận.",
+    "Cung Phúc Đức đại vận tại Thìn.",
+    "Cung Phúc Đức của đại vận an tại Thìn.",
+    "Cung Phúc Đức gốc tọa tại Thân, cung Phúc Đức đại vận đóng tại Thìn.",
+  ])("checks separately sourced correct natal/decadal roles: %s", sentence => {
+    expect(coordinateFindings(sentence)).toEqual([]);
+  });
+
+  it("rejects an explicit decadal role that incorrectly copies its natal coordinate", () => {
+    expect(coordinateFindings("Cung Phúc Đức đại vận tại Thân.")).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "DECADAL_TIMING_MISMATCH", note: expect.stringContaining("ziwei.branch.dragon") }),
+    ]));
+  });
+
+  it("checks every explicit coordinate occurrence and does not accept a later wrong claim", () => {
+    expect(coordinateFindings("Cung Phúc Đức gốc tại Thân. Cung Phúc Đức gốc tại Thìn.").some(f => f.code === "PALACE_FACTS")).toBe(true);
+  });
+
+  it("allows genuinely coincident source coordinates without requiring a difference", () => {
+    const source = coordinateFacts();
+    if (source.timing.decadal.state !== "active") throw new Error("Active fixture required");
+    const fortune = source.timing.decadal.palaces.find(palace => palace.palaceId === "ziwei.palace.fortune")!;
+    const monkey = source.timing.decadal.palaces.find(palace => palace.earthlyBranchId === "ziwei.branch.monkey")!;
+    monkey.earthlyBranchId = fortune.earthlyBranchId;
+    fortune.earthlyBranchId = "ziwei.branch.monkey";
+    expect(coordinateFindings("Cung Phúc Đức gốc tại Thân. Cung Phúc Đức đại vận tại Thân.", source)).toEqual([]);
+  });
+
+  it.each([
+    "Cung Phúc Đức đại vận tại Thìn, không phải cung Phúc Đức gốc tại Thìn.",
+    "Không phải là cung Phúc Đức gốc tại Thìn.",
+    "KHÔNG PHẢI CUNG PHÚC ĐỨC GỐC TẠI THÌN.",
+  ])("does not treat immediate denial as an affirmative coordinate claim: %s", sentence => {
+    expect(coordinateFindings(sentence.normalize("NFD"))).toEqual([]);
+  });
+
+  it.each([
+    "Không thể nói rằng không phải cung Phúc Đức gốc tại Thìn.",
+    "Không thể nói vậy, không phải cung Phúc Đức gốc tại Thìn.",
+    "Không phải cung Phúc Đức gốc tại Thìn. Cung Phúc Đức gốc tại Thìn.",
+  ])("preserves nested-denial and later-affirmative checks: %s", sentence => {
+    expect(coordinateFindings(sentence).some(f => f.code === "PALACE_FACTS")).toBe(true);
+  });
+
+  it("does not infer a layer for an unqualified named palace coordinate", () => {
+    expect(coordinateFindings("Cung Phúc Đức tại Thìn.")).toEqual([]);
+  });
+
+  it("rejects an explicit decadal coordinate when no active role is available", () => {
+    const source = coordinateFacts();
+    source.timing.decadal = { state: "not_started", firstCycleStartAge: 6, firstCycleStartYear: 2032 };
+    expect(coordinateFindings("Cung Phúc Đức đại vận tại Thìn.", source).some(f => f.code === "DECADAL_TIMING_MISMATCH")).toBe(true);
+  });
+
   it("passes cleanly on compliant relationship deep dive", () => {
     const report = makeValidRelationshipReport(facts);
     const result = validateZiweiTopicDeepDiveQualityV4(report, facts, {
