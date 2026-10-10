@@ -158,6 +158,8 @@ export async function runFd124Sequence({ inputs, manifest, save, generate }) {
 export function fd124RedactedResult(manifest) {
   return { campaign: FD124_POLICY, status: manifest.status, manualAccepted: false, maxPhysicalAttempts: 12,
     physicalSendPermissions: manifest.dispatchPermissions,
+    ...(manifest.reconciliation ? {zeroSendReconciliation: {kind: manifest.reconciliation.kind,
+      journalSha256: manifest.reconciliation.journalSha256, ledgerSha256: manifest.reconciliation.ledgerSha256}} : {}),
     completeAccountedResponses: manifest.reports.reduce((sum, row) => sum + row.attempts.filter(attempt => attempt.status === "reference_settled").length, 0),
     oldAuthorityHashes: FD124_OLD_AUTHORITIES, budget: manifest.budget, stopSlot: manifest.stopSlot,
     reports: manifest.reports.map(row => ({ ...Object.fromEntries(Object.entries(row).filter(([key]) => !["attempts", "result"].includes(key))),
@@ -167,9 +169,44 @@ export function fd124RedactedResult(manifest) {
         errorCode: attempt.errorCode, failureDiagnostic: attempt.failureDiagnostic, referenceVnd: attempt.quote?.quoteVnd,
         tokensUnknown: attempt.quote?.tokensUnknown, providerBillingVerified: false, formatStatus: attempt.formatStatus })) })) };
 }
+export const FD124_ZERO_SEND_HASHES = Object.freeze({
+  journal: "af12da0115b02cb6c0a274578085a153c595718fa08e02ac1d4eece827462519",
+  ledger: "330ce5dcb92a0375fdfab543cae7d0944102e3426d62cd9e088f5a6f4918590b",
+});
+export function validateFd124ZeroSendStop({journalText, ledgerText, inputs, expectedHashes = FD124_ZERO_SEND_HASHES}) {
+  if (hash(journalText) !== expectedHashes.journal || hash(ledgerText) !== expectedHashes.ledger) fail("FD124_ZERO_SEND_HASH_MISMATCH");
+  const stopped = JSON.parse(journalText), lines = ledgerText.trim().split("\n");
+  if (lines.length !== 1) fail("FD124_ZERO_SEND_LEDGER_INVALID");
+  const config = JSON.parse(lines[0]);
+  if (config.type !== "config" || config.version !== 2 || config.totalCapVnd !== FD124_TECHNICAL_CAP_VND ||
+      config.allocationVnd !== FD124_TECHNICAL_CAP_VND || config.settleActualUsage !== true || config.referenceContinuation !== FD124_POLICY ||
+      stopped.campaign !== FD124_POLICY || stopped.ownerDecision !== "FD-124" || stopped.status !== "stopped" ||
+      stopped.manualAccepted !== false || stopped.asOfDate !== "2026-10-09" || stopped.maxPhysicalAttempts !== 12 ||
+      stopped.reconciliation || stopped.reports?.length !== 1 || stopped.stopSlot !== FD124_SLOTS[0] ||
+      stopped.dispatchPermissions !== 0 || stopped.budget?.totalVnd !== 0 || stopped.budget?.openReservations !== 0 ||
+      stopped.budget?.capVnd !== FD124_TECHNICAL_CAP_VND || JSON.stringify(stopped.oldAuthorityHashes) !== JSON.stringify(FD124_OLD_AUTHORITIES)) fail("FD124_ZERO_SEND_STATE_INVALID");
+  const row = stopped.reports[0], attempt = row.attempts?.[0];
+  if (row.slot !== FD124_SLOTS[0] || row.status !== "rejected" || row.manualAccepted !== false || row.attempts?.length !== 1 ||
+      row.result?.ok !== false || row.result?.error?.code !== "AI_PROVIDER_REQUEST_FAILED" || row.result?.error?.retryable !== false ||
+      !attempt || Object.keys(attempt).sort().join(",") !== "attemptKey,errorCode,purpose,status" ||
+      attempt.attemptKey !== fd124AttemptKey(FD124_SLOTS[0], "report") || attempt.purpose !== "report" ||
+      attempt.status !== "stopped" || attempt.errorCode !== "ROUTER_CREDENTIAL_UNAVAILABLE" ||
+      JSON.stringify(Object.fromEntries(Object.keys(fd124InputProjection(inputs[0])).map(key => [key, row[key]]))) !== JSON.stringify(fd124InputProjection(inputs[0]))) fail("FD124_ZERO_SEND_ATTEMPT_INVALID");
+  return stopped;
+}
+export function preserveFd124ZeroSendStop({path, journalText, ledgerText, unchanged, oldRoot, newRoot}) {
+  unchanged(); assertFd124Path(path, {privateStorage: true, oldRoot, newRoot});
+  const fd = openSync(path, constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | constants.O_NOFOLLOW, 0o600);
+  try { writeFileSync(fd, JSON.stringify({kind: "FD124-known-zero-send-preflight-v1", journalSha256: hash(journalText),
+    ledgerSha256: hash(ledgerText), originalJournalText: journalText, originalLedgerText: ledgerText}, null, 2) + "\n"); fsyncSync(fd); }
+  finally { closeSync(fd); }
+  const directory = openSync(dirname(path), constants.O_RDONLY | constants.O_DIRECTORY | constants.O_NOFOLLOW);
+  try { fsyncSync(directory); } finally { closeSync(directory); }
+  unchanged();
+}
 async function main(args) {
-  const { values } = parseArgs({ args, options: { live: { type: "boolean", default: false }, dryRun: { type: "boolean", default: false }, output: { type: "string" } } });
-  if (values.live === values.dryRun || !values.output) fail("FD124_MODE_INVALID");
+  const { values } = parseArgs({ args, options: { live: { type: "boolean", default: false }, dryRun: { type: "boolean", default: false }, output: { type: "string" }, reconcileZeroSend: {type: "boolean", default: false} } });
+  if (values.live === values.dryRun || !values.output || (values.reconcileZeroSend && !values.live)) fail("FD124_MODE_INVALID");
   if (process.getuid() !== 1000) fail("FD124_EXECUTION_IDENTITY_MISMATCH");
   const output = assertFd124Path(values.output);
   assertFd124Authorities();
@@ -190,13 +227,29 @@ async function main(args) {
     if (!existsSync(FD124_ROOT)) mkdirSync(FD124_ROOT, { mode: 0o700 });
     assertFd124Path(FD124_ROOT, { privateStorage: true });
     const markerExists = existsSync(join(FD124_ROOT, "budget.jsonl.lock"));
-    if (existsSync(JOURNAL) || markerExists || existsSync(`${JOURNAL}.next`) || existsSync(join(FD124_ROOT, "budget.jsonl"))) fail("FD124_RESTART_REQUIRES_RECONCILIATION");
-    const budget = createCampaignBudget({ ledgerPath: join(FD124_ROOT, "budget.jsonl"), totalCapVnd: FD124_TECHNICAL_CAP_VND,
+    const ledgerPath = join(FD124_ROOT, "budget.jsonl"), stopReceipt = join(FD124_ROOT, "known-zero-send-stop.json");
+    let zeroSend;
+    if (values.reconcileZeroSend) {
+      if (!existsSync(JOURNAL) || !existsSync(ledgerPath) || existsSync(`${JOURNAL}.next`) || existsSync(stopReceipt)) fail("FD124_ZERO_SEND_RECONCILIATION_REFUSED");
+      const journalText = privateRead(JOURNAL), ledgerText = privateRead(ledgerPath);
+      const original = validateFd124ZeroSendStop({journalText, ledgerText, inputs});
+      if (original.frozenInputsSha256 !== hash(readFileSync(FROZEN))) fail("FD124_ZERO_SEND_SOURCE_CHANGED");
+      zeroSend = {original, journalText, ledgerText};
+    }
+    if (!values.reconcileZeroSend && (existsSync(JOURNAL) || markerExists || existsSync(`${JOURNAL}.next`) || existsSync(ledgerPath))) fail("FD124_RESTART_REQUIRES_RECONCILIATION");
+    const budget = createCampaignBudget({ ledgerPath, totalCapVnd: FD124_TECHNICAL_CAP_VND,
       allocationsVnd: { "v4.2-report": FD124_TECHNICAL_CAP_VND }, settleActualUsage: true, referenceContinuation: FD124_POLICY });
-    assertFd124FreshCampaign({ journalExists: false, markerExists, state: budget.status() });
+    if (!zeroSend) assertFd124FreshCampaign({ journalExists: false, markerExists, state: budget.status() });
+    else {
+      const state = budget.status();
+      if (state.totalVnd !== 0 || state.openReservations !== 0 || privateRead(ledgerPath) !== zeroSend.ledgerText || privateRead(JOURNAL) !== zeroSend.journalText) fail("FD124_ZERO_SEND_STATE_CHANGED");
+      preserveFd124ZeroSendStop({path: stopReceipt, journalText: zeroSend.journalText, ledgerText: zeroSend.ledgerText, unchanged});
+    }
     const manifest = { campaign: FD124_POLICY, ownerDecision: "FD-124", status: "running", manualAccepted: false, asOfDate: "2026-10-09",
       frozenInputsSha256: hash(readFileSync(FROZEN)), oldAuthorityHashes: FD124_OLD_AUTHORITIES, maxPhysicalAttempts: 12,
-      accountingBasis: "FD114_API_reference_not_provider_invoice", reports: [] };
+      accountingBasis: "FD114_API_reference_not_provider_invoice", reports: [],
+      ...(zeroSend ? {reconciliation: {kind: "FD124-known-zero-send-preflight-v1", reconciledAt: new Date().toISOString(),
+        journalSha256: hash(zeroSend.journalText), ledgerSha256: hash(zeroSend.ledgerText), originalManifest: zeroSend.original}} : {}) };
     const save = value => durableFd124Save(JOURNAL, value, { privateStorage: true, check: unchanged });
     save(manifest);
     await runFd124Sequence({ inputs, manifest, save, generate: (input, row) => {
