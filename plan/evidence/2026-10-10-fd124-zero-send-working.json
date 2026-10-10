@@ -1,0 +1,20 @@
+{
+  "status": "WORKING_REVIEW_GO",
+  "baseRelease": "78e6cef3addf2efaa0ed010aae452955811a2257",
+  "focusedTestsPassed": 12,
+  "scriptTestsPassed": 141,
+  "knownStop": "KNOWN_ZERO_SEND_PREFLIGHT_STOP",
+  "priorStopJournalSha256": "af12da0115b02cb6c0a274578085a153c595718fa08e02ac1d4eece827462519",
+  "priorLedgerSha256": "330ce5dcb92a0375fdfab543cae7d0944102e3426d62cd9e088f5a6f4918590b",
+  "priorProviderGenerationSends": 0,
+  "priorOpenReservations": 0,
+  "independentWorkingReview": "/tmp/lasoviet-fd124-independent-zero-send-working-review-20261010.json",
+  "sourceHashes": {
+    "scripts/run-replacement-paid-trials.mjs": "553ab988e1ee51487c9f539a96dc2c6c59b1a057a1b2cf8a2caae4e6b4769729",
+    "scripts/fd124-replacement-trials.test.mjs": "f0e94f46134b6a66b7e83dfadf2b3865f71492e635c2739abc9a1ec36b663568"
+  },
+  "reconciliationExecuted": false,
+  "nativeEditorialAcceptance": false,
+  "productionDeployed": false,
+  "fullProductAcceptance": false
+}
