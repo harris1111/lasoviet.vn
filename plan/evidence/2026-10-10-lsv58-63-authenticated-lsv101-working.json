@@ -1,0 +1,152 @@
+{
+  "phase": "pre-release updated-runtime isolated checkpoint",
+  "observedAt": "2026-10-10T17:58:52.505845+00:00",
+  "qaExecutedRevision": "b6ab697648028f1da01bbbd6423c4755211a3afb",
+  "runtimeBase": "dd6993681a3fcc8165b00759239547d787ede89b",
+  "runtimeFilesIdenticalToCombinedRelease": "2ec335babdcc04765e0f7beecaeb641fad8a0d03",
+  "comparisonScope": [
+    "apps",
+    "packages",
+    "config",
+    "content"
+  ],
+  "sourceHashes": {
+    ".github/workflows/ci.yml": "e6b5af09b28538efa388d4f1c0979cba402e885258b53386f13a7e9849fda851",
+    "package.json": "f24761fb3af1018972c825a0f6f9e2892b6e96347bc35fdc1246533a641c2fa7",
+    "plan/2026-10-10-lsv58-63-authenticated-acceptance.md": "c0995b7dfabdfc65e0aa154b6fb350264ef5e3f272ddc6bb2abb0b6a3b413be3",
+    "playwright.acceptance.config.ts": "0c2367b7e84339afc81a4992142de4e6e5b48289cd71c815fbeded3b38bdc499",
+    "scripts/acceptance-qa-api-bootstrap.mjs": "3eceec757d11223f28886683bff3d7072a239e5a46be17548b7ecae0d41cffb1",
+    "scripts/acceptance-qa-catalog.mjs": "19c4951e1c1143c5a9b82855cfbdf368ce27e6b0406fa49997ec6013b1d7d189",
+    "scripts/acceptance-qa-clock.mjs": "78cfb19899476a0bfc08f294a08af22406a2b92de12a968987620b9b973c3dc3",
+    "scripts/acceptance-qa-environment.py": "b2e0eac9df7a83cf8762d45f1b8c57e4a0ea52d71e7555a066a008b02afc7107",
+    "scripts/acceptance-qa-fixtures.mjs": "3431afccc831afe0db7e09666f060bb34bf30a7cdf6da0ab4027291779077f1f",
+    "scripts/acceptance-qa-provider.mjs": "c450e98ddbddf6f1966ac70961e6603ec0172b9d5bd6357a9dd7982581d51109",
+    "scripts/run-authenticated-paid-acceptance.mjs": "98f8a1c1fba1014264c54e32c4259f3de525f1e7269dc45b0650e466535148f1",
+    "tests/e2e/authenticated-paid-acceptance.spec.ts": "e623f49e41a864ce8799d03d4e6b947709365d80a05f3ac81258909957035d18"
+  },
+  "builtArtifactHashes": {
+    "apps/web/.next/BUILD_ID": "d9298e8a9b665a424b88076a88ca15ee3cbd4d280253b9fad8ebb0ef1f61c087",
+    "apps/api/dist/main.js": "29397490e98f4fd04eef3e09b43e54c51eea8be3a27ff42e60e9e3be05edd474",
+    "packages/backend/dist/commerce/wallet-unlock.service.js": "4a027b55cdbd94288a473215b54c9b8fd9157dbe887d5ece05e0dd8789fafcbf",
+    "packages/backend/dist/commerce/commerce.repository.js": "a25f176c922ff82358485031288c14a8c242f5387f7f8f72871dd07b150088f7",
+    "packages/backend/dist/reports/report-query.repository.js": "225d1e39f2eea6324c8aac6018ef5d25097f0dd405d85b3d6588d96aea4f16b0",
+    "packages/backend/dist/reports/report-query.service.js": "3cb854e99cc84f9bc0cf0618d51d304d3c4e7403ed6765b3808780343a423934"
+  },
+  "completedIsolatedMechanics": {
+    "status": "MECHANICS_PASS_LIBRARY_HOLD",
+    "productAcceptance": "HOLD",
+    "scenarios": [
+      {
+        "scenario": "relationship",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": true,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "career",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": true,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "monthly",
+        "priceLa": 300,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": true,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "annual2026",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": true,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "annual2027",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": true,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      }
+    ],
+    "exact24HourExclusion": true,
+    "futureScheduledDefaultsExercised": true,
+    "unrelatedOwnerFutureOutboxUnchanged": true,
+    "nativeProviderCalls": 0,
+    "customerSends": 0,
+    "productionMutations": 0,
+    "frontendPurchasePresentationStillHeld": true
+  },
+  "reservedCatalogRefusal": {
+    "passed": true,
+    "products": 5,
+    "noPurchaseMutations": true
+  },
+  "ownedCleanup": {
+    "ownedFixturesPurged": true,
+    "containersRemoved": 4,
+    "networkRemoved": true,
+    "credentialsRemoved": true
+  },
+  "originalReceiptHashes": {
+    "joined-scenarios.json": "a4f1ff6164d332fffca26724d448256c59fcee151c611c3069e21e52a41231a8",
+    "reserved-layer.json": "5c931f0c8a05c9c19d5a8be64fc2576b437afd0769e1c29493b6b86c254271fa",
+    "cleanup.json": "1b9c4dcc914b9989b5f129f8ac04bdfbc7937c845b7dd3a4af31376f8e438fe1",
+    "identity.json": "18c28ab8b57744e32e13e075de332dedb4cfbab86f960091cd12342a088bb446"
+  },
+  "acceptanceLimits": [
+    "All five backend V2 owned reader links are ready on the tested exact compiled modules; audited production deployment and installed parity smoke remain pending.",
+    "Frontend library links remain missing; LSV100 belongs to Lam.",
+    "Synthetic generation is mechanics-only and does not count as actual editorial samples or full LSV58/63 acceptance.",
+    "Clean exact-head review and fresh CI including this new paid QA step precede merge.",
+    "Original working checkpoint describes earlier78e6; this later checkpoint supersedes only its backend link result."
+  ]
+}

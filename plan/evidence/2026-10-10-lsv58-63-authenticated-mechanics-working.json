@@ -1,0 +1,135 @@
+{
+  "phase": "pre-release working checkpoint",
+  "observedAt": "2026-10-10T17:51:14.464634+00:00",
+  "runtimeBase": "78e6cef3addf2efaa0ed010aae452955811a2257",
+  "sourceHashes": {
+    ".github/workflows/ci.yml": "e6b5af09b28538efa388d4f1c0979cba402e885258b53386f13a7e9849fda851",
+    "package.json": "f24761fb3af1018972c825a0f6f9e2892b6e96347bc35fdc1246533a641c2fa7",
+    "plan/2026-10-10-lsv58-63-authenticated-acceptance.md": "c0995b7dfabdfc65e0aa154b6fb350264ef5e3f272ddc6bb2abb0b6a3b413be3",
+    "playwright.acceptance.config.ts": "0c2367b7e84339afc81a4992142de4e6e5b48289cd71c815fbeded3b38bdc499",
+    "scripts/acceptance-qa-api-bootstrap.mjs": "3eceec757d11223f28886683bff3d7072a239e5a46be17548b7ecae0d41cffb1",
+    "scripts/acceptance-qa-catalog.mjs": "19c4951e1c1143c5a9b82855cfbdf368ce27e6b0406fa49997ec6013b1d7d189",
+    "scripts/acceptance-qa-clock.mjs": "78cfb19899476a0bfc08f294a08af22406a2b92de12a968987620b9b973c3dc3",
+    "scripts/acceptance-qa-environment.py": "9979482d267e5e8d6b4f25a6b1e1a2a1d904fccb7435dd55af35236557d7c406",
+    "scripts/acceptance-qa-fixtures.mjs": "3431afccc831afe0db7e09666f060bb34bf30a7cdf6da0ab4027291779077f1f",
+    "scripts/acceptance-qa-provider.mjs": "c450e98ddbddf6f1966ac70961e6603ec0172b9d5bd6357a9dd7982581d51109",
+    "scripts/run-authenticated-paid-acceptance.mjs": "98f8a1c1fba1014264c54e32c4259f3de525f1e7269dc45b0650e466535148f1",
+    "tests/e2e/authenticated-paid-acceptance.spec.ts": "e623f49e41a864ce8799d03d4e6b947709365d80a05f3ac81258909957035d18"
+  },
+  "completedIsolatedMechanics": {
+    "status": "MECHANICS_PASS_LIBRARY_HOLD",
+    "productAcceptance": "HOLD",
+    "scenarios": [
+      {
+        "scenario": "relationship",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": false,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "career",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": false,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "monthly",
+        "priceLa": 300,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": false,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "annual2026",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": false,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      },
+      {
+        "scenario": "annual2027",
+        "priceLa": 480,
+        "actualAuthenticatedApiPurchase": true,
+        "actualOwnedReaderAndBrowserPdf": true,
+        "accountLibraryLinkVisible": false,
+        "libraryV2ReadLinkReady": false,
+        "mobileDesktop": true,
+        "exactLotAndRevenueRestore": true,
+        "guaranteeReplayAndSecondClaimRefusal": true,
+        "revokedQueuedReplayNoRegeneration": true,
+        "syntheticGenerationOnly": true,
+        "nativeProviderCalls": 0,
+        "productionSalesActivated": false,
+        "frontendPurchaseCtaAccepted": false
+      }
+    ],
+    "exact24HourExclusion": true,
+    "futureScheduledDefaultsExercised": true,
+    "unrelatedOwnerFutureOutboxUnchanged": true,
+    "nativeProviderCalls": 0,
+    "customerSends": 0,
+    "productionMutations": 0,
+    "frontendPurchasePresentationStillHeld": true
+  },
+  "reservedCatalogRefusal": {
+    "passed": true,
+    "products": 5,
+    "noPurchaseMutations": true
+  },
+  "ownedCleanup": {
+    "ownedFixturesPurged": true,
+    "containersRemoved": 4,
+    "networkRemoved": true,
+    "credentialsRemoved": true
+  },
+  "originalReceiptHashes": {
+    "joined-scenarios.json": "79e6757123add3602aa53847c0d659ec6c5105f9283724fbd4d5da9624f685d8",
+    "reserved-layer.json": "5c931f0c8a05c9c19d5a8be64fc2576b437afd0769e1c29493b6b86c254271fa",
+    "cleanup.json": "1b9c4dcc914b9989b5f129f8ac04bdfbc7937c845b7dd3a4af31376f8e438fe1"
+  },
+  "checks": "Latest i18n/lint passed; typecheck running. Clean exact-head independent review and fresh CI remain required.",
+  "acceptanceLimits": [
+    "Synthetic source-bound provider is mechanics-only and not an actual editorial sample.",
+    "Both backend V2 reader link and frontend library navigation remain HOLD on this base; LSV101 and LSV100 are separate follow-ups.",
+    "Original LSV58/63 full scope is unchanged; no parent Done.",
+    "No runtime activation, production fixture/financial writes, native generation or customer send."
+  ]
+}
