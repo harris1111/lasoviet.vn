@@ -1,0 +1,60 @@
+{
+  "status": "WORKING_GO",
+  "observedAt": "2026-10-10T18:51:35.454195+00:00",
+  "scope": "Code/security/accounting review of explicit known-complete correction CLI and isolated tests. No live execution eligibility, full check success or deployment is inferred.",
+  "baseSha": "ffea7dab98fb8e15702b6ee8d971478045be9031",
+  "sourceHashes": {
+    "scripts/correct-fd124-completed-trials.mjs": "b41d0a6dc57589885aa9e8a16900bf458ca9d404db0b96c7507d649680c4bd66",
+    "scripts/fd124-unused-corrections.test.mjs": "b5014c5825e8f2582916662378c7ad59475149452507102a2bfbcba9a7672f04",
+    "package.json": "894725319307e36098b99981a5b75a824c70634ed76b41366a4e52b712ae8a68",
+    "plan/2026-10-10-fd124-unused-corrections.md": "4d9fa1f6d2a00e49cc422dfc4018ed4c78036497b5f1fbbcda993f380febbb29"
+  },
+  "planReceiptSha256": "e5c497c9702dfd009031379ae68a06245f88de3b45ed7052502f93d157eb8506",
+  "checks": [
+    "Strict shared private runner lock acquired before current original journal/ledger eligibility reads",
+    "Fixed immutable complete journal and exact25-record original ledger; six frozen input rows and eight unique accounted reservation/key/output/request joins",
+    "Exactly next_annual:1/relationship_marriage:2/relationship_marriage:3 report-only slots; no arbitrary CLI slot/root/key/model override and no exhausted career/next0 rewrite",
+    "Cached original schema and parsed hash validated; corrected actual quality validator must reproduce specific known hard defect before capturing one rewrite request",
+    "Actual rewrite system/user/schema-name/output-token bound equals previously prepared closed request; exactly one native rewrite per eligible slot",
+    "O_EXCL fsynced once intent and append-only private checkpoint precede native reservation; existing marker/receipt/partial receipt refuses every restart",
+    "Original journal bytes/manual flags and preserved known-zero stop unchanged; same ledger accepts only unique fixed corrective reserve\u2192dispatch\u2192settle extensions under original cap",
+    "Inherited audited transport preserves receipt-before-settlement ordering, uncertain ACK/receipt full hold, one format/quality budget, no inferred release/retry",
+    "Known completed schema/quality rejection remains accounted and explicit; unknown/incomplete attempt stops before any later slot",
+    "Only bounded source/accounting/quality projections exported; full bodies/receipts remain strict private append-only storage"
+  ],
+  "tests": {
+    "independentlyRunFocused": "9/9PASS actual isolated tests; temporary synthetic fixtures only",
+    "parentFocusedLogSha256": "b7a46b60edbc20deef854a010cff90285996515d9d31a58a0242262fa2315267",
+    "scriptSuiteAtReview": "FAIL: missing packages/backend/dist/index.js before producer build; rerun required after build",
+    "scriptSuiteFailureLogSha256": "75f4e2b8b7836183f3036225f3d4ce5e2c58287c550ca47c0d8ce4feffc95d0b",
+    "requiredChecks": "Pending; not claimed PASS"
+  },
+  "authorityPreservation": {
+    "finalOriginalJournalUnchanged": true,
+    "finalOriginalLedgerUnchanged": true,
+    "preservedKnownZeroStopUnchanged": true,
+    "newCorrectionMarkerOrReceiptCreatedByReviewer": false
+  },
+  "limitations": [
+    "Four recorded validator hashes are provenance, not a substitute for final complete source/transport/backend+engine+contracts/config producer binding.",
+    "Branch runtime must compose the separately reviewed/deployed qualityv5/v4 guard before dry-run/live eligibility.",
+    "No ordinary zero-send runner restart or unknown retry is authorized."
+  ],
+  "remainingGates": [
+    "Producer rebuild and fresh full script suite/mandatorychecks success",
+    "Independent clean exact-head review and fresh exact CI",
+    "Combined composition/deployment and installed validator smoke",
+    "Concrete locked authority/frozen/runtime/native transport source pins, router projection and credential window",
+    "Separate final single-invocation GO",
+    "Independent full visible corrective-prose acceptance afterward"
+  ],
+  "effects": {
+    "sourceChanges": 0,
+    "privateAuthorityChanges": 0,
+    "nativeCalls": 0,
+    "statusChanges": 0,
+    "productionOperations": 0,
+    "isolatedSyntheticTests": 9
+  },
+  "dispatchAuthorization": false
+}

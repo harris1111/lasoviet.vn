@@ -1,0 +1,51 @@
+{
+  "status": "PLAN_GO",
+  "observedAt": "2026-10-10T18:44:29.701489+00:00",
+  "planPath": "/home/debian/projects/lasoviet-fd124-unused-corrections-20261010/plan/2026-10-10-fd124-unused-corrections.md",
+  "planSha256": "4d9fa1f6d2a00e49cc422dfc4018ed4c78036497b5f1fbbcda993f380febbb29",
+  "scope": "Exactly unused one-rewrite attempts for next_annual:1, relationship_marriage:2, relationship_marriage:3; same frozen six profiles/ledger cap, eleven total sends at most. No immediate invocation authorization.",
+  "authorityFacts": {
+    "originalCompleteAccountedResponses": 8,
+    "selectedSlotsEachCompletedReportOnly": true,
+    "unusedRewrites": 3,
+    "maximumAfterContinuation": 11,
+    "decisionMaximum": 12,
+    "referenceAllocationIfEach33368Vnd": 367048,
+    "originalCapVnd": 400416,
+    "originalJournalSha256": "bd274050c57c439e61cc082acb7256bfd3786a4693fc26d191948158ad44cbdf",
+    "originalLedgerPrefixSha256": "801fee2a12127ec9a1861503b0a8e0901783ef678d631b075558b127f9e16257"
+  },
+  "implementationConstraints": [
+    "Acquire the same strict private runner lock before reading eligibility/private authority and ledger state; no concurrent ordinary runner or correction.",
+    "Pin complete original journal bytes, all manualAccepted flags, exact ledger byte prefix, full original eight reserve/dispatch/settlement identities, old four authorities and frozen projections; originals never rewritten.",
+    "O_EXCL plus fsync once intent must precede any corrective reservation/native dispatch. Existing marker, receipt or transition refuses every ordinary restart.",
+    "Only fixed three unused rewrite keys are eligible; no generic CLI root/slot/key/model/source override. Never call the zero-send reconciliation runner again.",
+    "Cached original report must invoke no native provider, budget reservation or accounting dispatch. Reproduce the independently witnessed specific hard defect for each slot; generic unrelated failure is insufficient eligibility.",
+    "Append reserve/dispatch/settlement only to existing same-config/cap ledger. Separate append-only private correction receipt carries original lineage, exact new runtime identity and full response accountability; original journal budget/manual flags remain historical and unchanged.",
+    "Every response needs durable bound receipt and known reference settlement before next slot. Any crash, lost ACK, unknown reservation/response or partial record holds the sequence and reservation; never infer settlement/release or retry.",
+    "Automatic PASS never substitutes for independent full-prose acceptance; preserve any schema/quality rejection and do not count cached report/rewrite as separate profiles."
+  ],
+  "requiredOfflineChecks": [
+    "Authority/hash/prefix/config/row/identity mismatches",
+    "Exhausted rewrite and arbitrary slot/key/root refusal",
+    "Cached report performs zero native/accounting dispatch",
+    "At most one rewrite per selected slot; fixed idempotency key",
+    "Fail-stop unknown/crash transitions and marker restart refusal",
+    "Append-only ledger progress and exact cap; no original authority writes"
+  ],
+  "remainingGates": [
+    "Corrected factual guard exact CI/deployment/installed smoke",
+    "Independent correction working and clean exact-head review",
+    "Required checks and fresh exact CI",
+    "Exact combined deployment and installed/source binding",
+    "Fresh locked authority eligibility and OAuth window review",
+    "Separate concrete single-invocation GO"
+  ],
+  "effects": {
+    "sourceChanges": 0,
+    "authorityChanges": 0,
+    "nativeCalls": 0,
+    "productionOperations": 0
+  },
+  "dispatchAuthorization": false
+}
