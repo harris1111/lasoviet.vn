@@ -13,17 +13,17 @@ export const WalletUnlockRequestV1Schema = z.object({
 }).strict();
 
 export const WalletUpgradePurchaseV1Schema = z.object({
-  version: z.literal(1),
+  version: z.union([z.literal(1), z.literal(2)]),
   eventKey: z.string().regex(/^upg_[0-9a-f]{32}$/),
   occurredAt: z.iso.datetime({ offset: true }),
   targetSku: z.literal("ZIWEI-IDENTITY-P0"),
   sourceSku: LaSkuSchema,
   sourceSkus: z.array(LaSkuSchema).min(1).max(13),
-  chargedLa: amount.max(959),
-  creditLa: z.number().int().positive().max(960),
+  chargedLa: amount.max(1199),
+  creditLa: z.number().int().positive().max(1200),
   currency: z.literal("LA"),
 }).strict().superRefine((value, context) => {
-  if (value.chargedLa + value.creditLa !== 960 ||
+  if (value.chargedLa + value.creditLa !== (value.version === 1 ? 960 : 1200) ||
       new Set(value.sourceSkus).size !== value.sourceSkus.length ||
       !value.sourceSkus.includes(value.sourceSku) ||
       value.sourceSkus.some(sku => !isQualifyingRolloverSku(sku))) {
@@ -46,7 +46,7 @@ export const WalletUnlockResultV1Schema = z.object({
   }).strict().superRefine((intent, context) => {
     if (["ZIWEI-YEAR-P0", "ZIWEI-COMBO-P0"].includes(intent.sku) && intent.targetYear === undefined) context.addIssue({code: "custom", message: "Annual unlock requires its frozen year"});
     const product = findLaProduct(intent.sku);
-    const validPrice = intent.sku === "ZIWEI-IDENTITY-P0" ? intent.amountLa <= 960 :
+    const validPrice = intent.sku === "ZIWEI-IDENTITY-P0" ? intent.amountLa <= 1200 :
       intent.sku === "ZIWEI-MONTHLY-P0" && intent.amountLa === 0 ||
       !!product && (intent.amountLa === product.priceLa || intent.amountLa === Math.ceil(product.priceLa * 0.8));
     if (!validPrice) context.addIssue({code: "custom", message: "Unlock price must match its catalog terms"});

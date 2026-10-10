@@ -184,7 +184,10 @@ function filterTopicKnowledgePacks(
   const prefix =
     topicId === "relationship_marriage"
       ? ["thematic_relationships_family", "palace_ziwei.palace.spouse", "palace_ziwei.palace.fortune"]
-      : ["thematic_career_wealth", "palace_ziwei.palace.career", "palace_ziwei.palace.wealth"];
+      : ["business_enterprise", "career_transition", "family_children"].includes(topicId)
+        ? [topicId === "family_children" ? "thematic_relationships_family" : "thematic_career_wealth",
+          ...[...TOPIC_PALACE_SCOPES[topicId].primaryPalaces, ...TOPIC_PALACE_SCOPES[topicId].supportingPalaces].map(palace => `palace_${palace}`)]
+        : ["thematic_career_wealth", "palace_ziwei.palace.career", "palace_ziwei.palace.wealth"];
 
   return knowledgePacks
     .filter((pack) =>
@@ -274,6 +277,21 @@ export async function writeZiweiTopicDeepDiveV4(
 
   const userPayload = {
     topicId: input.topicId,
+    ...(input.topicId === "business_enterprise" ? {businessScope: {
+      focus: "Business earning models, independent enterprise, collaboration, resource discipline and practical tradeoffs grounded in Wealth/Career and the supplied supporting palaces.",
+      distinguishFromCareer: "Do not substitute a general job/career reading. Discuss initiative, counterpart relationships, capital discipline and manageable business decisions without promising returns.",
+      forbidden: "No invented income, revenue, return percentages, successful ventures, market forecasts or exact investment dates.",
+    }} : {}),
+    ...(input.topicId === "career_transition" ? {transitionScope: {
+      focus: "Job changes, external mobility, role fit, collaboration and resource preparation grounded in Career/Travel and supplied supporting palaces.",
+      distinguishFromCareer: "Address concrete tradeoffs between staying, changing roles and moving environments; do not substitute a general Career & Wealth reading or an enterprise plan.",
+      forbidden: "No invented event date, guaranteed job offer, salary, revenue or return. Decadal dates are only the computed cycle, never a predicted hiring event.",
+    }} : {}),
+    ...(input.topicId === "family_children" ? {familyScope: {
+      focus: "Household cooperation, shared space, supportive family communication and practical responsibilities grounded in Children/Property and the supplied Parents/Siblings/Fortune facts.",
+      distinguishFromRelationship: "Discuss conditional family and caregiving decisions without assuming an existing spouse or child; do not substitute a partner/romance reading.",
+      forbidden: "No predicted pregnancy, fertility diagnosis, child count or sex, medical outcome, marriage date, death or invented family biography/event. Never infer a birth forecast from Children palace.",
+    }} : {}),
     title: topicTitle,
     scopedFacts: {
       natalPalaces: input.facts.natal.palaces.filter((p) =>
@@ -328,7 +346,7 @@ Tất cả các tiêu chí trên là bắt buộc. Phản hồi phải là JSON 
   }
 
   const parsed = ZiweiTopicDeepDiveContentV1Schema.safeParse(response.value.value);
-  if (!parsed.success) {
+  if (!parsed.success || parsed.data.topicId !== input.topicId) {
     return {
       ok: false,
       error: { code: "AI_OUTPUT_INVALID", retryable: false },
@@ -336,6 +354,13 @@ Tất cả các tiêu chí trên là bắt buộc. Phản hồi phải là JSON 
   }
 
   const content = parsed.data;
+  if (["business_enterprise", "career_transition", "family_children"].includes(input.topicId)) {
+    const keys = [content.overview, ...content.palaceAnchors, ...content.thematicDimensions,
+      content.decadalTiming, ...content.actions].flatMap(section => section.evidenceKeys);
+    if (keys.some(key => !allowedSet.has(key))) {
+      return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+    }
+  }
   const qualityResult = validateZiweiTopicDeepDiveQualityV4(
     content,
     input.facts,

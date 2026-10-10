@@ -32,7 +32,8 @@ describe("membership wallet and expiry integration", () => {
     const actor: CurrentActor = { kind: "account", userId: id, sessionId: `session:${id}`, requestId: `request:${id}` };
     await db.insert(authUsers).values({ id, name: "Synthetic member", email: `${id}@example.test`, emailVerified: true });
     const authority = { token: {}, actorId: id };
-    const repository = createDatabaseWalletRepository(db, { now, trustedGrantAuthority: authority });
+    const terminalToken = {};
+    const repository = createDatabaseWalletRepository(db, { now, trustedGrantAuthority: authority, trustedTerminalRestorationToken: terminalToken });
     const wallet = createWalletService(repository);
     await repository.grant({ targetOwnerId: id, topUpOrderId: null, trustedGrantToken: authority.token, grant: {
       version: 1, kind: "grant", actorId: id, reasonCode: "test.membership.credit", requestId: actor.requestId, traceId: actor.requestId,
@@ -46,7 +47,7 @@ describe("membership wallet and expiry integration", () => {
       const command = { purchaseIntentId: intent.value.id, expectedIntentVersion: intent.value.stateVersion, expectedWalletVersion: balance.value.stateVersion, idempotencyKey: randomUUID() };
       return { intent, command, result: await service.purchase(actor, command) };
     }
-    return { id, actor, repository, wallet, service, buy };
+    return { id, actor, repository, wallet, service, buy, terminalToken };
   }
   it("atomically spends 1500 once, replays, appends explicit renewals, and denies exact expiry", async () => {
     const owner = await fixture();
@@ -108,15 +109,15 @@ describe("membership wallet and expiry integration", () => {
     expect(await owner.wallet.readBalance(owner.actor)).toMatchObject({ ok: true, value: { totalLa: bought.ok ? 18_500 : 20_000 } });
     expect(await db.select().from(membershipSubscriptions).where(eq(membershipSubscriptions.ownerId, owner.id))).toHaveLength(bought.ok ? 1 : 0);
   }, 10_000);
-  it("restoration revokes membership access and discount immediately", async () => {
+  it("trusted full restoration revokes membership access and discount immediately", async () => {
     const owner = await fixture();
     const { result } = await owner.buy();
     if (!result.ok) throw new Error("purchase");
     const [period] = await db.select().from(membershipSubscriptions).where(eq(membershipSubscriptions.id, result.value.subscriptionId!));
-    expect(await owner.repository.restore({ actor: owner.actor, restoration: {
-      version: 1, kind: "restoration", actorId: owner.id, reasonCode: "wallet.report.failure", requestId: owner.actor.requestId, traceId: owner.actor.requestId,
-      idempotencyKey: randomUUID(), originalSpendId: period!.ledgerSpendId, expectedWalletVersion: result.value.balance.stateVersion,
-    } })).toMatchObject({ ok: true });
+    expect(await owner.repository.restore({ownerId: owner.id, trustedAuthorityToken: owner.terminalToken,
+      requestId: owner.actor.requestId, traceId: owner.actor.requestId, idempotencyKey: randomUUID(),
+      originalSpendId: period!.ledgerSpendId, expectedWalletVersion: result.value.balance.stateVersion,
+    })).toMatchObject({ ok: true });
     expect(await readActiveMembership(db, owner.id, time)).toBeNull();
     expect(await owner.service.read(owner.actor)).toMatchObject({ ok: true, value: { discountPercent: 0 } });
   });
@@ -129,10 +130,10 @@ describe("membership wallet and expiry integration", () => {
     const [middle] = await db.select().from(membershipSubscriptions).where(eq(membershipSubscriptions.id, second.result.value.subscriptionId!));
     const balance = await owner.wallet.readBalance(owner.actor);
     if (!balance.ok) throw new Error("balance");
-    expect(await owner.repository.restore({ actor: owner.actor, restoration: {
-      version: 1, kind: "restoration", actorId: owner.id, reasonCode: "wallet.report.failure", requestId: owner.actor.requestId, traceId: owner.actor.requestId,
-      idempotencyKey: randomUUID(), originalSpendId: middle!.ledgerSpendId, expectedWalletVersion: balance.value.stateVersion,
-    } })).toMatchObject({ ok: true });
+    expect(await owner.repository.restore({ownerId: owner.id, trustedAuthorityToken: owner.terminalToken,
+      requestId: owner.actor.requestId, traceId: owner.actor.requestId, idempotencyKey: randomUUID(),
+      originalSpendId: middle!.ledgerSpendId, expectedWalletVersion: balance.value.stateVersion,
+    })).toMatchObject({ ok: true });
     expect(await owner.service.read(owner.actor)).toMatchObject({ ok: true, value: { active: true, expiresAt: "2026-10-30T03:00:00.000Z" } });
     time = new Date("2026-10-30T03:00:00Z");
     expect(await readActiveMembership(db, owner.id, time)).toBeNull();

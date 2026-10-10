@@ -40,6 +40,8 @@ export const TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES = [
   "EVIDENCE_ANCHORS",
   "DECADAL_TIMING_MISMATCH",
   "THEMATIC_OVERLAP",
+  "UNSUPPORTED_FINANCIAL_METRIC",
+  "UNSUPPORTED_FAMILY_CLAIM",
 ] as const;
 
 export type TopicDeepDiveQualityFindingCode =
@@ -443,6 +445,29 @@ export function validateZiweiTopicDeepDiveQualityV4(
   };
 
   let totalSyllables = 0;
+
+  if (["business_enterprise", "career_transition", "family_children"].includes(report.topicId)) {
+    const text = [report.title, report.overview.title, report.overview.narrative,
+      ...report.palaceAnchors.flatMap(p => [p.title, p.narrative]),
+      ...report.thematicDimensions.flatMap(p => [p.title, p.narrative]),
+      report.decadalTiming.title, report.decadalTiming.narrative,
+      ...report.actions.flatMap(p => [p.recommendation, p.rationale, p.avoid])].join(" ");
+    const amountAfterUnit = /(?:\b(?:vnd|usd|eur|gbp)\s*|[$₫€£]\s*)\d+(?:[.,]\d+)?/iu;
+    const amountBeforeUnit = /\d+(?:[.,]\d+)?\s*(?:triệu|tỷ|đồng|vnd|usd|eur|gbp|%)(?![\p{L}\p{N}])/iu;
+    const explicitMetricAmount = /(?:thu nhập|doanh thu|lợi nhuận|tỷ suất|lợi tức)\s*(?:(?:là|đạt|ở mức|khoảng|dự kiến)\s*)?\d+(?:[.,]\d+)?/iu;
+    if (amountAfterUnit.test(text) || amountBeforeUnit.test(text) || explicitMetricAmount.test(text)) {
+      add("root", "UNSUPPORTED_FINANCIAL_METRIC", "The chart source supplies no numeric income, return or revenue metric.");
+    }
+    if (report.topicId === "family_children") {
+      const childCount = /(?<![\p{L}\p{N}])(?:\d+|một|hai|ba|bốn|năm|sáu|bảy|tám|chín|mười)\s+(?:đứa\s+)?(?:con|bé)(?:\s+(?:trai|gái))?(?![\p{L}\p{N}])/iu;
+      const childSex = /(?:con|bé)\s+(?:đầu(?:\s+lòng)?|thứ\s+\d+)\s+(?:sẽ\s+)?(?:là|sinh\s+ra\s+là)\s+(?:(?:con|bé)\s+)?(?:trai|gái)/iu;
+      const unsupportedEvent = /(?:bạn|đương số)\s+(?:(?:sẽ|đã|đang|chắc chắn)\s+)(?:có con|sinh con|mang thai|kết hôn|ly hôn|mất người thân)|(?:mang thai|sinh con|kết hôn)\s+(?:vào|trong)\s+(?:năm|tháng|ngày)/iu;
+      const unsupportedMedical = /(?<![\p{L}\p{N}])(?:vô sinh|hiếm muộn|chẩn đoán|thụ thai|infertility|fertility diagnosis)(?![\p{L}\p{N}])/iu;
+      if (childCount.test(text) || childSex.test(text) || unsupportedEvent.test(text) || unsupportedMedical.test(text)) {
+        add("root", "UNSUPPORTED_FAMILY_CLAIM", "The chart source supplies no child count/sex, fertility diagnosis, pregnancy/event forecast or family biography.");
+      }
+    }
+  }
 
   // 1. Topic Scope Anchors
   const palaceScope = TOPIC_PALACE_SCOPES[report.topicId];

@@ -1,3 +1,4 @@
+import { readPurchaseCommercialTerms } from "../commerce/purchase-commercial-terms.js";
 import { and, desc, eq, or } from "drizzle-orm";
 import { findLaProduct, WalletTopUpCatalogV1 } from "@lasoviet/contracts";
 import {
@@ -33,9 +34,10 @@ export async function readPendingTopUpRecoveryEligibility(transaction: Transacti
               intent.stateVersion !== continuation.intentStateVersion || intent.priceLa !== continuation.confirmedPriceLa ||
               intent.locale !== order.locale || intent.periodKey !== "lifetime") return null;
           const product = findLaProduct(intent.sku);
+          const terms = readPurchaseCommercialTerms(intent);
           // Timed rollover/member quotes need their own deadline proof. This bounded
           // milestone conservatively excludes every discounted or held intent.
-          if (!product || product.availability !== "active" || intent.priceLa !== product.priceLa ||
+          if (!product || product.availability !== "active" || !terms || intent.priceLa !== terms.basePriceLa ||
               (intent.locale !== "vi" && intent.locale !== "en") || !product.locales.includes(intent.locale)) return null;
           const pack = WalletTopUpCatalogV1.find(item => item.id === order.sku);
           if (!pack || order.amount !== pack.vndAmount || order.currency !== "VND") return null;
