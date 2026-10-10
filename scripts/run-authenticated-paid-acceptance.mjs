@@ -5,6 +5,8 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import {startCanonicalQaProxy} from "./fd109-qa-proxy.mjs";
+assert(process.argv.slice(2).length === 0 || JSON.stringify(process.argv.slice(2)) === JSON.stringify(["--comboOnly"]), "CLOSED_ACCEPTANCE_SCOPE_REQUIRED");
+const comboOnly = process.argv.includes("--comboOnly");
 const evidence = process.env.LSV_ACCEPTANCE_EVIDENCE_DIRECTORY ?? mkdtempSync(path.join(os.tmpdir(), "lsv5863-auth-"));
 const relativeEvidence = path.relative(process.cwd(), path.resolve(evidence));
 assert(path.resolve(evidence) !== path.parse(path.resolve(evidence)).root && (relativeEvidence === ".." || relativeEvidence.startsWith(".." + path.sep) || path.isAbsolute(relativeEvidence)), "PRIVATE_EVIDENCE_OUTSIDE_REPOSITORY_REQUIRED");
@@ -26,7 +28,7 @@ try {
   await new Promise((resolve, reject) => {relay.once("error", reject); relay.listen(65524, "127.0.0.1", resolve);});
   proxy = await startCanonicalQaProxy({certificateDirectory: evidence, webOrigin: "http://127.0.0.1:65524"});
   const status = await new Promise(resolve => {
-    const child = spawn("pnpm", ["exec", "playwright", "test", "--config", "playwright.acceptance.config.ts"], {stdio: "inherit", env: {...environment, PLAYWRIGHT_QA_PROXY: proxy.server}});
+    const child = spawn("pnpm", ["exec", "playwright", "test", "--config", "playwright.acceptance.config.ts", ...(comboOnly ? ["--grep", "post-Tet current and next Combo delivery preserves both children and one spend"] : [])], {stdio: "inherit", env: {...environment, PLAYWRIGHT_QA_PROXY: proxy.server}});
     child.on("error", () => resolve(1)); child.on("close", code => resolve(code ?? 1));
   });
   process.exitCode = status;

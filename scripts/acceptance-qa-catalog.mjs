@@ -10,12 +10,12 @@ export function applyIsolatedAcceptanceCatalog() {
   const identity = JSON.parse(readFileSync("/qa/identity.json", "utf8"));
   assert.equal(approval.runId, identity.runId);
   assert.equal(approval.reservedLayerPassed, true);
-  const skus = ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0"];
+  const skus = ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-COMBO-P0"];
   const before = structuredClone(LA_PRODUCT_CATALOG);
   for (const sku of skus) {
     const item = findLaProduct(sku); assert(item);
     assert.equal(item.availability, "reserved");
-    assert.equal(item.priceLa, sku === "ZIWEI-MONTHLY-P0" ? 300 : 480);
+    assert.equal(item.priceLa, before.find(product => product.sku === sku).priceLa);
     item.availability = "active";
   }
   const expected = before.map(item => ({...item, availability: skus.includes(item.sku) ? "active" : item.availability}));

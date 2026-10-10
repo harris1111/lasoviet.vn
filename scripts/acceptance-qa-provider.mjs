@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import {comprehensiveFixture} from "./acceptance-qa-comprehensive-provider.mjs";
 import {TOPIC_PALACE_SCOPES} from "../packages/contracts/dist/index.js";
 import {displayFact} from "../packages/backend/dist/reports/comprehensive-report-quality-v4.js";
 const paragraph = "Cân nhắc kế hoạch thực tế và trao đổi rõ ràng với người đồng hành. Ghi nhận điều đã thực hiện, xem lại ưu tiên và dành thời gian lắng nghe trước khi đưa ra quyết định. ";
@@ -44,7 +45,9 @@ function periodContent(input) {
 export function createSourceBoundSyntheticProvider(receipts) {
   return {async generateStructured(request) {
     const input = JSON.parse(request.user);
-    const content = request.schemaName.startsWith("ziwei_topic_deep_dive_") ? topicContent(input) : periodContent(input);
+    const content = /^(ziwei_comprehensive_report_section_|comprehensive_report_sectioned_critic_v4)/u.test(request.schemaName)
+      ? comprehensiveFixture(request,input)
+      : request.schemaName.startsWith("ziwei_topic_deep_dive_") ? topicContent(input) : periodContent(input);
     const value = request.schema.parse(content);
     receipts.push({schema: request.schemaName, syntheticMechanicsOnly: true, nativeProviderCalls: 0});
     return {ok: true, value: {value, providerId: "isolated-source-bound-synthetic", modelId: "isolated-source-bound-synthetic"}};
