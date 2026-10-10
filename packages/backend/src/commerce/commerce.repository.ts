@@ -5,6 +5,8 @@ import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuat
 import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
 import type { DailyReadingWriter } from "./daily-wallet-unlock.service.js";
 import { calculateBonusExpiry } from "@lasoviet/contracts";
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
+import { createReportQueryService, ReportQueryDataError } from "../reports/report-query.service.js";
 import { reportReservationAuthority } from "../reports/natal-report-authority.js";
 import { reservePaidReport } from "../reports/natal-report-reservation.js";
 import { randomUUID } from "node:crypto";
@@ -1048,6 +1050,18 @@ export function createDatabaseCommerceRepository(
         isNull(commerceEntitlements.revokedAt),
       ))
       .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
+    const reportQuery = createReportQueryService({
+      repository: createDatabaseReportQueryRepository(database, getNow), now: getNow,
+    });
+    const readyLocales = new Map<string, {locale: "vi" | "en"; reportVersionId: string; sku: string}>();
+    for (const reportId of new Set(walletRows.filter(row => row.reservation.status !== "terminal_failure").map(row => row.reservation.reportId))) {
+      try {
+        const result = await reportQuery.getReport(actor, reportId);
+        if (result.ok && result.value.state === "ready") readyLocales.set(reportId, {locale: result.value.locale, reportVersionId: result.value.reportVersionId, sku: result.value.sku});
+      } catch (error) {
+        if (!(error instanceof ReportQueryDataError)) throw error;
+      }
+    }
     const walletItems: AccountLibraryV2["items"] = walletRows.map((row) => {
       const displayName = "displayName" in row.revision.originalInput &&
         typeof row.revision.originalInput.displayName === "string" &&
@@ -1056,6 +1070,9 @@ export function createDatabaseCommerceRepository(
         : null;
       const locale = row.intent.locale === "en" ? "en" as const : "vi" as const;
       const sku = row.entitlement.sku as CommerceSku;
+      const ready = readyLocales.get(row.reservation.reportId);
+      const isReady = row.reservation.status !== "terminal_failure" && ready?.reportVersionId === row.reservation.reportVersionId &&
+        ready.sku === row.reservation.sku && ready.locale === row.reservation.locale;
       return {
         source: "ledger_spend" as const,
         id: row.entitlement.id,
@@ -1066,8 +1083,10 @@ export function createDatabaseCommerceRepository(
         productTitle: resolveProductTitle(sku, locale),
         entitlementStatus: "active" as const,
         reportId: row.reservation.reportId,
-        readUrl: null,
-        reportStatus: row.reservation.status,
+        readUrl: isReady
+          ? `${ready?.locale === "en" ? "/en" : ""}/bao-cao/${encodeURIComponent(row.reservation.reportId)}`
+          : null,
+        reportStatus: isReady ? "ready" : row.reservation.status,
         locale,
         createdAt: row.entitlement.createdAt.toISOString(),
         purchasedAt: row.spend.createdAt.toISOString(),
