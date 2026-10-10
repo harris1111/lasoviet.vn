@@ -15,6 +15,7 @@ the approved six-slot/twelve-send boundary.
 Allowed implementation files: the topic deep-dive quality validator and its
 tests; shared reading-content-line validator and its tests; period writer and
 its tests; topic report configuration and narrowly affected version assertions;
+the historical FD123 script test affected by the new version identity;
 this brief and redacted release evidence. Root executes this bounded correction
 in the interactive session; the existing independent reviewer reviews the plan,
 diff, exact commit, and release evidence.
@@ -72,3 +73,12 @@ Any continuation using an unused single corrective attempt needs a separate
 concrete, fail-closed implementation/review and must preserve the existing
 six slots, ledger, known completed responses, unknown holds, and twelve-send
 maximum. This brief does not authorize such an invocation.
+
+## Historical script regression
+
+The first PR CI correctly exposed a stale test expectation after active period
+quality moved from v3 to v4. Keep the runtime historical-v3 recovery fence
+unchanged. Assert current-runtime refusal before recovery, and use a clearly
+named test-only historical identity with the real current validators to retain
+inner source-fact rejection and unchanged-manifest/ledger assertions. Focused
+historical tests and all141 script tests pass after this correction.

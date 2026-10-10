@@ -1,6 +1,6 @@
 {
   "status": "LOCAL_CHECKS_PASS_NOT_RELEASED",
-  "observedAt": "2026-10-10T18:46:17.580424+00:00",
+  "observedAt": "2026-10-10T18:59:28.720874+00:00",
   "baseSha": "54dca85da9f8ef64b1727ceb11f7ca9132a5fd0e",
   "scope": "Objective source-fact guard holes and bounded ordinary-language false positives; no style hardening/native/authority/FE writes",
   "focusedTests": {
@@ -21,6 +21,10 @@
     "required": {
       "path": "/tmp/lasoviet-paid-factual-guard-required-final-20261010.log",
       "sha256": "be8200291d3974b1d7ac96ff8cf5b0f10e2a49c56360c01952630ba9b275d1ac"
+    },
+    "requiredWithScripts": {
+      "path": "/tmp/lasoviet-paid-factual-guard-required-with-scripts-final-20261010.log",
+      "sha256": "4aa74277c938c0d47aef866b318e14bb01eaec6b24af1a227ce829df40945d44"
     }
   },
   "compiled": [
@@ -50,5 +54,11 @@
     }
   ],
   "actualOriginalEditorialReceiptSha256": "327ff3de93b8302a54f7e3112d33095685a7d4282bb6a677c4331199a26f06ba",
-  "release": "PENDING independent working/exact review, CI, merge, deploy and installed smoke"
+  "release": "PENDING independent working/exact review, CI, merge, deploy and installed smoke",
+  "scriptTests": {
+    "passed": 141,
+    "failed": 0
+  },
+  "historicalRecoveryRegression": "Current runtime v4 explicitly refuses historical v3 recovery. Test-only historical identity keeps real current validators and asserts original content rejection without changing runtime authority.",
+  "firstCi": "FAILED only stale historical-v3 test expectation; narrow correction passed focused historical tests and141script tests; fresh exact head CI required."
 }
