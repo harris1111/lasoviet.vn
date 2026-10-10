@@ -7,6 +7,7 @@ import { authUsers, birthProfiles, birthProfileRevisions, calculationRuns, comme
   reportReservations, reportSourceSnapshots, reportVersions, walletTransactions, type Database } from "@lasoviet/database";
 import { type CurrentActor, type WalletGrantV1, type NormalizedBirthProfileV1 } from "@lasoviet/contracts";
 import { calculateIztroReportSnapshot } from "../../../engine-adapters/src/ziwei/iztro-report-snapshot.js";
+import { createDatabaseCommerceRepository } from "../commerce/commerce.repository.js";
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 import { createWalletService } from "../wallet/wallet.service.js";
 import { createWalletUnlockService } from "../commerce/wallet-unlock.service.js";
@@ -77,8 +78,8 @@ describe("frozen next annual report with real PostgreSQL", () => {
     };
   }
 
-  async function ownerFixture(name: string) {
-    const userId = `user-${randomUUID()}`;
+  async function ownerFixture(name: string, existingUserId?: string) {
+    const userId = existingUserId ?? `user-${randomUUID()}`;
     const profileId = `profile-${randomUUID()}`;
     const revisionId = `revision-${randomUUID()}`;
     const chartId = `chart-${randomUUID()}`;
@@ -86,7 +87,7 @@ describe("frozen next annual report with real PostgreSQL", () => {
     const evidenceId = `evidence-${randomUUID()}`;
     const runId = randomUUID();
 
-    await database.insert(authUsers).values({
+    if (!existingUserId) await database.insert(authUsers).values({
       id: userId,
       name,
       email: `${userId}@example.test`,
@@ -165,7 +166,7 @@ describe("frozen next annual report with real PostgreSQL", () => {
 
 
   const sku = "ZIWEI-YEAR-P0";
-  it("reserves2027 once, reads computed months across rollover, rejects wrong year and fences revocation", async () => {
+  it.each(["matching", "wrong_year"])("reserves2027 once and validates library/read authority: %s", async contentBinding => {
     availability.enabled = true;
     const owner = await ownerFixture("Frozen next year"); const outsider = await ownerFixture("Other owner");
     const ports = await fund(owner);
@@ -201,9 +202,13 @@ describe("frozen next annual report with real PostgreSQL", () => {
       snapshotHash: createHash("sha256").update(JSON.stringify(snapshot.value)).digest("hex"), snapshot: snapshot.value});
     // Synthetic prose exercises immutable storage/read, not native generation or owner quality acceptance.
     const base = monthlyContent();
-    const output = {...base, kind: "annual" as const, targetYear: 2027, periodKey: "2027", title: "Năm2027",
+    const output = {...base, kind: "annual" as const, targetYear: contentBinding === "matching" ? 2027 : 2026, periodKey: "2027", title: "Năm2027",
       overview: {...base.overview, evidenceKeys: facts.evidenceKeys}, periods: facts.periods.map(period => ({
         ...base.periods[0]!, periodId: period.id, title: `Tháng ${period.month}`, evidenceKeys: period.evidenceKeys}))};
+    const library = createDatabaseCommerceRepository(database, {now: () => readNow});
+    const pending = await library.readAccountLibraryV2(owner.actor);
+    expect(pending.items).toEqual([expect.objectContaining({reportId: frozen.reportId, readUrl: null})]);
+    expect(await library.readAccountLibraryV2(outsider.actor)).toMatchObject({totalCount: 0});
     const tuple = periodReportVersions();
     await database.insert(reportVersions).values({reportId: frozen.reportId, reportVersionId: frozen.reportVersionId,
       entitlementId: frozen.entitlementId, chartVersionId: frozen.chartVersionId, evidenceVersionId: frozen.evidenceVersionId,
@@ -213,12 +218,36 @@ describe("frozen next annual report with real PostgreSQL", () => {
       contentHash: createHash("sha256").update(JSON.stringify(output)).digest("hex"), pdfAssetId: randomUUID()});
     await database.update(reportReservations).set({status: "html_ready"}).where(eq(reportReservations.id, frozen.id));
     const query = createReportQueryService({repository: createDatabaseReportQueryRepository(database, () => readNow), now: () => readNow});
+    if (contentBinding === "wrong_year") {
+      await expect(query.getReport(owner.actor, frozen.reportId)).rejects.toBeInstanceOf(ReportQueryDataError);
+      expect((await library.readAccountLibraryV2(owner.actor)).items[0]).toMatchObject({readUrl: null, reportStatus: "html_ready"});
+      return;
+    }
     const result = await query.getReport(owner.actor, frozen.reportId);
     expect(result).toMatchObject({ok: true, value: {state: "ready", sku, content: {targetYear: 2027, periodKey: "2027"}}});
     if (!result.ok || result.value.state !== "ready" || !("periods" in result.value.content)) throw new Error("expected annual reader");
     expect(result.value.content.periods).toHaveLength(facts.periods.length);
     expect(JSON.stringify(result)).not.toMatch(/evidenceKeys|periodId/);
     expect(await query.getReport(outsider.actor, frozen.reportId)).toMatchObject({ok: false});
+    expect(await library.readAccountLibraryV2(owner.actor)).toMatchObject({totalCount: 1,
+      items: [expect.objectContaining({reportId: frozen.reportId, readUrl: `/bao-cao/${frozen.reportId}`, reportStatus: "ready"})]});
+    const duplicate = await ownerFixture("Same owner second chart", owner.userId);
+    const duplicatePurchase = await buy(duplicate, ports, sku);
+    const [duplicateReservation] = await database.select().from(reportReservations)
+      .where(eq(reportReservations.reportId, duplicatePurchase.value.reportId!));
+    if (!duplicateReservation) throw new Error("missing duplicate report regression fixture");
+    await database.update(reportReservations).set({reportId: frozen.reportId, status: "terminal_failure",
+      createdAt: new Date(frozen.createdAt.getTime() - 1000)}).where(eq(reportReservations.id, duplicateReservation.id));
+    expect(await query.getReport(owner.actor, frozen.reportId)).toMatchObject({ok: true, value: {state: "ready"}});
+    const collision = await library.readAccountLibraryV2(owner.actor);
+    expect(collision.items.find(item => item.entitlementId === duplicateReservation.entitlementId))
+      .toMatchObject({readUrl: null, reportStatus: "terminal_failure"});
+    expect(collision.items.find(item => item.entitlementId === frozen.entitlementId))
+      .toMatchObject({readUrl: `/bao-cao/${frozen.reportId}`, reportStatus: "ready"});
+    await database.update(commerceEntitlements).set({revokedAt: readNow}).where(eq(commerceEntitlements.id, duplicateReservation.entitlementId));
+    await database.update(reportReservations).set({status: "terminal_failure"}).where(eq(reportReservations.id, frozen.id));
+    expect((await library.readAccountLibraryV2(owner.actor)).items[0]).toMatchObject({readUrl: null, reportStatus: "terminal_failure"});
+    await database.update(reportReservations).set({status: "html_ready"}).where(eq(reportReservations.id, frozen.id));
     // Keep stored immutable rows intact while presenting a corrupted read projection to the service.
     const repository = createDatabaseReportQueryRepository(database, () => readNow);
     const record = await repository.readAuthorizedReport(owner.userId, frozen.reportId);
@@ -226,7 +255,11 @@ describe("frozen next annual report with real PostgreSQL", () => {
     const wrong = {...record, version: {...record.version, structuredContent: {...output, targetYear: 2026}}};
     await expect(createReportQueryService({repository: {readAuthorizedReport: async () => wrong}, now: () => readNow})
       .getReport(owner.actor, frozen.reportId)).rejects.toBeInstanceOf(ReportQueryDataError);
+    await database.update(commerceEntitlements).set({expiresAt: readNow}).where(eq(commerceEntitlements.id, frozen.entitlementId));
+    expect((await library.readAccountLibraryV2(owner.actor)).items.every(item => item.readUrl === null)).toBe(true);
+    await database.update(commerceEntitlements).set({expiresAt: null}).where(eq(commerceEntitlements.id, frozen.entitlementId));
     await database.update(commerceEntitlements).set({revokedAt: readNow}).where(eq(commerceEntitlements.id, frozen.entitlementId));
     expect(await query.getReport(owner.actor, frozen.reportId)).toMatchObject({ok: false});
+    expect(await library.readAccountLibraryV2(owner.actor)).toMatchObject({totalCount: 0});
   });
 });
