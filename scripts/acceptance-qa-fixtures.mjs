@@ -75,25 +75,25 @@ if (request.action === "fund") {
   const [wallet] = await database.select().from(dbs.walletAccounts).where(eq(dbs.walletAccounts.ownerId, owner.id));
   assert(wallet);
   const lots = await database.select({id: dbs.walletCreditLots.id, bucket: dbs.walletCreditLots.bucket,
-    remainingLa: dbs.walletCreditLots.remainingLa}).from(dbs.walletCreditLots).where(eq(dbs.walletCreditLots.walletId, wallet.id));
+    remainingLa: dbs.walletCreditLots.remainingLa}).from(dbs.walletCreditLots).where(eq(dbs.walletCreditLots.walletId, wallet.id)).orderBy(dbs.walletCreditLots.id);
   const transactions = await database.select({id: dbs.walletTransactions.id, kind: dbs.walletTransactions.kind,
-    purchaseIntentId: dbs.walletTransactions.purchaseIntentId}).from(dbs.walletTransactions).where(eq(dbs.walletTransactions.walletId, wallet.id));
+    purchaseIntentId: dbs.walletTransactions.purchaseIntentId}).from(dbs.walletTransactions).where(eq(dbs.walletTransactions.walletId, wallet.id)).orderBy(dbs.walletTransactions.id);
   const ledger = await database.select({transactionId: dbs.walletLedgerEntries.transactionId, bucket: dbs.walletLedgerEntries.bucket,
-    amountLa: dbs.walletLedgerEntries.amountLa}).from(dbs.walletLedgerEntries).innerJoin(dbs.walletTransactions, eq(dbs.walletTransactions.id, dbs.walletLedgerEntries.transactionId)).where(eq(dbs.walletTransactions.walletId, wallet.id));
+    amountLa: dbs.walletLedgerEntries.amountLa}).from(dbs.walletLedgerEntries).innerJoin(dbs.walletTransactions, eq(dbs.walletTransactions.id, dbs.walletLedgerEntries.transactionId)).where(eq(dbs.walletTransactions.walletId, wallet.id)).orderBy(dbs.walletLedgerEntries.id);
   const intents = await database.select({id: dbs.walletPurchaseIntents.id, sku: dbs.walletPurchaseIntents.sku,
-    status: dbs.walletPurchaseIntents.status, priceLa: dbs.walletPurchaseIntents.priceLa}).from(dbs.walletPurchaseIntents).where(eq(dbs.walletPurchaseIntents.ownerId, owner.id));
+    status: dbs.walletPurchaseIntents.status, priceLa: dbs.walletPurchaseIntents.priceLa}).from(dbs.walletPurchaseIntents).where(eq(dbs.walletPurchaseIntents.ownerId, owner.id)).orderBy(dbs.walletPurchaseIntents.id);
   const entitlements = await database.select({id: dbs.commerceEntitlements.id, sku: dbs.commerceEntitlements.sku,
-    revokedAt: dbs.commerceEntitlements.revokedAt, ledgerSpendId: dbs.commerceEntitlements.ledgerSpendId}).from(dbs.commerceEntitlements).where(eq(dbs.commerceEntitlements.ownerId, owner.id));
+    revokedAt: dbs.commerceEntitlements.revokedAt, ledgerSpendId: dbs.commerceEntitlements.ledgerSpendId}).from(dbs.commerceEntitlements).where(eq(dbs.commerceEntitlements.ownerId, owner.id)).orderBy(dbs.commerceEntitlements.id);
   const spendAllocations = await database.select({id: dbs.walletSpendAllocations.id, transactionId: dbs.walletSpendAllocations.spendTransactionId,
     lotId: dbs.walletSpendAllocations.creditLotId, amountLa: dbs.walletSpendAllocations.amountLa,
     recognizedVnd: dbs.walletSpendAllocations.recognizedVnd}).from(dbs.walletSpendAllocations)
     .innerJoin(dbs.walletTransactions, eq(dbs.walletTransactions.id, dbs.walletSpendAllocations.spendTransactionId))
-    .where(eq(dbs.walletTransactions.walletId, wallet.id));
+    .where(eq(dbs.walletTransactions.walletId, wallet.id)).orderBy(dbs.walletSpendAllocations.id);
   const restorationAllocations = await database.select({spendAllocationId: dbs.walletRestorationAllocations.spendAllocationId,
     amountLa: dbs.walletRestorationAllocations.amountLa, reversedVnd: dbs.walletRestorationAllocations.reversedVnd})
     .from(dbs.walletRestorationAllocations).innerJoin(dbs.walletTransactions,
       eq(dbs.walletTransactions.id, dbs.walletRestorationAllocations.restorationTransactionId))
-    .where(eq(dbs.walletTransactions.walletId, wallet.id));
+    .where(eq(dbs.walletTransactions.walletId, wallet.id)).orderBy(dbs.walletRestorationAllocations.id);
   console.log(JSON.stringify({wallet: {stateVersion: wallet.stateVersion, purchasedBalance: wallet.purchasedBalance,
     promotionalBalance: wallet.promotionalBalance}, lots, transactions, ledger, intents, entitlements, spendAllocations, restorationAllocations}));
  } else if (request.action === "read" || request.action === "library") {

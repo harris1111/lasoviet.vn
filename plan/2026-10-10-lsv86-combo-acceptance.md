@@ -80,3 +80,27 @@ upload private environment/body/native/PDF artifacts or change execution scope.
 Preserve the passing execution evidence and original artifact omission receipt.
 Independent narrow plan/source/exact review and both fresh CI must verify the
 new artifact before merge; already deployed LSV102 runtime remains unchanged.
+
+## Deterministic financial snapshot follow-up
+
+PR CI38083566682 at398bf failed the no-mutation assertion after a guarantee
+refusal because walletCreditLots returned the same rows in a different scan
+order. Preserve that failure and missing Combo receipt; no successful full
+Combo acceptance is inferred from its earlier PDF checks. Bounded correction:
+add explicit unique-primary-key ordering to all seven financial row queries in
+scripts/acceptance-qa-fixtures.mjs. Keep every selected field, row, value and
+the complete deep-equality assertion unchanged; no runtime financial source
+changes, row filtering, relaxed comparisons or retry-based pass. Independently
+review this narrow plan/source change, run the actual two Combo cases with
+restoration/refusal and owned cleanup, mandatory checks and both fresh CI;
+review all three actual redacted receipts before merge.
+
+Local correction evidence: both2027/2028 joined Combo cases PASS with real
+mobile/desktop PDFs, ready library children, exact unchanged financial state
+on public refusal, trusted one-credit restoration/both-child relock/replay,
+reserved six-product no-purchase-mutation proof and complete owned4-container,
+network/credential cleanup. Mandatory i18n/lint/typecheck PASS with four existing
+frontend warnings/zero errors. Independent WORKING_SOURCE_EVIDENCE_GO binds
+the actual receipts and seven unique-key query orderings. Earlier398 push CI
+passed while PR CI failed nondeterministically; both results are preserved and
+do not replace new exact-head/fresh-CI gates.
