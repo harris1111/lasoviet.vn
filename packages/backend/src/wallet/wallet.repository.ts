@@ -108,6 +108,13 @@ type SystemWalletRestorationCommand = {
   traceId: string;
 };
 
+type GuaranteeRestorationAuthority = {
+  token: object; ownerId: string; originalSpendId: string; idempotencyKey: string; requestFingerprint: string;
+};
+type GuaranteeWalletRestorationCommand = WalletRestorationCommand & {
+  trustedGuaranteeToken: object; requestFingerprint: string;
+};
+
 export type WalletRestorationCommand = {
   actor: CurrentActor;
   restoration: WalletRestorationV1;
@@ -314,7 +321,7 @@ async function writeAudit(
 
 export function createDatabaseWalletRepository(
   database: Database,
-  options: { now?: () => Date; trustedGrantAuthority?: TrustedGrantAuthority; trustedTerminalRestorationToken?: object } = {},
+  options: { now?: () => Date; trustedGrantAuthority?: TrustedGrantAuthority; trustedTerminalRestorationToken?: object; trustedGuaranteeRestorationAuthority?: GuaranteeRestorationAuthority } = {},
 ) {
   const now = options.now ?? (() => new Date());
 
@@ -592,8 +599,17 @@ export function createDatabaseWalletRepository(
       });
     },
 
-    async restore(command: WalletRestorationCommand | SystemWalletRestorationCommand): Promise<WalletResult<WalletTransactionReceiptV1>> {
+    async restore(command: WalletRestorationCommand | SystemWalletRestorationCommand | GuaranteeWalletRestorationCommand): Promise<WalletResult<WalletTransactionReceiptV1>> {
       const system = "trustedAuthorityToken" in command;
+      const guarantee = "trustedGuaranteeToken" in command;
+      const authority = options.trustedGuaranteeRestorationAuthority;
+      if (guarantee && (!authority || command.trustedGuaranteeToken !== authority.token ||
+          command.actor.kind !== "account" || command.actor.userId !== authority.ownerId ||
+          command.restoration.originalSpendId !== authority.originalSpendId ||
+          command.restoration.idempotencyKey !== authority.idempotencyKey ||
+          command.requestFingerprint !== authority.requestFingerprint || command.restoration.reasonCode !== "guarantee_la_back")) {
+        return failure("WALLET_INVALID_COMMAND");
+      }
       if (system && (!options.trustedTerminalRestorationToken || command.trustedAuthorityToken !== options.trustedTerminalRestorationToken)) {
         return failure("WALLET_INVALID_COMMAND");
       }
@@ -607,7 +623,8 @@ export function createDatabaseWalletRepository(
         actorId: null, reasonCode: "report_terminal_failure",
       } : command.restoration;
       const fingerprint = walletFingerprint({
-        operation: system ? "wallet.report_terminal_restoration" : "wallet.restoration", ownerId, actorId: restoration.actorId, originalSpendId: restoration.originalSpendId,
+        operation: system ? "wallet.report_terminal_restoration" : guarantee ? "wallet.guarantee_restoration" : "wallet.restoration",
+        ...(guarantee ? {requestFingerprint: command.requestFingerprint} : {}), ownerId, actorId: restoration.actorId, originalSpendId: restoration.originalSpendId,
         expectedWalletVersion: restoration.expectedWalletVersion, reasonCode: restoration.reasonCode, idempotencyKey: restoration.idempotencyKey,
       });
       return mutate(async (transaction) => {
@@ -639,10 +656,26 @@ export function createDatabaseWalletRepository(
           .where(eq(walletSpendAllocations.spendTransactionId, original.id))
           .orderBy(sql`case when ${walletCreditLots.bucket} = 'promotional' then 0 else 1 end`, asc(walletCreditLots.grantedAt), asc(walletCreditLots.id), asc(walletSpendAllocations.id)).for("update");
         if (allocations.length === 0) return failure("WALLET_RESTORATION_INVALID");
-        // Existing public/terminal callers retain full-restoration authority.
+        const allocatedLa = allocations.reduce((sum, item) => sum + item.allocation.amountLa, 0);
+        const [purchaseTerms] = await transaction.select().from(walletPurchaseIntents)
+          .where(eq(walletPurchaseIntents.id, original.purchaseIntentId!)).limit(1).for("update");
+        const terms = purchaseTerms ? readPurchaseCommercialTerms(purchaseTerms) : null;
+        if (!terms || terms.ownerId !== ownerId || terms.chargedLa !== allocatedLa) return failure("WALLET_RESTORATION_INVALID");
+        if (!system && terms.policy === "fd119" && !guarantee) return failure("WALLET_INVALID_COMMAND");
+        let returnedLa = allocatedLa;
+        if (guarantee) {
+          const current = now().getTime();
+          const [posted] = await transaction.select({amount: sql<number>`coalesce(sum(${walletLedgerEntries.amountLa}), 0)`})
+            .from(walletLedgerEntries).where(eq(walletLedgerEntries.transactionId, original.id));
+          if (terms.policy !== "fd119" || terms.guarantee === "none" || Number(posted?.amount) !== -allocatedLa ||
+              current < original.createdAt.getTime() || current >= original.createdAt.getTime() + 86_400_000 ||
+              (terms.guarantee === "half" && allocatedLa % 2 !== 0)) return failure("WALLET_RESTORATION_INVALID");
+          returnedLa = terms.guarantee === "half" ? allocatedLa / 2 : allocatedLa;
+        }
+        // Only the bound private guarantee authority can derive a partial return.
         const planned = new Map(planWalletRestoration(allocations.map(item => ({...item.allocation,
           bucket: item.allocation.bucket as "purchased" | "promotional"})),
-          allocations.reduce((sum, item) => sum + item.allocation.amountLa, 0)).map(item => [item.id, item]));
+          returnedLa).map(item => [item.id, item]));
         const [entry] = await transaction.insert(walletTransactions).values({
           walletId: wallet.id, kind: "restoration", idempotencyKey: restoration.idempotencyKey, fingerprint, reversalOfTransactionId: original.id, createdAt: now(),
         }).returning();
@@ -650,7 +683,8 @@ export function createDatabaseWalletRepository(
         let purchasedDelta = 0;
         let promotionalDelta = 0;
         for (const item of allocations) {
-          const returned = planned.get(item.allocation.id)!;
+          const returned = planned.get(item.allocation.id);
+          if (!returned) continue;
           const next = item.lot.remainingLa + returned.amountLa;
           if (next > item.lot.grantedLa) return abort("WALLET_RESTORATION_INVALID");
           await transaction.update(walletCreditLots).set({ remainingLa: next }).where(eq(walletCreditLots.id, item.lot.id));

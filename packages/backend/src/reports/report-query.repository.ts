@@ -1,3 +1,5 @@
+import { projectPurchaseGuaranteePromise } from "../commerce/purchase-guarantee-promise.js";
+import type { GuaranteePromiseV1 } from "@lasoviet/contracts";
 import { readPurchaseCommercialTerms } from "../commerce/purchase-commercial-terms.js";
 import {readCompensatedReportFailure} from "./report-compensated-failure.js";
 import type {ReportFailedWalletSpendViewV2} from "@lasoviet/contracts";
@@ -62,6 +64,7 @@ export type AuthorizedReportQueryRecord =
       wallet: {
         spendId: string;
         purchaseIntentId: string;
+        guaranteePromise?: GuaranteePromiseV1;
       };
     });
 
@@ -601,6 +604,8 @@ export function createDatabaseReportQueryRepository(
   ): Promise<AuthorizedReportQueryRecord | null> {
     const record = await loadWalletAuthority({ ownerId, reportId });
     if (!record) return null;
+    const guaranteePromise = projectPurchaseGuaranteePromise(record.intent, record.spend, record.wallet);
+    if (!guaranteePromise) return null;
     const items = record.version
       ? await database.select().from(evidenceItems).where(eq(evidenceItems.evidenceSetId, record.version.evidenceVersionId)).orderBy(evidenceItems.evidenceKey)
       : [];
@@ -610,7 +615,7 @@ export function createDatabaseReportQueryRepository(
       version: record.version,
       evidenceItems: items,
       entitlements: await loadActiveChartEntitlements(ownerId, record.entitlement.chartId, record.reservation.chartVersionId, record.reservation.locale),
-      wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id },
+      wallet: { spendId: record.spend.id, purchaseIntentId: record.intent.id, guaranteePromise },
       chartId: record.entitlement.chartId,
       ...(await loadChartSnapshotInputs(record.version ?? record.reservation)),
     };

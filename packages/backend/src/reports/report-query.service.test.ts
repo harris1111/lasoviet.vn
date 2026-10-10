@@ -418,6 +418,15 @@ describe("report query service", () => {
     expect(result.error?.code).toBe("REPORT_NOT_FOUND");
   });
 
+  it("omits guarantee promise from a pending wallet report",async()=>{
+    const record=createWalletSampleRecord();
+    record.wallet.guaranteePromise={version:1,commercialPolicyVersion:2,chargedLa:1200,restoration:"half",maximumRestoreLa:600,
+      claimBefore:"2026-10-09T12:00:00.000Z",oncePerAccount:true,requiresAllPaidComponentsReady:true};
+    const service=createReportQueryService({repository:{readAuthorizedReport:async()=>record},now:()=>new Date("2026-10-10T00:00:00Z")});
+    const value=await service.getReport(accountActor,record.reservation.reportId);
+    expect(value).toMatchObject({ok:true,value:{state:"pending"}});expect(JSON.stringify(value)).not.toContain("guaranteePromise");
+  });
+
   it("owner reads pending reservation", async () => {
     const record = createSampleRecord();
     const repository: ReportQueryRepository = {

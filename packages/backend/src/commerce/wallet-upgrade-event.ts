@@ -47,7 +47,7 @@ export async function projectCommittedWalletUpgrade(db: Database, input: {
     }
     if (remaining !== 0) return null;
     const primary = [...proof.sources].sort((a, b) => b.creditedLa - a.creditedLa || compareCreditCode(a.sku, b.sku) || compareCreditCode(a.spendId, b.spendId))[0]!;
-    const projected = WalletUpgradePurchaseV1Schema.safeParse({version: 1,
+    const projected = WalletUpgradePurchaseV1Schema.safeParse({version: terms.basePriceLa === 960 ? 1 : 2,
       eventKey: `upg_${createHash("sha256").update(input.transactionId).digest("hex").slice(0, 32)}`,
       occurredAt: completedAt.toISOString(), targetSku: "ZIWEI-IDENTITY-P0", sourceSku: primary.sku,
       sourceSkus: [...new Set(proof.sources.map(source => source.sku))].sort(),
