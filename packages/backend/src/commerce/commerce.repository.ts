@@ -58,7 +58,7 @@ import {
   type ParsedClaimTime,
 } from "./payment-claim-time.js";
 
-import { checkoutAccountError, PRODUCT_CATALOG } from "./order.service.js";
+import { checkoutAccountError, LEGACY_VND_CHECKOUT_CATALOG } from "./order.service.js";
 import {
   currentReportVersions,
   type ReportVersionResolver,
@@ -74,7 +74,7 @@ import {
   type WalletTopUpOrder,
 } from "./wallet-topup.js";
 
-type Sku = keyof typeof PRODUCT_CATALOG;
+type Sku = keyof typeof LEGACY_VND_CHECKOUT_CATALOG;
 type OrderRecord = typeof commerceOrders.$inferSelect;
 export type ContentPurchaseOrder = OrderRecord & {
   kind: "content_purchase";
@@ -1223,13 +1223,13 @@ export function createDatabaseCommerceRepository(
     },
 
     async createOrder(actor: CurrentActor, chartId: string, sku: string, locale: string) {
-      if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
+      if (!(sku in LEGACY_VND_CHECKOUT_CATALOG)) return { ok: false as const, code: "SKU_UNSUPPORTED" };
       const selectedLocale = checkoutLocale(locale);
       if (selectedLocale === null) return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
       if (sku === "ZIWEI-NATAL-EXCERPT-P0" && selectedLocale === "en") {
         return { ok: false as const, code: "CHECKOUT_LOCALE_INVALID" };
       }
-      const product = PRODUCT_CATALOG[sku as Sku];
+      const product = LEGACY_VND_CHECKOUT_CATALOG[sku as Sku];
       const accountError = await checkoutAccount(database, actor);
       if (accountError !== null) return { ok: false as const, code: accountError };
       if (actor.kind !== "account") throw new Error("CHECKOUT_ACTOR_INVALID");

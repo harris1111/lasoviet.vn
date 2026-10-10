@@ -1,7 +1,7 @@
 import { astro } from "iztro";
 import { describe, expect, it, vi } from "vitest";
 
-import type { NormalizedBirthProfileV1 } from "@lasoviet/contracts";
+import { ZiweiHoroscopeResultV1Schema, type NormalizedBirthProfileV1 } from "@lasoviet/contracts";
 
 import { calculateZiweiHoroscope } from "./iztro-horoscope.js";
 
@@ -129,4 +129,52 @@ describe("calculateZiweiHoroscope", () => {
     expect(result.daily.headline).not.toContain("Hội viên");
     expect(result.daily.evidenceKeys.length).toBeGreaterThan(0);
   });
+  it.each([2026, 2027])("keeps genuine minor limit distinct and bound to selected year %s", targetYear => {
+    const options = { asOfDate: "2025-08-22", targetYear };
+    const result = calculateZiweiHoroscope(testProfile, options);
+    expect(result.minorLimit).toMatchObject({ version: 1, calculationVersion: "iztro-age-normal-v1",
+      targetYear, lunarAge: targetYear - 1992 + 1, provisional: false });
+    expect(result.minorLimit!.palaceId).not.toBe(result.yearly.annualPalaceId);
+    expect(result.daily.solarDate).toBe(options.asOfDate);
+    const vendor = astro.withOptions({ type: "solar", dateStr: "1992-06-15", timeIndex: 4, gender: "male",
+      language: "en-US", config: { algorithm: "default", yearDivide: "normal", horoscopeDivide: "normal", ageDivide: "normal", dayDivide: "current" } });
+    const age = vendor.horoscope(`${targetYear}-07-01`, 4).age;
+    expect(vendor.palaces[age.index]!.ages).toContain(result.minorLimit!.lunarAge);
+    expect(result.minorLimit!.palaceId).toBe(targetYear === 2026 ? "ziwei.palace.travel" : "ziwei.palace.health");
+    expect(result).toEqual(calculateZiweiHoroscope(testProfile, options));
+  });
+
+  it.each(["missing", "unmatched", "fractional", "wrong-age"])("withholds %s vendor minor limit instead of substituting annual palace", kind => {
+    const original = vi.mocked(astro.withOptions).getMockImplementation()!;
+    const spy = vi.spyOn(astro, "withOptions").mockImplementation(options => {
+      const astrolabe = original(options);
+      const compute = astrolabe.horoscope.bind(astrolabe);
+      astrolabe.horoscope = (...args) => {
+        const result = compute(...args);
+        if (kind === "missing") result.age = undefined as never;
+        else if (kind === "wrong-age") result.age.nominalAge++;
+        else result.age.index = kind === "fractional" ? 0.5 : -1;
+        return result;
+      };
+      return astrolabe;
+    });
+    try {
+      const result = calculateZiweiHoroscope(testProfile, { asOfDate: "2026-09-22" });
+      expect(result.minorLimit).toBeUndefined();
+      expect(result.yearly.annualPalaceId).toBeDefined();
+    } finally { spy.mockRestore(); }
+  });
+
+  it("retains provisional minor-limit uncertainty for unknown birth time", () => {
+    const result = calculateZiweiHoroscope({ ...testProfile, normalizedTime: { precision: "unknown" } },
+      { asOfDate: "2026-09-22", targetYear: 2027 });
+    expect(result.minorLimit).toMatchObject({ targetYear: 2027, lunarAge: 36, provisional: true });
+    expect(result.purchaseFacts?.provisional).toBe(true);
+    expect(ZiweiHoroscopeResultV1Schema.safeParse({ ...result, minorLimit: { ...result.minorLimit!, provisional: false } }).success).toBe(false);
+  });
+
+  it("withholds a selected year before birth instead of clamping minor-limit age", () => {
+    expect(calculateZiweiHoroscope(testProfile, { asOfDate: "2026-09-22", targetYear: 1991 }).minorLimit).toBeUndefined();
+  });
+
 });

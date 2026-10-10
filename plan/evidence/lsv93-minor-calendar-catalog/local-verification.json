@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "verifiedAt": "2026-10-10T10:30:14.865775+00:00",
+  "baseSha": "6e29caaa5c0e806c40e3896a5861d61052d9fc35",
+  "focusedInitial": {
+    "passed": 107,
+    "suites": 7,
+    "postgresCommercePassed": 34,
+    "skipped": 0
+  },
+  "changedEngineFinalReplay": {
+    "passed": 14,
+    "suites": 1,
+    "supersedesInitialEnginePassed": 13
+  },
+  "distinctTestsAcrossLatestSuiteRuns": 108,
+  "independentReplay": {
+    "passed": 74,
+    "suites": 6,
+    "decision": "WORKING_DIFF_GO"
+  },
+  "producerBuildExitCode": 0,
+  "i18nExitCode": 0,
+  "lintExitCode": 0,
+  "existingFrontendWarnings": 4,
+  "typecheckExitCode": 0,
+  "compiledSmoke": "PASS",
+  "manualAccepted": false,
+  "scope": "genuine minor-limit facts, daily calendar boundary correctness, explicit legacy catalog isolation only"
+}

@@ -114,4 +114,21 @@ describe("personal daily reading authorization", () => {
     expect(writer).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["2027-02-05T16:59:59.999Z", "2027-02-05T17:00:00Z", "2027-02-06", "1/1 Đinh Mùi"],
+    ["2025-08-22T16:59:59.999Z", "2025-08-22T17:00:00Z", "2025-08-23", "1/7 Ất Tỵ"],
+  ])("reads the real writer across Vietnam calendar midnight %s", async (start, finish, expectedDate, lunarDate) => {
+    let current = new Date(start);
+    const { charts, access, writer } = fixture(current);
+    access.mockImplementation(async () => {
+      current = new Date(finish);
+      return { ...grant, grantedAt: new Date("2025-01-01T00:00:00Z"), expiresAt: new Date("2028-01-01T00:00:00Z") };
+    });
+    const service = createPersonalDailyReadingService({ charts, access, writer, now: () => current });
+    expect(await service.read(actor, "chart")).toMatchObject({ ok: true, value: { asOfDate: expectedDate,
+      calendar: { solarDate: expectedDate, lunarDateFormatted: lunarDate },
+      qualityGate: { passed: true, checkedAt: new Date(finish).toISOString() } } });
+    expect(writer).toHaveBeenCalledOnce();
+  });
+
 });

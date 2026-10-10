@@ -44,7 +44,8 @@ export type ProductCatalog = {
   findSelectableOffer(sku: string): ProductCatalogProduct | undefined;
 };
 
-export function validateProductCatalog(source: unknown): ProductCatalog {
+/** Compatibility authority for legacy VND checkout; current wallet prices live in LA_PRODUCT_CATALOG. */
+export function validateLegacyVndProductCatalog(source: unknown): ProductCatalog {
   const parsed = productCatalogSchema.safeParse(source);
   if (!parsed.success) {
     throw new Error("PRODUCT_CATALOG_INVALID");
@@ -105,6 +106,10 @@ function runtimeConfigFile(name: string): string {
   return resolve(process.cwd(), "..", "..", "config", name);
 }
 
-export const productCatalog = validateProductCatalog(
+export const legacyVndProductCatalog = validateLegacyVndProductCatalog(
   JSON.parse(readFileSync(runtimeConfigFile("product-catalog.json"), "utf8")),
 );
+
+/** Compatibility aliases for existing callers; no currency conversion or sale activation. */
+export const productCatalog = legacyVndProductCatalog;
+export const validateProductCatalog = validateLegacyVndProductCatalog;

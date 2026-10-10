@@ -1,3 +1,4 @@
+import { legacyVndProductCatalog, validateLegacyVndProductCatalog } from "./product-catalog.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -161,4 +162,12 @@ describe("product catalog", () => {
     };
     expect(() => validateProductCatalog(invalidCurrency)).toThrow("PRODUCT_CATALOG_INVALID");
   });
+});
+
+it("preserves legacy VND aliases as the exact same authority without wallet conversion", () => {
+  expect(legacyVndProductCatalog).toBe(productCatalog);
+  expect(validateLegacyVndProductCatalog).toBe(validateProductCatalog);
+  expect(legacyVndProductCatalog.firstPaidOffers().map(offer => [offer.sku, offer.price, offer.currency])).toEqual([
+    ["ZIWEI-IDENTITY-P0", 79000, "VND"], ["ZIWEI-NATAL-EXCERPT-P0", 19000, "VND"],
+  ]);
 });

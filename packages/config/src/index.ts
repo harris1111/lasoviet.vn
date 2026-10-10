@@ -59,6 +59,8 @@ export type {
 export {
   productCatalog,
   validateProductCatalog,
+  legacyVndProductCatalog,
+  validateLegacyVndProductCatalog,
 } from "./product-catalog.js";
 export type {
   ProductCatalog,

@@ -1,0 +1,76 @@
+{
+  "status": "PASS",
+  "minorCurrent": {
+    "version": 1,
+    "calculationVersion": "iztro-age-normal-v1",
+    "targetYear": 2026,
+    "lunarAge": 35,
+    "palaceId": "ziwei.palace.travel",
+    "provisional": false,
+    "evidenceKeys": [
+      "minor.year.2026.lunar-age.35",
+      "minor.palace.ziwei.palace.travel"
+    ]
+  },
+  "minorNext": {
+    "version": 1,
+    "calculationVersion": "iztro-age-normal-v1",
+    "targetYear": 2027,
+    "lunarAge": 36,
+    "palaceId": "ziwei.palace.health",
+    "provisional": false,
+    "evidenceKeys": [
+      "minor.year.2027.lunar-age.36",
+      "minor.palace.ziwei.palace.health"
+    ]
+  },
+  "boundaries": [
+    {
+      "asOfDate": "2027-02-05",
+      "expected": "29/12 Bính Ngọ",
+      "actual": "29/12 Bính Ngọ",
+      "qualityPassed": true,
+      "groundMatches": true
+    },
+    {
+      "asOfDate": "2027-02-06",
+      "expected": "1/1 Đinh Mùi",
+      "actual": "1/1 Đinh Mùi",
+      "qualityPassed": true,
+      "groundMatches": true
+    },
+    {
+      "asOfDate": "2025-08-22",
+      "expected": "29/6 nhuận Ất Tỵ",
+      "actual": "29/6 nhuận Ất Tỵ",
+      "qualityPassed": true,
+      "groundMatches": true
+    },
+    {
+      "asOfDate": "2025-08-23",
+      "expected": "1/7 Ất Tỵ",
+      "actual": "1/7 Ất Tỵ",
+      "qualityPassed": true,
+      "groundMatches": true
+    }
+  ],
+  "midnightCases": [
+    {
+      "date": "2027-02-06",
+      "lunarDate": "1/1 Đinh Mùi",
+      "passed": true
+    },
+    {
+      "date": "2025-08-23",
+      "lunarDate": "1/7 Ất Tỵ",
+      "passed": true
+    }
+  ],
+  "legacyIdentity": true,
+  "walletCatalogHash": "fb9d330bd545591fe26b1b54e14fd3fb748ea504c10af9aa9ec2bbbb252a9be6",
+  "physicalProviderCalls": 0,
+  "databaseWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "manualAccepted": false
+}

@@ -185,7 +185,8 @@ export function calculateZiweiHoroscope(
   });
 
   const hs = astrolabe.horoscope(asOfDate, selectedTimeIndex);
-  const yearly = astrolabe.horoscope(`${targetYear}-07-01`, selectedTimeIndex).yearly;
+  const selectedYear = astrolabe.horoscope(`${targetYear}-07-01`, selectedTimeIndex);
+  const yearly = selectedYear.yearly;
 
   // 1. Annual (Lưu Niên) layer
   const annualStemVi = STEM_NAMES_VI[yearly.heavenlyStem] || yearly.heavenlyStem;
@@ -201,6 +202,18 @@ export function calculateZiweiHoroscope(
   // Lunar age (Tuổi âm)
   const birthYear = astrolabe.rawDates.lunarDate.lunarYear;
   const lunarAge = Math.max(1, targetYear - birthYear + 1);
+  const minorAge = selectedYear.age;
+  const minorPalace = astrolabe.palaces[minorAge?.index ?? -1];
+  const minorPalaceId = minorPalace ? palaceIds[minorPalace.name] : undefined;
+  // Withhold unmatched ages/mappings; an annual palace is never a substitute.
+  const minorLimit = targetYear >= birthYear && minorAge && Number.isInteger(minorAge.index) &&
+    minorPalaceId && minorAge.nominalAge === lunarAge && lunarAge <= 120 ? {
+      version: 1 as const, calculationVersion: "iztro-age-normal-v1" as const,
+      targetYear, lunarAge, palaceId: minorPalaceId,
+      provisional: birthProfile.normalizedTime.precision === "unknown" || birthProfile.normalizedTime.precision === "range",
+      evidenceKeys: [`minor.year.${targetYear}.lunar-age.${lunarAge}`, `minor.palace.${minorPalaceId}`],
+    } : undefined;
+
 
   // 2. Monthly Hạn analysis
   const months: ZiweiMonthlyHanV1[] = [];
@@ -337,7 +350,8 @@ export function calculateZiweiHoroscope(
   const lunarMonthStr = lunar.getMonth();
   const lunarDayStr = lunar.getDay();
   const lunarYearGanZhi = `${STEM_NAMES_VI[lunar.getYearGan()] || lunar.getYearGan()} ${BRANCH_NAMES_VI[lunar.getYearZhi()] || lunar.getYearZhi()}`;
-  const lunarDateFormatted = `${lunarDayStr}/${lunarMonthStr} ${lunarYearGanZhi}`;
+  const lunarMonthDisplay = lunarMonthStr < 0 ? `${Math.abs(lunarMonthStr)} nhuận` : String(lunarMonthStr);
+  const lunarDateFormatted = `${lunarDayStr}/${lunarMonthDisplay} ${lunarYearGanZhi}`;
 
   const dayStem = STEM_NAMES_VI[lunar.getDayGan()] || lunar.getDayGan();
   const dayBranch = BRANCH_NAMES_VI[lunar.getDayZhi()] || lunar.getDayZhi();
@@ -415,6 +429,7 @@ export function calculateZiweiHoroscope(
     asOfDate,
     isUnlocked,
     yearly: yearlyHan,
+    ...(minorLimit ? { minorLimit } : {}),
     daily: dailyHoroscope,
     purchaseFacts: buildZiweiPurchaseFacts({ asOfDate, cycles: decadalCycles,
       provisional: birthProfile.normalizedTime.precision === "unknown" || birthProfile.normalizedTime.precision === "range",

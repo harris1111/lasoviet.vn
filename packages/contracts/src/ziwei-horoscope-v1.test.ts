@@ -101,4 +101,18 @@ describe("ZiweiHoroscopeResultV1Schema", () => {
     const parsed = ZiweiMonthlyHanV1Schema.safeParse(unlockedMonth);
     expect(parsed.success).toBe(true);
   });
+  const minorLimit = { version: 1 as const, calculationVersion: "iztro-age-normal-v1" as const,
+    targetYear: 2026, lunarAge: 35, palaceId: "ziwei.palace.travel" as const, provisional: false,
+    evidenceKeys: ["minor.year.2026.lunar-age.35", "minor.palace.ziwei.palace.travel"] };
+  it("accepts historical DTOs and a distinct versioned minor-limit palace", () => {
+    expect(ZiweiHoroscopeResultV1Schema.parse(validResult).minorLimit).toBeUndefined();
+    expect(ZiweiHoroscopeResultV1Schema.parse({ ...validResult, minorLimit }).minorLimit).toEqual(minorLimit);
+  });
+  it.each([
+    { targetYear: 2027 }, { lunarAge: 36 }, { calculationVersion: "guessed" },
+    { palaceId: "ziwei.palace.invented" }, { evidenceKeys: ["annual.year.2026", "minor.palace.ziwei.palace.travel"] },
+  ])("rejects mismatched minor-limit authority %j", change => {
+    expect(ZiweiHoroscopeResultV1Schema.safeParse({ ...validResult, minorLimit: { ...minorLimit, ...change } }).success).toBe(false);
+  });
+
 });
