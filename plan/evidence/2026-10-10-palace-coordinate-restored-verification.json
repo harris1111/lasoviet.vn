@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-10-10T02:44:40.146695+00:00",
+  "runtimeSourceCommit": "0f6ef637530652cebb1c63f6ddbe0fbfb01d89d3",
+  "qualitySourceSha256": "ddb7c2d14fda6936cbe1d76d9b78d586f01a9ab9c89dbea00dd909cc38b97f84",
+  "normalFullScriptSuite": {
+    "passed": 129,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "priorFocusedSuites": {
+    "passed": 102,
+    "files": 4,
+    "independentlyRepeated": true
+  },
+  "requiredLocalChecks": "PASS",
+  "remoteMaster": "30ed8a82f485fa5af4f43f33684882e1736fa8a3",
+  "pr382Head": "e4ee69b510710c53b5f72a286af169c7008b5ea0",
+  "pr382CiRerunsRequested": [
+    "37987945371",
+    "37987951384"
+  ],
+  "productionRevisionObserved": "5d42c2d11f997fddc012192d9247c9ec694d66b5",
+  "newProviderCalls": 0,
+  "ledgerWrites": 0,
+  "manualAccepted": false,
+  "deploymentPending": true
+}

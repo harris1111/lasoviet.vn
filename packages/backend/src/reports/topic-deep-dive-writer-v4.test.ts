@@ -87,6 +87,8 @@ describe("ZiweiTopicDeepDiveWriterV4", () => {
     expect(result.value.content.topicId).toBe("relationship_marriage");
     expect(result.value.quality.ok).toBe(true);
     expect(capturedRequest.schemaName).toBe("ziwei_topic_deep_dive_relationship_marriage");
+    expect(capturedRequest.system).toContain("hai hệ tọa độ riêng");
+    expect(capturedRequest.system).toContain("Không gọi một cung đại vận là cung gốc");
 
     const parsedUser = JSON.parse(capturedRequest.user);
     expect(parsedUser.topicId).toBe("relationship_marriage");

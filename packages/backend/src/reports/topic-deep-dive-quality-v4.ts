@@ -2,6 +2,7 @@ import {
   type ZiweiTopicDeepDiveContentV1,
   type ZiweiTopicDeepDiveId,
   TOPIC_PALACE_SCOPES,
+  ZIWEI_BRANCH_IDS,
 } from "@lasoviet/contracts";
 import { resolveZiweiReportQualityConfig } from "@lasoviet/config";
 
@@ -76,6 +77,46 @@ export const DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG: TopicDeepDiveQualityConfig 
     minimumEvidenceAnchors: 2,
   });
 
+const branchLabels = ZIWEI_BRANCH_IDS.map(id => displayFact(id)).filter((label): label is string => label !== undefined);
+const escapeProsePattern = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+function checkExplicitPalaceCoordinates(
+  text: string,
+  facts: ComprehensiveZiweiFactsV4,
+  addFinding: (code: TopicDeepDiveQualityFindingCode, note: string) => void,
+) {
+  const branches = branchLabels.map(escapeProsePattern).join("|");
+  for (const palace of facts.natal.palaces) {
+    const label = displayFact(palace.palaceId);
+    if (!label) continue;
+    const decadal = facts.timing.decadal.state === "active"
+      ? facts.timing.decadal.palaces.find(role => role.palaceId === palace.palaceId)
+      : undefined;
+    const layers = [
+      { name: "natal", scope: "gốc", expected: palace.earthlyBranchId, code: "PALACE_FACTS" },
+      { name: "decadal", scope: String.raw`(?:của\s+)?đại\s+vận`, expected: decadal?.earthlyBranchId, code: "DECADAL_TIMING_MISMATCH" },
+    ] as const;
+    for (const layer of layers) {
+      // Explicit gốc means natal even within a paragraph about decadal timing.
+      // Unqualified palace mentions do not select a coordinate system here.
+      const claim = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:cung\s+)?${escapeProsePattern(label)}\s+${layer.scope}\s+(?:(?:an|tọa|đóng)\s+)?tại\s+(${branches})(?![\p{L}\p{N}])`, "giu");
+      for (const match of text.matchAll(claim)) {
+        const prefix = text.slice(0, match.index).toLocaleLowerCase("vi");
+        const denial = /(?<![\p{L}\p{N}])không\s+phải(?:\s+là)?\s*$/u.exec(prefix);
+        const outerPrefix = denial ? prefix.slice(0, denial.index).split(/[.!?;\n]/u).at(-1)! : "";
+        const outerDenial = /(?<![\p{L}\p{N}])(?:không|chưa|chẳng|đừng|tránh|phủ nhận|bác bỏ|chối bỏ)(?![\p{L}\p{N}])/u.test(outerPrefix);
+        // An immediate denial is not an affirmative coordinate claim. Nested
+        // denials remain conservative; commas never reset their outer context.
+        if (denial && !outerDenial) continue;
+        const observed = ZIWEI_BRANCH_IDS.find(id => displayFact(id)?.toLowerCase() === match[1]!.toLowerCase());
+        if (observed !== layer.expected) {
+          addFinding(layer.code, `Explicit ${layer.name} coordinate for ${palace.palaceId} is ${observed}; source requires ${layer.expected ?? "an unavailable decadal role"}.`);
+        }
+      }
+    }
+  }
+}
+
 function checkProse(
   text: string,
   sectionKey: string,
@@ -87,6 +128,8 @@ function checkProse(
 ) {
   const rawText = text.normalize("NFC");
   const normalized = normalizeComprehensiveReportModelProse(rawText);
+
+  checkExplicitPalaceCoordinates(rawText, facts, addFinding);
 
   // Resident-major absence says nothing about the opposite palace. Check
   // explicit named-palace opposition claims against that separate source.
