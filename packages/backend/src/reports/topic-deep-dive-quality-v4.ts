@@ -81,6 +81,44 @@ export const DEFAULT_TOPIC_DEEP_DIVE_QUALITY_CONFIG: TopicDeepDiveQualityConfig 
 const branchLabels = ZIWEI_BRANCH_IDS.map(id => displayFact(id)).filter((label): label is string => label !== undefined);
 const escapeProsePattern = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+function checkExplicitActiveDecadalPlacement(
+  text: string,
+  facts: ComprehensiveZiweiFactsV4,
+  addFinding: (code: TopicDeepDiveQualityFindingCode, note: string) => void,
+) {
+  const palaces = facts.natal.palaces.flatMap(palace => {
+    const label = displayFact(palace.palaceId)?.replace(/^cung\s+/iu, "");
+    return label ? [{palace, label}] : [];
+  });
+  const branches = branchLabels.map(escapeProsePattern).join("|");
+  const stems = Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+    .filter(([id]) => id.startsWith("ziwei.stem."));
+  const stemPattern = stems.map(([, label]) => escapeProsePattern(label)).join("|");
+  const placement = new RegExp(String.raw`(?<![\p{L}\p{N}])đại\s+vận(?:\s+(?:hiện\s+tại|hiện\s+hành|này))?\s+(?:đang\s+)?(?:tọa(?:\s+(?:thủ|lạc))?|an|đóng)\s+(?:tại|ở)\s+(?:cung\s+)?(${palaces.map(({label}) => escapeProsePattern(label)).join("|")})(?![\p{L}\p{N}])(?!\s+(?:của\s+)?đại\s+vận)(?:\s+gốc)?(?:\s+(?:tại|ở)\s+(?:(${stemPattern})\s+)?(${branches})(?![\p{L}\p{N}]))?(?:\s*,?\s*(?:(?:với|mang|có)\s+)?(?:thiên\s+)?can\s+((?:${stemPattern})(?:\s*/\s*(?:${stemPattern}))*)(?![\p{L}\p{N}]))?`, "giu");
+  const active = facts.timing.decadal.state === "active" ? facts.timing.decadal : undefined;
+  const anchor = active && facts.natal.palaces.find(palace => palace.palaceId === active.palaceId);
+  for (const match of text.matchAll(placement)) {
+    const prefix = text.slice(0, match.index).toLocaleLowerCase("vi");
+    const localPrefix = prefix.split(/[.!?;\n]|(?<![\p{L}\p{N}])(?:nhưng|còn)(?![\p{L}\p{N}])/u).at(-1)!;
+    const tail = text.slice(match.index! + match[0].length);
+    if (["nếu", "giả sử"].some(term => wholeWord(localPrefix, term)) ||
+        /^\s*(?:nếu|giả\s+sử|khi\s+(?:giờ\s+sinh|lá\s+số)\s+khác)(?![\p{L}\p{N}])/iu.test(tail)) continue;
+    const denial = /(?<![\p{L}\p{N}])(?:(?:không|chẳng)\s+phải(?:\s+là)?|chưa\s+thể\s+(?:khẳng\s+định|kết\s+luận)(?:\s+rằng)?|phủ\s+nhận(?:\s+rằng)?)\s*$/u.exec(localPrefix);
+    const outerPrefix = denial ? localPrefix.slice(0, denial.index) : "";
+    if (denial && !/(?<![\p{L}\p{N}])(?:không|chưa|chẳng|đừng|tránh|phủ nhận|bác bỏ|chối bỏ)(?![\p{L}\p{N}])/u.test(outerPrefix)) continue;
+    const claimedPalace = palaces.find(({label}) => label.toLocaleLowerCase("vi") === match[1]!.toLocaleLowerCase("vi"))!.palace;
+    const observedBranch = match[3] && ZIWEI_BRANCH_IDS.find(id => displayFact(id)?.toLocaleLowerCase("vi") === match[3]!.toLocaleLowerCase("vi"));
+    const assertedStems = [match[2], ...(match[4]?.split(/\s*\/\s*/u) ?? [])].filter((label): label is string => label !== undefined);
+    const wrongStem = assertedStems.some(label =>
+      stems.find(([, name]) => name.toLocaleLowerCase("vi") === label.toLocaleLowerCase("vi"))?.[0] !== anchor?.heavenlyStemId);
+    // The active cycle occupies its natal anchor; same-named rotated roles are separate facts.
+    if (!anchor || claimedPalace.palaceId !== anchor.palaceId ||
+        (observedBranch && observedBranch !== anchor.earthlyBranchId) || wrongStem) {
+      addFinding("DECADAL_TIMING_MISMATCH", `Explicit active decadal placement at ${claimedPalace.palaceId}/${observedBranch ?? "unstated branch"} disagrees with source anchor ${anchor?.palaceId ?? "unavailable"}/${anchor?.earthlyBranchId ?? "unavailable"}.`);
+    }
+  }
+}
+
 function checkExplicitPalaceCoordinates(
   text: string,
   facts: ComprehensiveZiweiFactsV4,
@@ -293,6 +331,7 @@ function checkProse(
   const normalized = normalizeComprehensiveReportModelProse(rawText);
 
   checkExplicitPalaceCoordinates(rawText, facts, addFinding);
+  checkExplicitActiveDecadalPlacement(rawText, facts, addFinding);
   checkExplicitResidentStarLists(rawText, facts, addFinding);
   checkExplicitBranchOpposition(rawText, addFinding);
   checkExplicitStarBrightness(rawText, sectionKey, facts, addFinding);
