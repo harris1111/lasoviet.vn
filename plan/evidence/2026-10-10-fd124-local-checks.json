@@ -1,0 +1,35 @@
+{
+  "ownerDecision": "FD-124",
+  "recordedAt": "2026-10-10T16:28:26.803353+00:00",
+  "baseSha": "aed4a9f36a884e78728353ece3f49aca7ecbb8cf",
+  "status": "local_pre_live_checks_pass",
+  "producerBuild": "pass",
+  "scriptTests": {
+    "passed": 139,
+    "failed": 0
+  },
+  "independentFd124Tests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "i18n": "pass",
+  "lint": {
+    "errors": 0,
+    "existingWarnings": 4
+  },
+  "typecheck": "pass",
+  "frozenInputs": 6,
+  "oldAuthoritiesUnchanged": 4,
+  "physicalProviderCalls": 0,
+  "actualAuthorityWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "liveAcceptance": false,
+  "remaining": [
+    "exact committed-head independent review",
+    "fresh CI",
+    "merge/deploy/smoke",
+    "bounded actual campaign and independent editorial acceptance",
+    "full delivery/export/guarantee/FE gates"
+  ]
+}

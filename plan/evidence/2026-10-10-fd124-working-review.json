@@ -1,0 +1,47 @@
+{
+  "status": "WORKING_GO",
+  "reviewedAt": "2026-10-10T16:27:26.048263+00:00",
+  "baseSha": "aed4a9f36a884e78728353ece3f49aca7ecbb8cf",
+  "ownerDecision": "FD-124",
+  "sourceHashes": {
+    "scripts/run-replacement-paid-trials.mjs": "7ffade5f18c0e128fe587a0b13ea8683145f1e5fbcd5605af92d5dd5bc9ad7f4",
+    "scripts/lib/fd124-replacement-trials.mjs": "cecaaf7f6362849a3da6cf9b76334b44fe2f275ca479e93b4324166884e3c652",
+    "scripts/fd124-replacement-trials.test.mjs": "9fc81c986c1c0c2370753c70c35960dfa511d04af45f8d97acea5eb79f3e5377",
+    "scripts/lib/campaign-budget.mjs": "df3a12bbcd10f4ed3e71b79b840413d72d00a839d905f10a61117108c13b3e9d",
+    "scripts/lib/campaign-budget-ledger-worker.mjs": "aedac292f7ac7fc0e98ab6965cca2d74973775e1ff8351e83c30985387f95cd2",
+    "scripts/lib/prod-9router-attempt.mjs": "e03222b0163f14cff6e3161d308a810fa0c64815d55ea78f21e4db65c9177393",
+    "scripts/lib/prod-9router-child.mjs": "5cdebe82cf32d9235538d4578bc3af809f9fc564950a0447a06ed8217c71497b",
+    "scripts/run-paid-manual-trials.mjs": "90e4ce8dfe83458933b716ac386a6d77a65a361855eb178cff0197a5bf478535",
+    "package.json": "29b8fcc586c0ba8e00cba471932f94cbd18dac5d4e5d460f91767f3fda68f974",
+    "plan/evidence/2026-10-10-fd124-frozen-inputs.json": "a46e8b878dacf63f01d657e46ab55b49a066f34bf2a77914e6ca31fc1ed696d9"
+  },
+  "independentTests": {
+    "fd124SuitePassed": 10,
+    "failed": 0,
+    "actualFrozenInputsRecomputed": 6,
+    "oldAuthoritiesUnchangedBeforeAfter": 4
+  },
+  "correctionsVerified": [
+    "Failure diagnostic request hash compared with prepared trace before assignment/persistence; mismatch retains open reservation without diagnostic",
+    "Pre-ACK onDispatchReady failure produces zero ACK/sends, open reservation, no settlement and next-key refusal"
+  ],
+  "scope": "Separate six-slot max twelve-send campaign with 32768 request allowance, existing full model API-reference reservation, exact frozen sources, redacted native diagnostics and durable no-restart fences.",
+  "findings": [],
+  "effectCounters": {
+    "physicalProviderCalls": 0,
+    "actualAuthorityWrites": 0,
+    "financialWrites": 0,
+    "customerSends": 0
+  },
+  "remainingGates": [
+    "Final full script suite and required checks",
+    "Committed exact-head independent review",
+    "Fresh exact-head CI before live execution"
+  ],
+  "notGranted": [
+    "Live execution at this working-diff stage",
+    "Original unknown retry/restart/settlement",
+    "Product/payment/outbound activation",
+    "Full LSV58/63 completion"
+  ]
+}

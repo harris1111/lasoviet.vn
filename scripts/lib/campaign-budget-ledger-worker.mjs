@@ -4,6 +4,12 @@ import { dirname } from "node:path";
 import { API_REFERENCE_PRICING, quoteNativeApiReference } from "./native-campaign-api-pricing.mjs";
 import { FD123_POLICY, FD123_RESERVE_VND, isFd123AttemptKey, fd123RewritePrerequisite, quoteFd123ReferenceSettlement } from "./fd123-reference-continuation.mjs";
 
+import { FD124_POLICY, FD124_OUTPUT_TOKENS, isFd124AttemptKey, fd124RewritePrerequisite } from "./fd124-replacement-trials.mjs";
+
+const referencePolicy = policy => [FD123_POLICY, FD124_POLICY].includes(policy);
+const allowedKey = (policy, key) => policy === FD124_POLICY ? isFd124AttemptKey(key) : isFd123AttemptKey(key);
+const prerequisiteKey = (policy, key) => policy === FD124_POLICY ? fd124RewritePrerequisite(key) : fd123RewritePrerequisite(key);
+
 // Invoked only beneath the parent's OS flock; direct invocation is unsupported.
 let fd;
 const fail = code => { throw Object.assign(new Error(code), { code }); };
@@ -14,7 +20,7 @@ const traceKeys = ["pricingVersion", "pricingSnapshotSha256", "requestedAlias", 
 const validTrace = trace => exactKeys(trace, traceKeys) && trace.pricingVersion === API_REFERENCE_PRICING.version && trace.pricingSnapshotSha256 === API_REFERENCE_PRICING.snapshotSha256 && trace.requestedAlias === "ag/gemini-3.8-flash" && trace.wireModel === "gemini-3.8-flash-medium" && /^agent\/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\/\d{13}\/[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\/1$/.test(trace.requestId) && integer(trace.effectiveMaxOutputTokens) && trace.effectiveMaxOutputTokens >= 16_384 && trace.effectiveMaxOutputTokens <= 64_000 && sha(trace.requestSha256);
 const receiptKeys = ["rawCountersComplete", "accountingStatus", "modelVersion", "inputTokens", "outputTokens", "cachedTokens", "reasoningTokens", "totalTokens"];
 function validateSettlement(value, item, at, referenceContinuation) {
-  if (referenceContinuation === FD123_POLICY) {
+  if (referencePolicy(referenceContinuation)) {
     let quote;
     try { quote = quoteFd123ReferenceSettlement(value, item.trace, { at: new Date(at) }); } catch { fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID"); }
     if (BigInt(quote.quoteVnd) > BigInt(item.vnd)) fail("BUDGET_ATTEMPT_SETTLEMENT_INVALID");
@@ -94,7 +100,7 @@ try {
   const reservations = new Map();
   const attempts = new Set();
   const hasSettledPrerequisite = key => {
-    const prerequisite = fd123RewritePrerequisite(key);
+    const prerequisite = prerequisiteKey(config.referenceContinuation, key);
     return !prerequisite || [...reservations.values()].some(item => item.attemptKey === prerequisite && item.state === "settled");
   };
   let total = 0;
@@ -104,7 +110,7 @@ try {
       if (reservations.has(row.id) || row.campaign !== "v4.2-report" || !integer(row.vnd) || !Number.isSafeInteger(total + row.vnd)) fail("BUDGET_LEDGER_CORRUPT");
       const keyed = row.type === "reserve-attempt";
       if (keyed && (!sha(row.attemptKey) || !validTrace(row.trace) || attempts.has(row.attemptKey) || [...reservations.values()].some(item => item.attemptKey && ["reserved", "dispatched"].includes(item.state)))) fail("BUDGET_LEDGER_CORRUPT");
-      if (config.referenceContinuation === FD123_POLICY && (!keyed || row.vnd !== FD123_RESERVE_VND || !isFd123AttemptKey(row.attemptKey) || !hasSettledPrerequisite(row.attemptKey))) fail("BUDGET_LEDGER_CORRUPT");
+      if (referencePolicy(config.referenceContinuation) && (!keyed || row.vnd !== FD123_RESERVE_VND || !allowedKey(config.referenceContinuation, row.attemptKey) || (config.referenceContinuation === FD124_POLICY && row.trace.effectiveMaxOutputTokens !== FD124_OUTPUT_TOKENS) || !hasSettledPrerequisite(row.attemptKey))) fail("BUDGET_LEDGER_CORRUPT");
       if (keyed) attempts.add(row.attemptKey);
       reservations.set(row.id, { vnd: row.vnd, state: "reserved", ...(keyed ? { attemptKey: row.attemptKey, trace: row.trace } : {}) }); total += row.vnd;
     } else {
@@ -130,7 +136,7 @@ try {
     if (!integer(request.vnd) || !Number.isSafeInteger(total + request.vnd)) fail("BUDGET_RESERVATION_INVALID");
     const keyed = action === "reserve-attempt";
     if (keyed && (!sha(request.attemptKey) || !validTrace(request.trace))) fail("BUDGET_ATTEMPT_INVALID");
-    if (config.referenceContinuation === FD123_POLICY && (!keyed || request.vnd !== FD123_RESERVE_VND || !isFd123AttemptKey(request.attemptKey) || !hasSettledPrerequisite(request.attemptKey))) fail("BUDGET_ATTEMPT_INVALID");
+    if (referencePolicy(config.referenceContinuation) && (!keyed || request.vnd !== FD123_RESERVE_VND || !allowedKey(config.referenceContinuation, request.attemptKey) || (config.referenceContinuation === FD124_POLICY && request.trace.effectiveMaxOutputTokens !== FD124_OUTPUT_TOKENS) || !hasSettledPrerequisite(request.attemptKey))) fail("BUDGET_ATTEMPT_INVALID");
     if (keyed && attempts.has(request.attemptKey)) fail("BUDGET_ATTEMPT_ALREADY_CLAIMED");
     if (keyed && [...reservations.values()].some(item => item.attemptKey && ["reserved", "dispatched"].includes(item.state))) fail("BUDGET_ATTEMPT_UNRESOLVED");
     if (total + request.vnd > config.totalCapVnd) fail("BUDGET_TOTAL_CAP_REACHED");

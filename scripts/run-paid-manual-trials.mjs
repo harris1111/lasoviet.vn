@@ -36,23 +36,35 @@ export async function runTrialSequence({ inputs, manifest, save, generate }) {
 }
 
 export async function makePaidTrialInput(group, index, asOfDate, modules) {
+  if (!GROUPS.includes(group) || ![0, 1].includes(index)) fail("PAID_TRIAL_INPUT_INVALID");
+  return buildSyntheticTrialInput(group, index, asOfDate, modules, "fd121", {
+    date: index === 0 ? "1980-01-01" : "1981-02-02", localTime: index === 0 ? "08:30" : "14:30", gender: index ? "female" : "male" });
+}
+
+export async function makeFreshPaidTrialInput(group, index, asOfDate, modules) {
+  if (!["relationship_marriage", "career_wealth"].includes(group) || ![2, 3].includes(index)) fail("PAID_TRIAL_INPUT_INVALID");
+  return buildSyntheticTrialInput(group, index, asOfDate, modules, "fd124", index === 2
+    ? { date: "1988-06-17", localTime: "06:40", gender: "male" }
+    : { date: "1993-11-23", localTime: "18:20", gender: "female" });
+}
+
+async function buildSyntheticTrialInput(group, index, asOfDate, modules, namespace, { date, localTime, gender }) {
   const { backend, contracts, engine } = modules;
   const lineage = backend.deriveReportTimingLineage(new Date(`${asOfDate}T05:00:00Z`));
-  if (!GROUPS.includes(group) || ![0, 1].includes(index) || lineage.asOfDate !== asOfDate) fail("PAID_TRIAL_INPUT_INVALID");
-  const date = index === 0 ? "1980-01-01" : "1981-02-02", localTime = index === 0 ? "08:30" : "14:30";
+  if (lineage.asOfDate !== asOfDate) fail("PAID_TRIAL_INPUT_INVALID");
   const originalInput = { version: 1, calendar: { kind: "solar", date }, time: { precision: "exact_minute", localTime },
-    timezone: { offsetMinutes: 420 }, consentVersion: "synthetic-test", gender: index ? "female" : "male" };
+    timezone: { offsetMinutes: 420 }, consentVersion: "synthetic-test", gender };
   const birthProfile = contracts.NormalizedBirthProfileV1Schema.parse({ version: 1, originalInput,
     normalizedCalendar: originalInput.calendar, normalizedTime: originalInput.time,
     timezoneProvenance: { source: "offset", offsetMinutes: 420 }, normalizationWarnings: [], limitations: [] });
-  const chartVersionId = `fd121-synthetic-chart-${index}`, chartId = `fd121-synthetic-${index}`;
+  const chartVersionId = `${namespace}-synthetic-chart-${index}`, chartId = `${namespace}-synthetic-${index}`;
   const targetYear = lineage.targetYear + (group === "next_annual" ? 1 : 0);
   const period = !["relationship_marriage", "career_wealth"].includes(group);
   const chart = await new engine.IztroAdapter().calculate({ birthProfile }, engine.iztroDefaultConfig);
   const snapshot = await engine.calculateIztroReportSnapshot({ chartVersionId, birthProfile, ...lineage, targetYear,
     ...(period ? { periodReading: { chartId, kind: group === "monthly" ? "monthly" : "annual" } } : {}) });
   if (!chart.ok || !snapshot.ok) fail("PAID_TRIAL_ENGINE_FAILED");
-  const reportId = uuid(`fd121-${group}-${index}`);
+  const reportId = uuid(`${namespace}-${group}-${index}`);
   const source = contracts.ReportSourceSnapshotV1Schema.parse({ version: 1, reportId, reportVersionId: uuid(`${reportId}-v1`), chartVersionId,
     ...lineage, targetYear, snapshotHash: snapshot.value.provenance.snapshotHash, snapshot: snapshot.value });
   const facts = period ? snapshot.value.periodReading : backend.buildComprehensiveZiweiFactsV4(chart.output, source);
