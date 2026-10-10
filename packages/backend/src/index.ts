@@ -246,10 +246,13 @@ export type {
   AiRequestUse,
   AiStructuredOutputValue,
   GenerateStructuredRequest,
+  AiStructuredWireExpectation,
 } from "./ai/ai-provider.js";
 export {
   createOpenAiCompatibleAdapter,
   resolveOpenAiCompatibleProviderId,
+  prepareOpenAiCompatibleStructuredRequest,
+  OPENAI_COMPATIBLE_WIRE_VERSION,
 } from "./ai/openai-compatible-adapter.js";
 export type { OpenAiCompatibleAdapterOptions } from "./ai/openai-compatible-adapter.js";
 export { runAiCapabilityProbe } from "./ai/capability-probe.js";
@@ -894,3 +897,5 @@ export { createDatabaseBaziTwoPersonRepository } from "./bazi/bazi-two-person.re
 export * from "./reports/decadal-purchase-source.repository.js";
 
 export { createDatabaseBaziDecadalSourceRepository, type OwnedBaziDecadalResult } from "./bazi/bazi-decadal-source.repository.js";
+
+export { prepareFreeReadingOpenAiCompatibleWire } from "./ziwei/free-reading-wire.js";
