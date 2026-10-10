@@ -5,6 +5,11 @@ import type { ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
 export const ZIWEI_TOPIC_DEEP_DIVE_IDS = [
   "relationship_marriage",
   "career_wealth",
+  "business_enterprise",
+  "career_transition",
+  "family_children",
+  "education_career",
+  "property_home",
 ] as const;
 
 export type ZiweiTopicDeepDiveId = (typeof ZIWEI_TOPIC_DEEP_DIVE_IDS)[number];
@@ -13,16 +18,33 @@ export const ZiweiTopicDeepDiveIdSchema = z.enum(ZIWEI_TOPIC_DEEP_DIVE_IDS);
 export const ZIWEI_TOPIC_SKU_MAP = Object.freeze({
   relationship_marriage: "ZIWEI-RELATIONSHIP-P0",
   career_wealth: "ZIWEI-CAREER-P0",
+  business_enterprise: "ZIWEI-BUSINESS-P0",
+  career_transition: "ZIWEI-CAREER-TRANSITION-P0",
+  family_children: "ZIWEI-FAMILY-CHILDREN-P0",
+  education_career: "ZIWEI-EDUCATION-CAREER-P0",
+  property_home: "ZIWEI-PROPERTY-HOME-P0",
 } as const);
+
+export const ZiweiTopicSkuSchema = z.enum(Object.values(ZIWEI_TOPIC_SKU_MAP));
 
 export const CANONICAL_TOPIC_DEEP_DIVE_TITLES_VI: Record<ZiweiTopicDeepDiveId, string> = {
   relationship_marriage: "Luận giải chuyên sâu Tình duyên & Hôn nhân",
   career_wealth: "Luận giải chuyên sâu Công việc & Tài lộc",
+  business_enterprise: "Luận giải chuyên sâu Kinh doanh và làm ăn",
+  career_transition: "Luận giải chuyên sâu Đổi việc và bước ngoặt sự nghiệp",
+  family_children: "Luận giải chuyên sâu Gia đạo và con cái",
+  education_career: "Luận giải chuyên sâu Học hành và con đường nghề",
+  property_home: "Luận giải chuyên sâu Nhà đất và an cư",
 };
 
 export const CANONICAL_TOPIC_DEEP_DIVE_TITLES_EN: Record<ZiweiTopicDeepDiveId, string> = {
   relationship_marriage: "Relationship & Marriage Deep Dive",
   career_wealth: "Career & Wealth Deep Dive",
+  business_enterprise: "Business & Enterprise Deep Dive",
+  career_transition: "Career Transition Deep Dive",
+  family_children: "Family & Children Deep Dive",
+  education_career: "Education & Career Path Deep Dive",
+  property_home: "Property & Home Deep Dive",
 };
 
 export const TOPIC_PALACE_SCOPES: Record<
@@ -42,6 +64,26 @@ export const TOPIC_PALACE_SCOPES: Record<
       "ziwei.palace.siblings",
       "ziwei.palace.parents",
     ],
+  },
+  business_enterprise: {
+    primaryPalaces: ["ziwei.palace.wealth", "ziwei.palace.career"],
+    supportingPalaces: ["ziwei.palace.life", "ziwei.palace.friends", "ziwei.palace.property", "ziwei.palace.travel"],
+  },
+  career_transition: {
+    primaryPalaces: ["ziwei.palace.career", "ziwei.palace.travel"],
+    supportingPalaces: ["ziwei.palace.life", "ziwei.palace.friends", "ziwei.palace.wealth", "ziwei.palace.fortune"],
+  },
+  family_children: {
+    primaryPalaces: ["ziwei.palace.children", "ziwei.palace.property"],
+    supportingPalaces: ["ziwei.palace.parents", "ziwei.palace.siblings", "ziwei.palace.fortune"],
+  },
+  education_career: {
+    primaryPalaces: ["ziwei.palace.career", "ziwei.palace.parents"],
+    supportingPalaces: ["ziwei.palace.life", "ziwei.palace.fortune", "ziwei.palace.siblings"],
+  },
+  property_home: {
+    primaryPalaces: ["ziwei.palace.property"],
+    supportingPalaces: ["ziwei.palace.wealth", "ziwei.palace.parents", "ziwei.palace.travel"],
   },
   career_wealth: {
     primaryPalaces: ["ziwei.palace.career", "ziwei.palace.wealth"],
@@ -168,6 +210,16 @@ export const ZiweiTopicDeepDiveContentV1Schema = z
   })
   .strict()
   .superRefine((report, ctx) => {
+    if (["business_enterprise", "career_transition", "family_children", "education_career", "property_home"].includes(report.topicId)) {
+      const scope = TOPIC_PALACE_SCOPES[report.topicId];
+      const allowed = new Set([...scope.primaryPalaces, ...scope.supportingPalaces]);
+      const anchors = report.palaceAnchors.map(anchor => anchor.palaceId);
+      if (scope.primaryPalaces.some(palace => !anchors.includes(palace)) ||
+          anchors.some(palace => !allowed.has(palace)) || new Set(anchors).size !== anchors.length) {
+        ctx.addIssue({code: "custom", path: ["palaceAnchors"],
+          message: "Topic reading requires distinct primary anchors within its closed palace scope"});
+      }
+    }
     if (report.topicId === "relationship_marriage") {
       const hasSpouse = report.palaceAnchors.some(
         (p) => p.palaceId === "ziwei.palace.spouse",

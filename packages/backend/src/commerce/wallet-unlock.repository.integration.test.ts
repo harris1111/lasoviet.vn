@@ -1,3 +1,10 @@
+// This suite exercises historical purchases and frozen pre-FD119 promises.
+vi.mock("./purchase-commercial-terms.js", async importOriginal => {
+  const actual = await importOriginal<typeof import("./purchase-commercial-terms.js")>();
+  return {...actual, freezePurchaseCommercialTerms: (intent: Parameters<typeof actual.freezePurchaseCommercialTerms>[0],
+    quote: Parameters<typeof actual.freezePurchaseCommercialTerms>[1], policy: Parameters<typeof actual.freezePurchaseCommercialTerms>[2]) =>
+    actual.freezePurchaseCommercialTerms(intent, quote, policy ?? "pre-fd119")};
+});
 import { createWalletUpgradeOutboxRunner } from "../analytics/wallet-upgrade-outbox.js";
 import { createDatabaseAnalyticsRepository } from "../analytics/analytics.repository.js";
 import { WALLET_UPGRADE_EVENT_TYPE } from "./wallet-upgrade-event.js";
@@ -27,7 +34,7 @@ vi.mock("@lasoviet/contracts", async importOriginal => {
   return { ...actual, findLaProduct: (sku: string) => {
     const original = actual.findLaProduct(sku);
     const product = original && sku === "ZIWEI-IDENTITY-P0" && topicCatalogGate.lifetimePrice !== null
-      ? {...original, priceLa: topicCatalogGate.lifetimePrice} : original;
+      ? {...original, priceLa: topicCatalogGate.lifetimePrice} : original && sku === "ZIWEI-IDENTITY-P0" ? {...original, priceLa: 960} : original;
     return topicCatalogGate.enabled && product && ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-COMBO-P0", "ZIWEI-YEAR-2026-P0", "ZIWEI-COMBO-2026-P0"].includes(sku) ? { ...product, availability: "active" } : product;
   }};
 });

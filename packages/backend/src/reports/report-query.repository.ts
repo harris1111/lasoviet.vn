@@ -1,3 +1,4 @@
+import { topicIdForSku } from "./topic-report-config.js";
 import { readPurchaseCommercialTerms } from "../commerce/purchase-commercial-terms.js";
 import {readCompensatedReportFailure} from "./report-compensated-failure.js";
 import type {ReportFailedWalletSpendViewV2} from "@lasoviet/contracts";
@@ -74,7 +75,7 @@ function isSupportedWalletPrice(intent: typeof walletPurchaseIntents.$inferSelec
   if (!readPurchaseCommercialTerms(intent)) return false;
   if (isComboSku(sku)) return isSupportedComboPrice(priceLa);
   const product = findLaProduct(sku);
-  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (!product || !(["natal", "palace"].includes(product.category) || topicIdForSku(sku) !== null || ["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
   if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
   return true;
 }

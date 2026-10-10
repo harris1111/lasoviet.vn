@@ -1,7 +1,8 @@
+import { topicIdForSku } from "../reports/topic-report-config.js";
 import { readPurchaseCommercialTerms } from "./purchase-commercial-terms.js";
 import { periodKindForSku } from "../reports/period-report-config.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { and, desc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNotNull, isNull, inArray, or, sql } from "drizzle-orm";
 import {
   GuaranteeClaimRequestV1Schema,
   GuaranteeClaimResultV1Schema,
@@ -21,6 +22,9 @@ import {
   birthProfiles,
   commerceEntitlements,
   guaranteeClaims,
+  deletionRequests,
+  lockFreeAiCoordination,
+  reportEntitlementLinks,
   partFeedbacks,
   reportReservations,
   walletAccounts,
@@ -31,6 +35,8 @@ import {
   type Database,
 } from "@lasoviet/database";
 
+import { createDatabaseReportQueryRepository } from "../reports/report-query.repository.js";
+import { createReportQueryService } from "../reports/report-query.service.js";
 import { createWalletService } from "../wallet/wallet.service.js";
 import { createDatabaseWalletRepository } from "../wallet/wallet.repository.js";
 
@@ -301,6 +307,11 @@ export function createGuaranteeFeedbackService(
       }
 
       return database.transaction(async (transaction) => {
+        // Share the publication/recovery/compensation lock prefix before financial locks.
+        await lockFreeAiCoordination(transaction);
+        const [deletion] = await transaction.select().from(deletionRequests)
+          .where(eq(deletionRequests.userId, actor.userId)).limit(1).for("update");
+        if (deletion?.status === "purged") return {ok: false, code: "GUARANTEE_ACCOUNT_INELIGIBLE"};
         // Serialize first-claim decisions per owner before touching wallet balances.
         await transaction.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`guarantee:${actor.userId}`}, 0))`);
       const [account] = await transaction
@@ -335,7 +346,11 @@ export function createGuaranteeFeedbackService(
       }
 
       const isPeriod = periodKindForSku(parsed.data.partId.toUpperCase()) !== null;
-      if (isPeriod && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
+      const topicId = topicIdForSku(parsed.data.partId.toUpperCase());
+      const requiresTopicReport = ["business_enterprise", "career_transition", "family_children", "education_career", "property_home"].includes(topicId ?? "");
+      const isReportScoped = isPeriod || requiresTopicReport ||
+        (Boolean(parsed.data.reportId) && (topicId !== null || parsed.data.partId.toLowerCase().replace(/^section-/, "") === "topicdeepdive"));
+      if ((isPeriod || requiresTopicReport) && !parsed.data.reportId) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
       // The optional report association is private owner data, including on the refund path.
       if (parsed.data.reportId) {
         const [report] = await transaction.select({ id: reportReservations.id })
@@ -415,18 +430,19 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND" };
       }
 
-      let periodEntitlementId: string | undefined;
-      if (isPeriod) {
+      let reportEntitlementId: string | undefined;
+      if (isReportScoped) {
         const [reservation] = await transaction.select({entitlementId: reportReservations.entitlementId})
           .from(reportReservations).where(eq(reportReservations.reportId, parsed.data.reportId!)).limit(1);
         if (!reservation) return {ok: false, code: "GUARANTEE_ENTITLEMENT_NOT_FOUND"};
-        periodEntitlementId = reservation.entitlementId;
+        reportEntitlementId = reservation.entitlementId;
       }
 
       // Find matching entitlement by partId or scope
       const normalizedPartId = parsed.data.partId.toLowerCase();
       const matched = entitlements.find((candidate) => {
-        if (isPeriod && candidate.entitlement.id !== periodEntitlementId) return false;
+        if (isReportScoped && candidate.entitlement.id !== reportEntitlementId) return false;
+        if (["ZIWEI-BUSINESS-P0", "ZIWEI-CAREER-TRANSITION-P0", "ZIWEI-FAMILY-CHILDREN-P0", "ZIWEI-EDUCATION-CAREER-P0", "ZIWEI-PROPERTY-HOME-P0"].includes(candidate.entitlement.sku) && !parsed.data.reportId) return false;
         if (candidate.entitlement.sku.toLowerCase() === normalizedPartId) return true;
         const scope = candidate.entitlement.scope;
         if (candidate.entitlement.sku === "ZIWEI-TODAY-P0") {
@@ -467,7 +483,8 @@ export function createGuaranteeFeedbackService(
 
       // 7. Get spend price in Lá and check < 500 Lá
       let priceLa = 0;
-      let frozenGuarantee: "full" | "none" | undefined;
+      let frozenGuarantee: "full" | "half" | "none" | undefined;
+      let newPolicy = false;
       if (spend.purchaseIntentId) {
         const [intent] = await transaction
           .select()
@@ -479,6 +496,7 @@ export function createGuaranteeFeedbackService(
           if (!terms) return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
           priceLa = terms.chargedLa;
           frozenGuarantee = terms.guarantee;
+          newPolicy = terms.policy === "fd119";
         }
       }
 
@@ -496,38 +514,65 @@ export function createGuaranteeFeedbackService(
         return { ok: false, code: "GUARANTEE_PRICE_EXCEEDS_LIMIT" };
       }
 
-      // 8. 24-hour expiration window
+      // Wallet locks precede reservation locks, matching terminal compensation.
+      const [wallet] = await transaction.select().from(walletAccounts)
+        .where(eq(walletAccounts.ownerId, actor.userId)).limit(1).for("update");
+      if (!wallet) return {ok: false, code: "GUARANTEE_ACCOUNT_INELIGIBLE"};
+
+      if (frozenGuarantee === "half") {
+        if (!newPolicy || priceLa % 2 !== 0) return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+        const components = entitlements.filter(item => item.spend.id === spend.id);
+        if (components.length === 0) return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+        const linked = await transaction.select({reservationId: reportEntitlementLinks.reservationId,
+          entitlementId: reportEntitlementLinks.entitlementId}).from(reportEntitlementLinks)
+          .where(inArray(reportEntitlementLinks.entitlementId, components.map(item => item.entitlement.id)));
+        const reservations = await transaction.select().from(reportReservations)
+          .where(or(...components.flatMap(item => [eq(reportReservations.entitlementId, item.entitlement.id),
+            ...linked.filter(link => link.entitlementId === item.entitlement.id)
+              .map(link => eq(reportReservations.id, link.reservationId))])))
+          .orderBy(asc(reportReservations.id)).for("update");
+        if (components.some(item => !reservations.some(reservation =>
+            reservation.entitlementId === item.entitlement.id || linked.some(link =>
+              link.entitlementId === item.entitlement.id && link.reservationId === reservation.id)))) {
+          return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+        }
+        if (parsed.data.reportId && !reservations.some(reservation => reservation.reportId === parsed.data.reportId)) {
+          return {ok: false, code: "GUARANTEE_NOT_OWNER"};
+        }
+        const query = createReportQueryService({repository: createDatabaseReportQueryRepository(transaction, getNow), now: getNow});
+        for (const reservation of reservations) {
+          if (!["html_ready", "pdf_pending", "complete"].includes(reservation.status)) {
+            return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+          }
+          try {
+            const report = await query.getReport(actor, reservation.reportId);
+            if (!report.ok || report.value.state !== "ready" || report.value.reportVersionId !== reservation.reportVersionId) {
+              return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+            }
+          } catch {
+            return {ok: false, code: "GUARANTEE_INVALID_REQUEST"};
+          }
+        }
+      }
+      // Sample the eligibility clock after every potentially waiting financial/readiness lock.
       const now = getNow();
-      const expirationTime = spend.createdAt.getTime() + 24 * 60 * 60 * 1000;
-      if (now.getTime() >= expirationTime || now.getTime() < spend.createdAt.getTime()) {
-        return { ok: false, code: "GUARANTEE_WINDOW_EXPIRED" };
+      if (now.getTime() >= spend.createdAt.getTime() + 86_400_000 || now.getTime() < spend.createdAt.getTime()) {
+        return {ok: false, code: "GUARANTEE_WINDOW_EXPIRED"};
       }
-
-      // 9. Wallet lookup
-      const [wallet] = await transaction
-        .select()
-        .from(walletAccounts)
-        .where(eq(walletAccounts.ownerId, actor.userId))
-        .limit(1);
-
-      if (!wallet) {
-        return { ok: false, code: "GUARANTEE_ACCOUNT_INELIGIBLE" };
-      }
-
-      // 10. Execute compensating restore
-      const restoreResult = await createWalletService(createDatabaseWalletRepository(transaction, { now: getNow })).restore({
-        actor,
-        restoration: {
-          kind: "restoration",
-          actorId: actor.userId,
-          originalSpendId: spend.id,
-          expectedWalletVersion: wallet.stateVersion,
-          reasonCode: "guarantee_la_back",
-          requestId: actor.requestId,
-          traceId: actor.requestId,
-          idempotencyKey: `guarantee-restore:${parsed.data.idempotencyKey}`,
-        },
-      });
+      const amountLaRestored = frozenGuarantee === "half" ? priceLa / 2 : priceLa;
+      const restoration = {
+        kind: "restoration" as const, actorId: actor.userId, originalSpendId: spend.id,
+        expectedWalletVersion: wallet.stateVersion, reasonCode: "guarantee_la_back",
+        requestId: actor.requestId, traceId: actor.requestId,
+        idempotencyKey: `guarantee-restore:${parsed.data.idempotencyKey}`,
+      };
+      const privateAuthority = {token: {}, ownerId: actor.userId, originalSpendId: spend.id,
+        idempotencyKey: restoration.idempotencyKey, requestFingerprint: fingerprint};
+      const repository = createDatabaseWalletRepository(transaction, {now: getNow,
+        ...(newPolicy ? {trustedGuaranteeRestorationAuthority: privateAuthority} : {})});
+      const restoreResult = newPolicy
+        ? await repository.restore({actor, restoration, trustedGuaranteeToken: privateAuthority.token, requestFingerprint: fingerprint})
+        : await createWalletService(repository).restore({actor, restoration});
 
       if (!restoreResult.ok) {
         if (restoreResult.error.code === "WALLET_ALREADY_RESTORED") {
@@ -572,7 +617,7 @@ export function createGuaranteeFeedbackService(
         claimId,
         claimNumber,
         status: "approved",
-        amountLaRestored: priceLa,
+        amountLaRestored,
         partId: parsed.data.partId,
         sku: entitlement.sku,
         balance: restoreResult.value.balance,
@@ -593,7 +638,7 @@ export function createGuaranteeFeedbackService(
         chartId: parsed.data.chartId,
         sku: entitlement.sku,
         partId: parsed.data.partId,
-        amountLa: priceLa,
+        amountLa: amountLaRestored,
         status: "approved",
         relatedPalaceId: relatedPalaceSuggestion.palaceId,
         idempotencyKey: parsed.data.idempotencyKey,

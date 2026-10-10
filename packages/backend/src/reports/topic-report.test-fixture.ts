@@ -321,3 +321,102 @@ export function makeValidCareerContent(facts: ReturnType<typeof buildFactsFixtur
     ],
   };
 }
+
+/** Synthetic mechanics fixture; does not certify a generated business reading. */
+export function makeBusinessContentFixture(facts: ReturnType<typeof buildFactsFixture>): ZiweiTopicDeepDiveContentV1 {
+  const content = makeValidCareerContent(facts);
+  content.topicId = "business_enterprise";
+  content.title = "Luận giải chuyên sâu Kinh doanh và làm ăn";
+  content.overview.title = "Cách tổ chức việc làm ăn và nguồn lực";
+  content.overview.narrative = `Tài Bạch có Vũ Khúc cùng Thái Âm, còn Quan Lộc có Tử Vi và Thiên Tướng. Hai cung này đặt cách giữ nguồn lực cạnh cách tổ chức việc làm ăn. Khi thử một hướng kinh doanh, bạn có thể tách phần vốn cần duy trì với phần dùng để kiểm tra nhu cầu thực tế. Cách đọc này giúp nhìn lại thói quen quản lý và hợp tác, không đưa ra doanh thu hay một kết quả đầu tư được bảo đảm. Một dự định nhỏ nên có người chịu trách nhiệm, tiêu chí đánh giá và cách dừng khi điều kiện không phù hợp.`;
+  content.thematicDimensions[0] = {...content.thematicDimensions[0]!, key: "enterprise_initiative", title: "Quyền tự chủ và trách nhiệm trong kinh doanh",
+    narrative: `Tử Vi và Thiên Tướng tại Quan Lộc là căn cứ để đọc cách tổ chức và chịu trách nhiệm. Với một việc làm ăn độc lập, bạn có thể tự quyết phạm vi công việc nhưng vẫn cần phân vai với người cộng tác. Hãy nhìn lại việc nào bạn muốn trực tiếp kiểm soát và việc nào cần một cách kiểm tra chung. Căn cứ này gợi cách đặt câu hỏi cho một dự định, không xác nhận rằng dự định sẽ thành công.`};
+  content.thematicDimensions[1] = {...content.thematicDimensions[1]!, key: "capital_discipline", title: "Giữ nguồn lực trước khi mở rộng",
+    narrative: `Vũ Khúc và Thái Âm ở Tài Bạch đặt việc giữ nguồn lực cạnh cách điều hành ở Quan Lộc. Khi xem một phương án kinh doanh, bạn thử phân biệt khoản phải duy trì với khoản có thể dùng để học từ một thử nghiệm nhỏ. Ghi lại điều kiện dừng và trách nhiệm của từng bên giúp tránh mở rộng vì áp lực từ người khác. Đây là cách cân nhắc hành động dựa trên cấu trúc cung, không phải một mức lời hay khoản thu nhập được tính từ lá số.`};
+  return content;
+}
+
+/** Synthetic transition mechanics, not native or manual interpretation acceptance. */
+export function makeCareerTransitionContentFixture(facts: ReturnType<typeof buildFactsFixture>): ZiweiTopicDeepDiveContentV1 {
+  const content=makeValidCareerContent(facts);
+  const travelKey=facts.evidence.items.find(item=>item.dimension==="natal" && item.sourceKeys.includes("ziwei.palace.travel"))?.key;
+  if(!travelKey) throw new Error("Missing actual Travel evidence");
+  content.topicId="career_transition";
+  content.title="Luận giải chuyên sâu Đổi việc và bước ngoặt sự nghiệp";
+  content.overview.title="Cân nhắc thay đổi vai trò và môi trường làm việc";
+  content.overview.narrative=`Tử Vi và Thiên Tướng tại Quan Lộc là căn cứ để nhìn cách tổ chức công việc và trách nhiệm trong một vai trò. Khi đặt cạnh cung Thiên Di, câu hỏi đổi việc cần xét cả phần việc mình muốn giữ và cách thích nghi với môi trường bên ngoài. Bạn có thể ghi lại điều kiện cần cho một vị trí mới, thử trao đổi với người trong nghề và so sánh trách nhiệm thực tế trước khi quyết định. Cách đọc này giúp chuẩn bị cho thay đổi, không xác nhận một lời mời việc hay ngày chuyển việc sẽ xảy ra. Việc ở lại, thay đổi vai trò trong cùng tổ chức hay chuyển môi trường đều cần đối chiếu với hoàn cảnh hiện tại.`;
+  content.overview.evidenceKeys=[...content.overview.evidenceKeys,travelKey];
+  content.palaceAnchors[1]={palaceId:"ziwei.palace.travel",title:"Cung Thiên Di: thích nghi với môi trường bên ngoài",
+    narrative:`Thiên Di không có chính tinh và có Văn Khúc trong bộ dữ kiện đang đọc, còn Quan Lộc có Tử Vi cùng Thiên Tướng. Khi cân nhắc một môi trường mới, hãy chuẩn bị cách trình bày năng lực, hỏi rõ trách nhiệm và quan sát cách đội ngũ phối hợp. Bạn có thể thử một cuộc trao đổi nghề nghiệp hoặc một nhiệm vụ nhỏ để biết điều gì phù hợp với mình. Căn cứ cung này gợi việc kiểm tra môi trường bên ngoài, không bảo đảm rằng thay đổi công việc sẽ có kết quả tốt hơn. Quyết định cần đi cùng nguồn lực và trách nhiệm thực tế.`,evidenceKeys:[travelKey]};
+  content.thematicDimensions[0]={...content.thematicDimensions[0]!,key:"role_transition",title:"Giữ năng lực cốt lõi khi đổi vai trò"};
+  content.thematicDimensions[1]={...content.thematicDimensions[1]!,key:"transition_resources",title:"Chuẩn bị nguồn lực cho thay đổi"};
+  return content;
+}
+
+/** Synthetic family mechanics with literal scoped facts, not interpretation acceptance. */
+export function makeFamilyChildrenContentFixture(facts: ReturnType<typeof buildFactsFixture>): ZiweiTopicDeepDiveContentV1 {
+  const keyFor = (palace: string) => {
+    const key = facts.evidence.items.find(item => item.dimension === "natal" && item.sourceKeys.includes(palace))?.key;
+    if (!key) throw new Error("Missing actual family palace evidence"); return key;
+  };
+  const children = keyFor("ziwei.palace.children"), property = keyFor("ziwei.palace.property"), fortune = keyFor("ziwei.palace.fortune");
+  const decadal = facts.evidence.items.find(item => item.dimension === "decadal")?.key;
+  const wenqu = facts.evidence.items.find(item => item.dimension === "natal" && item.sourceKeys.includes("ziwei.star.wenqu"))?.key;
+  if (!decadal || !wenqu) throw new Error("Missing actual family star/decadal evidence");
+  const childText = "cung Tử Tức không có chính tinh và có Văn Khúc trong bộ dữ kiện này. Khi suy nghĩ về trách nhiệm chăm sóc, bạn có thể bắt đầu bằng cách trao đổi rõ điều mình có thể hỗ trợ và điều cần thêm thời gian chuẩn bị. Hãy lắng nghe nhu cầu của người thân, tách mong đợi của mình khỏi điều người khác muốn và thống nhất cách hỏi lại khi chưa hiểu. Cung này là một điểm nhìn để cân nhắc sự phối hợp, không xác định hoàn cảnh gia đình thực tế của bạn.";
+  const propertyText = "cung Điền Trạch không có chính tinh và có Văn Khúc trong phần dữ kiện được cung cấp. Không gian sống có thể được xem như nơi cần sự rõ ràng về cách dùng đồ chung, giữ riêng tư và chia sẻ việc thường ngày. Nếu bạn đang cân nhắc ở cùng người thân, hãy ghi ra các điều kiện về thời gian, trách nhiệm và chỗ nghỉ ngơi trước khi bàn phương án. Những câu hỏi này giúp việc trao đổi có điểm tựa thực tế; cung Điền Trạch không cung cấp một lịch chuyển nhà hay dự báo giá nhà.";
+  const shared = "cung Phúc Đức có Văn Khúc trong dữ kiện hiện có, còn cung Tử Tức và cung Điền Trạch gợi hai điểm nhìn khác nhau về việc chăm sóc và không gian sống. Bạn có thể chọn một việc chung cần làm rõ, hỏi người liên quan xem điều gì đang thuận và điều gì cần điều chỉnh. Sau đó ghi lại cách phân chia trách nhiệm phù hợp với nguồn lực thực tế. Đây là đề nghị để trao đổi khi tình huống phù hợp, không khẳng định rằng gia đình bạn đã trải qua một sự kiện cụ thể.";
+  return { topicId: "family_children", title: "Luận giải chuyên sâu Gia đạo và con cái",
+    overview: {title: "Chăm sóc và không gian sống chung", narrative: `${childText} ${propertyText}`, evidenceKeys: [children, property, wenqu]},
+    palaceAnchors: [
+      {palaceId: "ziwei.palace.children", title: "Cung Tử Tức: phối hợp trách nhiệm chăm sóc", narrative: childText, evidenceKeys: [children]},
+      {palaceId: "ziwei.palace.property", title: "Cung Điền Trạch: không gian và việc chung", narrative: propertyText, evidenceKeys: [property]},
+    ],
+    thematicDimensions: [
+      {key: "caregiving_communication", title: "Trao đổi về cách hỗ trợ", narrative: shared, evidenceKeys: [children, property, fortune]},
+      {key: "household_boundaries", title: "Thống nhất ranh giới trong không gian chung", narrative: `${propertyText} ${shared}`, evidenceKeys: [children, property, fortune]},
+    ],
+    decadalTiming: {title: "Chặng hiện hành và cách chuẩn bị", state: "active", index: 2, ageRange: [24, 33], yearRange: [2024, 2033],
+      palaceId: "ziwei.palace.fortune", narrative: `Đại vận 24–33 tuổi, từ năm 2024 đến năm 2033, đang ở cung Phúc Đức trong bộ dữ kiện. Khoảng thời gian này là mốc của chặng được tính, không phải lịch của một sự kiện gia đình. ${shared}`, evidenceKeys: [decadal, fortune, children, property]},
+    actions: [
+      {recommendation: "Chọn một việc chăm sóc cần trao đổi và hỏi rõ người liên quan đang cần hỗ trợ thế nào.", rationale: "Đặt câu hỏi cụ thể giúp tách mong đợi cá nhân khỏi trách nhiệm có thể thực hiện.", avoid: "Tránh tự xác định nhu cầu của người khác khi chưa hỏi lại.", evidenceKeys: [children]},
+      {recommendation: "Ghi lại cách dùng không gian và đồ chung trước khi thống nhất một phương án ở cùng.", rationale: "cung Điền Trạch là điểm nhìn về không gian sống; điều kiện thực tế cần được kiểm tra riêng.", avoid: "Tránh nhận trách nhiệm vượt thời gian hoặc nguồn lực mình có.", evidenceKeys: [property]},
+      {recommendation: "Dành một buổi trao đổi ngắn để hỏi điều nào trong việc chung cần điều chỉnh.", rationale: "Thỏa thuận có thể được cập nhật theo nhu cầu thực tế, thay vì suy đoán hoàn cảnh của nhau.", avoid: "Tránh dùng một nhận định từ lá số thay cho cuộc trao đổi trực tiếp.", evidenceKeys: [fortune]},
+    ] };
+}
+
+/** Literal synthetic learning/housing mechanics; not semantic product acceptance. */
+export function makeStudyHousingContentFixture(facts: ReturnType<typeof buildFactsFixture>, topicId: "education_career" | "property_home"): ZiweiTopicDeepDiveContentV1 {
+  const education = topicId === "education_career";
+  const keyFor = (source: string) => {
+    const key = facts.evidence.items.find(item => item.dimension === "natal" && item.sourceKeys.includes(source))?.key;
+    if (!key) throw new Error("Missing actual study/housing evidence"); return key;
+  };
+  const primary = education ? ["ziwei.palace.career", "ziwei.palace.parents"] as const : ["ziwei.palace.property"] as const;
+  const supporting = education ? "ziwei.palace.fortune" : "ziwei.palace.wealth";
+  const decadal = facts.evidence.items.find(item => item.dimension === "decadal")?.key;
+  if (!decadal) throw new Error("Missing actual decadal evidence");
+  const learning = "cung Quan Lộc có Tử Vi và Thiên Tướng trong dữ kiện hiện có. Khi chọn một điều muốn học thêm, bạn có thể bắt đầu từ nhiệm vụ thực tế mình muốn làm tốt hơn, thử một bài tập nhỏ rồi hỏi người có kinh nghiệm điều cần chỉnh. Cách này giúp tách điều mình thích khỏi yêu cầu của công việc đang cân nhắc. Hãy ghi lại phản hồi và điều kiện thời gian trước khi chọn bước tiếp theo; lá số không xác định một kết quả thi hay cơ hội tuyển dụng cụ thể.";
+  const mentoring = "cung Phụ Mẫu không có chính tinh và có Văn Khúc trong bộ dữ kiện này. Khi cần lời khuyên về học tập, bạn có thể hỏi rõ người hướng dẫn dựa trên kinh nghiệm nào và đề nghị một ví dụ để tự thử. Nếu ý kiến khác nhau, hãy so sánh theo mục tiêu và nguồn lực thực tế, thay vì chọn chỉ vì vị trí của người nói. Những câu hỏi này phù hợp nhiều hoàn cảnh học tập khác nhau; dữ kiện không cung cấp một tiểu sử học hành của riêng bạn.";
+  const housing = "cung Điền Trạch không có chính tinh và có Văn Khúc trong phần dữ kiện được cung cấp. Khi cân nhắc một không gian sống, bạn có thể ghi lại nhu cầu về nghỉ ngơi, riêng tư và việc chung rồi kiểm tra điều kiện thực tế trước khi thống nhất phương án. Hãy hỏi người liên quan điều gì cần làm rõ và tách mong muốn cá nhân khỏi trách nhiệm có thể đảm nhận. Điểm nhìn này không xác định tình trạng sở hữu hay một lịch giao dịch bất động sản.";
+  const household = "cung Tài Bạch có Vũ Khúc và Thái Âm trong dữ kiện hiện có. Trước một thay đổi nơi ở, bạn có thể tự kiểm tra nguồn lực thực tế, điều kiện sử dụng và trách nhiệm của người cùng tham gia. Sau đó ghi lại các câu hỏi còn thiếu để kiểm tra độc lập, thay vì lấy một nhận định từ lá số thay cho việc xem hồ sơ và trao đổi trực tiếp. Những điều cần kiểm tra phụ thuộc hoàn cảnh thực tế; cung Điền Trạch không cung cấp giá hay quy mô của một căn nhà.";
+  const narratives = education ? [learning, mentoring] : [housing];
+  const shared = education ? `${learning} ${mentoring}` : `${housing} ${household}`;
+  const name = education ? "Học hành và con đường nghề" : "Nhà đất và an cư";
+  const starKeys = education ? [keyFor("ziwei.star.ziwei"), keyFor("ziwei.star.tianxiang"), keyFor("ziwei.star.wenqu")] : [keyFor("ziwei.star.wenqu"), keyFor("ziwei.star.wuqu"), keyFor("ziwei.star.taiyin")];
+  const keys = [...primary.map(keyFor), keyFor(supporting), ...starKeys];
+  return {topicId, title: `Luận giải chuyên sâu ${name}`,
+    overview: {title: education ? "Bước học nhỏ và sự hướng dẫn" : "Điều kiện sống và nguồn lực thực tế", narrative: shared, evidenceKeys: keys},
+    palaceAnchors: primary.map((palaceId, i) => ({palaceId, title: education ? (i === 0 ? "Cung Quan Lộc: chọn bước học" : "Cung Phụ Mẫu: hỏi cách hướng dẫn") : "Cung Điền Trạch: kiểm tra điều kiện sống", narrative: narratives[i]!, evidenceKeys: [keyFor(palaceId)]})),
+    thematicDimensions: [
+      {key: education ? "learning_experiments" : "housing_conditions", title: "Kiểm tra điều kiện trước khi chọn", narrative: shared, evidenceKeys: keys},
+      {key: education ? "mentoring_questions" : "shared_responsibilities", title: "Hỏi rõ trách nhiệm và bước tiếp theo", narrative: shared, evidenceKeys: keys},
+    ],
+    decadalTiming: {title: "Chặng hiện hành và cách chuẩn bị", state: "active", index: 2, ageRange: [24, 33], yearRange: [2024, 2033], palaceId: "ziwei.palace.fortune",
+      narrative: `Đại vận 24–33 tuổi, từ năm 2024 đến năm 2033, đang ở cung Phúc Đức trong bộ dữ kiện. Đây là mốc chặng được tính, không phải lịch của một kết quả học tập hay giao dịch nhà đất. ${shared}`, evidenceKeys: [decadal, ...keys]},
+    actions: [
+      {recommendation: education ? "Chọn một kỹ năng cần thử, làm bài tập nhỏ và ghi lại điều muốn hỏi người hướng dẫn." : "Ghi lại các điều kiện về không gian sống và kiểm tra thực tế trước khi chọn phương án.", rationale: "Điều kiện cụ thể giúp tách mong muốn cá nhân khỏi những việc cần xác minh độc lập.", avoid: "Tránh dùng một nhận định từ lá số thay cho kiểm tra thực tế.", evidenceKeys: [keyFor(primary[0])]},
+      {recommendation: "Hỏi người liên quan về kinh nghiệm, trách nhiệm và điều kiện cần làm rõ trước bước tiếp theo.", rationale: "Trao đổi có câu hỏi cụ thể giúp kiểm tra thông tin còn thiếu và điều chỉnh theo nguồn lực hiện có.", avoid: "Tránh tự giả định hoàn cảnh hoặc kỳ vọng của người khác.", evidenceKeys: keys},
+      {recommendation: "Ghi lại các câu hỏi còn thiếu rồi kiểm tra độc lập trước khi nhận một trách nhiệm mới.", rationale: "Phương án cần phù hợp điều kiện thực tế; các dữ kiện lá số chỉ là điểm nhìn để cân nhắc.", avoid: "Tránh nhận trách nhiệm vượt thời gian và nguồn lực mình có.", evidenceKeys: keys},
+    ]};
+}

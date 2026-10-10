@@ -1,6 +1,6 @@
 import { isSinglePalaceSku } from "./la-catalog.js";
 import { ZiweiPeriodReadingPublicContentV1Schema } from "./ziwei-period-reading-public-v1.js";
-import { ZiweiTopicDeepDivePublicContentV1Schema } from "./ziwei-topic-deep-dive-v1.js";
+import { ZiweiTopicDeepDivePublicContentV1Schema, ZiweiTopicSkuSchema } from "./ziwei-topic-deep-dive-v1.js";
 import { z } from "zod";
 import { ReportChartSnapshotV1Schema } from "./report-chart-snapshot-v1.js";
 import {
@@ -185,7 +185,7 @@ export const ReportSafeProvenanceV1Schema = z.object({
 }).strict();
 export type ReportSafeProvenanceV1 = z.infer<typeof ReportSafeProvenanceV1Schema>;
 
-export const PaidReportSkuSchema = z.union([CommerceSkuSchema, z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"])]);
+export const PaidReportSkuSchema = z.union([CommerceSkuSchema, ZiweiTopicSkuSchema, z.enum(["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"])]);
 
 export const ReportPendingViewV1Schema = z.object({
   version: z.literal(1),
@@ -851,7 +851,7 @@ export type ReportPalacesReadyViewV1 = z.infer<typeof ReportPalacesReadyViewV1Sc
 export const ReportTopicReadyViewV1Schema = baseReportReadyViewV1Schema.extend({
   contentVersion: z.literal("ziwei.topic-deep-dive.v1"),
   locale: z.literal("vi"),
-  sku: z.enum(["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0"]),
+  sku: ZiweiTopicSkuSchema,
   content: ZiweiTopicDeepDivePublicContentV1Schema,
 }).strict();
 export type ReportTopicReadyViewV1 = z.infer<typeof ReportTopicReadyViewV1Schema>;

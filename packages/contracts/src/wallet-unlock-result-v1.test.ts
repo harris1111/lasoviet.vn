@@ -42,3 +42,9 @@ describe("committed wallet upgrade projections", () => {
     expect(WalletUnlockRequestV1Schema.safeParse({...request, upgradePurchase: upgrade}).success).toBe(false);
   });
 });
+
+it("accepts distinct v1/v2 upgrade math without reinterpreting historical events", () => {
+  expect(WalletUpgradePurchaseV1Schema.safeParse({...upgrade, version: 2, chargedLa: 1080, creditLa: 120}).success).toBe(true);
+  expect(WalletUpgradePurchaseV1Schema.safeParse({...upgrade, version: 1, chargedLa: 1080, creditLa: 120}).success).toBe(false);
+  expect(WalletUpgradePurchaseV1Schema.safeParse({...upgrade, version: 2, chargedLa: 0, creditLa: 1200}).success).toBe(true);
+});

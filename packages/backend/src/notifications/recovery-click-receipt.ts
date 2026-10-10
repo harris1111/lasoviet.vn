@@ -1,3 +1,4 @@
+import { readPurchaseCommercialTerms } from "../commerce/purchase-commercial-terms.js";
 import {and,desc,eq,inArray,isNull,notExists,or} from "drizzle-orm";
 import {RecoveryReceiptCommandV1Schema,RecoveryReceiptViewV1Schema,type CurrentActor,type RecoveryReceiptCommandV1,WalletTopUpCatalogV1,findLaProduct} from "@lasoviet/contracts";
 import {authUsers,birthProfiles,commerceOrders,consents,deletionRequests,lockFreeAiCoordination,lockRecoveryCaptureCoordination,notificationDeliveries,notificationPreferences,recoveryClickReceipts,walletPurchaseIntents,walletTopUpContinuations,ziweiCharts,ziweiChartVersions,type Database} from "@lasoviet/database";
@@ -38,7 +39,8 @@ export function createRecoveryClickReceiptService(options:{database:Database;mod
         const [intent]=await tx.select().from(walletPurchaseIntents).where(eq(walletPurchaseIntents.id,continuation.purchaseIntentId)).for("share",{skipLocked:true});
         if(!intent||intent.ownerId!==user.id||intent.chartId!==payload.chartId||intent.chartVersionId!==payload.chartVersionId||intent.locale!==payload.locale||intent.priceLa!==payload.amountLa)return absent();
         const product=findLaProduct(intent.sku),pack=WalletTopUpCatalogV1.find(p=>p.id===order.sku);
-        if(!product||product.availability!=="active"||intent.priceLa!==product.priceLa||!product.locales.includes(intent.locale as "vi"|"en")||
+        const terms=readPurchaseCommercialTerms(intent);
+        if(!product||product.availability!=="active"||!terms||intent.priceLa!==terms.basePriceLa||!product.locales.includes(intent.locale as "vi"|"en")||
           !pack||order.amount!==pack.vndAmount||order.currency!=="VND"||payload.topUpVnd!==order.amount||order.locale!==intent.locale)return absent();
         const [chart]=await tx.select({profile:birthProfiles}).from(ziweiCharts).innerJoin(birthProfiles,eq(birthProfiles.id,ziweiCharts.profileId))
           .where(and(eq(ziweiCharts.id,intent.chartId),eq(birthProfiles.userId,user.id),isNull(birthProfiles.deletedAt))).limit(1);

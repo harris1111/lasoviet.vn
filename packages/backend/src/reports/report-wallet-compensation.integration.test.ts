@@ -1,3 +1,18 @@
+// Preserve the legacy acceptance cohort; a separate case exercises actual FD119 policy.
+const commercialCohort = vi.hoisted(() => ({policy: "pre-fd119" as "pre-fd119" | "fd119"}));
+vi.mock("@lasoviet/contracts", async importOriginal => {
+  const actual = await importOriginal<typeof import("@lasoviet/contracts")>();
+  return {...actual, findLaProduct: (sku: string) => {
+    const product = actual.findLaProduct(sku);
+    return product && sku === "ZIWEI-IDENTITY-P0" && commercialCohort.policy === "pre-fd119" ? {...product, priceLa: 960} : product;
+  }};
+});
+vi.mock("../commerce/purchase-commercial-terms.js", async importOriginal => {
+  const actual = await importOriginal<typeof import("../commerce/purchase-commercial-terms.js")>();
+  return {...actual, freezePurchaseCommercialTerms: (intent: Parameters<typeof actual.freezePurchaseCommercialTerms>[0],
+    quote: Parameters<typeof actual.freezePurchaseCommercialTerms>[1], policy: Parameters<typeof actual.freezePurchaseCommercialTerms>[2]) =>
+    actual.freezePurchaseCommercialTerms(intent, quote, policy ?? commercialCohort.policy)};
+});
 import {randomUUID} from "node:crypto";
 import {and, eq, sql} from "drizzle-orm";
 import {PostgreSqlContainer} from "@testcontainers/postgresql";
@@ -111,6 +126,13 @@ describe("terminal wallet compensation with posted financial authority", () => {
         traceId: randomUUID(), idempotencyKey: randomUUID(), purchasedLa: pack.purchasedLa, promotionalLa: pack.promotionalLa, topUpPackId: pack.id}});
     if (!grant.ok) throw new Error("FUNDING_FAILED");
     let balance = grant.value.balance;
+    if (commercialCohort.policy === "fd119") {
+      const extra = await repository.grant({targetOwnerId: owner.userId, trustedGrantToken: grantToken, topUpOrderId: null,
+        grant: {version: 1, kind: "grant", actorId: owner.userId, reasonCode: "test.isolated.fd119", requestId: randomUUID(),
+          traceId: randomUUID(), idempotencyKey: randomUUID(), purchasedLa: 0, promotionalLa: 200, topUpPackId: null}});
+      if (!extra.ok) throw new Error(extra.error.code);
+      balance = extra.value.balance;
+    }
     let reportId = "";
     const outcomes = [];
     for (const sku of skus) {
@@ -432,6 +454,26 @@ describe("terminal wallet compensation with posted financial authority", () => {
     expect(await runner(failed.current).runOnce()).toEqual({compensated: 0});
     expect(await markers(fixture.owner.userId)).toHaveLength(0);
     expect(await wallet(fixture.owner.userId)).toMatchObject({purchasedBalance: 140});
+  });
+
+  it("terminal FD119 failure wins full1200 compensation without a half-guarantee race or duplicate credit", async () => {
+    commercialCohort.policy = "fd119";
+    try {
+      const fixture = await purchases(["ZIWEI-IDENTITY-P0"]);
+      expect(fixture.outcomes[0]!.intent.amountLa).toBe(1200);
+      const failed = await terminal(fixture);
+      const guarantee = createGuaranteeFeedbackService(database, {now: () => failed.current});
+      const [claim, restored] = await Promise.all([
+        guarantee.claimGuarantee(fixture.owner.actor, {chartId: fixture.owner.chartId, partId: "ZIWEI-IDENTITY-P0",
+          rating: "inaccurate", idempotencyKey: randomUUID()}),
+        runner(failed.current).runOnce(),
+      ]);
+      expect(claim.ok).toBe(false); expect(restored).toEqual({compensated: 1});
+      expect(await markers(fixture.owner.userId)).toEqual([expect.objectContaining({amountLa: 1200})]);
+      expect(await wallet(fixture.owner.userId)).toMatchObject({purchasedBalance: 1000, promotionalBalance: 300});
+      expect(await runner(failed.current).runOnce()).toEqual({compensated: 0});
+      expect(await database.select().from(guaranteeClaims).where(eq(guaranteeClaims.accountId, fixture.owner.userId))).toHaveLength(0);
+    } finally {commercialCohort.policy = "pre-fd119";}
   });
 
 });
