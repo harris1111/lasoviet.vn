@@ -40,6 +40,7 @@ export const TOPIC_DEEP_DIVE_QUALITY_FINDING_CODES = [
   "EVIDENCE_ANCHORS",
   "DECADAL_TIMING_MISMATCH",
   "THEMATIC_OVERLAP",
+  "UNSUPPORTED_FINANCIAL_METRIC",
 ] as const;
 
 export type TopicDeepDiveQualityFindingCode =
@@ -443,6 +444,20 @@ export function validateZiweiTopicDeepDiveQualityV4(
   };
 
   let totalSyllables = 0;
+
+  if (["business_enterprise", "career_transition"].includes(report.topicId)) {
+    const text = [report.title, report.overview.title, report.overview.narrative,
+      ...report.palaceAnchors.flatMap(p => [p.title, p.narrative]),
+      ...report.thematicDimensions.flatMap(p => [p.title, p.narrative]),
+      report.decadalTiming.title, report.decadalTiming.narrative,
+      ...report.actions.flatMap(p => [p.recommendation, p.rationale, p.avoid])].join(" ");
+    const amountAfterUnit = /(?:\b(?:vnd|usd|eur|gbp)\s*|[$₫€£]\s*)\d+(?:[.,]\d+)?/iu;
+    const amountBeforeUnit = /\d+(?:[.,]\d+)?\s*(?:triệu|tỷ|đồng|vnd|usd|eur|gbp|%)(?![\p{L}\p{N}])/iu;
+    const explicitMetricAmount = /(?:thu nhập|doanh thu|lợi nhuận|tỷ suất|lợi tức)\s*(?:(?:là|đạt|ở mức|khoảng|dự kiến)\s*)?\d+(?:[.,]\d+)?/iu;
+    if (amountAfterUnit.test(text) || amountBeforeUnit.test(text) || explicitMetricAmount.test(text)) {
+      add("root", "UNSUPPORTED_FINANCIAL_METRIC", "The chart source supplies no numeric income, return or revenue metric.");
+    }
+  }
 
   // 1. Topic Scope Anchors
   const palaceScope = TOPIC_PALACE_SCOPES[report.topicId];

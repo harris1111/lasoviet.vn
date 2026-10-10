@@ -4,7 +4,7 @@ import type { ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
 
 export const ROLLOVER_WINDOW_DAYS = 7;
 export const ROLLOVER_WINDOW_MS = ROLLOVER_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-export const LIFETIME_BASE_PRICE_LA = 960;
+export const LIFETIME_BASE_PRICE_LA = 1200;
 
 export const SINGLE_PALACE_BASE_PRICE_LA = 120;
 export const NATAL_EXCERPT_PRICE_LA = 240;
@@ -83,6 +83,17 @@ export const LA_PRODUCT_CATALOG: readonly LaCatalogItem[] = [
     category: "topic",
     qualifiesForRollover: false,
     availability: "reserved",
+  },
+  {
+    sku: "ZIWEI-BUSINESS-P0", priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
+    name: { vi: "Kinh doanh và làm ăn", en: "Business and enterprise" },
+    locales: ["vi"], category: "topic", qualifiesForRollover: false,
+    availability: "reserved",
+  },
+  {
+    sku: "ZIWEI-CAREER-TRANSITION-P0", priceLa: TOPIC_DEEP_DIVE_PRICE_LA,
+    name: {vi: "Đổi việc và bước ngoặt sự nghiệp", en: "Career transition"},
+    locales: ["vi"], category: "topic", qualifiesForRollover: false, availability: "reserved",
   },
   {
     sku: "ZIWEI-CAREER-P0",
@@ -332,6 +343,8 @@ export const LaSkuSchema = z.enum([
   "ZIWEI-NATAL-EXCERPT-P0",
   "ZIWEI-RELATIONSHIP-P0",
   "ZIWEI-CAREER-P0",
+  "ZIWEI-BUSINESS-P0",
+  "ZIWEI-CAREER-TRANSITION-P0",
   "ZIWEI-PALACE-LIFE-P0",
   "ZIWEI-PALACE-SIBLINGS-P0",
   "ZIWEI-PALACE-SPOUSE-P0",

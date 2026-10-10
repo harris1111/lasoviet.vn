@@ -222,7 +222,13 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       await readyReader(page, owner.ownerId, chart);
     });
     test("paid excerpt → reader → real quoted lifetime difference → upgrade", async ({page}) => {
-      const owner = await account(page.context()); fixture("fund", owner.ownerId); const chart = await createChart(page);
+      const owner = await account(page.context());
+      // Two isolated synthetic grants cover the released 1,200-La lifetime price.
+      // Keep the separate short-balance path and all actual spend/event assertions.
+      fixture("fund", owner.ownerId); fixture("fund", owner.ownerId);
+      const chart = await createChart(page);
+      const before = WalletBalanceV1Schema.parse(await (await page.request.get("/api/commerce/wallet/balance")).json());
+      expect(before.totalLa).toBe(2260);
       await page.goto(`/la-so/${chart.chartId}/chon-luan-giai?offer=ziwei-natal-excerpt`);
       await page.locator('article[data-sku="ZIWEI-NATAL-EXCERPT-P0"] button.offer-card-open').click();
       const dialog = page.locator("dialog.unlock-sheet"); await expect(dialog).toContainText("240 Lá");
@@ -231,12 +237,14 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       const reportId = await readyReader(page, owner.ownerId, chart);
       await page.locator("#section-strengths-tensions").scrollIntoViewIfNeeded();
       const {tail: lockedTail, reportVersionId: originalVersionId} = await authorizedPreviewPrivacy(page, owner.ownerId, chart, reportId, 4, 0);
-      const upgrade = page.locator(".reader-upgrade"); await expect(upgrade).toContainText("720 Lá");
+      const upgrade = page.locator(".reader-upgrade"); await expect(upgrade).toContainText("960 Lá");
       await upgrade.getByRole("button", {name: "Xem giá và xác nhận nâng cấp", exact: true}).click();
-      await expect(page.locator("dialog.unlock-sheet")).toContainText("720 Lá");
+      await expect(page.locator("dialog.unlock-sheet")).toContainText("960 Lá");
       await page.locator("dialog.unlock-sheet").getByRole("button", {name: "Xác nhận mở", exact: true}).click();
-      await expect.poll(() => database(`select count(*) from wallet_purchase_intents where owner_id='${owner.ownerId}' and sku='ZIWEI-IDENTITY-P0' and status='completed' and price_la=720`)).toBe("1");
+      await expect.poll(() => database(`select count(*) from wallet_purchase_intents where owner_id='${owner.ownerId}' and sku='ZIWEI-IDENTITY-P0' and status='completed' and price_la=960 and commercial_terms->>'policy'='fd119' and commercial_terms->>'version'='2' and commercial_terms->>'basePriceLa'='1200'`)).toBe("1");
       await expect(page.locator("main")).toContainText(lockedTail);
+      const after = WalletBalanceV1Schema.parse(await (await page.request.get("/api/commerce/wallet/balance")).json());
+      expect(before.totalLa - after.totalLa).toBe(1200);
       const upgraded = fixture("read", owner.ownerId, {...chart, reportId});
       expect(upgraded.upgradePreview.coverage).toEqual({openedSections: 9, lockedSections: 0, openedPalaces: 12, lockedPalaces: 0});
       expect(upgraded.reportVersionId).toBe(originalVersionId);
@@ -251,7 +259,7 @@ for (const viewport of [{name: "mobile", width: 390, height: 844}, {name: "deskt
       const ladder = page.getByTestId("offer-ladder"); await expect(ladder).toBeVisible();
       for (const sku of ["ZIWEI-NATAL-EXCERPT-P0", "ZIWEI-IDENTITY-P0"]) {
         const card = ladder.locator(`article[data-sku="${sku}"]`); await card.getByRole("button").click();
-        await expect(page.locator("dialog.unlock-sheet")).toContainText(sku.includes("WEALTH") ? "120" : sku.includes("EXCERPT") ? "240" : "960");
+        await expect(page.locator("dialog.unlock-sheet")).toContainText(sku.includes("WEALTH") ? "120" : sku.includes("EXCERPT") ? "240" : "1.200");
         await page.keyboard.press("Escape");
       }
       const picker = ladder.locator(".palace-picker");

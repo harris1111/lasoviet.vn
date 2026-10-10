@@ -159,7 +159,7 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     sku: z.literal("ZIWEI-IDENTITY-P0"),
     chartVersionId: id,
     locale: z.enum(["vi", "en"]),
-    amountLa: z.number().int().min(0).max(960),
+    amountLa: z.number().int().min(0).max(1200),
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
@@ -173,6 +173,12 @@ export const WalletPurchaseIntentV1Schema = z.discriminatedUnion("sku", [
     status: z.enum(["pending", "completed", "cancelled", "expired"]),
     stateVersion: z.number().int().positive(),
     createdAt: timestamp,
+  }).strict(),
+  z.object({
+    id: id, sku: z.enum(["ZIWEI-BUSINESS-P0", "ZIWEI-CAREER-TRANSITION-P0"]), chartVersionId: id,
+    locale: z.literal("vi"), amountLa: z.union([z.literal(480), z.literal(384)]),
+    status: z.enum(["pending", "completed", "cancelled", "expired"]),
+    stateVersion: z.number().int().positive(), createdAt: timestamp,
   }).strict(),
   z.object({
     id: id,
@@ -410,11 +416,11 @@ export const WalletContentPriceV1Schema = z
       return;
     }
     if (value.sku === "ZIWEI-IDENTITY-P0") {
-      if (value.amountLa < 0 || value.amountLa > 960) {
+      if (value.amountLa < 0 || value.amountLa > 1200) {
         context.addIssue({
           code: "custom",
           path: ["amountLa"],
-          message: "identity price must be between 0 and 960 Lá",
+          message: "identity price must be between 0 and 1200 Lá",
         });
       }
     } else if (value.sku === "ZIWEI-MONTHLY-P0" && value.amountLa === 0) {
