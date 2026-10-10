@@ -8,6 +8,8 @@ import {
 import { PENDING_TOPUP_RECOVERY_DELAY_MS, readPendingTopUpRecoveryEligibility } from "./pending-topup-recovery-eligibility.js";
 import { renderPendingTopUpRecoveryEmail } from "./pending-topup-recovery-email.js";
 
+import { recoveryChartHasCapacity } from "./recovery-capture-cap.js";
+
 export const RECOVERY_CAPTURE_EVENT_TYPE = "notification.recovery.captured.v1";
 export { PENDING_TOPUP_RECOVERY_DELAY_MS } from "./pending-topup-recovery-eligibility.js";
 
@@ -48,10 +50,7 @@ export function createPendingTopUpRecoveryCaptureService(options: {
           const source = await readPendingTopUpRecoveryEligibility(transaction, options, candidate.id, now);
           if (!source) continue;
           const { order, intent, product, user, recipientFingerprint } = source;
-          const [count] = await transaction.select({ count: sql<number>`count(*)::integer` }).from(notificationDeliveries)
-            .where(and(eq(notificationDeliveries.kind, "recovery_pending_topup"),
-              sql`${notificationDeliveries.requestPayload}->>'chartId' = ${intent.chartId}`));
-          if ((count?.count ?? 0) >= 2) continue;
+          if (!await recoveryChartHasCapacity(transaction, intent.chartId)) continue;
           const idempotencyKey = `recovery-pending-topup:${order.id}`;
           const deliveryId = randomUUID();
           const message = renderPendingTopUpRecoveryEmail({

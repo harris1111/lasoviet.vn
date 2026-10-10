@@ -137,3 +137,5 @@ export { lockRecoveryCaptureCoordination, RECOVERY_CAPTURE_COORDINATION_LOCK } f
 export {recoveryClickReceipts} from "./schema/notifications.js";
 
 export { recoveryOutboundControl, recoveryOutboundDailyAttempts } from "./schema/notifications.js";
+
+export { freeChartRecoverySources } from "./schema/free-chart-recovery.js";

@@ -1,3 +1,4 @@
+import { purgeFreeChartRecoveryForVersions } from "../notifications/free-chart-recovery-purge.js";
 import { createHash } from "node:crypto";
 import { and, eq, inArray, isNotNull, isNull, lte, or, sql } from "drizzle-orm";
 import {
@@ -51,6 +52,7 @@ export function freePalaceContentHash(content: FreePalaceGiftContentV1, facts: R
 export async function purgeFreePalaceForChartVersions(tx: FreeAiTransaction, chartVersionIds: ReadonlyArray<string>, now: Date): Promise<number> {
   await lockFreeAiCoordination(tx);
   if (chartVersionIds.length === 0) return 0;
+  await purgeFreeChartRecoveryForVersions(tx, chartVersionIds);
   // Engagement markers (actor id, chart version id, tab name) follow the chart: no birth data, but still removed.
   await tx.delete(auditLogs).where(and(eq(auditLogs.targetType, "free_palace_engagement"), inArray(auditLogs.targetId, [...chartVersionIds])));
   const charts = await tx.select({ id: freeAiChartBudgets.chartVersionId }).from(freeAiChartBudgets)

@@ -6,6 +6,7 @@ import {
   authUsers,
   enqueueOutbox,
   lockFreeAiCoordination,
+  lockRecoveryCaptureCoordination,
   type Database,
 } from "@lasoviet/database";
 
@@ -32,6 +33,8 @@ async function deleteActor(
     // Free-palace gift payloads follow the guest actor. The coordination lock comes first (same
     // order as admission and publication) and the chart versions are read before the cascade.
     await lockFreeAiCoordination(transaction);
+    // Consent FK writers take this fence before touching the actor: never delete first.
+    await lockRecoveryCaptureCoordination(transaction);
     const chartVersionIds = await collectFreePalaceChartVersionIds(transaction, {
       anonymousActorId: actorId,
     });
