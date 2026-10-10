@@ -26,6 +26,7 @@ export const notificationDeliveryKind = pgEnum("notification_delivery_kind", [
   "delayed_unlock_completed",
   "membership_expiry",
   "recovery_pending_topup",
+  "recovery_free_chart",
 ]);
 
 export const notificationDeliveryStatus = pgEnum("notification_delivery_status", [

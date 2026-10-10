@@ -6,6 +6,8 @@ import { PENDING_TOPUP_RECOVERY_DELAY_MS, readPendingTopUpRecoveryEligibility } 
 import { renderPendingTopUpRecoveryEmail } from "./pending-topup-recovery-email.js";
 import type { EmailProvider } from "./email-provider.js";
 
+import { recoveryChartHasCapacity } from "./recovery-capture-cap.js";
+
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 const SOURCE = "fresh-recovery-queue-v1", LEASE_MS = 45_000;
 type CurrentSource = NonNullable<Awaited<ReturnType<typeof readPendingTopUpRecoveryEligibility>>>;
@@ -61,9 +63,7 @@ export function createPendingTopUpRecoveryRunner(options: {
           const source = await readPendingTopUpRecoveryEligibility(tx, options, row.id, now);
           if (!source || !settings.cohortIds.includes(source.user.id)) continue;
           const { intent, order, user, recipientFingerprint } = source;
-          const [count] = await tx.select({ value: sql<number>`count(*)::integer` }).from(notificationDeliveries)
-            .where(and(eq(notificationDeliveries.kind, "recovery_pending_topup"), sql`${notificationDeliveries.requestPayload}->>'chartId' = ${intent.chartId}`));
-          if ((count?.value ?? 0) >= 2) continue;
+          if (!await recoveryChartHasCapacity(tx, intent.chartId)) continue;
           const inserted = await tx.insert(notificationDeliveries).values({ id: randomUUID(), kind: "recovery_pending_topup",
             idempotencyKey: `recovery-pending-topup:${order.id}`, recipientFingerprint, status: "pending", attemptCount: 0,
             requestPayload: { version: 1, source: SOURCE, userId: user.id, chartId: intent.chartId, chartVersionId: intent.chartVersionId,

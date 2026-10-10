@@ -1,3 +1,4 @@
+import { purgeFreeChartRecoveryForVersions } from "../notifications/free-chart-recovery-purge.js";
 import { createHash, randomUUID } from "node:crypto";
 
 import { and, desc, eq, gt, isNull, sql } from "drizzle-orm";
@@ -17,6 +18,7 @@ import {
   birthProfileReadingContexts,
   birthProfileRevisions,
   birthProfiles,
+  lockFreeAiCoordination, lockRecoveryCaptureCoordination, ziweiCharts, ziweiChartVersions,
   type Database,
 } from "@lasoviet/database";
 
@@ -344,6 +346,8 @@ export function createDatabaseBirthProfileRepository(
 
     async archive(actor, profileId, now) {
       return database.transaction(async (transaction) => {
+        await lockFreeAiCoordination(transaction);
+        await lockRecoveryCaptureCoordination(transaction);
         const [profile] = await transaction
           .update(birthProfiles)
           .set({ deletedAt: now, updatedAt: now })
@@ -358,6 +362,10 @@ export function createDatabaseBirthProfileRepository(
         if (profile === undefined) {
           return false;
         }
+        const versions = await transaction.select({ id: ziweiChartVersions.id }).from(ziweiChartVersions)
+          .innerJoin(ziweiCharts, eq(ziweiCharts.id, ziweiChartVersions.chartId))
+          .where(eq(ziweiCharts.profileId, profileId));
+        await purgeFreeChartRecoveryForVersions(transaction, versions.map(version => version.id));
         await transaction.insert(auditLogs).values({
           actorId:
             actor.kind === "account" ? actor.userId : actor.anonymousActorId,

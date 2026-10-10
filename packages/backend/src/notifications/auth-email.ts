@@ -462,7 +462,7 @@ export function createAuthEmailDeliveryService(
 function fromDatabaseRecord(
   record: typeof notificationDeliveries.$inferSelect,
 ): AuthEmailDeliveryRecord {
-  if (record.status === "captured" || record.kind === "recovery_pending_topup") {
+  if (record.status === "captured" || record.kind === "recovery_pending_topup" || record.kind === "recovery_free_chart") {
     throw new Error("CAPTURE_RECORD_NOT_DELIVERABLE");
   }
   return {
@@ -578,6 +578,7 @@ export function createDatabaseAuthEmailDeliveryStore(
           and(
             eq(notificationDeliveries.idempotencyKey, idempotencyKey),
             ne(notificationDeliveries.kind, "recovery_pending_topup"),
+            ne(notificationDeliveries.kind, "recovery_free_chart"),
             or(
               eq(notificationDeliveries.status, "pending"),
               and(

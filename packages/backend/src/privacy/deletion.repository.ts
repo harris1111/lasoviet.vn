@@ -216,11 +216,11 @@ export function createDatabaseDeletionRepository(
           await transaction.delete(outbox).where(and(eq(outbox.eventType, "notification.report-ready.subscription.captured.v1"), eq(outbox.actorId, updated.userId)));
           await transaction.delete(recoveryClickReceipts).where(eq(recoveryClickReceipts.ownerId,updated.userId));
           await transaction.delete(notificationDeliveries).where(and(
-            eq(notificationDeliveries.kind, "recovery_pending_topup"),
+            inArray(notificationDeliveries.kind, ["recovery_pending_topup", "recovery_free_chart"]),
             sql`${notificationDeliveries.requestPayload}->>'userId' = ${updated.userId}`,
           ));
           await transaction.delete(outbox).where(and(
-            eq(outbox.eventType, "notification.recovery.captured.v1"),
+            inArray(outbox.eventType, ["notification.recovery.captured.v1", "notification.recovery.free-chart.captured.v1"]),
             eq(outbox.actorId, updated.userId),
           ));
           await enqueueOutbox(transaction, {

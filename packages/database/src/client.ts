@@ -20,7 +20,10 @@ import * as membership from "./schema/membership.js";
 
 import * as freeAi from "./schema/free-ai.js";
 
+import * as freeChartRecovery from "./schema/free-chart-recovery.js";
+
 const schema = {
+  ...freeChartRecovery,
   ...bazi,
   ...freeAi,
   ...membership,
