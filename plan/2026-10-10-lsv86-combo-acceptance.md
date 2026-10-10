@@ -69,3 +69,14 @@ This rebuilt fixed-library branch requires both actual child library entries
 and records native/FE holds honestly. The old diagnostic branch may continue
 through its known missing-library HOLD solely to isolate direct delivery; that
 partial evidence cannot satisfy the new joined-library gate.
+
+## Redacted CI artifact retention follow-up
+
+The first exact-head CI runs executed all five standalone and two Combo cases
+successfully, but the upload whitelist omitted combo-scenarios.json. Extend this
+bounded QA brief to .github/workflows/ci.yml solely to retain that existing
+redacted Combo receipt alongside the joined and reserved-layer receipts. Do not
+upload private environment/body/native/PDF artifacts or change execution scope.
+Preserve the passing execution evidence and original artifact omission receipt.
+Independent narrow plan/source/exact review and both fresh CI must verify the
+new artifact before merge; already deployed LSV102 runtime remains unchanged.
