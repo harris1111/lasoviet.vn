@@ -1,0 +1,18 @@
+{
+  "observedAt": "2026-10-10T16:39:04.801928+00:00",
+  "isolatedNetwork": "none",
+  "actorUid": 1001,
+  "fd124Tests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "mainCliExitCode": 1,
+  "mainCliResult": {
+    "status": "stopped",
+    "code": "FD124_EXECUTION_IDENTITY_MISMATCH"
+  },
+  "productionOperatorUid": 1000,
+  "productionIdentityGatePreserved": true,
+  "physicalProviderCalls": 0,
+  "actualAuthorityWrites": 0
+}

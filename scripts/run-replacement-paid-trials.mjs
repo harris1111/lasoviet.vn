@@ -31,7 +31,7 @@ export function assertFd124Path(path, { privateStorage = false, oldRoot = FD121_
     if (existsSync(current)) {
       const stat = lstatSync(current);
       if (stat.isSymbolicLink() || (!stat.isDirectory() && (!stat.isFile() || stat.nlink !== 1)) ||
-          (privateStorage && inside(current, dirname(resolve(newRoot))) && (stat.uid !== 1000 || (stat.mode & 0o077)))) fail("FD124_STORAGE_UNSAFE");
+          (privateStorage && inside(current, dirname(resolve(newRoot))) && (stat.uid !== process.getuid() || (stat.mode & 0o077)))) fail("FD124_STORAGE_UNSAFE");
     } else {
       try { lstatSync(current); fail("FD124_STORAGE_UNSAFE"); } catch (error) { if (error.code !== "ENOENT") throw error; }
     }
@@ -51,7 +51,7 @@ function privateRead(path) {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const stat = fstatSync(fd), leaf = lstatSync(path);
-    if (!stat.isFile() || stat.nlink !== 1 || stat.uid !== 1000 || (stat.mode & 0o077) || stat.dev !== leaf.dev || stat.ino !== leaf.ino || stat.size > 8000000) fail("FD124_STORAGE_UNSAFE");
+    if (!stat.isFile() || stat.nlink !== 1 || stat.uid !== process.getuid() || (stat.mode & 0o077) || stat.dev !== leaf.dev || stat.ino !== leaf.ino || stat.size > 8000000) fail("FD124_STORAGE_UNSAFE");
     return readFileSync(fd, "utf8");
   } finally { closeSync(fd); }
 }

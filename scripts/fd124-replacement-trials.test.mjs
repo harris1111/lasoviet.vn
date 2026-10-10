@@ -74,6 +74,7 @@ test("storage rejects symlink ancestors, dangling leaf, hardlinks, authority wri
   linkSync(authority, join(root, "hardlink")); assert.throws(() => assertFd124Path(join(root, "hardlink"), options), { code: "FD124_STORAGE_UNSAFE" });
   const target = join(newRoot, "journal"); durableFd124Save(target, { ok: true }, { ...options, privateStorage: true });
   assert.equal(statSync(target).mode & 0o077, 0);
+  assert.equal(statSync(target).uid, process.getuid());
   writeFileSync(`${target}.next`, "previous", { mode: 0o600 });
   assert.throws(() => durableFd124Save(target, { ok: false }, { ...options, privateStorage: true }), { code: "EEXIST" });
   assert.deepEqual(JSON.parse(readFileSync(target)), { ok: true }); assert.equal(readFileSync(authority, "utf8"), "original");
