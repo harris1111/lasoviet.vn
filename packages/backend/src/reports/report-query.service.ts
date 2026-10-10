@@ -257,7 +257,7 @@ export function createReportQueryService(options: {
         "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0",
       ];
       if (
-        (!allowedSkus.includes(reservation.sku) && !isSinglePalaceSku(reservation.sku)) ||
+        (!allowedSkus.includes(reservation.sku) && !isSinglePalaceSku(reservation.sku) && !topicIdForSku(reservation.sku)) ||
         (reservation.locale !== "vi" && reservation.locale !== "en") ||
         (reservation.sku === "ZIWEI-NATAL-EXCERPT-P0" && reservation.locale !== "vi")
       ) {

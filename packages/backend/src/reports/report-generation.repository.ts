@@ -1,3 +1,4 @@
+import { topicIdForSku } from "./topic-report-config.js";
 import { isComboSku, hasCompleteComboAuthority, isSupportedComboPrice } from "../commerce/combo-purchase-authority.js";
 import { createDatabaseReportQueryRepository } from "./report-query.repository.js";
 import { findLaProduct } from "@lasoviet/contracts";
@@ -109,7 +110,7 @@ function contextMismatch(): Result<never, "REPORT_CONTEXT_MISMATCH"> {
 function validWalletPrice(sku: string, priceLa: number): boolean {
   if (isComboSku(sku)) return isSupportedComboPrice(priceLa);
   const product = findLaProduct(sku);
-  if (!product || !(["natal", "palace"].includes(product.category) || ["ZIWEI-RELATIONSHIP-P0", "ZIWEI-CAREER-P0", "ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
+  if (!product || !(["natal", "palace"].includes(product.category) || topicIdForSku(sku) !== null || ["ZIWEI-MONTHLY-P0", "ZIWEI-YEAR-P0", "ZIWEI-YEAR-2026-P0"].includes(sku)) || !Number.isSafeInteger(priceLa)) return false;
   if (sku === "ZIWEI-MONTHLY-P0" && priceLa === 0) return true;
   return sku === "ZIWEI-IDENTITY-P0" ? priceLa >= 0 && priceLa <= product.priceLa : priceLa === product.priceLa || priceLa === Math.ceil(product.priceLa * 0.8);
 }

@@ -321,3 +321,17 @@ export function makeValidCareerContent(facts: ReturnType<typeof buildFactsFixtur
     ],
   };
 }
+
+/** Synthetic mechanics fixture; does not certify a generated business reading. */
+export function makeBusinessContentFixture(facts: ReturnType<typeof buildFactsFixture>): ZiweiTopicDeepDiveContentV1 {
+  const content = makeValidCareerContent(facts);
+  content.topicId = "business_enterprise";
+  content.title = "Luận giải chuyên sâu Kinh doanh và làm ăn";
+  content.overview.title = "Cách tổ chức việc làm ăn và nguồn lực";
+  content.overview.narrative = `Tài Bạch có Vũ Khúc cùng Thái Âm, còn Quan Lộc có Tử Vi và Thiên Tướng. Hai cung này đặt cách giữ nguồn lực cạnh cách tổ chức việc làm ăn. Khi thử một hướng kinh doanh, bạn có thể tách phần vốn cần duy trì với phần dùng để kiểm tra nhu cầu thực tế. Cách đọc này giúp nhìn lại thói quen quản lý và hợp tác, không đưa ra doanh thu hay một kết quả đầu tư được bảo đảm. Một dự định nhỏ nên có người chịu trách nhiệm, tiêu chí đánh giá và cách dừng khi điều kiện không phù hợp.`;
+  content.thematicDimensions[0] = {...content.thematicDimensions[0]!, key: "enterprise_initiative", title: "Quyền tự chủ và trách nhiệm trong kinh doanh",
+    narrative: `Tử Vi và Thiên Tướng tại Quan Lộc là căn cứ để đọc cách tổ chức và chịu trách nhiệm. Với một việc làm ăn độc lập, bạn có thể tự quyết phạm vi công việc nhưng vẫn cần phân vai với người cộng tác. Hãy nhìn lại việc nào bạn muốn trực tiếp kiểm soát và việc nào cần một cách kiểm tra chung. Căn cứ này gợi cách đặt câu hỏi cho một dự định, không xác nhận rằng dự định sẽ thành công.`};
+  content.thematicDimensions[1] = {...content.thematicDimensions[1]!, key: "capital_discipline", title: "Giữ nguồn lực trước khi mở rộng",
+    narrative: `Vũ Khúc và Thái Âm ở Tài Bạch đặt việc giữ nguồn lực cạnh cách điều hành ở Quan Lộc. Khi xem một phương án kinh doanh, bạn thử phân biệt khoản phải duy trì với khoản có thể dùng để học từ một thử nghiệm nhỏ. Ghi lại điều kiện dừng và trách nhiệm của từng bên giúp tránh mở rộng vì áp lực từ người khác. Đây là cách cân nhắc hành động dựa trên cấu trúc cung, không phải một mức lời hay khoản thu nhập được tính từ lá số.`};
+  return content;
+}

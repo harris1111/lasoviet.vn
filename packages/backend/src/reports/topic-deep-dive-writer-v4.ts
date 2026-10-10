@@ -184,7 +184,9 @@ function filterTopicKnowledgePacks(
   const prefix =
     topicId === "relationship_marriage"
       ? ["thematic_relationships_family", "palace_ziwei.palace.spouse", "palace_ziwei.palace.fortune"]
-      : ["thematic_career_wealth", "palace_ziwei.palace.career", "palace_ziwei.palace.wealth"];
+      : topicId === "business_enterprise"
+        ? ["thematic_career_wealth", ...[...TOPIC_PALACE_SCOPES[topicId].primaryPalaces, ...TOPIC_PALACE_SCOPES[topicId].supportingPalaces].map(palace => `palace_${palace}`)]
+        : ["thematic_career_wealth", "palace_ziwei.palace.career", "palace_ziwei.palace.wealth"];
 
   return knowledgePacks
     .filter((pack) =>
@@ -274,6 +276,11 @@ export async function writeZiweiTopicDeepDiveV4(
 
   const userPayload = {
     topicId: input.topicId,
+    ...(input.topicId === "business_enterprise" ? {businessScope: {
+      focus: "Business earning models, independent enterprise, collaboration, resource discipline and practical tradeoffs grounded in Wealth/Career and the supplied supporting palaces.",
+      distinguishFromCareer: "Do not substitute a general job/career reading. Discuss initiative, counterpart relationships, capital discipline and manageable business decisions without promising returns.",
+      forbidden: "No invented income, revenue, return percentages, successful ventures, market forecasts or exact investment dates.",
+    }} : {}),
     title: topicTitle,
     scopedFacts: {
       natalPalaces: input.facts.natal.palaces.filter((p) =>
@@ -328,7 +335,7 @@ Tất cả các tiêu chí trên là bắt buộc. Phản hồi phải là JSON 
   }
 
   const parsed = ZiweiTopicDeepDiveContentV1Schema.safeParse(response.value.value);
-  if (!parsed.success) {
+  if (!parsed.success || parsed.data.topicId !== input.topicId) {
     return {
       ok: false,
       error: { code: "AI_OUTPUT_INVALID", retryable: false },
@@ -336,6 +343,13 @@ Tất cả các tiêu chí trên là bắt buộc. Phản hồi phải là JSON 
   }
 
   const content = parsed.data;
+  if (input.topicId === "business_enterprise") {
+    const keys = [content.overview, ...content.palaceAnchors, ...content.thematicDimensions,
+      content.decadalTiming, ...content.actions].flatMap(section => section.evidenceKeys);
+    if (keys.some(key => !allowedSet.has(key))) {
+      return {ok: false, error: {code: "AI_OUTPUT_INVALID", retryable: false}};
+    }
+  }
   const qualityResult = validateZiweiTopicDeepDiveQualityV4(
     content,
     input.facts,

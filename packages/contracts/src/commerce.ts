@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { isSinglePalaceSku, getPalaceIdFromSku, type LaSku } from "./la-catalog.js";
+import { isSinglePalaceSku, getPalaceIdFromSku, findLaProduct, type LaSku } from "./la-catalog.js";
 import { PalaceIdSchema, type ZiweiPalaceId } from "./normalized-ziwei-chart-v1.js";
 
 export const CommerceSkuSchema = z.enum([
@@ -160,6 +160,7 @@ export function resolveEntitlementScopeForSku(
       return { sections: ["periodReading"] };
     case "ZIWEI-RELATIONSHIP-P0":
     case "ZIWEI-CAREER-P0":
+    case "ZIWEI-BUSINESS-P0":
       return { sections: ["topicDeepDive"] };
     case "ZIWEI-NATAL-EXCERPT-P0":
       return TIER_1_ENTITLEMENT_SCOPE;
@@ -172,6 +173,7 @@ export function resolveEntitlementScopeForSku(
 }
 
 export const PRODUCT_DISPLAY_NAMES: Record<string, Record<"vi" | "en", string>> = {
+  "ZIWEI-BUSINESS-P0": findLaProduct("ZIWEI-BUSINESS-P0")!.name,
   "ZIWEI-IDENTITY-P0": {
     vi: "Tử Vi trọn đời",
     en: "Lifetime Zi Wei reading",

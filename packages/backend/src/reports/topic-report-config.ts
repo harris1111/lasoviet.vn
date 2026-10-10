@@ -1,4 +1,4 @@
-import type { ZiweiTopicDeepDiveId } from "@lasoviet/contracts";
+import { ZIWEI_TOPIC_SKU_MAP, type ZiweiTopicDeepDiveId } from "@lasoviet/contracts";
 import {
   REPORT_KNOWLEDGE_VERSION_V4,
   REPORT_TIMING_RULE_VERSION_V1,
@@ -16,8 +16,10 @@ export const REPORT_QUALITY_VERSION_TOPIC_DEEP_DIVE_V6 = "ziwei.topic-deep-dive.
 export const REPORT_TEMPLATE_VERSION_TOPIC_DEEP_DIVE_V1 = "ziwei.topic-deep-dive.html.v1" as const;
 
 export function topicIdForSku(sku: string): ZiweiTopicDeepDiveId | null {
-  return sku === "ZIWEI-RELATIONSHIP-P0" ? "relationship_marriage"
-    : sku === "ZIWEI-CAREER-P0" ? "career_wealth" : null;
+  for (const [topic, candidate] of Object.entries(ZIWEI_TOPIC_SKU_MAP)) {
+    if (candidate === sku) return topic as ZiweiTopicDeepDiveId;
+  }
+  return null;
 }
 
 // v4_1 identifies the frozen source/evidence family, not the generated product.
