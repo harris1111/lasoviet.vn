@@ -1,0 +1,33 @@
+{
+  "status": "LOCAL_REQUIRED_AND_PG_PASS_JOINED_COMBO_QA_PENDING",
+  "observedAt": "2026-10-10T19:34:51.230945+00:00",
+  "requiredChecks": {
+    "i18n": "PASS",
+    "lint": "PASS_WITH_FOUR_EXISTING_FE_WARNINGS",
+    "typecheck": "PASS",
+    "diffCheck": "PASS"
+  },
+  "realPostgreSQL": {
+    "files": 2,
+    "passed": 94,
+    "failed": 0,
+    "includesLatestSqlTriggerAssertions": true
+  },
+  "logs": {
+    "lasoviet-lsv102-real-pg-corrected-20261010.log": "5c59874ee887a5567a81bc7a907cc22e79e72e0efdfe0460d7c3c4c9853d6d4c",
+    "lasoviet-lsv102-typecheck-initial-20261010.log": "a0aa88e1c95d130cdf07d701b69af0fb9f03707d22f9e6d8955cde5821a00014"
+  },
+  "sourceHashes": {
+    "packages/backend/src/commerce/commerce.repository.ts": "11cf7cca0b354bf89c42372c6f2e169c5369b8f3d4759eae72062735383d6a36",
+    "packages/backend/src/commerce/wallet-unlock.repository.integration.test.ts": "88fe42c91089791cc0ecfc0b0e9e019e0f3bd92c3ad96fdc0b8aede4d6579e55"
+  },
+  "earlierFailuresPreserved": [
+    "Initialpackagefilterfoundnotests",
+    "Duplicatetestimportcollectionfailureplus34passingtests",
+    "91passingtests/3testfixturefailuresbecauseSQLalreadyrejectswrongchart"
+  ],
+  "nativeProviderCalls": 0,
+  "productionMutations": 0,
+  "runtimeReleasePending": true,
+  "fullProductAcceptance": false
+}

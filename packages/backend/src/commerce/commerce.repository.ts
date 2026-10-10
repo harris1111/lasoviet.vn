@@ -1,5 +1,6 @@
 import { SePayPaymentProvenanceV1Schema, type SePayPaymentProvenanceV1 } from "@lasoviet/contracts";
 import { readPendingUnlockHint } from "./pending-unlock-hint.js";
+import { hasCompleteComboAuthority, isComboSku } from "./combo-purchase-authority.js";
 import { hasDurableTopUpUnlock } from "./wallet-topup-unlock-event.js";
 import { completeTopUpContinuation, matchesTopUpContinuation, readTopUpContinuation, validateTopUpContinuation } from "./wallet-topup-continuation.js";
 import type { WalletTopUpContinuationRequestV1, WalletTopUpContinuationViewV1 } from "@lasoviet/contracts";
@@ -1017,7 +1018,11 @@ export function createDatabaseCommerceRepository(
         eq(walletPurchaseIntents.ownerId, actor.userId),
         eq(walletPurchaseIntents.status, "completed"),
         eq(walletPurchaseIntents.chartId, commerceEntitlements.chartId),
-        eq(walletPurchaseIntents.sku, commerceEntitlements.sku),
+        or(
+          eq(walletPurchaseIntents.sku, commerceEntitlements.sku),
+          and(eq(walletPurchaseIntents.sku, "ZIWEI-COMBO-P0"), inArray(commerceEntitlements.sku, ["ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-P0"])),
+          and(eq(walletPurchaseIntents.sku, "ZIWEI-COMBO-2026-P0"), inArray(commerceEntitlements.sku, ["ZIWEI-IDENTITY-P0", "ZIWEI-YEAR-2026-P0"])),
+        ),
       ))
       .innerJoin(ziweiCharts, eq(ziweiCharts.id, commerceEntitlements.chartId))
       .innerJoin(birthProfiles, and(
@@ -1036,7 +1041,7 @@ export function createDatabaseCommerceRepository(
       .innerJoin(reportReservations, and(
         reportReservationAuthority(database),
         eq(reportReservations.chartVersionId, walletPurchaseIntents.chartVersionId),
-        or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, walletPurchaseIntents.sku)),
+        or(ne(reportReservations.entitlementId, commerceEntitlements.id), eq(reportReservations.sku, commerceEntitlements.sku)),
         eq(reportReservations.locale, walletPurchaseIntents.locale),
       ))
       .innerJoin(evidenceSets, and(
@@ -1050,11 +1055,19 @@ export function createDatabaseCommerceRepository(
         isNull(commerceEntitlements.revokedAt),
       ))
       .orderBy(desc(commerceEntitlements.createdAt), desc(commerceEntitlements.id));
+    // A differing bundle SKU is only a candidate until the closed two-child authority proves it.
+    const completeComboSpends = new Map<string, boolean>();
+    for (const row of walletRows) {
+      if (isComboSku(row.intent.sku) && !completeComboSpends.has(row.spend.id)) {
+        completeComboSpends.set(row.spend.id, await hasCompleteComboAuthority(database, {intent: row.intent, entitlement: row.entitlement}));
+      }
+    }
+    const authorizedWalletRows = walletRows.filter(row => !isComboSku(row.intent.sku) || completeComboSpends.get(row.spend.id) === true);
     const reportQuery = createReportQueryService({
       repository: createDatabaseReportQueryRepository(database, getNow), now: getNow,
     });
     const readyLocales = new Map<string, {locale: "vi" | "en"; reportVersionId: string; sku: string}>();
-    for (const reportId of new Set(walletRows.filter(row => row.reservation.status !== "terminal_failure").map(row => row.reservation.reportId))) {
+    for (const reportId of new Set(authorizedWalletRows.filter(row => row.reservation.status !== "terminal_failure").map(row => row.reservation.reportId))) {
       try {
         const result = await reportQuery.getReport(actor, reportId);
         if (result.ok && result.value.state === "ready") readyLocales.set(reportId, {locale: result.value.locale, reportVersionId: result.value.reportVersionId, sku: result.value.sku});
@@ -1062,7 +1075,7 @@ export function createDatabaseCommerceRepository(
         if (!(error instanceof ReportQueryDataError)) throw error;
       }
     }
-    const walletItems: AccountLibraryV2["items"] = walletRows.map((row) => {
+    const walletItems: AccountLibraryV2["items"] = authorizedWalletRows.map((row) => {
       const displayName = "displayName" in row.revision.originalInput &&
         typeof row.revision.originalInput.displayName === "string" &&
         row.revision.originalInput.displayName.trim().length > 0
