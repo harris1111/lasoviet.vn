@@ -1,0 +1,38 @@
+{
+  "status": "LOCAL_CHECKS_PASS_NOT_LIVE",
+  "observedAt": "2026-10-10T19:04:02.775814+00:00",
+  "baseGuardSha": "fe102de580658e62d09e20b6f1f73e045b5fa4f6",
+  "mandatoryChecks": {
+    "i18n": "PASS",
+    "lint": "PASS_WITH_4_EXISTING_FE_WARNINGS",
+    "typecheck": "PASS"
+  },
+  "scriptTests": {
+    "passed": 150,
+    "failed": 0
+  },
+  "logSha256": "7e1172aa84473d834fff52777ce70547377e2e8d65d653441deb0d58cfa1e2d5",
+  "dryRun": {
+    "status": "dry_run_not_acceptance",
+    "campaign": "FD124-paid-six-v1",
+    "slots": [
+      "next_annual:1",
+      "relationship_marriage:2",
+      "relationship_marriage:3"
+    ],
+    "originalAuthorityHashes": {
+      "journal": "bd274050c57c439e61cc082acb7256bfd3786a4693fc26d191948158ad44cbdf",
+      "ledger": "801fee2a12127ec9a1861503b0a8e0901783ef678d631b075558b127f9e16257",
+      "stop": "bca3cc1f567c8d953b6bdf74b75d1e4c0fd2e3ac64817fe0a7b438653d51d5c3",
+      "frozen": "a46e8b878dacf63f01d657e46ab55b49a066f34bf2a77914e6ca31fc1ed696d9"
+    },
+    "originalPhysicalSendPermissions": 8,
+    "maxNewPhysicalAttempts": 3,
+    "maxTotalPhysicalAttempts": 11,
+    "physicalDispatches": 0,
+    "originalJournalUnchanged": true
+  },
+  "dryRunSha256": "343e9715cbaa9f55510d1d9ff6da2e2fe2316e43522afbec7481a55bc4998bbf",
+  "firstFullSuite": "Stale historical v3 test expectation failed after periodv4 upgrade; separately reviewed guard test correction preserves historical runtime fence. Final150script tests pass.",
+  "releaseAndNative": "PENDING exact-head review, fresh bothCI, merged composition and installed corrected validator proof, complete source/dist/transport/credential/private binding and single-invocation GO. No live correction attempted."
+}
