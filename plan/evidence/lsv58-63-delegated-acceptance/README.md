@@ -1,0 +1,11 @@
+# Redacted delegated acceptance evidence
+
+The owner delegated editorial acceptance on 2026-10-10. `editorial-review.json`/`.md` are the independent four-PASS/three-FAIL actual-sample judgments, recorded separately from immutable campaign authority. Monthly:0/1 are two accepted samples; current annual:0 rewrite is one sample; career:0 is one. Original relationship:0/1 and career:1 are failed. Career:1 correction and three undispatched annual slots are unavailable.
+
+`commerce-delivery.json` records 63 isolated PostgreSQL plus 13 delivery checks. `reader-final.json` records six fixture cases. `retained-reader-final.json` records twelve renders of four actual selections, not twelve samples. Initial alias/full-index failures and missing-wrapper diagnostics are preserved; the correct AccountLayout wrapper passes and establishes no production heading bug. Print/component checks do not replace authenticated PDF/export acceptance.
+
+`guard-focused.json` records 137 focused regressions. `retained-quality-after-guard.json` matches all seven frozen source tuples and records four selected passes/three known factual rejections. A known failed career original is explicitly distinguished from the unavailable corrective response. `independent-guard-probes.jsonl`, `independent-retained-replay.json` and `independent-working-review.json` document independent review; ordinary grammatical probes are not live generations or product samples. `scripts-final.log` records 129 script passes. Pre-push checks have separate receipts once completed.
+
+`installed-state-before-guard.json` and `installed-quality-before-guard.json` are baseline-only receipts for deployed fff32b37263eb0bd9a35aec4808c0ef916a22f99; they do not claim the new guard deployed. Four authority identities are preserved in `authority-before.json` and `authority-after.json`. New release/installed evidence is required independently after CI and deployment.
+
+The two `.mjs` diagnostic runners consume explicit private inputs and write separate guarded receipts. Raw actual responses, provider credentials and source journals are excluded. No paid replay, settlement, production financial/customer write or activation follows from these diagnostics. No full LSV58/63 closure is claimed.

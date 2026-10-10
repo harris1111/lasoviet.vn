@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-10T15:06:36.053492+00:00",
+  "verdict": "WORKING_GO",
+  "reviewer": "Independent Sol reviewer",
+  "focusedValidatorTestsPassed": 69,
+  "retainedSelectionsPassed": 4,
+  "retainedFactualFailures": 3,
+  "sourceTuplesMatched": 7,
+  "priorSourceValuesUnchanged": 101,
+  "authorityHashesUnchanged": 4,
+  "scope": "Bounded positive explicit resident-list grammar; no sample repair, provider continuation or full task closure",
+  "releaseGatesPending": [
+    "exact committed-head review",
+    "fresh CI",
+    "deployment and installed smoke"
+  ]
+}

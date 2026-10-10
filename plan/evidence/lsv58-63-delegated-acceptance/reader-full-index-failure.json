@@ -1,0 +1,336 @@
+{
+  "config": {
+    "argv": [
+      "/usr/local/lib/nodejs/node-v24.16.0-linux-x64/bin/node",
+      "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/e2e/period-report-reader.spec.ts",
+      "tests/e2e/topic-report-reader.spec.ts",
+      "--workers=2",
+      "--reporter=json"
+    ],
+    "configFile": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/playwright.config.ts",
+    "rootDir": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.{e2e,spec}.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "e2e/period-report-reader.spec.ts",
+      "file": "e2e/period-report-reader.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "paid period readable and printable at 320px",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 0,
+                  "error": {
+                    "message": "Error: Build failed with 1 error:\npackages/contracts/src/reading-context-v1.ts:3:27: ERROR: Could not resolve \"node:crypto\"",
+                    "stack": "Error: Build failed with 1 error:\npackages/contracts/src/reading-context-v1.ts:3:27: ERROR: Could not resolve \"node:crypto\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: Build failed with 1 error:\npackages/contracts/src/reading-context-v1.ts:3:27: ERROR: Could not resolve \"node:crypto\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                    },
+                    {
+                      "message": "{\n  detail: undefined,\n  id: '',\n  location: {\n    column: 27,\n    file: 'packages/contracts/src/reading-context-v1.ts',\n    length: 13,\n    line: 3,\n    lineText: 'import { createHash } from \"node:crypto\";',\n    namespace: '',\n    suggestion: ''\n  },\n  notes: [\n    {\n      location: null,\n      text: `The package \"node:crypto\" wasn't found on the file system but is built into node. Are you trying to bundle for node? You can use \"platform: 'node'\" to do that, which will remove this error.`\n    }\n  ],\n  pluginName: '',\n  text: 'Could not resolve \"node:crypto\"'\n}"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": "4pyYIFtFUlJPUl0gQ291bGQgbm90IHJlc29sdmUgIm5vZGU6Y3J5cHRvIgoKICAgIHBhY2thZ2VzL2NvbnRyYWN0cy9zcmMvcmVhZGluZy1jb250ZXh0LXYxLnRzOjM6Mjc6CiAgICAgIDMg4pSCIGltcG9ydCB7IGNyZWF0ZUhhc2ggfSBmcm9tICJub2RlOmNyeXB0byI7CiAgICAgICAg4pW1ICAgICAgICAgICAgICAgICAgICAgICAgICAgIH5+fn5+fn5+fn5+fn4KCiAgVGhlIHBhY2thZ2UgIm5vZGU6Y3J5cHRvIiB3YXNuJ3QgZm91bmQgb24gdGhlIGZpbGUgc3lzdGVtIGJ1dCBpcyBidWlsdCBpbnRvIG5vZGUuIEFyZSB5b3UgdHJ5aW5nIHRvIGJ1bmRsZSBmb3Igbm9kZT8gWW91IGNhbiB1c2UgInBsYXRmb3JtOiAnbm9kZSciIHRvIGRvIHRoYXQsIHdoaWNoIHdpbGwgcmVtb3ZlIHRoaXMgZXJyb3IuCgo="
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:41:31.352Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/test-results/e2e-period-report-reader-p-e0323-able-and-printable-at-320px/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "0d73e25cff842f35bbe8-0d81337cd5d379cf4707",
+          "file": "e2e/period-report-reader.spec.ts",
+          "line": 24,
+          "column": 40
+        },
+        {
+          "title": "paid period readable and printable at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:41:31.511Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "0d73e25cff842f35bbe8-1bd1e8d6ee50be828a3e",
+          "file": "e2e/period-report-reader.spec.ts",
+          "line": 24,
+          "column": 40
+        },
+        {
+          "title": "paid period readable and printable at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:41:31.511Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "0d73e25cff842f35bbe8-c40d27f34c7b8aeda408",
+          "file": "e2e/period-report-reader.spec.ts",
+          "line": 24,
+          "column": 40
+        }
+      ]
+    },
+    {
+      "title": "e2e/topic-report-reader.spec.ts",
+      "file": "e2e/topic-report-reader.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "paid topic readable and printable at 320px",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 0,
+                  "error": {
+                    "message": "Error: Build failed with 1 error:\npackages/contracts/src/reading-context-v1.ts:3:27: ERROR: Could not resolve \"node:crypto\"",
+                    "stack": "Error: Build failed with 1 error:\npackages/contracts/src/reading-context-v1.ts:3:27: ERROR: Could not resolve \"node:crypto\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: Build failed with 1 error:\npackages/contracts/src/reading-context-v1.ts:3:27: ERROR: Could not resolve \"node:crypto\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                    },
+                    {
+                      "message": "{\n  detail: undefined,\n  id: '',\n  location: {\n    column: 27,\n    file: 'packages/contracts/src/reading-context-v1.ts',\n    length: 13,\n    line: 3,\n    lineText: 'import { createHash } from \"node:crypto\";',\n    namespace: '',\n    suggestion: ''\n  },\n  notes: [\n    {\n      location: null,\n      text: `The package \"node:crypto\" wasn't found on the file system but is built into node. Are you trying to bundle for node? You can use \"platform: 'node'\" to do that, which will remove this error.`\n    }\n  ],\n  pluginName: '',\n  text: 'Could not resolve \"node:crypto\"'\n}"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": "4pyYIFtFUlJPUl0gQ291bGQgbm90IHJlc29sdmUgIm5vZGU6Y3J5cHRvIgoKICAgIHBhY2thZ2VzL2NvbnRyYWN0cy9zcmMvcmVhZGluZy1jb250ZXh0LXYxLnRzOjM6Mjc6CiAgICAgIDMg4pSCIGltcG9ydCB7IGNyZWF0ZUhhc2ggfSBmcm9tICJub2RlOmNyeXB0byI7CiAgICAgICAg4pW1ICAgICAgICAgICAgICAgICAgICAgICAgICAgIH5+fn5+fn5+fn5+fn4KCiAgVGhlIHBhY2thZ2UgIm5vZGU6Y3J5cHRvIiB3YXNuJ3QgZm91bmQgb24gdGhlIGZpbGUgc3lzdGVtIGJ1dCBpcyBidWlsdCBpbnRvIG5vZGUuIEFyZSB5b3UgdHJ5aW5nIHRvIGJ1bmRsZSBmb3Igbm9kZT8gWW91IGNhbiB1c2UgInBsYXRmb3JtOiAnbm9kZSciIHRvIGRvIHRoYXQsIHdoaWNoIHdpbGwgcmVtb3ZlIHRoaXMgZXJyb3IuCgo="
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:41:31.362Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/test-results/e2e-topic-report-reader-pa-2bc20-able-and-printable-at-320px/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "68103b2c191b4dc329f2-54014cabce1e41c39e93",
+          "file": "e2e/topic-report-reader.spec.ts",
+          "line": 23,
+          "column": 40
+        },
+        {
+          "title": "paid topic readable and printable at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:41:31.524Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "68103b2c191b4dc329f2-16724a02720021b6eb92",
+          "file": "e2e/topic-report-reader.spec.ts",
+          "line": 23,
+          "column": 40
+        },
+        {
+          "title": "paid topic readable and printable at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:41:31.524Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "68103b2c191b4dc329f2-fce3e29f0b21251d5c10",
+          "file": "e2e/topic-report-reader.spec.ts",
+          "line": 23,
+          "column": 40
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-10T14:41:30.663Z",
+    "duration": 883.6890000000001,
+    "expected": 0,
+    "skipped": 4,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

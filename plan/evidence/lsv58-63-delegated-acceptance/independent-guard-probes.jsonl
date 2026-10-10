@@ -1,0 +1,16 @@
+{"name":"TRUE","sentence":"Cung Phu Thê có Thiên Cơ, Văn Xương.","residentFindings":[]}
+{"name":"OTHER_PALACE_ABSENCE_THEN_POSITIVE","sentence":"Cung Quan Lộc không có Kiếp Sát, cung Phu Thê có Kiếp Sát.","residentFindings":[{"sectionKey":"palaceAnchors[ziwei.palace.career]","code":"PALACE_FACTS","note":"Explicit resident star Kiếp Sát is absent from natal ziwei.palace.spouse."}]}
+{"name":"NESTED_DENIAL","sentence":"Không phải là không phải cung Phu Thê có Kiếp Sát.","residentFindings":[{"sectionKey":"palaceAnchors[ziwei.palace.career]","code":"PALACE_FACTS","note":"Explicit resident star Kiếp Sát is absent from natal ziwei.palace.spouse."}]}
+{"name":"FALSE","sentence":"Cung Phu Thê có Thiên Cơ, Văn Xương và Kiếp Sát.","residentFindings":[{"sectionKey":"palaceAnchors[ziwei.palace.career]","code":"PALACE_FACTS","note":"Explicit resident star Kiếp Sát is absent from natal ziwei.palace.spouse."}]}
+{"name":"CONDITIONAL_TAIL","sentence":"Cung Phu Thê có Kiếp Sát nếu giờ sinh khác.","residentFindings":[]}
+{"name":"CONDITIONAL_WHEN","sentence":"Cung Phu Thê có Kiếp Sát khi giờ sinh khác.","residentFindings":[]}
+{"name":"OUTER_NEGATION","sentence":"Không phủ nhận rằng cung Phu Thê có Thiên Cơ, Văn Xương và Kiếp Sát.","residentFindings":[{"sectionKey":"palaceAnchors[ziwei.palace.career]","code":"PALACE_FACTS","note":"Explicit resident star Kiếp Sát is absent from natal ziwei.palace.spouse."}]}
+{"name":"DIRECT_DENIAL","sentence":"Không phải cung Phu Thê có Kiếp Sát.","residentFindings":[]}
+{"name":"EXPLICIT_LATER_AFFIRMATION","sentence":"Không phải cung Phu Thê có Kiếp Sát, nhưng cung Phu Thê có Kiếp Sát.","residentFindings":[{"sectionKey":"palaceAnchors[ziwei.palace.career]","code":"PALACE_FACTS","note":"Explicit resident star Kiếp Sát is absent from natal ziwei.palace.spouse."}]}
+{"name":"ASPECT_LIST_TRANSITION","sentence":"Cung Phu Thê có Thiên Cơ, Văn Xương và Kiếp Sát xung chiếu từ cung Mệnh.","residentFindings":[]}
+{"name":"OTHER_PALACE_LIST","sentence":"Cung Phu Thê có Thiên Cơ, Văn Xương, cung Mệnh có Kiếp Sát.","residentFindings":[]}
+{"name":"DECADAL_SUFFIX","sentence":"Cung Phu Thê đại vận có Kiếp Sát.","residentFindings":[]}
+{"name":"DECADAL_INTRO_COMMA","sentence":"Trong đại vận, cung Phu Thê có Thiên Mã.","residentFindings":[]}
+{"name":"POSITIVE_WITH_ABSENCE_OTHER","sentence":"Dù không có chính tinh, cung Phu Thê có Thiên Cơ, Văn Xương và Kiếp Sát.","residentFindings":[]}
+{"name":"HYPOTHETICAL_COMMA","sentence":"Nếu giờ sinh khác, cung Phu Thê có Kiếp Sát.","residentFindings":[]}
+{"name":"NEGATION_COMMA","sentence":"Không phải rằng, cung Phu Thê có Kiếp Sát.","residentFindings":[]}

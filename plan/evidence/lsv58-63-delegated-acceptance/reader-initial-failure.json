@@ -1,0 +1,342 @@
+{
+  "config": {
+    "argv": [
+      "/usr/local/lib/nodejs/node-v24.16.0-linux-x64/bin/node",
+      "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/@playwright/test/cli.js",
+      "test",
+      "tests/e2e/period-report-reader.spec.ts",
+      "tests/e2e/topic-report-reader.spec.ts",
+      "--workers=2",
+      "--reporter=json"
+    ],
+    "configFile": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/playwright.config.ts",
+    "rootDir": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 2
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 2
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.{e2e,spec}.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 2,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "e2e/period-report-reader.spec.ts",
+      "file": "e2e/period-report-reader.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "paid period readable and printable at 320px",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 0,
+                  "error": {
+                    "message": "Error: Build failed with 2 errors:\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:9: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:30: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"",
+                    "stack": "Error: Build failed with 2 errors:\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:9: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:30: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: Build failed with 2 errors:\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:9: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:30: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                    },
+                    {
+                      "message": "{\n  detail: undefined,\n  id: '',\n  location: {\n    column: 9,\n    file: 'apps/web/src/features/ziwei/free-result-topic-catalog.ts',\n    length: 19,\n    line: 1,\n    lineText: 'import { TOPIC_PALACE_SCOPES, ZIWEI_TOPIC_SKU_MAP, type TopConcernV1, type ZiweiTopicDeepDiveId } from \"@lasoviet/contracts\";',\n    namespace: '',\n    suggestion: ''\n  },\n  notes: [],\n  pluginName: '',\n  text: 'No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"'\n}"
+                    },
+                    {
+                      "message": "{\n  detail: undefined,\n  id: '',\n  location: {\n    column: 30,\n    file: 'apps/web/src/features/ziwei/free-result-topic-catalog.ts',\n    length: 19,\n    line: 1,\n    lineText: 'import { TOPIC_PALACE_SCOPES, ZIWEI_TOPIC_SKU_MAP, type TopConcernV1, type ZiweiTopicDeepDiveId } from \"@lasoviet/contracts\";',\n    namespace: '',\n    suggestion: ''\n  },\n  notes: [],\n  pluginName: '',\n  text: 'No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"'\n}"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": "4pyYIFtFUlJPUl0gTm8gbWF0Y2hpbmcgZXhwb3J0IGluICJwYWNrYWdlcy9jb250cmFjdHMvc3JjL2d1YXJhbnRlZS1mZWVkYmFjay12MS50cyIgZm9yIGltcG9ydCAiVE9QSUNfUEFMQUNFX1NDT1BFUyIKCiAgICBhcHBzL3dlYi9zcmMvZmVhdHVyZXMveml3ZWkvZnJlZS1yZXN1bHQtdG9waWMtY2F0YWxvZy50czoxOjk6CiAgICAgIDEg4pSCIGltcG9ydCB7IFRPUElDX1BBTEFDRV9TQ09QRVMsIFpJV0VJX1RPUElDX1NLVV9NQVAsIHR5cGUgVG9wQ29uY2VyblYuLi4KICAgICAgICDilbUgICAgICAgICAgfn5+fn5+fn5+fn5+fn5+fn5+fgoK4pyYIFtFUlJPUl0gTm8gbWF0Y2hpbmcgZXhwb3J0IGluICJwYWNrYWdlcy9jb250cmFjdHMvc3JjL2d1YXJhbnRlZS1mZWVkYmFjay12MS50cyIgZm9yIGltcG9ydCAiWklXRUlfVE9QSUNfU0tVX01BUCIKCiAgICBhcHBzL3dlYi9zcmMvZmVhdHVyZXMveml3ZWkvZnJlZS1yZXN1bHQtdG9waWMtY2F0YWxvZy50czoxOjMwOgogICAgICAxIOKUgiAuLi57IFRPUElDX1BBTEFDRV9TQ09QRVMsIFpJV0VJX1RPUElDX1NLVV9NQVAsIHR5cGUgVG9wQ29uY2VyblYxLCB0Li4uCiAgICAgICAg4pW1ICAgICAgICAgICAgICAgICAgICAgICAgICAgfn5+fn5+fn5+fn5+fn5+fn5+fgoK"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:39:39.278Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/test-results/e2e-period-report-reader-p-e0323-able-and-printable-at-320px/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "0d73e25cff842f35bbe8-0d81337cd5d379cf4707",
+          "file": "e2e/period-report-reader.spec.ts",
+          "line": 24,
+          "column": 40
+        },
+        {
+          "title": "paid period readable and printable at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:39:39.488Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "0d73e25cff842f35bbe8-1bd1e8d6ee50be828a3e",
+          "file": "e2e/period-report-reader.spec.ts",
+          "line": 24,
+          "column": 40
+        },
+        {
+          "title": "paid period readable and printable at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:39:39.488Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "0d73e25cff842f35bbe8-c40d27f34c7b8aeda408",
+          "file": "e2e/period-report-reader.spec.ts",
+          "line": 24,
+          "column": 40
+        }
+      ]
+    },
+    {
+      "title": "e2e/topic-report-reader.spec.ts",
+      "file": "e2e/topic-report-reader.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "paid topic readable and printable at 320px",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 0,
+                  "error": {
+                    "message": "Error: Build failed with 2 errors:\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:9: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:30: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"",
+                    "stack": "Error: Build failed with 2 errors:\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:9: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:30: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: Build failed with 2 errors:\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:9: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"\napps/web/src/features/ziwei/free-result-topic-catalog.ts:1:30: ERROR: No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"\n    at failureErrorWithLog (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1752:15)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1211:25\n    at runOnEndCallbacks (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1592:45)\n    at buildResponseToResult (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1209:7)\n    at /home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:1236:16\n    at responseCallbacks.<computed> (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:886:9)\n    at handleIncomingPacket (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:941:12)\n    at Socket.readFromStdout (/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/node_modules/.pnpm/esbuild@0.28.2/node_modules/esbuild/lib/main.js:864:7)"
+                    },
+                    {
+                      "message": "{\n  detail: undefined,\n  id: '',\n  location: {\n    column: 9,\n    file: 'apps/web/src/features/ziwei/free-result-topic-catalog.ts',\n    length: 19,\n    line: 1,\n    lineText: 'import { TOPIC_PALACE_SCOPES, ZIWEI_TOPIC_SKU_MAP, type TopConcernV1, type ZiweiTopicDeepDiveId } from \"@lasoviet/contracts\";',\n    namespace: '',\n    suggestion: ''\n  },\n  notes: [],\n  pluginName: '',\n  text: 'No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"TOPIC_PALACE_SCOPES\"'\n}"
+                    },
+                    {
+                      "message": "{\n  detail: undefined,\n  id: '',\n  location: {\n    column: 30,\n    file: 'apps/web/src/features/ziwei/free-result-topic-catalog.ts',\n    length: 19,\n    line: 1,\n    lineText: 'import { TOPIC_PALACE_SCOPES, ZIWEI_TOPIC_SKU_MAP, type TopConcernV1, type ZiweiTopicDeepDiveId } from \"@lasoviet/contracts\";',\n    namespace: '',\n    suggestion: ''\n  },\n  notes: [],\n  pluginName: '',\n  text: 'No matching export in \"packages/contracts/src/guarantee-feedback-v1.ts\" for import \"ZIWEI_TOPIC_SKU_MAP\"'\n}"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [
+                    {
+                      "buffer": "4pyYIFtFUlJPUl0gTm8gbWF0Y2hpbmcgZXhwb3J0IGluICJwYWNrYWdlcy9jb250cmFjdHMvc3JjL2d1YXJhbnRlZS1mZWVkYmFjay12MS50cyIgZm9yIGltcG9ydCAiVE9QSUNfUEFMQUNFX1NDT1BFUyIKCiAgICBhcHBzL3dlYi9zcmMvZmVhdHVyZXMveml3ZWkvZnJlZS1yZXN1bHQtdG9waWMtY2F0YWxvZy50czoxOjk6CiAgICAgIDEg4pSCIGltcG9ydCB7IFRPUElDX1BBTEFDRV9TQ09QRVMsIFpJV0VJX1RPUElDX1NLVV9NQVAsIHR5cGUgVG9wQ29uY2VyblYuLi4KICAgICAgICDilbUgICAgICAgICAgfn5+fn5+fn5+fn5+fn5+fn5+fgoK4pyYIFtFUlJPUl0gTm8gbWF0Y2hpbmcgZXhwb3J0IGluICJwYWNrYWdlcy9jb250cmFjdHMvc3JjL2d1YXJhbnRlZS1mZWVkYmFjay12MS50cyIgZm9yIGltcG9ydCAiWklXRUlfVE9QSUNfU0tVX01BUCIKCiAgICBhcHBzL3dlYi9zcmMvZmVhdHVyZXMveml3ZWkvZnJlZS1yZXN1bHQtdG9waWMtY2F0YWxvZy50czoxOjMwOgogICAgICAxIOKUgiAuLi57IFRPUElDX1BBTEFDRV9TQ09QRVMsIFpJV0VJX1RPUElDX1NLVV9NQVAsIHR5cGUgVG9wQ29uY2VyblYxLCB0Li4uCiAgICAgICAg4pW1ICAgICAgICAgICAgICAgICAgICAgICAgICAgfn5+fn5+fn5+fn5+fn5+fn5+fgoK"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:39:39.284Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/test-results/e2e-topic-report-reader-pa-2bc20-able-and-printable-at-320px/error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "68103b2c191b4dc329f2-54014cabce1e41c39e93",
+          "file": "e2e/topic-report-reader.spec.ts",
+          "line": 23,
+          "column": 40
+        },
+        {
+          "title": "paid topic readable and printable at 390px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:39:39.489Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "68103b2c191b4dc329f2-16724a02720021b6eb92",
+          "file": "e2e/topic-report-reader.spec.ts",
+          "line": 23,
+          "column": 40
+        },
+        {
+          "title": "paid topic readable and printable at 1440px",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": -1,
+                  "parallelIndex": -1,
+                  "status": "skipped",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-10T14:39:39.489Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "skipped"
+            }
+          ],
+          "id": "68103b2c191b4dc329f2-fce3e29f0b21251d5c10",
+          "file": "e2e/topic-report-reader.spec.ts",
+          "line": 23,
+          "column": 40
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-10T14:39:38.521Z",
+    "duration": 990.939,
+    "expected": 0,
+    "skipped": 4,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}
