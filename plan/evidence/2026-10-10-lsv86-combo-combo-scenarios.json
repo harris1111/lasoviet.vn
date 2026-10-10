@@ -1,0 +1,38 @@
+{
+  "status": "SCOPED_BACKEND_MECHANICS_PASS",
+  "scenarios": [
+    {
+      "targetYear": 2027,
+      "priceLa": 1300,
+      "oneSpendTwoChildren": true,
+      "sourceAndYearFrozenAcrossLaterTet": true,
+      "actualWorkersAndValidators": true,
+      "mobileDesktopRealPdf": true,
+      "guaranteePolicyDenialZeroCredit": true,
+      "trustedRestorationOneCreditBothRelocked": true,
+      "libraryV2LinksReady": true,
+      "frontendLibraryLinksVisible": false,
+      "syntheticMechanicsOnly": true,
+      "nativeProviderCalls": 0,
+      "productionMutations": 0
+    },
+    {
+      "targetYear": 2028,
+      "priceLa": 1300,
+      "oneSpendTwoChildren": true,
+      "sourceAndYearFrozenAcrossLaterTet": true,
+      "actualWorkersAndValidators": true,
+      "mobileDesktopRealPdf": true,
+      "guaranteePolicyDenialZeroCredit": true,
+      "trustedRestorationOneCreditBothRelocked": true,
+      "libraryV2LinksReady": true,
+      "frontendLibraryLinksVisible": false,
+      "syntheticMechanicsOnly": true,
+      "nativeProviderCalls": 0,
+      "productionMutations": 0
+    }
+  ],
+  "fullProductAcceptance": "HOLD_FE_AND_NATIVE",
+  "nativeProviderCalls": 0,
+  "productionMutations": 0
+}

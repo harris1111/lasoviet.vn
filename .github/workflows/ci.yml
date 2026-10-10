@@ -43,6 +43,7 @@ jobs:
           path: |
             ${{ runner.temp }}/lasoviet-paid-acceptance/joined-scenarios.json
             ${{ runner.temp }}/lasoviet-paid-acceptance/reserved-layer.json
+            ${{ runner.temp }}/lasoviet-paid-acceptance/combo-scenarios.json
           if-no-files-found: ignore
 
   publish:

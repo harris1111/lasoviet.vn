@@ -77,6 +77,9 @@ try:
         time.sleep(0.25)
     else: raise RuntimeError("QA_API_LISTENER_NOT_READY")
     artifacts = {name: hashlib.sha256((source / name).read_bytes()).hexdigest() for name in ["apps/web/.next/BUILD_ID", "apps/api/dist/main.js", "packages/backend/dist/commerce/wallet-unlock.service.js", "packages/backend/dist/commerce/commerce.repository.js", "packages/backend/dist/reports/report-query.repository.js", "packages/backend/dist/reports/report-query.service.js"]}
+    for pattern in ["packages/backend/dist/reports/*.js", "packages/backend/dist/commerce/*.js", "packages/engine-adapters/dist/ziwei/*.js"]:
+        for artifact in source.glob(pattern):
+            artifacts[str(artifact.relative_to(source))] = hashlib.sha256(artifact.read_bytes()).hexdigest()
     identity = {"runId": run_id, "builtArtifacts": artifacts, "revision": run(["git", "rev-parse", "HEAD"]), "builtCandidateNotPublishedArtifact": True, "sourceRoot": str(source), "containers": names, "network": network, "noWorkerRunning": True, "freeAiOff": True, "paymentSimulationNotRevenue": True, "smtpCaptureOnly": True, "browserInitialNow": "2026-10-10T23:00:00.000Z"}
     (root / "identity.json").write_text(json.dumps(identity, indent=2))
     print(json.dumps(identity))
