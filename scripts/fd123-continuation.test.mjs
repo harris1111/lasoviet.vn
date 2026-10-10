@@ -341,7 +341,15 @@ test("historical six-row recovery refuses the newly identified natal coordinate 
   }
   assert.equal(budget.status().totalVnd, 233576); assert.equal(budget.status().openReservations, 0);
   const ledgerBefore = digest(readFileSync(ledgerPath)), before = JSON.stringify(stopped);
-  const recover = value => prepareFd123RetainedQualityRecovery(value, lineage, inputs, modules, budget.status(), { at: now() });
+  // The historical recovery authority stays pinned to v3; a newer runtime cannot resume it.
+  assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, modules, budget.status(), { at: now() }), {
+    code: "FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION",
+  });
+  // A test-only historical identity exercises its content gate with the actual current validators.
+  const historicalIdentity = { ...modules, backend: { ...modules.backend,
+    PERIOD_READING_TUPLE: { ...modules.backend.PERIOD_READING_TUPLE, qualityVersion: "ziwei.period-reading.quality.v3" },
+  } };
+  const recover = value => prepareFd123RetainedQualityRecovery(value, lineage, inputs, historicalIdentity, budget.status(), { at: now() });
   assert.throws(() => recover(stopped), { code: "FD123_QUALITY_RECOVERY_CONTENT_OR_REFERENCE_INVALID" });
   const retainedTopic = normalizeTrialJson(stopped.reports[2].attempts[0].outputText);
   const topicContent = modules.contracts.ZiweiTopicDeepDiveContentV1Schema.parse(retainedTopic.value);
@@ -385,7 +393,7 @@ test("historical six-row recovery refuses the newly identified natal coordinate 
     m => { m.reports[0].result.value.content.title = "changed"; }, m => { m.manualAccepted = true; }]) {
     const value = structuredClone(stopped); mutate(value); assert.throws(() => recover(value));
   }
-  const unsafe = { ...modules, backend: { ...modules.backend, validatePeriodReading: () => ({ok: false}) } };
+  const unsafe = { ...historicalIdentity, backend: { ...historicalIdentity.backend, validatePeriodReading: () => ({ok: false}) } };
   assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, unsafe, budget.status(), { at: now() }), { code: "FD123_QUALITY_RECOVERY_CONTENT_OR_REFERENCE_INVALID" });
   const wrongVersion = { ...modules, backend: { ...modules.backend, PERIOD_READING_TUPLE: {qualityVersion: "ziwei.period-reading.quality.v2"} } };
   assert.throws(() => prepareFd123RetainedQualityRecovery(stopped, lineage, inputs, wrongVersion, budget.status(), { at: now() }));

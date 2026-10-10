@@ -1,0 +1,95 @@
+{
+  "status": "WORKING_GO",
+  "observedAt": "2026-10-10T18:46:34.208947+00:00",
+  "baseSha": "54dca85da9f8ef64b1727ceb11f7ca9132a5fd0e",
+  "reviewedFileHashes": {
+    "packages/backend/src/reports/period-reading-writer.test.ts": "7d00dd518652282b17ec36dad852c8e889c43544ac90cc0c419862b6f2660a47",
+    "packages/backend/src/reports/period-reading-writer.ts": "6bc353bab26ea38ed95dbd708b5fb8545cbbd5b936363b31ed27d79429716f37",
+    "packages/backend/src/reports/reading-content-line.test.ts": "dd350505069e801c1a15d4ddfac22675992a8d2d21038bbb32118e08fec58d88",
+    "packages/backend/src/reports/reading-content-line.ts": "8e8e9f189e484849d2f095761d61370581fc0fb6ebd63de0c5d4b75d253efc62",
+    "packages/backend/src/reports/topic-deep-dive-quality-v4.test.ts": "2ab648c2a07bddae97d2736b875877f65b330142d2040a3306a0981070c15ae6",
+    "packages/backend/src/reports/topic-deep-dive-quality-v4.ts": "925b87a75ba0c2ac74206311a36f0acb5052b02652531681d500928a783faa9c",
+    "packages/backend/src/reports/topic-report-config.ts": "9bd11dae847db34c1772c2c799f5bb0d3ac47085635c9ecf2542bd6afd3a66a3",
+    "plan/2026-10-10-lsv58-63-paid-factual-guard.md": "aa1d63dc74f4f4b3fe264d5e36a966dfd2daf4596ff41fade7abaa8df5168586"
+  },
+  "scope": "Seven source/test/config files plus bounded plan; objective factual checks and ordinary-language false positives only. QA-only392 merged base; original native source remains2ec.",
+  "compiledPins": [
+    {
+      "module": "topic-deep-dive-quality-v4",
+      "sourceSha256": "925b87a75ba0c2ac74206311a36f0acb5052b02652531681d500928a783faa9c",
+      "distSha256": "df62a5106bf2121f0de3e86f922aebb52dc09d0ba576cd294258570bb55379fa",
+      "compiledAfterSource": true
+    },
+    {
+      "module": "period-reading-writer",
+      "sourceSha256": "6bc353bab26ea38ed95dbd708b5fb8545cbbd5b936363b31ed27d79429716f37",
+      "distSha256": "537f8c26b86027379cce878c432f8177cae2c2f4c6463ec503e56467cdeb5c71",
+      "compiledAfterSource": true
+    },
+    {
+      "module": "reading-content-line",
+      "sourceSha256": "8e8e9f189e484849d2f095761d61370581fc0fb6ebd63de0c5d4b75d253efc62",
+      "distSha256": "50be0d7238920de7e1dfaef990002d499f2fc3ad5c585d8e96ba71c1af470abd",
+      "compiledAfterSource": true
+    },
+    {
+      "module": "topic-report-config",
+      "sourceSha256": "9bd11dae847db34c1772c2c799f5bb0d3ac47085635c9ecf2542bd6afd3a66a3",
+      "distSha256": "883104f97de1711b6226b58547b07ac54b70ab9a6cd048bd92ddbee2a5254379",
+      "compiledAfterSource": true
+    }
+  ],
+  "independentReproduction": {
+    "receiptPath": "/tmp/lasoviet-paid-factual-guard-independent-reproduce-20261010.json",
+    "receiptSha256": "be64a2fa3ed515476368fb369ed5e9bf86b6f03826af6ff6c1c4f03cae589fbb",
+    "scriptSha256": "cccc1313f3244f569ef853176add91e9ad01ddbc87dbf7a8aaf8630626d7cbde",
+    "status": "PASS",
+    "counterexamplesChecked": 9,
+    "retainedAttemptsChecked": 8,
+    "currentAnnualPass": true,
+    "nextAnnual0OriginalAndRewritePass": true,
+    "nextAnnual1LifespanRejected": true,
+    "careerOriginalAndRewriteFalseBrightnessRejected": true,
+    "relationship2CoordinateStemOppositionRejectedWithoutFalseTiankuiBrightness": true,
+    "relationship3OnlyTrueQingyangBrightnessRejected": true
+  },
+  "resolvedPriorBlockers": [
+    "Immediate preparation predicate prevents signed-contract/investment guarantee leak",
+    "Immediate governing denial preserves actual refusal without exempting unrelated or nonexclusive không",
+    "Explicit general star gloss is not read as a profile assertion",
+    "Combined miếu vượng category and lossy weak-brightness precision handled conservatively",
+    "Explicit không nên luận trường thọ refusal preserved; later affirmative lifespan still rejected",
+    "Bare enumeration assigns brightness only to final modified star; explicit shared predicates still check every named star"
+  ],
+  "validation": {
+    "focused": "278/278 PASS across5files",
+    "focusedLogSha256": "99da546726a1262b27712b235bf689b568ed1582ed22e0842b780c2e0da3fbd7",
+    "required": "i18n parity PASS, lint0errors/4preexistingwarnings, producer build and all typechecks complete; root reports actual exit0",
+    "requiredLogSha256": "be8200291d3974b1d7ac96ff8cf5b0f10e2a49c56360c01952630ba9b275d1ac",
+    "diffCheck": "PASS"
+  },
+  "versionIdentity": "New active topic qualityv5 and period qualityv4; historical constants and content/prompt/source tuple compatibility retained.",
+  "authorityPreservation": {
+    "oldFourUnchanged": true,
+    "finalFD124JournalUnchanged": true,
+    "finalFD124LedgerUnchanged": true,
+    "manualAcceptedFlagsUnchanged": true
+  },
+  "limitations": [
+    "Regex guard remains bounded to explicit identifiable factual claims; independent full-prose review remains required.",
+    "Retained local revalidation is not deployed acceptance, native dispatch approval or a private manualAccepted override."
+  ],
+  "remainingGates": [
+    "Clean exact-head review",
+    "Both fresh exact CI events",
+    "Audited exact deployment and installed validator smoke",
+    "Separate correction implementation/release/single-invocation gate"
+  ],
+  "effects": {
+    "sourceChanges": 0,
+    "nativeCalls": 0,
+    "authorityChanges": 0,
+    "statusChanges": 0,
+    "productionWrites": 0
+  }
+}

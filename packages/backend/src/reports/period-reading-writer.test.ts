@@ -7,6 +7,31 @@ const prose = (count: number) => "Cân nhắc kế hoạch thực tế và trao 
 function content(): ZiweiPeriodReadingContentV1 { return { version: 1, contentVersion: "ziwei.period-reading.v1", locale: "vi", kind: "monthly", targetYear: 2026, calendar: "lunar", periodKey: facts.periodKey, title: "Tháng tám âm lịch", overview: { narrative: prose(15), evidenceKeys: [evidenceKey] }, periods: [{ periodId: facts.periods[0]!.id, title: "Tháng tám", narrative: prose(55), recommendations: ["Lập kế hoạch.", "Ghi lại ưu tiên."], cautions: ["Tránh nhận quá nhiều việc."], evidenceKeys: [evidenceKey] }] }; }
 describe("period writer fail-closed quality", () => {
   it.each([
+    "Điều chỉnh kế hoạch từng bước chắc chắn.",
+    "Giúp các dự định chung được hoàn thiện một cách chắc chắn.",
+    "Ngôi nhà trở nên ấm cúng.",
+  ])("allows independently reviewed ordinary preparation/home wording: %s", text => {
+    const report = content(); report.periods[0]!.narrative += text;
+    expect(validatePeriodReading(report, facts).ok).toBe(true);
+    report.periods[0]!.narrative = report.periods[0]!.narrative.normalize("NFD");
+    expect(validatePeriodReading(report, facts).ok).toBe(true);
+  });
+  it.each([
+    "Lợi nhuận sẽ tăng một cách chắc chắn.",
+    "Lập kế hoạch để lợi nhuận sẽ tăng một cách chắc chắn.",
+    "Chuẩn bị từng bước chắc chắn sẽ thành công.",
+    "Chuẩn bị một cách chắc chắn giúp lợi nhuận tăng.",
+    "Chuẩn bị kế hoạch để khách hàng ký hợp đồng một cách chắc chắn.",
+    "Chuẩn bị kế hoạch giúp khoản đầu tư sinh lời một cách chắc chắn.",
+    "Điều chỉnh kế hoạch từng bước chắc chắn. Bạn chắc chắn sẽ thành công.",
+    "Hoàn thiện kế hoạch một cách chắc chắn nhưng bạn chắc chắn sẽ có lợi nhuận.",
+    "Ngôi nhà trở nên ấm cúng, hãy cúng giải hạn.",
+    "Thiên Lương tượng trưng cho sự chở che, trường thọ và sự dẫn dắt đạo đức.",
+  ])("keeps promised outcomes, lifespan and real ritual advice hard: %s", text => {
+    const report = content(); report.periods[0]!.narrative += text;
+    expect(validatePeriodReading(report, facts).findings).toContain("CONTENT_LINE_VIOLATION");
+  });
+  it.each([
     "Đây là bối cảnh đòi hỏi sự tỉnh táo cao độ chứ không phải điềm báo chắc chắn về tai họa.",
     "Đây là ngữ cảnh nhắc nhở bạn nên rà soát kỹ các khoản thanh toán, hạn chế mua sắm vượt quá khả năng thực tế chứ không phải là điều chắc chắn xảy ra rủi ro.",
     "Đây là bối cảnh cần sự minh bạch và đối thoại ôn hòa để giữ gìn sự yên ấm chứ không phải điềm báo chắc chắn về tranh chấp.",

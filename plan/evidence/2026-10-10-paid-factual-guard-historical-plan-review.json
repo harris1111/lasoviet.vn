@@ -1,0 +1,31 @@
+{
+  "status": "REGRESSION_UPDATE_PLAN_GO",
+  "observedAt": "2026-10-10T18:55:26.146012+00:00",
+  "failure": "Historical six-row FD123 recovery regression expects CONTENT_OR_REFERENCE_INVALID but real new active period-qualityv4 correctly fails the immutable historicalv3 identity fence first with REQUIRES_RECONCILIATION.",
+  "approvedCorrection": [
+    "Keep production prepareFd123RetainedQualityRecovery historical literal period-v3 gate unchanged.",
+    "Explicitly assert current realv4 runtime refuses FD123_QUALITY_RECOVERY_REQUIRES_RECONCILIATION.",
+    "Use clearly named test-only historicalIdentity modules fixture overlaying only PERIOD_READING_TUPLE.qualityVersion=v3. Keep actual current compiled validators/functions/contracts/engine; never stub a quality success or fake retained content.",
+    "For that historical identity fixture retain CONTENT_OR_REFERENCE_INVALID, direct relationship coordinate diagnosis, complete manifest hashes/proofs and byte-identical isolated ledger checks.",
+    "Run unsafe-inner-validator and invalid-content branches through historical identity fixture; currentv4 fence must not mask intended inner-path assertions.",
+    "Preserve independent wrong-version/open-reservation/unknown dispatch rejection tests.",
+    "Include this narrowly affected version regression in guard PR; rerun full script suite and mandatory checks, independently re-review changed diff and new clean exact head before merge."
+  ],
+  "forbidden": [
+    "Production historical recovery gate change",
+    "Historical manifest/ledger/report rewriting",
+    "Native calls or resumed unknown recovery",
+    "Testing current runtime as eligible historicalv3 outside explicit fixture"
+  ],
+  "evidenceSha256": {
+    "scripts/fd123-continuation.test.mjs": "c8c07445b3489bd20b90e9ce215c2fd19fb9abfd9c391ceac9405c42dbb3ee7c",
+    "scripts/continue-paid-manual-trials.mjs": "847da2c659b143a73aeccaf66b0e5c86ccf9b784903454128cdfb1ce9e76a2c5"
+  },
+  "effects": {
+    "sourceChanges": 0,
+    "authorityChanges": 0,
+    "nativeCalls": 0,
+    "statusChanges": 0,
+    "productionWrites": 0
+  }
+}

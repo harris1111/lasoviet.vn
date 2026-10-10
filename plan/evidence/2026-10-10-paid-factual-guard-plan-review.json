@@ -1,0 +1,30 @@
+{
+  "status": "PLAN_GO",
+  "observedAt": "2026-10-10T18:35:49.148228+00:00",
+  "baseSha": "2ec335babdcc04765e0f7beecaeb641fad8a0d03",
+  "planPath": "/home/debian/projects/lasoviet-paid-factual-guard-20261010/plan/2026-10-10-lsv58-63-paid-factual-guard.md",
+  "planSha256": "aa1d63dc74f4f4b3fe264d5e36a966dfd2daf4596ff41fade7abaa8df5168586",
+  "scope": "Objective false-fact detection and bounded ordinary-language false positives only; no FD120 style hardening.",
+  "implementationConstraints": [
+    "Bump new active topic quality v4 to v5 and period quality v3 to v4; retain historical version constants and tuple/source compatibility. Do not rewrite report content, source lineage or private acceptance authorities.",
+    "Bind explicit Vietnamese brightness to each asserted star, palace and stated natal/decadal layer; check all later affirmative occurrences independently of earlier negations. Preserve conditional/general descriptions and avoid inferring an unstated layer.",
+    "Verify the full stated branch/stem pair and independently computed six-position opposition; a slash pair is not allowed to hide contradictory asserted stem values.",
+    "Exempt cozy phrase ấm cúng only at that lexical span; continue checking actual ritual advice elsewhere in the same clause/text.",
+    "Preparation exceptions need bounded preparation/construction context. Never blanket-exempt một cách chắc chắn: lợi nhuận sẽ tăng một cách chắc chắn must remain prohibited. Mixed and later guaranteed-outcome clauses remain prohibited.",
+    "Amended brief explicitly includes affirmative trường thọ under the existing FD089 lifespan ban; retain contextual denial checks and do not misclassify distinct Thiên Thọ star names."
+  ],
+  "tests": "Short source-bound witnesses plus true-correct variants, NFC/NFD, list-shared brightness, explicit coordinate ordering, wrong opposition, conditional/denial and later affirmative occurrences, ordinary cozy/preparation mixed with genuine ritual/guarantee content. Reevaluate retained complete outputs without model requests only after exact deployment.",
+  "remainingGates": [
+    "Independent working/exact-head review",
+    "Required local checks and both fresh exact CI events",
+    "Exact deployment and installed validator smoke",
+    "Independent retained-output reevaluation; no historical mutation"
+  ],
+  "effects": {
+    "sourceChanges": 0,
+    "nativeCalls": 0,
+    "authorityChanges": 0,
+    "productionOperations": 0
+  },
+  "continuationAuthorization": false
+}

@@ -371,6 +371,132 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
     expect(coordinateFindings("Cung Phúc Đức đại vận tại Thìn.", source).some(f => f.code === "DECADAL_TIMING_MISMATCH")).toBe(true);
   });
 
+  it.each([
+    "Đại vận tọa lạc tại cung Phúc Đức gốc ở Dậu, với can Canh/Tân.",
+    "Cung Phúc Đức gốc ở Thân, với can Canh/Tân.",
+    "Cung Phúc Đức của đại vận ở Thìn, với can Canh.",
+  ])("checks observed branch/stem word ordering: %s", sentence => {
+    expect(coordinateFindings(sentence).length).toBeGreaterThan(0);
+    expect(coordinateFindings(sentence.normalize("NFD"))).toEqual(coordinateFindings(sentence));
+  });
+
+  it.each([
+    "Đại vận tọa lạc tại cung Phúc Đức gốc ở Thân, với can Giáp.",
+    "Cung Phúc Đức của đại vận ở Thìn, với can Giáp.",
+    "Nếu giờ sinh khác, cung Phúc Đức gốc ở Dậu, với can Canh.",
+    "Cung Phúc Đức gốc ở Dậu, với can Canh nếu giờ sinh khác.",
+    "Không phải cung Phúc Đức gốc ở Dậu, với can Canh.",
+  ])("preserves sourced coordinates and explicitly qualified claims: %s", sentence => {
+    expect(coordinateFindings(sentence)).toEqual([]);
+  });
+
+  it("checks later coordinates after a conditional and does not infer an unspecified stem layer", () => {
+    expect(coordinateFindings("Nếu giờ sinh khác, cung Phúc Đức gốc ở Dậu; cung Phúc Đức gốc ở Dậu.").some(f => f.code === "PALACE_FACTS")).toBe(true);
+    expect(coordinateFindings("Cung Phúc Đức ở Dậu, với can Canh.")).toEqual([]);
+  });
+
+  it.each([
+    "Đồng thời, cung Mệnh của đại vận an tại Ngọ có Kình Dương và Văn Khúc, đối xung sang cung Tử Tức đại vận tại Mão có Tham Lang Hóa Lộc và Hỷ Thần.",
+    "Cung Mệnh gốc tại Ngọ xung chiếu với cung Tử Tức gốc tại Mão.",
+    "Nếu giờ sinh khác, cung Mệnh gốc tại Ngọ đối xung sang cung Tử Tức gốc tại Mão; cung Mệnh gốc tại Ngọ đối xung sang cung Tử Tức gốc tại Mão.",
+  ])("checks explicit opposition geometry despite intervening star prose: %s", sentence => {
+    const report = makeValidRelationshipReport(facts); report.overview.narrative += sentence;
+    const result = validateZiweiTopicDeepDiveQualityV4(report, facts);
+    expect(result.findings.some(f => f.note.startsWith("Explicit branch opposition"))).toBe(true);
+  });
+
+  it.each([
+    "Cung Mệnh gốc tại Ngọ đối xung sang cung Tử Tức gốc tại Tý.",
+    "Nếu giờ sinh khác, cung Mệnh gốc tại Ngọ đối xung sang cung Tử Tức gốc tại Mão.",
+    "Cung Mệnh gốc tại Ngọ không đối xung sang cung Tử Tức gốc tại Mão.",
+  ])("preserves actual branch opposition and qualified comparison: %s", sentence => {
+    const report = makeValidRelationshipReport(facts); report.overview.narrative += sentence;
+    expect(validateZiweiTopicDeepDiveQualityV4(report, facts).findings.filter(f => f.note.startsWith("Explicit branch opposition"))).toEqual([]);
+  });
+
+  function brightnessFindings(sentence: string, anchor = false) {
+    const source = buildFactsFixture();
+    const career = source.natal.palaces.find(p => p.palaceId === "ziwei.palace.career")!;
+    career.stars.push({ id: "ziwei.star.wenchang", category: "minor", brightness: "ziwei.brightness.neutral" },
+      { id: "ziwei.star.wenqu", category: "minor", brightness: "ziwei.brightness.prosperous" });
+    source.natal.palaces.find(p => p.palaceId === "ziwei.palace.siblings")!.stars.push({ id: "ziwei.star.qingyang", category: "minor", brightness: "ziwei.brightness.exalted" });
+    const report = makeValidRelationshipReport(source);
+    if (anchor) {
+      report.palaceAnchors[0]!.palaceId = "ziwei.palace.career";
+      report.palaceAnchors[0]!.title = "Cung Quan Lộc";
+      report.palaceAnchors[0]!.narrative = `${"Lập kế hoạch thực tế. ".repeat(50)}${sentence}`;
+    } else report.thematicDimensions[1]!.narrative += sentence;
+    return validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(f => f.note.startsWith("Explicit brightness"));
+  }
+
+  it.each([
+    "Đặc biệt, cung vị này hội tụ các văn tinh ưu tú gồm Văn Xương và Văn Khúc ở trạng thái Vượng, kết hợp cùng trợ tinh Thiên Việt.",
+    "Văn Xương và Văn Khúc đều Vượng.",
+    "Văn Xương, Văn Khúc ở trạng thái Vượng.",
+  ])("checks every named star in shared brightness assertions within its anchored palace: %s", sentence => {
+    expect(brightnessFindings(sentence, true)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: "PALACE_FACTS", note: expect.stringContaining("Bình") }),
+    ]));
+    expect(brightnessFindings(sentence.normalize("NFD"), true)).toEqual(brightnessFindings(sentence, true));
+  });
+
+  it.each([
+    "Cung Huynh Đệ giáp kề có Kình Dương hãm lực.",
+    "Cung Quan Lộc gốc có Văn Xương Vượng.",
+    "Không phải Kình Dương hãm lực. Cung Huynh Đệ có Kình Dương hãm lực.",
+    "Nếu giờ sinh khác, Kình Dương hãm lực; cung Huynh Đệ có Kình Dương hãm lực.",
+    "Cung Huynh Đệ không có Kình Dương hãm lực nhưng cung Huynh Đệ có Kình Dương hãm lực.",
+    "Không chỉ cung Huynh Đệ gốc có Kình Dương hãm lực mà còn có nhiều sao.",
+    "Không nên lo lắng, cung Huynh Đệ gốc có Kình Dương hãm lực.",
+    "Cung Huynh Đệ gốc không có sao xấu và có Kình Dương hãm lực.",
+    "Không thể nói rằng không phải cung Huynh Đệ gốc có Kình Dương hãm lực.",
+  ])("checks affirmative brightness against the explicitly stated palace: %s", sentence => {
+    expect(brightnessFindings(sentence).length).toBeGreaterThan(0);
+  });
+
+  it.each([
+    "Cung Quan Lộc gốc có Văn Xương Bình và Văn Khúc Vượng.",
+    "Cung Phu Thê gốc có Văn Xương Vượng.",
+    "Cung Huynh Đệ giáp kề có Kình Dương Miếu.",
+    "Nếu giờ sinh khác, Kình Dương hãm lực.",
+    "Không phải Kình Dương hãm lực.",
+    "Kình Dương hãm lực nếu giờ sinh khác.",
+    "Khi Kình Dương hãm lực thì đây là tình huống giả định.",
+    "Kình Dương hãm lực thì đây là ví dụ chung, không phải dữ kiện lá số.",
+    "Trong cách giải thích chung, Kình Dương hãm lực tượng trưng cho khó khăn.",
+    "Cung Huynh Đệ có Kình Dương miếu vượng.",
+    "Cung Huynh Đệ không có Kình Dương hãm lực.",
+    "Cung Huynh Đệ gốc không hề có Kình Dương hãm lực.",
+    "Cung Quan Lộc đại vận có Văn Xương Vượng.",
+    "Trong đại vận, cung Quan Lộc có Văn Xương Vượng.",
+  ])("preserves correct natal values, conditional prose and distinct timing layers: %s", sentence => {
+    expect(brightnessFindings(sentence)).toEqual([]);
+  });
+
+  it("does not invent a Hãm/Nhược distinction lost by the minor-star score mapping", () => {
+    const source = buildFactsFixture();
+    source.natal.palaces.find(p => p.palaceId === "ziwei.palace.siblings")!.stars.push({ id: "ziwei.star.huoxing", category: "minor", brightness: "ziwei.brightness.weak" });
+    const report = makeValidRelationshipReport(source);
+    report.thematicDimensions[1]!.narrative += " Cung Huynh Đệ có Hỏa Tinh Hãm.";
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(f => f.note.startsWith("Explicit brightness"))).toEqual([]);
+    report.thematicDimensions[1]!.narrative += " Cung Huynh Đệ có Hỏa Tinh Miếu.";
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.some(f => f.note.startsWith("Explicit brightness"))).toBe(true);
+  });
+
+  it("binds a bare enumeration modifier to its last star and requires an explicit shared predicate", () => {
+    const source = buildFactsFixture();
+    const spouse = source.natal.palaces.find(p => p.palaceId === "ziwei.palace.spouse")!;
+    spouse.stars.push({id: "ziwei.star.tiankui", category: "minor", brightness: null},
+      {id: "ziwei.star.lingxing", category: "minor", brightness: "ziwei.brightness.favorable"});
+    const report = makeValidRelationshipReport(source);
+    report.palaceAnchors[0]!.narrative += " Cung Phu Thê hội tụ Thiên Khôi, Linh Tinh Đắc, Cô Quả và Phá Toái.";
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(f => f.note.startsWith("Explicit brightness"))).toEqual([]);
+    report.palaceAnchors[0]!.narrative += " Cung Phu Thê có Thiên Khôi và Linh Tinh đều Đắc.";
+    expect(validateZiweiTopicDeepDiveQualityV4(report, source).findings.some(f => f.note.startsWith("Explicit brightness") && f.note.includes("Thiên Khôi"))).toBe(true);
+    expect(brightnessFindings("Văn Xương và Văn Khúc Vượng.", true)).toEqual([]);
+    expect(brightnessFindings("Văn Khúc và Văn Xương Vượng.", true).length).toBeGreaterThan(0);
+  });
+
   function residentFindings(sentence: string, source = facts) {
     const report = makeValidRelationshipReport(source);
     report.palaceAnchors[0]!.narrative += ` ${sentence}`;

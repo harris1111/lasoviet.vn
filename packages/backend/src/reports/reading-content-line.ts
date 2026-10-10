@@ -1,7 +1,10 @@
 /** FD089 ritual recommendations/sales and lottery advice stay hard failures.
  * Ordinary objects, conflict resolution and explicit refusals are not advice. */
 export function hasProhibitedReadingAdvice(text: string): boolean {
-  const normalized = text.normalize("NFC").toLocaleLowerCase("vi");
+  // This fixed adjective describes a cozy home, not a ritual. Replace only
+  // this complete phrase; real ritual advice elsewhere still reaches the gate.
+  const normalized = text.normalize("NFC").toLocaleLowerCase("vi")
+    .replace(/(?<![\p{L}\p{N}])ấm\s+cúng(?![\p{L}\p{N}])/gu, "ấm áp");
   for (const clause of normalized.split(/[,.!?;\n]+|(?<![\p{L}\p{N}])(?:nhưng|mà|và|rồi|tuy nhiên)(?![\p{L}\p{N}])/u)) {
     // A refusal governs only its own clause; a later affirmative clause is
     // checked independently. Bare "không chỉ" is not a refusal.
@@ -20,6 +23,20 @@ export function hasProhibitedReadingAdvice(text: string): boolean {
         if (!/(?:không(?: nên| cần| được)?|đừng|tránh|từ chối)(?: việc)?\s*$/u.test(prefix)) return true;
       }
     }
+  }
+  return false;
+}
+
+/** FD089 also excludes affirmative long-life vocabulary, including star glosses.
+ * Thiên Thọ and Trường Sinh are distinct actual star names, not this phrase. */
+export function hasProhibitedReadingLifespan(text: string): boolean {
+  const normalized = text.normalize("NFC").toLocaleLowerCase("vi");
+  for (const match of normalized.matchAll(/(?<![\p{L}\p{N}])trường\s+thọ(?![\p{L}\p{N}])/gu)) {
+    const prefix = normalized.slice(0, match.index).split(/[.!?;\n]/u).at(-1)!;
+    const refusal = /(?:không(?:\s+(?:nên|cần|được))?|đừng)\s+(?:luận|dự đoán|nói về|đề cập đến)\s*$/u.exec(prefix);
+    const outer = refusal ? prefix.slice(0, refusal.index) : "";
+    if (refusal && !/(?<![\p{L}\p{N}])(?:không|chưa|chẳng|phủ nhận|bác bỏ)(?![\p{L}\p{N}])/u.test(outer)) continue;
+    return true;
   }
   return false;
 }
