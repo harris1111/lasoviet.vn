@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/personal-daily-reading-writer.js";
-import type { CurrentActor } from "@lasoviet/contracts";
+import { NormalizedBirthProfileV1Schema, type CurrentActor } from "@lasoviet/contracts";
 import { createPersonalDailyReadingService } from "./personal-daily-reading.service.js";
 
 const actor: CurrentActor = { kind: "account", userId: "owner", sessionId: "session", requestId: "request" };
@@ -62,4 +62,56 @@ describe("personal daily reading authorization", () => {
     expect(await service.read(actor, "chart")).toMatchObject({ ok: false, error: { code: "DAILY_READING_FORBIDDEN" } });
     expect(writer).not.toHaveBeenCalled();
   });
+  it.each([
+    ["chart", "2026-09-26T16:59:59.999Z", "2026-09-26T17:00:00Z"],
+    ["access", "2026-09-26T16:59:59.999Z", "2026-09-26T17:00:00Z"],
+    ["chart", "2026-09-26T12:59:59.999Z", "2026-09-26T13:00:00Z"],
+    ["access", "2026-09-26T12:59:59.999Z", "2026-09-26T13:00:00Z"],
+  ])("denies a grant expiring during %s authorization at %s", async (stage, start, finish) => {
+    let current = new Date(start);
+    const { charts, access, writer } = fixture(current);
+    charts.readAuthorizedChart.mockImplementation(async () => {
+      if (stage === "chart") current = new Date(finish);
+      return chart;
+    });
+    access.mockImplementation(async () => {
+      if (stage === "access") current = new Date(finish);
+      return { ...grant, expiresAt: new Date(finish) };
+    });
+    const service = createPersonalDailyReadingService({ charts, access, writer, now: () => current });
+    expect(await service.read(actor, "chart")).toMatchObject({ ok: false, error: { code: "DAILY_READING_FORBIDDEN" } });
+    expect(access).toHaveBeenCalledWith(actor.userId, "chart", new Date(stage === "chart" ? finish : start));
+    expect(writer).not.toHaveBeenCalled();
+  });
+
+  it("uses the new Vietnam day and final clock for a grant still valid after authorization", async () => {
+    let current = new Date("2026-09-26T16:59:59.999Z");
+    const { charts, access, writer } = fixture(current);
+    access.mockImplementation(async () => {
+      current = new Date("2026-09-26T17:00:00Z");
+      return grant;
+    });
+    const service = createPersonalDailyReadingService({ charts, access, writer, now: () => current });
+    expect(await service.read(actor, "chart")).toMatchObject({ ok: true, value: {
+      asOfDate: "2026-09-27", qualityGate: { passed: true, checkedAt: "2026-09-26T17:00:00.000Z" },
+    } });
+    expect(writer).toHaveBeenCalledOnce();
+    expect(writer.mock.calls[0]![1].now()).toEqual(current);
+  });
+
+  it("refuses yesterday's stored content after delayed access without regenerating it", async () => {
+    let current = new Date("2026-09-26T16:59:59.999Z");
+    const { charts, access, writer } = fixture(current);
+    const content = writePersonalDailyReading(NormalizedBirthProfileV1Schema.parse({
+      ...chart.normalizedInput, originalInput: chart.originalInput,
+    }), { chartId: "chart", chartVersionId: "version", asOfDate: "2026-09-26", now: () => current });
+    access.mockImplementation(async () => {
+      current = new Date("2026-09-26T17:00:00Z");
+      return { ...grant, content, purchaseId: "purchased-reading" };
+    });
+    const service = createPersonalDailyReadingService({ charts, access, writer, now: () => current });
+    expect(await service.read(actor, "chart")).toMatchObject({ ok: false, error: { code: "DAILY_READING_UNAVAILABLE" } });
+    expect(writer).not.toHaveBeenCalled();
+  });
+
 });

@@ -1,0 +1,26 @@
+{
+  "stage": "LOCAL_PASS",
+  "observedAt": "2026-10-10T04:48:10.172324+00:00",
+  "baseSha": "19f600fbe20928f72ef60827c41725417863e8ca",
+  "focusedTests": 69,
+  "focusedSuites": 2,
+  "actualPostgreSql": true,
+  "independentTargetedTests": 13,
+  "independentSuites": 2,
+  "independentFilteredOut": 56,
+  "producerBuild": "PASS",
+  "checks": {
+    "i18n": 0,
+    "lint": 0,
+    "typecheck": 0
+  },
+  "diffCheck": "PASS",
+  "compiledSmoke": "PASS",
+  "physicalProviderCalls": 0,
+  "databaseWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "effectCounterScope": "compiled smoke only; isolated PostgreSQL regression separately creates synthetic fixtures",
+  "manualAccepted": false,
+  "mergeAndDeployPending": true
+}
