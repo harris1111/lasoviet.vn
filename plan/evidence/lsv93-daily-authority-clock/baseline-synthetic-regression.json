@@ -1,0 +1,17 @@
+{
+  "observedAt": "2026-10-10T04:47:18.643837+00:00",
+  "container": "lasoviet-mvp-api-1",
+  "baselineReleaseSha": "19e627cfe77e6c3c2dc355b6e8109b9efea0a159",
+  "status": "EXPECTED_BASELINE_REGRESSION",
+  "exitCode": 1,
+  "failure": "Expired grant during asynchronous chart authorization was not refused",
+  "errorExcerpt": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ undefined\n- 'DAILY_READING_FORBIDDEN'\n\n    at file:///app/[eval1]:34:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: undefined,\n  expected: 'DAILY_READING_FORBIDDEN',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v24.16.0\n",
+  "scope": "Only synthetic injected authority, clock and writer; no database or provider configured",
+  "physicalProviderCalls": 0,
+  "databaseWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "manualAccepted": false,
+  "observedImageReference": "ghcr.io/harris1111/lasoviet-api:sha-19e627cfe77e6c3c2dc355b6e8109b9efea0a159",
+  "observedContainerImageId": "sha256:080bb08e5d2706194f2cf20f68892c4bdd07c64c99df84fdf10f185f4b082a20"
+}

@@ -70,10 +70,12 @@ export function createPersonalDailyReadingService(options: {
   return {
     async read(actor, chartId) {
       if (actor.kind !== "account") return failure("DAILY_READING_FORBIDDEN");
-      const now = (options.now ?? (() => new Date()))();
-      const chart = await options.charts.readAuthorizedChart(actor, chartId, now);
+      const clock = options.now ?? (() => new Date());
+      const chart = await options.charts.readAuthorizedChart(actor, chartId, clock());
       if (!chart) return failure("CHART_NOT_FOUND");
-      const grant = await options.access(actor.userId, chartId, now);
+      const grant = await options.access(actor.userId, chartId, clock());
+      // Authority work can cross Vietnam midnight or expire a grant while awaiting its result.
+      const now = clock();
       if (!grant || grant.chartVersionId !== chart.chartVersionId ||
         now < grant.grantedAt || now >= grant.expiresAt) return failure("DAILY_READING_FORBIDDEN");
       const asOfDate = dailyReadingDate(now);

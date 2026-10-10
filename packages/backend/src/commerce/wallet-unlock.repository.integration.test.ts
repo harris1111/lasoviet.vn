@@ -13,7 +13,8 @@ import { calculateIztroReportSnapshot } from "../../../engine-adapters/src/ziwei
 import { NormalizedBirthProfileV1Schema } from "@lasoviet/contracts";
 import { createMembershipService } from "./membership.service.js";
 import { createDatabaseReportGenerationSourceRepository } from "../reports/report-generation.repository.js";
-import { createDatabaseDailyReadingAccess } from "./personal-daily-reading.service.js";
+import { createDatabaseDailyReadingAccess, createPersonalDailyReadingService } from "./personal-daily-reading.service.js";
+import { createDatabaseZiweiQueryRepository } from "../ziwei/ziwei-query.repository.js";
 import { createGuaranteeFeedbackService } from "./guarantee-feedback.service.js";
 import { createDailyWalletUnlockService, readPurchasedDailyReading } from "./daily-wallet-unlock.service.js";
 import { writePersonalDailyReading } from "../../../engine-adapters/src/ziwei/personal-daily-reading-writer.js";
@@ -2243,6 +2244,37 @@ describe("wallet unlock repository integration", () => {
     expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-20", current)).not.toBeNull();
     expect(await readPurchasedDailyReading(database, "another-owner", owner.chartId, "2026-09-20", current)).toBeNull();
     expect(await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId))).toHaveLength(0);
+    const charts = createDatabaseZiweiQueryRepository(database);
+    const access = createDatabaseDailyReadingAccess(database);
+    const forbiddenWriter = vi.fn(writePersonalDailyReading);
+    const readSnapshot = () => Promise.all([
+      quoteSnapshot(), database.select().from(walletLedgerEntries),
+      database.select().from(walletSpendAllocations), database.select().from(dailyReadingUnlocks),
+    ]);
+    const beforeReading = await readSnapshot();
+    current = new Date("2026-09-20T16:59:59.999Z");
+    const reader = createPersonalDailyReadingService({ charts, access, writer: forbiddenWriter, now: () => current });
+    expect(await reader.read(owner.actor, owner.chartId)).toMatchObject({ ok: true, value: { asOfDate: "2026-09-20" }, purchaseId: unlocked.ok ? unlocked.value.reportId : undefined });
+    expect(await reader.read(actor("foreign-daily-reader"), owner.chartId)).toMatchObject({ ok: false, error: { code: "CHART_NOT_FOUND" } });
+    for (const delayedStage of ["chart", "access"] as const) {
+      current = new Date("2026-09-20T16:59:59.999Z");
+      const delayed = createPersonalDailyReadingService({
+        charts: { ...charts, readAuthorizedChart: async (...args) => {
+          const authorized = await charts.readAuthorizedChart(...args);
+          if (delayedStage === "chart") current = new Date("2026-09-20T17:00:00Z");
+          return authorized;
+        } },
+        access: async (...args) => {
+          const authorized = await access(...args);
+          if (delayedStage === "access") current = new Date("2026-09-20T17:00:00Z");
+          return authorized;
+        },
+        writer: forbiddenWriter, now: () => current,
+      });
+      expect(await delayed.read(owner.actor, owner.chartId)).toMatchObject({ ok: false, error: { code: "DAILY_READING_FORBIDDEN" } });
+    }
+    expect(forbiddenWriter).not.toHaveBeenCalled();
+    expect(await readSnapshot()).toEqual(beforeReading);
     current = new Date("2026-09-20T17:00:00Z");
     expect(await dailyQuote()).toMatchObject({state: "available", priceLa: 60});
     expect(await readPurchasedDailyReading(database, owner.userId, owner.chartId, "2026-09-20", current)).toBeNull();
