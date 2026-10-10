@@ -561,7 +561,7 @@ export type {
 } from "./commerce/payment-claim-time.js";
 export { createPaymentInstructions } from "./commerce/payment-instructions.js";
 export type { PaymentInstructions } from "./commerce/payment-instructions.js";
-export { PRODUCT_CATALOG, createOrderService } from "./commerce/order.service.js";
+export { PRODUCT_CATALOG, LEGACY_VND_CHECKOUT_CATALOG, createOrderService } from "./commerce/order.service.js";
 export { createSePayGateway } from "./commerce/sepay-adapter.js";
 export { createSePayWebhookService } from "./commerce/sepay-webhook.service.js";
 export { createDatabaseCommerceRepository } from "./commerce/commerce.repository.js";

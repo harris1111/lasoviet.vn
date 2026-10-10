@@ -1,3 +1,4 @@
+import { LEGACY_VND_CHECKOUT_CATALOG } from "./order.service.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -347,4 +348,10 @@ describe("order service", () => {
       },
     });
   });
+});
+
+it("keeps the frozen legacy checkout alias identical and separate from wallet pricing", () => {
+  expect(LEGACY_VND_CHECKOUT_CATALOG).toBe(PRODUCT_CATALOG);
+  expect(Object.isFrozen(LEGACY_VND_CHECKOUT_CATALOG)).toBe(true);
+  expect(LEGACY_VND_CHECKOUT_CATALOG["ZIWEI-IDENTITY-P0"].amount).toBe(79000);
 });

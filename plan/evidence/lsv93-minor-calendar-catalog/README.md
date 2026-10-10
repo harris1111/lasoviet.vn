@@ -1,0 +1,7 @@
+# LSV93 scoped evidence
+
+Local verification covers108 distinct tests across the latest seven suite results: the initial107 passed includes13 engine tests, subsequently replaced by the14-test final engine replay. All34 commerce PostgreSQL tests ran on an isolated temporary database with no skips. Independent replay passed74 tests across the other six suites. Build/i18n/lint/typecheck passed; four frontend warnings are pre-existing.
+
+The production-before synthetic regression on6e29 records missing minor-limit facts and the incorrect29/-6 leap-month label, with no provider/DB/financial/customer action. The compiled smoke corrects both and checks actual writer and injected service behavior across Tet and leap-month Vietnam midnight, immutable legacy authority aliases/amounts and the complete unchanged wallet catalog hash. Run the smoke from an application workspace with package dependencies, using stdin: node --input-type=module < /absolute/path/installed-smoke.mjs. Do not execute the file directly from plan/ because Node resolves packages relative to its file location.
+
+This does not establish independent traditional correctness or owner/manual acceptance, remove legacy checkout sale surfaces, activate a SKU/provider/customer campaign or settle the unresolved actual paid correction. Full LSV93 remains open. Fresh exact-head/final-composition CI, actual deployment and independent installed smoke remain release gates.

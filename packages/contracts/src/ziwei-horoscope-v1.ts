@@ -123,6 +123,23 @@ export const ZiweiPurchaseFactsV1Schema = z.object({
 });
 export type ZiweiPurchaseFactsV1 = z.infer<typeof ZiweiPurchaseFactsV1Schema>;
 
+/** Computed tiểu hạn is distinct from the yearly/lưu niên palace. */
+export const ZiweiMinorLimitV1Schema = z.object({
+  version: z.literal(1),
+  calculationVersion: z.literal("iztro-age-normal-v1"),
+  targetYear: z.number().int().min(1900).max(2100),
+  lunarAge: z.number().int().min(1).max(120),
+  palaceId: PalaceIdSchema,
+  provisional: z.boolean(),
+  evidenceKeys: z.array(z.string()).length(2),
+}).strict().superRefine((value, ctx) => {
+  if (value.evidenceKeys[0] !== `minor.year.${value.targetYear}.lunar-age.${value.lunarAge}` ||
+      value.evidenceKeys[1] !== `minor.palace.${value.palaceId}`) {
+    ctx.addIssue({ code: "custom", message: "Minor limit evidence must match its computed facts" });
+  }
+});
+export type ZiweiMinorLimitV1 = z.infer<typeof ZiweiMinorLimitV1Schema>;
+
 export const ZiweiHoroscopeResultV1Schema = z
   .object({
     version: z.literal(1),
@@ -131,6 +148,7 @@ export const ZiweiHoroscopeResultV1Schema = z
     asOfDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     isUnlocked: z.boolean(),
     yearly: ZiweiYearlyHanV1Schema,
+    minorLimit: ZiweiMinorLimitV1Schema.optional(),
     daily: ZiweiDailyHoroscopeV1Schema,
     purchaseFacts: ZiweiPurchaseFactsV1Schema.optional(),
     decadalCycles: z.array(ZiweiDecadalCycleV1Schema).length(12).optional(),
@@ -143,6 +161,12 @@ export const ZiweiHoroscopeResultV1Schema = z
     }).strict().optional(),
     decadal: z.object({ palaceId: PalaceIdSchema, startAge: z.number().int().min(1), endAge: z.number().int().min(1), startYear: z.number().int(), endYear: z.number().int() }).strict().refine(value => value.endAge === value.startAge + 9 && value.endYear === value.startYear + 9).optional(),
   })
-  .strict();
+  .strict().superRefine((value, ctx) => {
+    const minor = value.minorLimit;
+    if (minor && (minor.targetYear !== value.yearly.targetYear || minor.lunarAge !== value.yearly.lunarAge ||
+        (value.purchaseFacts && minor.provisional !== value.purchaseFacts.provisional))) {
+      ctx.addIssue({ code: "custom", message: "Minor limit must retain selected year, age and uncertainty" });
+    }
+  });
 
 export type ZiweiHoroscopeResultV1 = z.infer<typeof ZiweiHoroscopeResultV1Schema>;

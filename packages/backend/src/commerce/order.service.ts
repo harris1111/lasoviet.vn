@@ -1,5 +1,5 @@
 import type { CommerceSku, CurrentActor } from "@lasoviet/contracts";
-import { productCatalog } from "@lasoviet/config";
+import { legacyVndProductCatalog } from "@lasoviet/config";
 
 export type CatalogOffer = {
   readonly sku: CommerceSku;
@@ -11,7 +11,7 @@ export type CatalogOffer = {
 export type ProductSku = CommerceSku;
 
 function buildProductCatalog(): Readonly<Record<CommerceSku, CatalogOffer>> {
-  const offers = productCatalog.firstPaidOffers();
+  const offers = legacyVndProductCatalog.firstPaidOffers();
   const catalog: Partial<Record<CommerceSku, CatalogOffer>> = {};
   for (const offer of offers) {
     if (offer.sku === "ZIWEI-IDENTITY-P0" || offer.sku === "ZIWEI-NATAL-EXCERPT-P0") {
@@ -26,7 +26,9 @@ function buildProductCatalog(): Readonly<Record<CommerceSku, CatalogOffer>> {
   return Object.freeze(catalog as Record<CommerceSku, CatalogOffer>);
 }
 
-export const PRODUCT_CATALOG: Readonly<Record<CommerceSku, CatalogOffer>> = buildProductCatalog();
+/** Immutable compatibility policy for legacy VND orders; independent of Lá purchase quotes. */
+export const LEGACY_VND_CHECKOUT_CATALOG: Readonly<Record<CommerceSku, CatalogOffer>> = buildProductCatalog();
+export const PRODUCT_CATALOG = LEGACY_VND_CHECKOUT_CATALOG;
 type Chart = { id: string; ownerId: string; eligible: boolean };
 export type CheckoutAccount = {
   emailVerified: boolean;
@@ -83,8 +85,8 @@ export function createOrderService(
 
   return {
     async create(actor: CurrentActor, chartId: string, sku: string) {
-      if (!(sku in PRODUCT_CATALOG)) return { ok: false as const, error: { code: "SKU_UNSUPPORTED" } };
-      const product = PRODUCT_CATALOG[sku as ProductSku];
+      if (!(sku in LEGACY_VND_CHECKOUT_CATALOG)) return { ok: false as const, error: { code: "SKU_UNSUPPORTED" } };
+      const product = LEGACY_VND_CHECKOUT_CATALOG[sku as ProductSku];
       if (actor.kind !== "account") {
         return {
           ok: false as const,

@@ -1,0 +1,42 @@
+{
+  "status": "EXPECTED_BASELINE_GAP",
+  "minorCurrent": null,
+  "minorNext": null,
+  "boundaries": [
+    {
+      "asOfDate": "2027-02-05",
+      "expected": "29/12 Bính Ngọ",
+      "actual": "29/12 Bính Ngọ",
+      "qualityPassed": true,
+      "groundMatches": true
+    },
+    {
+      "asOfDate": "2027-02-06",
+      "expected": "1/1 Đinh Mùi",
+      "actual": "1/1 Đinh Mùi",
+      "qualityPassed": true,
+      "groundMatches": true
+    },
+    {
+      "asOfDate": "2025-08-22",
+      "expected": "29/6 nhuận Ất Tỵ",
+      "actual": "29/-6 Ất Tỵ",
+      "qualityPassed": true,
+      "groundMatches": true
+    },
+    {
+      "asOfDate": "2025-08-23",
+      "expected": "1/7 Ất Tỵ",
+      "actual": "1/7 Ất Tỵ",
+      "qualityPassed": true,
+      "groundMatches": true
+    }
+  ],
+  "legacyIdentity": false,
+  "walletCatalogHash": "fb9d330bd545591fe26b1b54e14fd3fb748ea504c10af9aa9ec2bbbb252a9be6",
+  "physicalProviderCalls": 0,
+  "databaseWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "manualAccepted": false
+}

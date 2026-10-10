@@ -229,4 +229,22 @@ describe("personal-daily-reading-writer", () => {
       expect(result.errors.some((e) => e.includes("Evidence Mismatch"))).toBe(true);
     });
   });
+  it.each([
+    ["2027-02-05", "29/12 Bính Ngọ"],
+    ["2027-02-06", "1/1 Đinh Mùi"],
+    ["2025-08-22", "29/6 nhuận Ất Tỵ"],
+    ["2025-08-23", "1/7 Ất Tỵ"],
+  ])("uses the actual daily calendar and grounding at %s", (asOfDate, expectedLunarDate) => {
+    const now = () => new Date(`${asOfDate}T03:00:00Z`);
+    const reading = writePersonalDailyReading(testProfile, { asOfDate, now });
+    const horoscope = calculateZiweiHoroscope(testProfile, { asOfDate });
+    expect(reading.calendar.solarDate).toBe(asOfDate);
+    expect(reading.calendar.lunarDateFormatted).toBe(expectedLunarDate);
+    expect(reading.calendar.lunarDateFormatted).not.toMatch(/\/-\d/);
+    expect(reading.chartGrounding.touchedPalaceId).toBe(horoscope.daily.touchedPalaceId);
+    expect(reading.evidenceKeys).toContain(`daily.date.${asOfDate}`);
+    expect(reading.qualityGate.passed).toBe(true);
+    expect(reading).toEqual(writePersonalDailyReading(testProfile, { asOfDate, now }));
+  });
+
 });
