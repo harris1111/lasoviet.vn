@@ -196,6 +196,7 @@ test("English cannot buy an unsupported palace but retains lifetime", async ({ p
 });
 
 test("visible ladder impressions preserve actual offers and authoritative upgrade attribution", async ({ page }) => {
+  await page.clock.install({ time: new Date("2026-10-07T07:00:00Z") });
   const { analytics } = await mountFixture(page);
   const lifetime = page.locator('[data-sku="ZIWEI-IDENTITY-P0"]');
   await lifetime.scrollIntoViewIfNeeded();
