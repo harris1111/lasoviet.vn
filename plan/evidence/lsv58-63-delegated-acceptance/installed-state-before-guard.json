@@ -1,0 +1,308 @@
+{
+  "observedAt": "2026-10-10T14:47:56.089950+00:00",
+  "expectedReleaseSha": "fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+  "containers": [
+    {
+      "container": "lasoviet-mvp-api-1",
+      "image": "ghcr.io/harris1111/lasoviet-api:sha-fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+      "imageId": "sha256:df64a6d01d9dce5e7e8c71400acb31dde25e4b12458c8cf9be1a13a17094ab2a",
+      "running": true,
+      "health": "healthy",
+      "releaseMatches": true
+    },
+    {
+      "container": "lasoviet-mvp-web-1",
+      "image": "ghcr.io/harris1111/lasoviet-web:sha-fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+      "imageId": "sha256:23a73b598dc0ff10af6f70f00d4b411da597991dd07950d8194a45e3da807b03",
+      "running": true,
+      "health": "healthy",
+      "releaseMatches": true
+    },
+    {
+      "container": "lasoviet-mvp-worker-1",
+      "image": "ghcr.io/harris1111/lasoviet-worker:sha-fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+      "imageId": "sha256:05f78d0fc3d7ba100bb4d9bacf3724330d71b11bd75eded93d89cc2c6776852c",
+      "running": true,
+      "health": "healthy",
+      "releaseMatches": true
+    },
+    {
+      "container": "lasoviet-mvp-pdf-worker-1",
+      "image": "ghcr.io/harris1111/lasoviet-worker:sha-fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+      "imageId": "sha256:05f78d0fc3d7ba100bb4d9bacf3724330d71b11bd75eded93d89cc2c6776852c",
+      "running": true,
+      "health": "healthy",
+      "releaseMatches": true
+    }
+  ],
+  "state": {
+    "CURRENT_RELEASE_SHA": "fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+    "PREVIOUS_RELEASE_SHA": "6e29caaa5c0e806c40e3896a5861d61052d9fc35",
+    "LAST_ATTEMPTED_RELEASE_SHA": "fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+    "LAST_SUCCESSFUL_DEPLOYMENT_AT": "2026-10-10T11:10:58Z",
+    "LAST_FAILURE_CODE": "",
+    "LAST_FAILURE_AT": ""
+  },
+  "health": [
+    {
+      "name": "canonical_readiness",
+      "exitCode": 0,
+      "output": "{\"version\":1,\"status\":\"ok\",\"required\":[],\"degraded\":[],\"checkedAt\":\"2026-10-10T14:47:53.399+00:00\"}\n200",
+      "stderr": "",
+      "ok": true,
+      "httpStatus": "200",
+      "jsonStatus": "ok"
+    },
+    {
+      "name": "loopback_readiness",
+      "exitCode": 0,
+      "output": "{\"version\":1,\"status\":\"ok\",\"required\":[],\"degraded\":[],\"checkedAt\":\"2026-10-10T14:47:53.054+00:00\"}\n200",
+      "stderr": "",
+      "ok": true,
+      "httpStatus": "200",
+      "jsonStatus": "ok"
+    },
+    {
+      "name": "worker_heartbeat",
+      "exitCode": 0,
+      "output": "",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "name": "pdf_heartbeat",
+      "exitCode": 0,
+      "output": "",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "name": "garage_s3_health",
+      "exitCode": 0,
+      "output": "",
+      "stderr": "",
+      "ok": true
+    }
+  ],
+  "protectedFiles": [
+    {
+      "path": "/home/debian/projects/lasoviet.vn/.env.example",
+      "sha256": "4d0a2ae1d490ac5345eece292a41deee7f81b0a45ffa017b5800ea7c9f4347d4",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/AGENTS.md",
+      "sha256": "15758a44904bf4c5c37b358259d871f8b4a315c6084ace192beae46ea90e92d9",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/app/[locale]/bao-cao/[reportId]/page.test.tsx",
+      "sha256": "9916b39db1b828e7db9b19a879947aa4f0dfc7958f75ed62616b90212edd1139",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/app/[locale]/thanh-toan/[orderId]/page.test.tsx",
+      "sha256": "d63c7831b3cfb730c98c5199421d202b6fe3f46b264e85a7698955c819f9dd54",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/features/auth/auth-client-actions.test.ts",
+      "sha256": "3b3d9262635018bfece9cc58118e66879a6562ad0c9806c9d512445e70b3f83e",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/features/commerce/vietqr-checkout.test.tsx",
+      "sha256": "39e3f6528ce19bfee23b928d03ba11356f4ee0b64f3f8f97b5a36d3a4596b573",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/features/commerce/vietqr-checkout.tsx",
+      "sha256": "af60057463422b8dc2b0dc6f194d7b4f890764402028b381089e70995d32bde0",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/features/free-tools/gated-tool-preview.tsx",
+      "sha256": "6697115dd318c370897478b5c65b617b3ff2f1f1038916eb448d7cb6bae82532",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/features/reports/load-report.test.ts",
+      "sha256": "62fd7b0330ea527348d65b08bc7bd3deedc7846c20eeb37d2b405d7fd4bce9f7",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/features/reports/report-progress.test.tsx",
+      "sha256": "cb18460c6e120c792fe23e7f338edff7b1003ec6d25706c62bcba2ae49d19b05",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/proxy.ts",
+      "sha256": "5454f94a8680ed4ea44ed73ecc334f4f0b9f46b757aef9624b0a66e236890b42",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/seo/public-metadata.ts",
+      "sha256": "f2eaa8c8fa3cb065bcb0162f6cd2df1f5886796778c501d7c98559e35a3adc79",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/apps/web/src/seo/sitemap-registry.ts",
+      "sha256": "f70bf3a2b0574ceab5500aac2961e6c960b7e3dc04c03819750f0ffbb3fefcbf",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/config/domain-routing.json",
+      "sha256": "c6ebbc672a2cee142a1147edb6295a93421b7c76ff191298927db5bbde0a8a3a",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/config/sitemap.json",
+      "sha256": "c941510b0f5a504e74ad5c05317ce28d32a12ae034c92b99371954338a590bf0",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/docker-compose.registry.yml",
+      "sha256": "06082c221b28ce9221afd3f41369190fc12e201fd3ce31e1f252b47e145239b2",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/docker-compose.yml",
+      "sha256": "1d3393111d63a35ecebeb3827d60ac75179f0d00979d24f7d9cfdb7c478310bd",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/packages/backend/src/reports/report-query.service.test.ts",
+      "sha256": "557682c6daee4cd4ee987be6e7149560906cf337678ee26128b5462fe4583f35",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/packages/backend/src/reports/report-query.service.ts",
+      "sha256": "9ddd526a795edb223b609bdfaa030cda3844542d27f81205152e15483c01a6c5",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/packages/contracts/src/identity-report-v1.test.ts",
+      "sha256": "2f89782a4b77906f52e2d8cd9d0d7271e81043f58813d792a482091cbf54f757",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/packages/contracts/src/identity-report-v1.ts",
+      "sha256": "3a171bca55c6b539bb7c829cb990246468df3a3afddb89afb922c1dffe89430f",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/deployment/cd-scripts.test.ts",
+      "sha256": "d141c9b5a311d3014b57c1bfc6c1285a98fcbea142ee8e85a7b5a0f160f6db7d",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/e2e/content-and-account.spec.ts",
+      "sha256": "40bbbc6a82f07ff47cb59553b9ca66d6f35880d40149a63538867820bbc097c9",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/e2e/public-surface.spec.ts",
+      "sha256": "8eee3b3608498ad913e7bc8699a0236d6e2576632c1c44ade4b4163ff6c47f4a",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/i18n/runtime-routing.test.ts",
+      "sha256": "a2c2dd4e84d5851da75768fcfe70382482544cbb1d45b2c98915953bd2bf1bae",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/reports/report-query.integration.test.ts",
+      "sha256": "dcd2874c977e4ac84d43efc11df499b63114855d4490e834617fe623f2e1b77e",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/seo/private-route-state.test.ts",
+      "sha256": "cb49d04d68a1ee0f9090b703c9fc77d60a86612bcdee91120b5ff0957fb476cc",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/seo/public-metadata.test.ts",
+      "sha256": "00dd101e07be16388f074833b11d963e34e101ceac95a0f837e73764779fb305",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/tests/seo/structured-data.test.ts",
+      "sha256": "39182a6746dbe79395d793b1bb0099e760c22aaf2f943280b597d20a76e337ff",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/lasoviet.vn/config/garage.toml",
+      "sha256": "1ba188cfd25f08978ee9946257ce37937b272f4f69d15b24a46d9dc3013cc2f8",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/poll-release.sh",
+      "sha256": "868ab05a6ece7174910b0b89d4dbe2fedd5e53f480ee4aae9c707971dcce3041",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/backup-postgres.sh",
+      "sha256": "d2b404d85a956950be01c12fdf3d3f69954ee0dd8bb472b6def9c06a22a5a64d",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/setup-remote-codex-shell.auto-login-disabled.sh",
+      "sha256": "92ea8ba2644ffc4e327d950e3cce9888d86d1386e96a75c7f85cb13935dd84f0",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/rollback-release.sh",
+      "sha256": "e1333fabd5af3fbea0776779f616fcbe04feb45abe81a93bbde5f1e25b5ac6d6",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/deploy-release.sh",
+      "sha256": "bbab1fc5a7e650e04349380c43213f149d61e0aba6f0608c4621263d8ef6063e",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/lib/common.sh",
+      "sha256": "fcdd65f091d1e0cc3918ced6615ce55f3409aaf7e39a48150a8e797afe76edc6",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/infra/lasoviet/deploy.env",
+      "sha256": "8f7df7c9aff469f26f9d49a76b789e5e92224d6105b184fd33093568410452b9",
+      "unchanged": true
+    },
+    {
+      "path": "/home/debian/projects/.lasoviet-mvp.env",
+      "sha256": "b992c49e1aba3d1fce862c3d7dbaf713c6d04a384e8ffc67b2b8ca4388d5ba69",
+      "unchanged": true
+    }
+  ],
+  "authorityFiles": [
+    {
+      "file": "reports.json",
+      "sha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+      "unchanged": true
+    },
+    {
+      "file": "budget.jsonl",
+      "sha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+      "unchanged": true
+    },
+    {
+      "file": "fd123-continuation/reports.json",
+      "sha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+      "unchanged": true
+    },
+    {
+      "file": "fd123-continuation/budget.jsonl",
+      "sha256": "1496236a197afb8e3362113cf45d093d69d495b41c1eed6ec8b8690189367b14",
+      "unchanged": true
+    }
+  ],
+  "effectCounterScope": "observer only; deployment effects and manual acceptance are separate",
+  "physicalProviderCalls": 0,
+  "databaseWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "manualAccepted": false,
+  "ok": true
+}

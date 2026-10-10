@@ -371,6 +371,58 @@ describe("validateZiweiTopicDeepDiveQualityV4", () => {
     expect(coordinateFindings("Cung Phúc Đức đại vận tại Thìn.", source).some(f => f.code === "DECADAL_TIMING_MISMATCH")).toBe(true);
   });
 
+  function residentFindings(sentence: string, source = facts) {
+    const report = makeValidRelationshipReport(source);
+    report.palaceAnchors[0]!.narrative += ` ${sentence}`;
+    return validateZiweiTopicDeepDiveQualityV4(report, source).findings.filter(finding => finding.code === "PALACE_FACTS");
+  }
+
+  it.each([
+    "Cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát.",
+    "Cung Phu Thê gồm Thiên Phủ, Kiếp Sát, Văn Xương.",
+    "Cung Phu Thê an ngự tại Dần mang thiên can Canh, hội tụ chính tinh Thiên Phủ ở trạng thái Miếu cùng các phụ tinh Văn Xương hãm và Kiếp Sát.",
+    "Cung Phu Thê không có Kiếp Sát. Cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát.",
+    "Không phủ nhận rằng cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát.",
+    "Không phải là không phải cung Phu Thê có Kiếp Sát.",
+    "Cung Quan Lộc không có Kiếp Sát, cung Phu Thê có Kiếp Sát.",
+    "Cung Phu Thê không có Kiếp Sát, nhưng cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát.",
+    "Nếu giờ sinh khác, cung Phu Thê có Kiếp Sát; cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát.",
+  ])("rejects false extra resident stars despite sufficient true anchors: %s", sentence => {
+    expect(residentFindings(sentence)).toEqual(expect.arrayContaining([expect.objectContaining({ code: "PALACE_FACTS", note: expect.stringContaining("Kiếp Sát") })]));
+    expect(residentFindings(sentence.normalize("NFD"))).toEqual(residentFindings(sentence));
+  });
+
+  it.each([
+    "Cung Phu Thê có Thiên Phủ, Văn Xương.",
+    "Cung Mệnh có Thái Dương và Thiên Lương.",
+    "Cung Phu Thê không có Kiếp Sát.",
+    "Nếu cung Phu Thê có Kiếp Sát thì đây chỉ là tình huống giả định.",
+    "Cung Phu Thê nếu có Kiếp Sát thì đây chỉ là tình huống giả định.",
+    "Cung Phu Thê hội tụ Kiếp Sát từ tam hợp.",
+    "Cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát hội tụ cùng Văn Khúc.",
+    "Cung Phu Thê có Kiếp Sát chiếu từ cung Mệnh.",
+    "Cung Phu Thê có ảnh hưởng từ Kiếp Sát ở cung Mệnh.",
+    "Cung Phu Thê có Thiên Phủ; Kiếp Sát thuộc cung Mệnh.",
+    "Không phải cung Phu Thê có Kiếp Sát.",
+    "Đại vận tại cung Phu Thê có Kiếp Sát.",
+    "Trong đại vận, cung Phu Thê có Thiên Mã.",
+    "Nếu giờ sinh khác, cung Phu Thê có Kiếp Sát.",
+    "Không phải rằng, cung Phu Thê có Kiếp Sát.",
+    "Nếu cung Quan Lộc khác, cung Phu Thê có Kiếp Sát.",
+    "Cung Phu Thê có Kiếp Sát nếu giờ sinh khác.",
+    "Cung Phu Thê có Kiếp Sát khi giờ sinh khác.",
+    "Cung Phu Thê có Thiên Phủ, Văn Xương cùng ảnh hưởng của Kiếp Sát từ tam hợp.",
+  ])("preserves real residence and explicitly qualified mentions: %s", sentence => {
+    expect(residentFindings(sentence)).toEqual([]);
+    expect(residentFindings(sentence.normalize("NFD"))).toEqual([]);
+  });
+
+  it("accepts a canonical alias sharing the actual resident display label", () => {
+    const source = structuredClone(facts);
+    source.natal.palaces.find(palace => palace.palaceId === "ziwei.palace.spouse")!.stars.push({ id: "ziwei.star.jiesha-dec", category: "minor", brightness: null });
+    expect(residentFindings("Cung Phu Thê có Thiên Phủ, Văn Xương và Kiếp Sát.", source)).toEqual([]);
+  });
+
   it("passes cleanly on compliant relationship deep dive", () => {
     const report = makeValidRelationshipReport(facts);
     const result = validateZiweiTopicDeepDiveQualityV4(report, facts, {

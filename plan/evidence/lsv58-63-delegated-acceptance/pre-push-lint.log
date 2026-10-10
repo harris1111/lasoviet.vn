@@ -1,0 +1,14 @@
+$ eslint .
+
+/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/apps/web/src/features/evidence/evidence-drawer.tsx
+   73:6  warning  React Hook useEffect has a missing dependency: 'fetchEvidence'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  142:6  warning  React Hook useEffect has a missing dependency: 'handleClose'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+
+/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/apps/web/src/features/free-tools/tarot-preview.tsx
+  534:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/debian/projects/lasoviet-lsv58-63-delegated-acceptance-20261010/apps/web/src/features/troi-nam/troi-nam-hero.tsx
+  89:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+✖ 4 problems (0 errors, 4 warnings)
+

@@ -1,0 +1,135 @@
+{
+  "status": "PASS",
+  "observedAt": "2026-10-10T14:50:43.412Z",
+  "releaseSha": "fff32b37263eb0bd9a35aec4808c0ef916a22f99",
+  "sourceJournalSha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+  "rows": [
+    {
+      "container": "lasoviet-mvp-api-1",
+      "exitCode": 0,
+      "rows": [
+        {
+          "slot": "relationship_marriage:1",
+          "qualityPassed": false,
+          "findings": [
+            {
+              "sectionKey": "decadalTiming",
+              "code": "PALACE_FACTS",
+              "note": "Explicit natal coordinate for ziwei.palace.fortune is ziwei.branch.dragon; source requires ziwei.branch.monkey."
+            }
+          ]
+        },
+        {
+          "slot": "career_wealth:0",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "monthly:0",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "monthly:1",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "current_annual:0",
+          "qualityPassed": true,
+          "findings": []
+        }
+      ],
+      "physicalProviderCalls": 0,
+      "databaseWrites": 0,
+      "financialWrites": 0,
+      "customerSends": 0,
+      "productAccepted": false
+    },
+    {
+      "container": "lasoviet-mvp-worker-1",
+      "exitCode": 0,
+      "rows": [
+        {
+          "slot": "relationship_marriage:1",
+          "qualityPassed": false,
+          "findings": [
+            {
+              "sectionKey": "decadalTiming",
+              "code": "PALACE_FACTS",
+              "note": "Explicit natal coordinate for ziwei.palace.fortune is ziwei.branch.dragon; source requires ziwei.branch.monkey."
+            }
+          ]
+        },
+        {
+          "slot": "career_wealth:0",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "monthly:0",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "monthly:1",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "current_annual:0",
+          "qualityPassed": true,
+          "findings": []
+        }
+      ],
+      "physicalProviderCalls": 0,
+      "databaseWrites": 0,
+      "financialWrites": 0,
+      "customerSends": 0,
+      "productAccepted": false
+    },
+    {
+      "container": "lasoviet-mvp-pdf-worker-1",
+      "exitCode": 0,
+      "rows": [
+        {
+          "slot": "relationship_marriage:1",
+          "qualityPassed": false,
+          "findings": [
+            {
+              "sectionKey": "decadalTiming",
+              "code": "PALACE_FACTS",
+              "note": "Explicit natal coordinate for ziwei.palace.fortune is ziwei.branch.dragon; source requires ziwei.branch.monkey."
+            }
+          ]
+        },
+        {
+          "slot": "career_wealth:0",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "monthly:0",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "monthly:1",
+          "qualityPassed": true,
+          "findings": []
+        },
+        {
+          "slot": "current_annual:0",
+          "qualityPassed": true,
+          "findings": []
+        }
+      ],
+      "physicalProviderCalls": 0,
+      "databaseWrites": 0,
+      "financialWrites": 0,
+      "customerSends": 0,
+      "productAccepted": false
+    }
+  ],
+  "scope": "Actual retained responses revalidated by installed API/worker/PDF quality functions; not replay or product acceptance"
+}

@@ -17,14 +17,15 @@ test.beforeAll(async () => {
     import {TopicReportReader} from "./src/features/reports/topic-report-reader";
     import reports from "./messages/vi/reports.json";
     createRoot(document.getElementById("fixture")).render(<NextIntlClientProvider locale="vi" timeZone="Asia/Ho_Chi_Minh" messages={{reports}}><TopicReportReader report={${JSON.stringify(report)}}/></NextIntlClientProvider>);
-  `,loader:"tsx",resolveDir:resolve(root,"apps/web")},alias:{"@lasoviet/contracts":resolve(root,"packages/contracts/src/guarantee-feedback-v1.ts")},bundle:true,write:false,format:"iife",platform:"browser",jsx:"automatic",define:{"process.env.NODE_ENV":'"production"',"process.env":"{}"},plugins:[{name:"isolated-router",setup(build: {onResolve: Function;onLoad: Function}){build.onResolve({filter:/^next\/navigation$/},()=>({path:"router",namespace:"stub"}));build.onLoad({filter:/.*/,namespace:"stub"},()=>({contents:'export const useRouter=()=>({refresh(){},push(){}});',loader:"js"}));}}]});
+  `,loader:"tsx",resolveDir:resolve(root,"apps/web")},alias:{"@lasoviet/contracts":resolve(root,"tests/e2e/helpers/browser-commerce-contracts.ts")},bundle:true,write:false,format:"iife",platform:"browser",jsx:"automatic",define:{"process.env.NODE_ENV":'"production"',"process.env":"{}"},plugins:[{name:"isolated-router",setup(build: {onResolve: Function;onLoad: Function}){build.onResolve({filter:/^next\/navigation$/},()=>({path:"router",namespace:"stub"}));build.onLoad({filter:/.*/,namespace:"stub"},()=>({contents:'export const useRouter=()=>({refresh(){},push(){}});',loader:"js"}));}}]});
   bundle=result.outputFiles[0].text;
 });
 for(const width of [320,390,1440]) test(`paid topic readable and printable at ${width}px`,async({page})=>{
   await page.setViewportSize({width,height:900});const errors:string[]=[];page.on("pageerror",error=>errors.push(error.message));
-  await page.route("**/*",route=>new URL(route.request().url()).pathname==="/"?route.fulfill({contentType:"text/html",body:'<!doctype html><html data-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div id="fixture"></div></body></html>'}):route.fulfill({status:204}));
+  await page.route("**/*",route=>new URL(route.request().url()).pathname==="/"?route.fulfill({contentType:"text/html",body:'<!doctype html><html data-theme="light"><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><div data-light-ready><div id="fixture"></div></div></body></html>'}):route.fulfill({status:204}));
   await page.goto("http://topic-reader.test/");await page.addStyleTag({content:stylesheet});await page.addScriptTag({content:bundle});
   await expect(page.getByRole("heading",{level:1})).toHaveText(report.content.title);
+  expect(await page.getByRole("heading",{level:1}).evaluate(element=>getComputedStyle(element).color)).toBe(await page.getByRole("link",{name:"Về thư viện của bạn"}).evaluate(element=>getComputedStyle(element).color));
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await expect(page.getByRole("link",{name:"Về thư viện của bạn"})).toHaveAttribute("href","/tai-khoan/bao-cao");
   await expect(page.getByRole("button",{name:"Không đúng",exact:true})).toBeVisible();

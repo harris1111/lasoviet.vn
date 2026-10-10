@@ -1,0 +1,37 @@
+$ corepack pnpm@11.25.0 run config:contact:check && corepack pnpm@11.25.0 --filter "{packages/**}" -r --if-present run build && corepack pnpm@11.25.0 -r --if-present run typecheck
+$ node packages/config/scripts/generate-customer-contact.mjs --check
+Customer contact config is in sync.
+Scope: 6 of 10 workspace projects
+packages/contracts build$ tsc -p tsconfig.json
+packages/observability build$ tsc -p tsconfig.json
+packages/observability build: Done
+packages/contracts build: Done
+packages/config build$ node scripts/generate-customer-contact.mjs && tsc -p tsconfig.json
+packages/database build$ tsc -p tsconfig.json
+packages/engine-adapters build$ tsc -p tsconfig.json
+packages/config build: Successfully generated packages/config/src/customer-contact.generated.ts
+packages/engine-adapters build: Done
+packages/config build: Done
+packages/database build: Done
+packages/backend build$ tsc -p tsconfig.json && node scripts/copy-pdf-font-assets.mjs
+packages/backend build: Done
+Scope: 9 of 10 workspace projects
+packages/contracts typecheck$ tsc -p tsconfig.json --noEmit
+packages/observability typecheck$ tsc -p tsconfig.json --noEmit
+packages/observability typecheck: Done
+packages/contracts typecheck: Done
+packages/config typecheck$ node scripts/generate-customer-contact.mjs --check && tsc -p tsconfig.typecheck.json --noEmit
+packages/database typecheck$ tsc -p tsconfig.json --noEmit
+packages/engine-adapters typecheck$ tsc -p tsconfig.json --noEmit
+packages/config typecheck: Customer contact config is in sync.
+packages/engine-adapters typecheck: Done
+packages/config typecheck: Done
+packages/database typecheck: Done
+packages/backend typecheck$ tsc -p tsconfig.typecheck.json --noEmit
+packages/backend typecheck: Done
+apps/api typecheck$ tsc -p tsconfig.json --noEmit
+apps/web typecheck$ tsc -p tsconfig.typecheck.json --noEmit
+apps/worker typecheck$ tsc -p tsconfig.json --noEmit
+apps/worker typecheck: Done
+apps/api typecheck: Done
+apps/web typecheck: Done

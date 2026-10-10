@@ -1,0 +1,96 @@
+{
+  "status": "PASS",
+  "sourceJournalSha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+  "rows": [
+    {
+      "slot": "monthly:0",
+      "width": 320,
+      "contentSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "monthly:0",
+      "width": 390,
+      "contentSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "monthly:0",
+      "width": 1440,
+      "contentSha256": "19f7ba2ab346e87eaa80b998bb6557c4dab6d9474b570761b273035c4cb9f59a",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "monthly:1",
+      "width": 320,
+      "contentSha256": "29b6adab77e054385f09b4be910e2b6795e88b109fa1cf8f3403678c3e3df795",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "monthly:1",
+      "width": 390,
+      "contentSha256": "29b6adab77e054385f09b4be910e2b6795e88b109fa1cf8f3403678c3e3df795",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "monthly:1",
+      "width": 1440,
+      "contentSha256": "29b6adab77e054385f09b4be910e2b6795e88b109fa1cf8f3403678c3e3df795",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "current_annual:0",
+      "width": 320,
+      "contentSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "current_annual:0",
+      "width": 390,
+      "contentSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "current_annual:0",
+      "width": 1440,
+      "contentSha256": "12203a8d397c4e1c910b4877105c2ed1636f29a81d4d6f1d2f0eaaf861b54edb",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "career_wealth:0",
+      "width": 320,
+      "contentSha256": "01288ac17f2465c33f5e6e5f83df9daee314aa60853d93fa6a9f6095e8bee470",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "career_wealth:0",
+      "width": 390,
+      "contentSha256": "01288ac17f2465c33f5e6e5f83df9daee314aa60853d93fa6a9f6095e8bee470",
+      "pass": true,
+      "clientErrors": 0
+    },
+    {
+      "slot": "career_wealth:0",
+      "width": 1440,
+      "contentSha256": "01288ac17f2465c33f5e6e5f83df9daee314aa60853d93fa6a9f6095e8bee470",
+      "pass": true,
+      "clientErrors": 0
+    }
+  ],
+  "scope": "Isolated browser rendering of four retained real responses; no authenticated purchase/export integration or editorial/product acceptance implied",
+  "physicalProviderCalls": 0,
+  "productionDatabaseWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "manualAccepted": false
+}

@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-10-10T15:07:36.383380+00:00",
+  "checks": [
+    {
+      "check": "i18n",
+      "exitCode": 0,
+      "log": "pre-push-i18n.log",
+      "sha256": "1a0d9602a6c659f9627dc2edd8e8e539742c9879aac277ceee39fcc6284f84f5"
+    },
+    {
+      "check": "lint",
+      "exitCode": 0,
+      "log": "pre-push-lint.log",
+      "sha256": "68b8524e9fe253777fccb9dfdd2fa66707b5303a0eb9a7a6693d74c0ceb22ccb"
+    },
+    {
+      "check": "typecheck",
+      "exitCode": 0,
+      "log": "pre-push-typecheck.log",
+      "sha256": "a0aa88e1c95d130cdf07d701b69af0fb9f03707d22f9e6d8955cde5821a00014"
+    }
+  ],
+  "lintErrors": 0,
+  "existingLintWarnings": 4
+}

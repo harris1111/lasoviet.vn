@@ -17,6 +17,7 @@ import {
   referencedEvidenceFactIds,
   wholeWord,
 } from "./comprehensive-report-quality-v4.js";
+import { KNOWN_CANONICAL_IDENTIFIERS_VI } from "./ziwei-canonical-labels.js";
 import { normalizeComprehensiveReportModelProse } from "./comprehensive-report-writer.js";
 import { hasProhibitedReadingAdvice } from "./reading-content-line.js";
 import type { ComprehensiveZiweiFactsV4 } from "./comprehensive-ziwei-facts-v4.js";
@@ -117,6 +118,62 @@ function checkExplicitPalaceCoordinates(
   }
 }
 
+function checkExplicitResidentStarLists(
+  text: string,
+  facts: ComprehensiveZiweiFactsV4,
+  addFinding: (code: TopicDeepDiveQualityFindingCode, note: string) => void,
+) {
+  const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const labels = [...new Set(Object.entries(KNOWN_CANONICAL_IDENTIFIERS_VI)
+    .filter(([id]) => id.startsWith("ziwei.star."))
+    .map(([, label]) => label.replace(/^sao\s+/u, "")))].sort((a, b) => b.length - a.length);
+  const nextStar = new RegExp(`^\\s*(?:(?:các\\s+)?(?:sao|chính\\s+tinh|phụ\\s+tinh)\\s+)?(${labels.map(escape).join("|")})(?![\\p{L}\\p{N}])`, "iu");
+  const modifier = /^\s*(?:(?:ở\s+trạng\s+thái\s+)?(?:miếu|vượng|đắc(?:\s+địa)?|hãm(?:\s+địa)?|bình(?:\s+hòa)?))(?![\p{L}\p{N}])/iu;
+  const separator = /^\s*(?:,\s*(?:và\s+)?|(?:và|cùng|hội\s+cùng)\s+)/iu;
+  const normalized = text.normalize("NFC");
+  for (const palace of facts.natal.palaces) {
+    const label = displayFact(palace.palaceId);
+    if (!label) continue;
+    const claim = new RegExp(`(?<![\\p{L}\\p{N}])(?:cung\\s+)?${escape(label)}(?![\\p{L}\\p{N}])([^.!?;:\\n]{0,100}?)\\s+(có|gồm|chứa|hội\\s+tụ(?=\\s+(?:chính\\s+tinh|phụ\\s+tinh|sao)))(?![\\p{L}\\p{N}])`, "giu");
+    const residentLabels = new Set(palace.stars.map(star => displayFact(star.id)?.normalize("NFC").toLocaleLowerCase("vi")));
+    for (const match of normalized.matchAll(claim)) {
+      const prefix = match[1]!;
+      const beforePalace = normalized.slice(0, match.index).split(/[.!?;:\n]|(?<![\p{L}\p{N}])(?:nhưng|còn)(?![\p{L}\p{N}])/iu).at(-1) ?? "";
+      // Do not infer residence from aspect, layer, conditional or absence prose.
+      const governingContext = `${beforePalace} ${prefix}`;
+      if (["nếu", "giả sử", "đại vận", "lưu", "tam hợp", "đối cung", "chiếu", "từ", "thì"]
+        .some(term => wholeWord(governingContext, term))) continue;
+      const earlierPalaceClause = beforePalace.includes(",") && facts.natal.palaces
+        .some(other => wholeWord(beforePalace, displayFact(other.palaceId) ?? other.palaceId));
+      const denialContext = `${earlierPalaceClause ? beforePalace.split(",").at(-1) : beforePalace} ${prefix}`
+        .replace(/không\s+(?:thể\s+|hề\s+)?phủ\s+nhận\s+(?:rằng\s+)?/giu, "")
+        .replace(/(?:không\s+phải\s+(?:(?:là|rằng)\s+)?){2}/giu, "");
+      if (["không", "chưa"].some(term => wholeWord(denialContext, term))) continue;
+      if (facts.natal.palaces.some(other => other.palaceId !== palace.palaceId && wholeWord(prefix, displayFact(other.palaceId) ?? other.palaceId))) continue;
+      let tail = normalized.slice(match.index! + match[0].length).split(/[.!?;:\n]/u)[0]!;
+      const claimedLabels: string[] = [];
+      while (true) {
+        const star = nextStar.exec(tail);
+        if (!star) break;
+        claimedLabels.push(star[1]!);
+        tail = tail.slice(star[0].length).replace(modifier, "");
+        const join = separator.exec(tail);
+        if (!join) break;
+        tail = tail.slice(join[0].length);
+      }
+      // A condition following the list qualifies this claim, not a later sentence.
+      if (/^\s*(?:nếu|giả\s+sử|khi\s+(?:giờ\s+sinh|lá\s+số)\s+khác)(?![\p{L}\p{N}])/iu.test(tail)) continue;
+      // A following aspect qualifier changes the meaning of the list itself.
+      if (/^\s*(?:ở|tại|thuộc|từ|chiếu|xung\s+chiếu|hội\s+chiếu|hội\s+tụ|trong\s+tam\s+hợp|tại\s+đối\s+cung)(?![\p{L}\p{N}])/iu.test(tail)) continue;
+      for (const starLabel of claimedLabels) {
+        if (!residentLabels.has(starLabel.toLocaleLowerCase("vi"))) {
+          addFinding("PALACE_FACTS", `Explicit resident star ${starLabel} is absent from natal ${palace.palaceId}.`);
+        }
+      }
+    }
+  }
+}
+
 function checkProse(
   text: string,
   sectionKey: string,
@@ -130,6 +187,7 @@ function checkProse(
   const normalized = normalizeComprehensiveReportModelProse(rawText);
 
   checkExplicitPalaceCoordinates(rawText, facts, addFinding);
+  checkExplicitResidentStarLists(rawText, facts, addFinding);
 
   // Resident-major absence says nothing about the opposite palace. Check
   // explicit named-palace opposition claims against that separate source.

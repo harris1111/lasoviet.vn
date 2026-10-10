@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-10-10T14:37:27.578154+00:00",
+  "files": [
+    {
+      "file": "reports.json",
+      "bytes": 15848,
+      "sha256": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05"
+    },
+    {
+      "file": "budget.jsonl",
+      "bytes": 913,
+      "sha256": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5"
+    },
+    {
+      "file": "fd123-continuation/reports.json",
+      "bytes": 345849,
+      "sha256": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2"
+    },
+    {
+      "file": "fd123-continuation/budget.jsonl",
+      "bytes": 14004,
+      "sha256": "1496236a197afb8e3362113cf45d093d69d495b41c1eed6ec8b8690189367b14"
+    }
+  ]
+}

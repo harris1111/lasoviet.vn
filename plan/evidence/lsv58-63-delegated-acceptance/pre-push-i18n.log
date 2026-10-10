@@ -1,0 +1,2 @@
+$ node scripts/check-i18n-parity.mjs
+i18n parity passed
