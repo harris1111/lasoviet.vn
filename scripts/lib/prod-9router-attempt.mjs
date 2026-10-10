@@ -2,11 +2,13 @@ import { createHash } from "node:crypto";
 import { execFileSync, spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createInterface } from "node:readline";
-import { ROUTER_IMAGE, inspectNativeAccountingEvidence } from "./prod-9router-child.mjs";
+import { ROUTER_IMAGE, inspectNativeAccountingEvidence, inspectNativeFailureDiagnostic } from "./prod-9router-child.mjs";
 import { createCampaignBudget } from "./campaign-budget.mjs";
 import { inspectNativeReceipt } from "./native-campaign-preflight.mjs";
 import { nativeApiReferencePricing, quoteNativeApiReference } from "./native-campaign-api-pricing.mjs";
 import { FD123_POLICY, FD123_MODEL_BOUND_MODE, FD123_TECHNICAL_CAP_VND, quoteFd123ReferenceSettlement } from "./fd123-reference-continuation.mjs";
+
+import { FD124_POLICY, FD124_OUTPUT_TOKENS } from "./fd124-replacement-trials.mjs";
 
 export const FD121_ROOT = "/home/debian/.lasoviet/fd121-paid-manual-trials";
 export const FD121_LEDGER = `${FD121_ROOT}/budget.jsonl`;
@@ -41,16 +43,17 @@ export function installedRouterProcess() {
 }
 
 export async function runProdRouterAttempt({ system, user, maxOutputTokens, attemptKey, onPrepared = () => {},
-  onReceipt = () => {}, budget = paidTrialBudget(), processFactory = installedRouterProcess, now = () => new Date(), referenceContinuation = false, referenceMode }) {
+  onReceipt = () => {}, onDispatchReady = () => {}, budget = paidTrialBudget(), processFactory = installedRouterProcess, now = () => new Date(), referenceContinuation = false, referenceMode }) {
   if (referenceMode !== undefined && (!referenceContinuation || referenceMode !== FD123_MODEL_BOUND_MODE)) fail("FD123_REFERENCE_MODE_INVALID");
-  if (referenceContinuation && budget.referenceContinuation !== FD123_POLICY) fail("FD123_LEDGER_POLICY_REQUIRED");
+  if (referenceContinuation && ![FD123_POLICY, FD124_POLICY].includes(budget.referenceContinuation)) fail("FD123_LEDGER_POLICY_REQUIRED");
+  if (budget.referenceContinuation === FD124_POLICY && maxOutputTokens !== FD124_OUTPUT_TOKENS) fail("FD124_REQUEST_BOUND_REQUIRED");
   if (!/^[a-f0-9]{64}$/.test(attemptKey)) fail("ROUTER_ATTEMPT_INVALID");
   const pricing = nativeApiReferencePricing(now());
   nativeApiReferencePricing(new Date(now().getTime() + 120000));
   const child = processFactory();
   const lines = createInterface({ input: child.stdout, crlfDelay: Infinity });
   const iterator = lines[Symbol.asyncIterator]();
-  let reservationId, trace, bounds, usageDiagnostic, visibleUnacceptedOutput, accountingEvidence;
+  let reservationId, trace, bounds, usageDiagnostic, visibleUnacceptedOutput, accountingEvidence, failureDiagnostic;
   const timer = setTimeout(() => child.kill(), 135000);
   const rejectChildError = () => child.stdout.destroy();
   child.once("error", rejectChildError);
@@ -72,12 +75,20 @@ export async function runProdRouterAttempt({ system, user, maxOutputTokens, atte
     await onPrepared({ attemptKey, trace, reserveVnd });
     reservationId = budget.reserveAttempt("v4.2-report", reserveVnd, { attemptKey, trace });
     budget.markDispatched(reservationId);
+    await onDispatchReady({ attemptKey, reservationId, trace });
     if (p.expiresAtMs <= now().getTime() + 120000 || nativeApiReferencePricing(now()).snapshotSha256 !== pricing.snapshotSha256) fail("ROUTER_DISPATCH_EXPIRED");
     child.stdin.end(JSON.stringify({ type: "dispatch", requestSha256: trace.requestSha256 }) + "\n");
     const result = await iterator.next();
     if (result.done || result.value.length > 2000000) fail("ROUTER_RESULT_MISSING");
     const r = JSON.parse(result.value);
-    if (r.type !== "result") fail(r.type === "failure" ? r.code : "ROUTER_RESULT_INVALID");
+    if (r.type !== "result") {
+      if (r.type === "failure" && r.diagnostic !== undefined) {
+        const diagnostic = inspectNativeFailureDiagnostic(r.diagnostic);
+        if (diagnostic.requestSha256 !== trace.requestSha256) fail("ROUTER_DIAGNOSTIC_REQUEST_MISMATCH");
+        failureDiagnostic = diagnostic;
+      }
+      fail(r.type === "failure" && /^ROUTER_[A-Z_]+$/.test(r.code ?? "") ? r.code : "ROUTER_RESULT_INVALID");
+    }
     accountingEvidence = inspectNativeAccountingEvidence(r.accountingEvidence, { requestSha256: trace.requestSha256,
       outputText: r.outputText, receipt: r.receipt, conflictingUsage: r.conflictingUsage });
     visibleUnacceptedOutput = typeof r.outputText === "string" ? r.outputText : undefined;
@@ -103,7 +114,7 @@ export async function runProdRouterAttempt({ system, user, maxOutputTokens, atte
     return { attemptKey, reservationId, trace, receipt, quote, outputSha256, outputText: r.outputText, accountingEvidence };
   } catch (error) {
     throw Object.assign(new Error("PAID_TRIAL_ATTEMPT_STOPPED"), { code: typeof error.code === "string" ? error.code : "ROUTER_ATTEMPT_FAILED", reservationId,
-      ...(usageDiagnostic ? { usageDiagnostic, visibleUnacceptedOutput } : {}), ...(accountingEvidence ? { accountingEvidence } : {}) });
+      ...(usageDiagnostic ? { usageDiagnostic, visibleUnacceptedOutput } : {}), ...(accountingEvidence ? { accountingEvidence } : {}), ...(failureDiagnostic ? { failureDiagnostic } : {}) });
   } finally {
     clearTimeout(timer); lines.close(); child.kill();
   }

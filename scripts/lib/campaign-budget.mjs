@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { FD124_POLICY, FD124_TECHNICAL_CAP_VND } from "./fd124-replacement-trials.mjs";
 import { FD123_POLICY, FD123_TECHNICAL_CAP_VND } from "./fd123-reference-continuation.mjs";
 
 // FD-112 approves only this campaign; this primitive does not verify provider prices.
@@ -37,16 +38,19 @@ const worker = fileURLToPath(new URL("./campaign-budget-ledger-worker.mjs", impo
 export function createCampaignBudget({ ledgerPath = defaultLedgerPath(), totalCapVnd = TOTAL_CAP_VND,
   allocationsVnd = DEFAULT_ALLOCATIONS_VND, now = () => new Date(), settleActualUsage = false, referenceContinuation } = {}) {
   const fd123 = referenceContinuation === FD123_POLICY;
-  if (referenceContinuation !== undefined && !fd123) throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
-  if (fd123 && (totalCapVnd !== FD123_TECHNICAL_CAP_VND || allocationsVnd?.["v4.2-report"] !== FD123_TECHNICAL_CAP_VND || settleActualUsage !== true)) throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
-  if (!Number.isSafeInteger(totalCapVnd) || totalCapVnd <= 0 || totalCapVnd > (fd123 ? FD123_TECHNICAL_CAP_VND : TOTAL_CAP_VND) ||
+  const fd124 = referenceContinuation === FD124_POLICY;
+  const reference = fd123 || fd124;
+  const referenceCap = fd124 ? FD124_TECHNICAL_CAP_VND : FD123_TECHNICAL_CAP_VND;
+  if (referenceContinuation !== undefined && !reference) throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
+  if (reference && (totalCapVnd !== referenceCap || allocationsVnd?.["v4.2-report"] !== referenceCap || settleActualUsage !== true)) throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
+  if (!Number.isSafeInteger(totalCapVnd) || totalCapVnd <= 0 || totalCapVnd > (reference ? referenceCap : TOTAL_CAP_VND) ||
       !allocationsVnd || Object.keys(allocationsVnd).length !== 1 ||
       !Object.hasOwn(allocationsVnd, "v4.2-report") || !Number.isSafeInteger(allocationsVnd["v4.2-report"]) ||
       allocationsVnd["v4.2-report"] <= 0 || allocationsVnd["v4.2-report"] > totalCapVnd ||
       typeof ledgerPath !== "string" || !ledgerPath.trim() || typeof settleActualUsage !== "boolean") throw new CampaignBudgetError("BUDGET_CONFIG_INVALID");
   const path = resolve(ledgerPath);
   // Opt-in is journal-bound and cannot reinterpret an existing FD112 ledger.
-  const config = { totalCapVnd, allocationVnd: allocationsVnd["v4.2-report"], ...(settleActualUsage ? { settleActualUsage: true } : {}), ...(fd123 ? { referenceContinuation } : {}) };
+  const config = { totalCapVnd, allocationVnd: allocationsVnd["v4.2-report"], ...(settleActualUsage ? { settleActualUsage: true } : {}), ...(reference ? { referenceContinuation } : {}) };
   function command(action, fields = {}) {
     let fd;
     try {
@@ -73,7 +77,7 @@ export function createCampaignBudget({ ledgerPath = defaultLedgerPath(), totalCa
   }
   return {
     ledgerPath: path,
-    ...(fd123 ? { referenceContinuation } : {}),
+    ...(reference ? { referenceContinuation } : {}),
     status: () => command("status"),
     reserve: (campaign, vnd) => command("reserve", { campaign, vnd }),
     reserveAttempt: (campaign, vnd, { attemptKey, trace } = {}) => command("reserve-attempt", { campaign, vnd, attemptKey, trace }),

@@ -1,0 +1,53 @@
+{
+  "ownerDecision": "FD-124",
+  "recordedAt": "2026-10-10T16:40:21.093542+00:00",
+  "baseSha": "aed4a9f36a884e78728353ece3f49aca7ecbb8cf",
+  "status": "local_pre_live_checks_pass_after_actor_ownership_correction",
+  "producerBuild": "pass",
+  "scriptTests": {
+    "passed": 139,
+    "failed": 0
+  },
+  "independentFd124Tests": {
+    "passed": 10,
+    "failed": 0
+  },
+  "i18n": "pass",
+  "lint": {
+    "errors": 0,
+    "existingWarnings": 4
+  },
+  "typecheck": "pass",
+  "frozenInputs": 6,
+  "oldAuthoritiesUnchanged": 4,
+  "physicalProviderCalls": 0,
+  "actualAuthorityWrites": 0,
+  "financialWrites": 0,
+  "customerSends": 0,
+  "liveAcceptance": false,
+  "remaining": [
+    "exact committed-head independent review",
+    "fresh CI",
+    "merge/deploy/smoke",
+    "bounded actual campaign and independent editorial acceptance",
+    "full delivery/export/guarantee/FE gates"
+  ],
+  "ciCorrection": {
+    "initialHead": "c25bc8e31768a56e021e089c7363006b4579f2fb",
+    "failedRunId": 38067813722,
+    "reason": "Two storage fixtures expected UID1000 on a different CI actor; helper ownership now follows the current actor while main CLI retains UID1000.",
+    "initialScriptTests": {
+      "passed": 137,
+      "failed": 2
+    },
+    "correctedLocalScriptTests": {
+      "passed": 139,
+      "failed": 0
+    },
+    "isolatedUid1001Tests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "nonOperatorCliBlocked": true
+  }
+}

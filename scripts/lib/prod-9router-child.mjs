@@ -146,6 +146,53 @@ export async function prepareInstalledRequest(input, { now = () => new Date() } 
     bounds: { inputTokens: caps.contextWindow, outputTokens: caps.maxOutput, reasoningTokens: caps.maxOutput } };
 }
 
+const failureReasons = Object.freeze(["JSON_PARSE", "CANDIDATE_COUNT", "FINISH_REASON", "CONTENT_ROLE", "PARTS_SHAPE", "EMPTY_VISIBLE", "ACCOUNTING_CAPTURE"]);
+const finishReasons = Object.freeze(["STOP", "MAX_TOKENS", "SAFETY", "RECITATION", "OTHER", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII", "MALFORMED_FUNCTION_CALL", "MISSING", "UNSUPPORTED"]);
+const contentRoles = Object.freeze(["model", "user", "function", "MISSING", "UNSUPPORTED"]);
+export function inspectNativeFailureDiagnostic(value) {
+  const keys = ["reason", "responseBytes", "requestSha256", "responseSha256", "candidateCount", "partCount", "finishReason", "contentRole"];
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).some(key => !keys.includes(key)) ||
+      !["reason", "responseBytes", "requestSha256", "responseSha256"].every(key => Object.hasOwn(value, key)) ||
+      !failureReasons.includes(value.reason) || !Number.isSafeInteger(value.responseBytes) || value.responseBytes < 0 || value.responseBytes > 2000000 ||
+      ![value.requestSha256, value.responseSha256].every(item => typeof item === "string" && /^[0-9a-f]{64}$/.test(item)) ||
+      ["candidateCount", "partCount"].some(key => Object.hasOwn(value, key) && (!Number.isSafeInteger(value[key]) || value[key] < 0 || value[key] > 2000000)) ||
+      (Object.hasOwn(value, "finishReason") && !finishReasons.includes(value.finishReason)) ||
+      (Object.hasOwn(value, "contentRole") && !contentRoles.includes(value.contentRole))) fail("ROUTER_DIAGNOSTIC_INVALID");
+  return Object.freeze({ ...value });
+}
+
+export function parseNativeResponse(raw, requestSha256) {
+  const diagnostic = { reason: "JSON_PARSE", responseBytes: raw.length, requestSha256, responseSha256: hash(raw) };
+  try {
+    const payload = JSON.parse(raw.toString("utf8")), native = payload?.response ?? payload;
+    diagnostic.reason = "CANDIDATE_COUNT";
+    if (Array.isArray(native?.candidates)) diagnostic.candidateCount = native.candidates.length;
+    if (diagnostic.candidateCount !== 1) fail("ROUTER_CANDIDATE_INVALID");
+    const candidate = native.candidates[0];
+    diagnostic.finishReason = candidate?.finishReason === undefined ? "MISSING" : finishReasons.includes(candidate.finishReason) ? candidate.finishReason : "UNSUPPORTED";
+    diagnostic.reason = "FINISH_REASON";
+    if (candidate?.finishReason !== "STOP") fail("ROUTER_CANDIDATE_INVALID");
+    diagnostic.contentRole = candidate.content?.role === undefined ? "MISSING" : contentRoles.includes(candidate.content.role) ? candidate.content.role : "UNSUPPORTED";
+    diagnostic.reason = "CONTENT_ROLE";
+    if (candidate.content?.role !== "model") fail("ROUTER_CANDIDATE_INVALID");
+    diagnostic.reason = "PARTS_SHAPE";
+    if (Array.isArray(candidate.content.parts)) diagnostic.partCount = candidate.content.parts.length;
+    if (!Array.isArray(candidate.content.parts) || candidate.content.parts.some(part => !part || typeof part !== "object" ||
+        typeof part.text !== "string" || Object.keys(part).some(key => !["text", "thought", "thoughtSignature"].includes(key)) ||
+        (part.thought !== undefined && typeof part.thought !== "boolean"))) fail("ROUTER_CANDIDATE_INVALID");
+    const outputText = candidate.content.parts.filter(part => part.thought !== true).map(part => part.text).join("");
+    diagnostic.reason = "EMPTY_VISIBLE";
+    if (!outputText.trim()) fail("ROUTER_CANDIDATE_INVALID");
+    diagnostic.reason = "ACCOUNTING_CAPTURE";
+    const accountingEvidence = captureNativeAccountingEvidence(payload, { responseSha256: hash(raw), requestSha256, outputText });
+    return { outputText, receipt: { modelVersion: accountingEvidence.modelVersion,
+      ...(accountingEvidence.usageMetadata ? { usageMetadata: accountingEvidence.usageMetadata } : {}) }, accountingEvidence,
+      conflictingUsage: payload.response !== undefined && payload.usageMetadata !== undefined };
+  } catch {
+    throw Object.assign(new Error("ROUTER_RESPONSE_INVALID"), { code: "ROUTER_RESPONSE_INVALID", diagnostic: inspectNativeFailureDiagnostic(diagnostic) });
+  }
+}
+
 export async function dispatchOnce(prepared, { requestImpl = request, now = () => new Date() } = {}) {
   if (prepared.endpoint !== ENDPOINT || hash(prepared.body) !== prepared.trace.requestSha256 || prepared.expiresAtMs <= now().getTime() + 120000) fail("ROUTER_DISPATCH_INVALID");
   return new Promise((resolve, reject) => {
@@ -162,20 +209,8 @@ export async function dispatchOnce(prepared, { requestImpl = request, now = () =
         res.once("error", () => finish(Object.assign(new Error("ROUTER_TRANSPORT_ERROR"), { code: "ROUTER_TRANSPORT_ERROR" })));
         res.once("aborted", () => finish(Object.assign(new Error("ROUTER_TRANSPORT_ERROR"), { code: "ROUTER_TRANSPORT_ERROR" })));
         res.once("end", () => { try {
-          const raw = Buffer.concat(chunks), payload = JSON.parse(raw.toString("utf8")), native = payload.response ?? payload;
-          const candidate = native.candidates?.[0];
-          if (native.candidates?.length !== 1 || candidate?.finishReason !== "STOP" || candidate.content?.role !== "model" ||
-              !Array.isArray(candidate.content.parts) || candidate.content.parts.some(p => typeof p.text !== "string" ||
-                Object.keys(p).some(k => !["text", "thought", "thoughtSignature"].includes(k)) || (p.thought !== undefined && typeof p.thought !== "boolean"))) fail("ROUTER_CANDIDATE_INVALID");
-          const outputText = candidate.content.parts.filter(p => p.thought !== true).map(p => p.text).join("");
-          if (!outputText.trim()) fail("ROUTER_CANDIDATE_INVALID");
-          // Raw counters preserve absence, including absent zeros. Neither raw
-          // response nor thought text can leave this process or enter its logs.
-          const accountingEvidence = captureNativeAccountingEvidence(payload, { responseSha256: hash(raw), requestSha256: prepared.trace.requestSha256, outputText });
-          finish(null, { outputText, receipt: { modelVersion: accountingEvidence.modelVersion,
-            ...(accountingEvidence.usageMetadata ? { usageMetadata: accountingEvidence.usageMetadata } : {}) }, accountingEvidence,
-            conflictingUsage: payload.response !== undefined && payload.usageMetadata !== undefined });
-        } catch { finish(Object.assign(new Error("ROUTER_RESPONSE_INVALID"), { code: "ROUTER_RESPONSE_INVALID" })); } });
+          finish(null, parseNativeResponse(Buffer.concat(chunks), prepared.trace.requestSha256));
+        } catch (error) { finish(error); } });
       });
       req.once("error", () => finish(Object.assign(new Error("ROUTER_TRANSPORT_ERROR"), { code: "ROUTER_TRANSPORT_ERROR" })));
       if (done) req.destroy(); else req.end(prepared.body);
@@ -198,6 +233,7 @@ export async function runBridge({ input = process.stdin, emit = value => process
     emit({ type: "result", ...await send(prepared) });
   } catch (error) {
     emit({ type: "failure", code: /^ROUTER_[A-Z_]+$/.test(error.code ?? "") ? error.code : "ROUTER_BRIDGE_FAILED",
-      ...(Number.isInteger(error.httpStatus) ? { httpStatus: error.httpStatus } : {}) });
+      ...(Number.isInteger(error.httpStatus) && error.httpStatus >= 100 && error.httpStatus <= 599 ? { httpStatus: error.httpStatus } : {}),
+      ...(() => { try { return error.diagnostic ? { diagnostic: inspectNativeFailureDiagnostic(error.diagnostic) } : {}; } catch { return {}; } })() });
   } finally { lines.close(); }
 }

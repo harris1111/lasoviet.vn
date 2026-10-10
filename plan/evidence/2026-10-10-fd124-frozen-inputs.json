@@ -1,0 +1,81 @@
+{
+  "campaign": "FD124-paid-six-v1",
+  "status": "dry_run_not_acceptance",
+  "asOfDate": "2026-10-09",
+  "physicalDispatches": 0,
+  "maxPhysicalAttempts": 12,
+  "inputs": [
+    {
+      "slot": "current_annual:1",
+      "group": "current_annual",
+      "index": 1,
+      "snapshotHash": "af0497b6000a536097b646f2f687aeb6c1c3246d87841a727248f6b9cdebc3ff",
+      "factsSha256": "98a0057b055693d5a695a9a781e02f2d476c36a65d140bd2b613a8690cad8c02",
+      "targetYear": 2026,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2"
+    },
+    {
+      "slot": "next_annual:0",
+      "group": "next_annual",
+      "index": 0,
+      "snapshotHash": "a8b9ff8610864c9eb650aa7291204455869a1c8e7068a41783300d7416bc8ea8",
+      "factsSha256": "1af565de78e00c3ed044b120c918322f415d90baee81c181efdeb809b3971371",
+      "targetYear": 2027,
+      "chartVersionId": "fd121-synthetic-chart-0",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2"
+    },
+    {
+      "slot": "next_annual:1",
+      "group": "next_annual",
+      "index": 1,
+      "snapshotHash": "02a470405b4286ee60f8e797ec1095d4981d6fcd37a7da70f3633ca77f93edee",
+      "factsSha256": "fe4ee3bbf7245a3b4db361cca8acb3dceb1e2a6f333a2f5c1d569e39a4f2d1b2",
+      "targetYear": 2027,
+      "chartVersionId": "fd121-synthetic-chart-1",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2"
+    },
+    {
+      "slot": "career_wealth:2",
+      "group": "career_wealth",
+      "index": 2,
+      "snapshotHash": "699cbb92463738f5787ecfc4df6142af50907f9e064a3cc73033a6203fc5364a",
+      "factsSha256": "275dbe46c1f83287363439813cdcb12b44d522a4b907c880e1c5a7491e6d259d",
+      "targetYear": 2026,
+      "chartVersionId": "fd124-synthetic-chart-2",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2"
+    },
+    {
+      "slot": "relationship_marriage:2",
+      "group": "relationship_marriage",
+      "index": 2,
+      "snapshotHash": "699cbb92463738f5787ecfc4df6142af50907f9e064a3cc73033a6203fc5364a",
+      "factsSha256": "1995ea26908986b3a9ddf94af8dfad1b0b9d1ce5ec4f60253f3f3cc55baec013",
+      "targetYear": 2026,
+      "chartVersionId": "fd124-synthetic-chart-2",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2"
+    },
+    {
+      "slot": "relationship_marriage:3",
+      "group": "relationship_marriage",
+      "index": 3,
+      "snapshotHash": "1841a9c372ee6f412c66ad7575ad7c9de23e12c1aff8511b0f942fa3c4d55e15",
+      "factsSha256": "06ce16065363ef73219e6772a97b3492bab06e79b7776bee39f09ddc6eb2ba76",
+      "targetYear": 2026,
+      "chartVersionId": "fd124-synthetic-chart-3",
+      "sourceKind": "synthetic_actual_iztro",
+      "timingRuleVersion": "ziwei.timing.lunar-year.v2"
+    }
+  ],
+  "oldAuthorityHashes": {
+    "reports.json": "16edf0e65dfc0689b86295ff62de6db49b13e3fea067033bb2c8d568a131ed05",
+    "budget.jsonl": "693400c0fad865828e03dda94f9ada234afd4dbb6d8e6f4cb6f50a411d6280f5",
+    "fd123-continuation/reports.json": "b1d0f876f7acfae79ce894e9eff41d7fd5b56b1b19b9ca66c28d069e5bc19fa2",
+    "fd123-continuation/budget.jsonl": "1496236a197afb8e3362113cf45d093d69d495b41c1eed6ec8b8690189367b14"
+  }
+}
