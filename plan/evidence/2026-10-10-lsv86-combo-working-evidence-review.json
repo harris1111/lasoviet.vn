@@ -1,0 +1,73 @@
+{
+  "status": "WORKING_EVIDENCE_GO",
+  "observedAt": "2026-10-10T19:51:01.941456+00:00",
+  "reviewedRuntimeAncestorSha": "f307994ac4f7a2fa78246893fe3311d3e727bded",
+  "sourceSha256": {
+    "plan/2026-10-10-lsv86-combo-acceptance.md": "ddff04d34087bd97126f7a5cdbb9b697442bae8b5ac624c893fdb45824ff21c7",
+    "plan/evidence/2026-10-10-lsv86-combo-cleanup.json": "1b9c4dcc914b9989b5f129f8ac04bdfbc7937c845b7dd3a4af31376f8e438fe1",
+    "plan/evidence/2026-10-10-lsv86-combo-combo-scenarios.json": "40853d610f74d2bcf44364f08f615252a73c64ce3c115fe98442a9815c862d23",
+    "plan/evidence/2026-10-10-lsv86-combo-local.json": "66142b5160f40371079156e471b31ba41f422cb104c52dfdf0232fec5b9b2004",
+    "plan/evidence/2026-10-10-lsv86-combo-reserved-layer.json": "7cd620e6ea07918672f1b6962d15e66ec177e5e78632cb1c9b266922beed4f93",
+    "plan/evidence/2026-10-10-lsv86-combo-working-review.json": "bf1f46c151e07170473775a62d9154dfb839a3129602538f5e8f6afc4ffdf2b8",
+    "scripts/acceptance-qa-catalog.mjs": "442af65d6544d08dc33a31cd4424432f6beacf67f22dd2399cc083c2e610f0c7",
+    "scripts/acceptance-qa-clock.mjs": "0f3ff8fb5725d088d10e09697536e1db8cfc1854a5dbd9a777c30a326c37a424",
+    "scripts/acceptance-qa-comprehensive-provider.mjs": "f77fb73fbb5fc1d1b5b9f49ab76f58721968af1cab082c0731a76a4d6e65bb24",
+    "scripts/acceptance-qa-environment.py": "225419282ec6feb1b90bfd2a333de26fadd189141c4304c562fe3ea6c8219cdd",
+    "scripts/acceptance-qa-fixtures.mjs": "909d539de408c2fed5a783980c806cd93ec664dd892d09e99cd1b8ba46f61609",
+    "scripts/acceptance-qa-provider.mjs": "7aa109690c76d1d91571ae1a05ad3f4c6c842ee22c4393c000beaa42bf317b30",
+    "scripts/run-authenticated-paid-acceptance.mjs": "f0ce47f6d7fb32fb8ee605fa630dd252731333fc67dec2130300b52ec1c08768",
+    "tests/e2e/authenticated-paid-acceptance.spec.ts": "276e68dbe4ede59be3ab22e8d6531bb768a8596a3ec246aaf2c5f0d77c42869f"
+  },
+  "evidence": {
+    "reviewedNineSourceFilesUnchanged": true,
+    "privateAndPortableProofsEqual": true,
+    "capturedBuiltArtifactCount": 101,
+    "allCapturedArtifactsMatchCurrentBuiltBytes": true,
+    "testedLibraryModuleHashes": {
+      "commerce/commerce.repository.js": "628745681247259996024f5a41609a5e41aedfd7b268b3680bd0bc1cd10792c2",
+      "commerce/combo-purchase-authority.js": "b3f59a83466398fd408d1e6e575cc283de91392f5680d1a255cfb4215f087a30",
+      "reports/report-query.repository.js": "225d1e39f2eea6324c8aac6018ef5d25097f0dd405d85b3d6588d96aea4f16b0",
+      "reports/report-query.service.js": "3cb854e99cc84f9bc0cf0618d51d304d3c4e7403ed6765b3808780343a423934"
+    },
+    "qaLogSha256": "11d767a3b11991fb1dd5d12950494f6d2e50c53fc164edc3508ffa06a023edff",
+    "actualComboCases": [
+      2027,
+      2028
+    ],
+    "bothChildrenReadyInLibraryV2PerCase": true,
+    "priceLaPerCase": 1300,
+    "reservedProductsRefusedWithoutPurchaseMutations": 6,
+    "actualMobileDesktopBrowserPrintPdf": true,
+    "actualWorkerValidatorAndFrozenYearFlows": true,
+    "publicGuaranteeDenialNoCredit": true,
+    "trustedFullRestorationOnceRelocksBoth": true,
+    "cleanup": {
+      "containersRemoved": 4,
+      "networkRemoved": true,
+      "credentialsRemoved": true
+    }
+  },
+  "lsv102": {
+    "status": "POSITIVE_LOCAL_EVIDENCE_GO",
+    "actualPostgreSqlTests": 94,
+    "pgLogSha256": "5c59874ee887a5567a81bc7a907cc22e79e72e0efdfe0460d7c3c4c9853d6d4c",
+    "strictJoinedComboCases": 2,
+    "builtModuleParityVerified": true,
+    "taskDone": false
+  },
+  "remainingGates": [
+    "Exact committed-head review and fresh CI",
+    "Native correction completion and dependency reconciliation before any merge",
+    "Reviewed runtime deployment, exact installed module parity and read-only library smoke before LSV102 closure",
+    "FE library navigation and native/editorial product acceptance remain separate holds"
+  ],
+  "fullProductAcceptance": "HOLD_FE_AND_NATIVE",
+  "reviewerEffects": {
+    "providerCalls": 0,
+    "productionWrites": 0,
+    "sourceEdits": 0,
+    "authorityWrites": 0,
+    "newFixtureRuns": 0
+  },
+  "scope": "Independent source/hash/log/evidence review; root-run isolated results inspected, not repeated. Synthetic generated prose establishes joined backend mechanics, not native/editorial acceptance."
+}

@@ -1,0 +1,41 @@
+{
+  "status": "PLAN_RECONCILIATION_GO",
+  "workingSourceStatus": "WORKING_SOURCE_GO",
+  "observedAt": "2026-10-10T19:44:30.447689+00:00",
+  "reviewedRuntimeAncestorSha": "f307994ac4f7a2fa78246893fe3311d3e727bded",
+  "sourceSha256": {
+    "scripts/acceptance-qa-catalog.mjs": "442af65d6544d08dc33a31cd4424432f6beacf67f22dd2399cc083c2e610f0c7",
+    "scripts/acceptance-qa-clock.mjs": "0f3ff8fb5725d088d10e09697536e1db8cfc1854a5dbd9a777c30a326c37a424",
+    "scripts/acceptance-qa-environment.py": "225419282ec6feb1b90bfd2a333de26fadd189141c4304c562fe3ea6c8219cdd",
+    "scripts/acceptance-qa-fixtures.mjs": "909d539de408c2fed5a783980c806cd93ec664dd892d09e99cd1b8ba46f61609",
+    "scripts/acceptance-qa-provider.mjs": "7aa109690c76d1d91571ae1a05ad3f4c6c842ee22c4393c000beaa42bf317b30",
+    "scripts/acceptance-qa-comprehensive-provider.mjs": "f77fb73fbb5fc1d1b5b9f49ab76f58721968af1cab082c0731a76a4d6e65bb24",
+    "scripts/run-authenticated-paid-acceptance.mjs": "f0ce47f6d7fb32fb8ee605fa630dd252731333fc67dec2130300b52ec1c08768",
+    "tests/e2e/authenticated-paid-acceptance.spec.ts": "276e68dbe4ede59be3ab22e8d6531bb768a8596a3ec246aaf2c5f0d77c42869f",
+    "plan/2026-10-10-lsv86-combo-acceptance.md": "ddff04d34087bd97126f7a5cdbb9b697442bae8b5ac624c893fdb45824ff21c7"
+  },
+  "reviewedAssertions": [
+    "Exact active ledger_spend library item reportId/readUrl/reportStatus ready required for both children.",
+    "Current2027 and next2028 fresh accounts independently require quote and intent1300.",
+    "Final Combo result no longer permits a missing-backend-library HOLD fallback.",
+    "Reserved refusal/no-purchase-mutation layer retained for comboOnly.",
+    "Two catalog-defined synthetic packs; actual source/snapshot/worker/version/validators; no ready-row substitution.",
+    "Later-Tet source/version/public projections immutable; genuine reauthentication after clock rewind and owned API restart.",
+    "Actual public guarantee price-limit denial distinguished from isolated trusted full restoration/replay and both-child relock."
+  ],
+  "scope": "QA scripts/tests/brief only, atop reviewed LSV102 runtime ancestor. No additional native Combo cohort requirement; separate existing annual editorial and FE gates retained.",
+  "checks": "Full build reported PASS; actual strict two-case QA and mandatory checks pending. No tests or Docker fixture started by reviewer.",
+  "remainingGates": [
+    "Both strict current/next cases must actually complete; intermediate one-row receipt is not full two-case acceptance.",
+    "Actual cleanup and redacted evidence/source/built-artifact identity review.",
+    "Required checks/exact-head/fresh CI and dependency reconciliation.",
+    "Runtime LSV102 separate reviewed deployment; original parent scope/annual editorial/FE acceptance remain open."
+  ],
+  "effects": {
+    "sourceWrites": 0,
+    "providerCalls": 0,
+    "productionWrites": 0,
+    "authorityWrites": 0
+  },
+  "fullProductAcceptance": false
+}
