@@ -13,7 +13,7 @@ import { API_REFERENCE_PRICING } from "./lib/native-campaign-api-pricing.mjs";
 import { runProdRouterAttempt } from "./lib/prod-9router-attempt.mjs";
 import { makePaidTrialInput, makeFreshPaidTrialInput } from "./run-paid-manual-trials.mjs";
 import { captureNativeAccountingEvidence, parseNativeResponse, inspectNativeFailureDiagnostic, runBridge } from "./lib/prod-9router-child.mjs";
-import { assertFd124Path, assertFd124Authorities, durableFd124Save, assertFd124FreshCampaign, assertFd124FrozenInputs, fd124Provider, runFd124Sequence } from "./run-replacement-paid-trials.mjs";
+import { assertFd124Path, assertFd124Authorities, durableFd124Save, assertFd124FreshCampaign, assertFd124FrozenInputs, fd124Provider, runFd124Sequence, FD124_OLD_AUTHORITIES, fd124InputProjection, validateFd124ZeroSendStop, preserveFd124ZeroSendStop } from "./run-replacement-paid-trials.mjs";
 
 const now = () => new Date("2026-10-10T16:00:00Z");
 const hash = value => createHash("sha256").update(value).digest("hex");
@@ -183,4 +183,62 @@ test("actual fresh synthetic profiles have distinct normalized birth facts; old 
   assert.equal(fresh[0].chartVersionId, "fd124-synthetic-chart-2");
   await assert.rejects(makePaidTrialInput("career_wealth", 2, "2026-10-09", modules), { code: "PAID_TRIAL_INPUT_INVALID" });
   await assert.rejects(makeFreshPaidTrialInput("monthly", 2, "2026-10-09", modules), { code: "PAID_TRIAL_INPUT_INVALID" });
+});
+
+function zeroSendFixture() {
+  const input = {group: "current_annual", index: 1, facts: {}, snapshotHash: "a".repeat(64), targetYear: 2026,
+    chartVersionId: "synthetic-zero-send", sourceKind: "synthetic_actual_iztro", timingRuleVersion: "ziwei.timing.lunar-year.v2"};
+  const manifest = {campaign: FD124_POLICY, ownerDecision: "FD-124", status: "stopped", manualAccepted: false,
+    asOfDate: "2026-10-09", maxPhysicalAttempts: 12, oldAuthorityHashes: FD124_OLD_AUTHORITIES,
+    stopSlot: FD124_SLOTS[0], dispatchPermissions: 0,
+    budget: {totalVnd: 0, openReservations: 0, capVnd: FD124_TECHNICAL_CAP_VND},
+    reports: [{...fd124InputProjection(input), status: "rejected", manualAccepted: false,
+      result: {ok: false, error: {code: "AI_PROVIDER_REQUEST_FAILED", retryable: false}},
+      attempts: [{attemptKey: fd124AttemptKey(FD124_SLOTS[0], "report"), purpose: "report", status: "stopped", errorCode: "ROUTER_CREDENTIAL_UNAVAILABLE"}]}]};
+  const ledger = [{type: "config", version: 2, totalCapVnd: FD124_TECHNICAL_CAP_VND, allocationVnd: FD124_TECHNICAL_CAP_VND,
+    settleActualUsage: true, referenceContinuation: FD124_POLICY, at: now().toISOString()}];
+  function sealed() {
+    const journalText = JSON.stringify(manifest), ledgerText = ledger.map(row => JSON.stringify(row)).join("\n") + "\n";
+    return {journalText, ledgerText, inputs: [input], expectedHashes: {journal: hash(journalText), ledger: hash(ledgerText)}};
+  }
+  return {input, manifest, ledger, sealed};
+}
+test("zero-send reconciliation rejects every prepared, reserved, acknowledged, unknown and repeated state", () => {
+  const original = zeroSendFixture();
+  assert.deepEqual(validateFd124ZeroSendStop(original.sealed()), original.manifest);
+  assert.throws(() => validateFd124ZeroSendStop({...original.sealed(), journalText: original.sealed().journalText + " "}), {code: "FD124_ZERO_SEND_HASH_MISMATCH"});
+  const mutations = [
+    fixture => {fixture.manifest.reports[0].attempts[0].trace = trace;},
+    fixture => {fixture.manifest.reports[0].attempts[0].reservationId = "reserved";},
+    fixture => {fixture.manifest.reports[0].attempts[0].accountingEvidence = {};},
+    fixture => {fixture.manifest.reports[0].attempts[0].errorCode = "ROUTER_SEND_TIMEOUT";},
+    fixture => {fixture.manifest.reports[0].attempts[0].purpose = "rewrite";},
+    fixture => {fixture.manifest.reconciliation = {};},
+    fixture => {fixture.manifest.dispatchPermissions = 1;},
+    fixture => {fixture.manifest.budget.openReservations = 1;},
+    fixture => {fixture.manifest.reports.push(structuredClone(fixture.manifest.reports[0]));},
+    fixture => {fixture.manifest.reports[0].snapshotHash = "b".repeat(64);},
+    fixture => {fixture.ledger.push({type: "reserve"});},
+    fixture => {fixture.ledger[0].referenceContinuation = FD123_POLICY;},
+  ];
+  for (const mutate of mutations) {
+    const fixture = zeroSendFixture(); mutate(fixture);
+    assert.throws(() => validateFd124ZeroSendStop(fixture.sealed()), /FD124_ZERO_SEND_/);
+  }
+});
+test("zero-send preservation is exclusive, private, exact and leaves the prior ledger untouched", () => {
+  const fixture = zeroSendFixture(), sealed = fixture.sealed();
+  const root = mkdtempSync(join(tmpdir(), "fd124-zero-send-"));
+  const newRoot = join(root, "new"), oldRoot = join(root, "old"); mkdirSync(newRoot, {mode: 0o700}); mkdirSync(oldRoot, {mode: 0o700});
+  const path = join(newRoot, "stop.json"), ledgerPath = join(newRoot, "budget.jsonl"); writeFileSync(ledgerPath, sealed.ledgerText, {mode: 0o600});
+  let checks = 0;
+  const options = {path, journalText: sealed.journalText, ledgerText: sealed.ledgerText, newRoot, oldRoot, unchanged: () => {checks++;}};
+  preserveFd124ZeroSendStop(options);
+  const record = JSON.parse(readFileSync(path, "utf8"));
+  assert.equal(record.originalJournalText, sealed.journalText); assert.equal(record.originalLedgerText, sealed.ledgerText);
+  assert.equal(record.journalSha256, sealed.expectedHashes.journal); assert.equal(statSync(path).mode & 0o777, 0o600);
+  assert.equal(readFileSync(ledgerPath, "utf8"), sealed.ledgerText); assert.equal(checks, 2);
+  assert.throws(() => preserveFd124ZeroSendStop(options), {code: "EEXIST"});
+  const link = join(newRoot, "unsafe"); symlinkSync(path, link);
+  assert.throws(() => preserveFd124ZeroSendStop({...options, path: link}), {code: "FD124_STORAGE_UNSAFE"});
 });
