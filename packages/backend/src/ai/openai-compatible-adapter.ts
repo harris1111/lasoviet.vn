@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { z } from "@lasoviet/contracts";
 
 import {
@@ -210,6 +210,39 @@ async function fetchAttempt(
   }
 }
 
+export const OPENAI_COMPATIBLE_WIRE_VERSION = "openai-compatible-json-schema-v1";
+
+// This shared serializer includes both schema copies and every actual body field. It supplies
+// no token count, cost guarantee, credentials, provider approval or native usage evidence.
+export function prepareOpenAiCompatibleStructuredRequest(
+  request: Pick<GenerateStructuredRequest, "schema" | "schemaName" | "system" | "user" | "maxOutputTokens">,
+  options: Pick<OpenAiCompatibleAdapterOptions, "baseUrl" | "modelId" | "providerId">,
+  invalidOutputCorrection = false,
+) {
+  const providerId = options.providerId ?? resolveOpenAiCompatibleProviderId(options.baseUrl);
+  let systemPrompt = `${request.system} ${GENERIC_JSON_INSTRUCTION} ${structuredSchemaInstruction(request.schema)}`;
+  if (invalidOutputCorrection) systemPrompt += ` ${INVALID_OUTPUT_CORRECTION}`;
+  const body = JSON.stringify({
+    model: options.modelId,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: request.user },
+    ],
+    stream: false,
+    max_tokens: request.maxOutputTokens,
+    ...(providerId === "openrouter" ? { reasoning: { effort: "none" } } : {}),
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: request.schemaName, strict: true, schema: z.toJSONSchema(request.schema) },
+    },
+  });
+  return Object.freeze({
+    endpoint: endpoint(options.baseUrl), providerId, modelId: options.modelId,
+    serializerVersion: OPENAI_COMPATIBLE_WIRE_VERSION,
+    bodySha256: createHash("sha256").update(body).digest("hex"), body,
+  });
+}
+
 export function createOpenAiCompatibleAdapter(
   options: OpenAiCompatibleAdapterOptions,
 ): AiProvider {
@@ -246,8 +279,20 @@ export function createOpenAiCompatibleAdapter(
       const callId = randomUUID();
       const idempotencyKey = request.costContext?.idempotencyKey;
       let hasInvalidOutput = false;
+      // Keep the original expectation across awaits and retries, even if the caller later
+      // removes or mutates its request object. Absence remains the legacy opt-out.
+      const expectation = request.expectedWire;
+      const expected = expectation === undefined ? undefined : Object.freeze({ ...expectation });
 
       for (let attempt = 0; attempt <= options.retryCount; attempt += 1) {
+        // Capture immutable bytes before awaiting authorization; caller mutation during the
+        // recorder wait cannot change what was checked. Retry corrections are checked again.
+        const wire = prepareOpenAiCompatibleStructuredRequest(request, { ...options, providerId }, hasInvalidOutput);
+        if (expected !== undefined && (!expected || expected.endpoint !== wire.endpoint || expected.providerId !== wire.providerId ||
+            expected.modelId !== wire.modelId || expected.serializerVersion !== wire.serializerVersion ||
+            expected.bodySha256 !== wire.bodySha256)) {
+          return failure("AI_PROVIDER_NOT_APPROVED", false);
+        }
         let attemptId: string | undefined;
 
         // Two-step lifecycle: beginAttempt runs before EACH actual HTTP attempt
@@ -268,42 +313,18 @@ export function createOpenAiCompatibleAdapter(
           attemptId = beginRes.value.attemptId;
         }
 
-        let systemPrompt =
-          `${request.system} ${GENERIC_JSON_INSTRUCTION} ${structuredSchemaInstruction(request.schema)}`;
-        if (hasInvalidOutput) {
-          systemPrompt += ` ${INVALID_OUTPUT_CORRECTION}`;
-        }
-        const body = JSON.stringify({
-          model: options.modelId,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: request.user },
-          ],
-          stream: false,
-          max_tokens: request.maxOutputTokens,
-          ...(providerId === "openrouter"
-            ? { reasoning: { effort: "none" } }
-            : {}),
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: request.schemaName,
-              strict: true,
-              schema: z.toJSONSchema(request.schema),
-            },
-          },
-        });
-
         const result = await fetchAttempt(
           fetchImpl,
-          endpoint(options.baseUrl),
+          wire.endpoint,
           {
             method: "POST",
+            // A redirect must never resend a pinned body to an unchecked destination.
+            ...(expected === undefined ? {} : { redirect: "manual" as const }),
             headers: {
               authorization: `Bearer ${options.apiKey}`,
               "content-type": "application/json",
             },
-            body,
+            body: wire.body,
           },
           options.timeoutMs,
         );

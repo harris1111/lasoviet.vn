@@ -20,6 +20,15 @@ export type AiProviderError = {
   retryable: boolean;
 };
 
+// Server-only exact request identity. This is not token-bound proof or provider approval.
+export type AiStructuredWireExpectation = Readonly<{
+  endpoint: string;
+  providerId: string;
+  modelId: string;
+  serializerVersion: string;
+  bodySha256: string;
+}>;
+
 export type GenerateStructuredRequest<TSchema extends z.ZodType = z.ZodType> = {
   schema: TSchema;
   schemaName: string;
@@ -29,6 +38,7 @@ export type GenerateStructuredRequest<TSchema extends z.ZodType = z.ZodType> = {
   purpose?: AiRequestPurpose;
   maxOutputTokens: number;
   costContext?: AiCostRequestContext;
+  expectedWire?: AiStructuredWireExpectation;
 };
 
 export type AiStructuredOutputValue<T> = {

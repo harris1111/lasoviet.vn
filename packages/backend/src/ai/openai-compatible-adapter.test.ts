@@ -1,3 +1,5 @@
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "@lasoviet/contracts";
 import { createInMemoryAiCostService } from "./ai-cost.js";
@@ -6,6 +8,7 @@ import {
   createAiProductionGate,
   createOpenAiCompatibleAdapter,
   resolveOpenAiCompatibleProviderId,
+  prepareOpenAiCompatibleStructuredRequest,
 } from "./openai-compatible-adapter.js";
 
 const schema = z.object({ value: z.literal("sentinel") }).strict();
@@ -568,5 +571,120 @@ describe("AI usage cost integrity", () => {
   it("derives a missing total from two complete counters and accepts zero extra dimensions", async () => {
     const evidence = await recorded({prompt_tokens: 1000, completion_tokens: 500, completion_tokens_details: {reasoning_tokens: 0}, prompt_tokens_details: {cache_creation_tokens: 0}});
     expect(evidence.summary.records[0]).toMatchObject({totalTokens: 1500, costStatus: "resolved", costMicroVnd: "45000000", costVnd: 45});
+  });
+});
+
+
+describe("exact structured wire expectation", () => {
+  const options = { baseUrl: "https://ai.synthetic.test/v1/", modelId: "synthetic-model" };
+  const original = prepareOpenAiCompatibleStructuredRequest(request, options);
+  function recorder() {
+    return {
+      beginAttempt: vi.fn().mockResolvedValue({ ok: true, value: { attemptId: "WIRE_ATTEMPT", pricing: samplePricing } }),
+      completeAttempt: vi.fn().mockResolvedValue({ ok: true, value: { outcomeId: "WIRE_OUTCOME", costStatus: "unknown" } }),
+    };
+  }
+  it.each([
+    ["system", { system: "changed" }, {}],
+    ["user", { user: "changed" }, {}],
+    ["schema", { schema: z.object({ value: z.literal("changed") }).strict() }, {}],
+    ["schema name", { schemaName: "changed" }, {}],
+    ["output ceiling", { maxOutputTokens: 81 }, {}],
+    ["model", {}, { modelId: "changed" }],
+    ["destination", {}, { baseUrl: "https://other.synthetic.test/v1" }],
+    ["provider/reasoning", {}, { providerId: "openrouter" }],
+  ])("refuses %s drift before recorder authorization or fetch", async (_name, changedRequest, changedOptions) => {
+    const cost = recorder(), physical = vi.fn();
+    const provider = createOpenAiCompatibleAdapter({ ...options, ...changedOptions, apiKey: "synthetic-secret",
+      allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 100, retryCount: 2,
+      productionGate: createAiProductionGate("approved"), costRecorder: cost, fetchImpl: physical });
+    expect(await provider.generateStructured({ ...request, ...changedRequest, use: "production_report_generation", expectedWire: original }))
+      .toMatchObject({ ok: false, error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false } });
+    expect(cost.beginAttempt).not.toHaveBeenCalled(); expect(cost.completeAttempt).not.toHaveBeenCalled();
+    expect(physical).not.toHaveBeenCalled();
+  });
+  it.each([
+    { ...original, serializerVersion: "unknown-v99" },
+    { ...original, bodySha256: "0".repeat(64) },
+    null,
+  ])("refuses an invalid or unsupported expectation", async expectedWire => {
+    const cost = recorder(), physical = vi.fn();
+    const provider = createOpenAiCompatibleAdapter({ ...options, apiKey: "synthetic-secret",
+      allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 100, retryCount: 0,
+      productionGate: createAiProductionGate("approved"), costRecorder: cost, fetchImpl: physical });
+    expect(await provider.generateStructured({ ...request, expectedWire } as unknown as typeof request))
+      .toMatchObject({ ok: false, error: { code: "AI_PROVIDER_NOT_APPROVED" } });
+    expect(cost.beginAttempt).not.toHaveBeenCalled(); expect(physical).not.toHaveBeenCalled();
+  });
+  it("sends the checked immutable bytes when the caller changes during the recorder wait", async () => {
+    const mutable = { ...request, use: "production_report_generation" as const, expectedWire: original };
+    const cost = recorder();
+    cost.beginAttempt.mockImplementation(async () => {
+      mutable.system = "late mutation"; mutable.maxOutputTokens = 999;
+      return { ok: true, value: { attemptId: "WIRE_ATTEMPT", pricing: samplePricing } };
+    });
+    const bodies: string[] = [], urls: string[] = [];
+    const provider = createOpenAiCompatibleAdapter({ ...options, apiKey: "synthetic-secret",
+      allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 100, retryCount: 0,
+      productionGate: createAiProductionGate("approved"), costRecorder: cost,
+      fetchImpl: async (url, init) => { urls.push(String(url)); bodies.push(String(init?.body)); return jsonResponse(responseBody('{"value":"sentinel"}')); } });
+    expect(await provider.generateStructured(mutable)).toMatchObject({ ok: true });
+    expect(urls).toEqual([original.endpoint]); expect(bodies).toEqual([original.body]);
+    expect(cost.beginAttempt).toHaveBeenCalledTimes(1);
+  });
+  it.each([307, 308])("does not follow HTTP %s redirects or authorize a second attempt", async status => {
+    let originalRequests = 0, redirectedRequests = 0, redirectPolicy: RequestRedirect | undefined;
+    const server = createServer((req, res) => {
+      if (req.url === "/v1/chat/completions") {
+        originalRequests++; res.writeHead(status, { location: "/redirected/chat/completions", "content-type": "application/json" });
+        res.end(JSON.stringify({ error: "synthetic redirect" }));
+      } else {
+        redirectedRequests++; res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify(responseBody('{"value":"sentinel"}')));
+      }
+    });
+    await new Promise<void>((resolve, reject) => { server.once("error", reject); server.listen(0, "127.0.0.1", resolve); });
+    try {
+      const local = { baseUrl: `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`, modelId: "synthetic-model" };
+      const wire = prepareOpenAiCompatibleStructuredRequest(request, local), cost = recorder();
+      const provider = createOpenAiCompatibleAdapter({ ...local, apiKey: "synthetic-secret",
+        allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 2000, retryCount: 2,
+        productionGate: createAiProductionGate("approved"), costRecorder: cost,
+        fetchImpl: async (url, init) => { redirectPolicy = init?.redirect; return fetch(url, init); } });
+      expect(await provider.generateStructured({ ...request, use: "production_report_generation", expectedWire: wire }))
+        .toMatchObject({ ok: false, error: { code: "AI_PROVIDER_REQUEST_FAILED", retryable: false } });
+      expect(redirectPolicy).toBe("manual"); expect(originalRequests).toBe(1); expect(redirectedRequests).toBe(0);
+      expect(cost.beginAttempt).toHaveBeenCalledTimes(1); expect(cost.completeAttempt).toHaveBeenCalledTimes(1);
+      expect(cost.completeAttempt).toHaveBeenCalledWith(expect.objectContaining({ httpStatus: status, tokensUnknown: true }));
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    }
+  });
+  it("retains the initial wire expectation if the caller removes it during the first send", async () => {
+    const cost = recorder(), bodies: string[] = [];
+    const mutable: typeof request & { expectedWire?: typeof original } = { ...request, expectedWire: { ...original } };
+    const provider = createOpenAiCompatibleAdapter({ ...options, apiKey: "synthetic-secret",
+      allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 100, retryCount: 2,
+      productionGate: createAiProductionGate("approved"), costRecorder: cost,
+      fetchImpl: async (_url, init) => {
+        bodies.push(String(init?.body)); delete mutable.expectedWire;
+        return jsonResponse(responseBody('{"value":"wrong"}'));
+      } });
+    expect(await provider.generateStructured(mutable))
+      .toMatchObject({ ok: false, error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false } });
+    expect(bodies).toEqual([original.body]); expect(cost.beginAttempt).toHaveBeenCalledTimes(1);
+  });
+  it("refuses a changed retry correction before a second authorization or send", async () => {
+    const cost = recorder(), bodies: string[] = [];
+    const provider = createOpenAiCompatibleAdapter({ ...options, apiKey: "synthetic-secret",
+      allowedResolvedModelIds: ["synthetic-model"], timeoutMs: 100, retryCount: 2,
+      productionGate: createAiProductionGate("approved"), costRecorder: cost,
+      fetchImpl: async (_url, init) => { bodies.push(String(init?.body)); return jsonResponse(responseBody('{"value":"wrong"}')); } });
+    expect(await provider.generateStructured({ ...request, use: "production_report_generation", expectedWire: original }))
+      .toMatchObject({ ok: false, error: { code: "AI_PROVIDER_NOT_APPROVED", retryable: false } });
+    expect(bodies).toEqual([original.body]); expect(cost.beginAttempt).toHaveBeenCalledTimes(1);
+    expect(cost.completeAttempt).toHaveBeenCalledTimes(1);
+    expect(cost.completeAttempt).toHaveBeenCalledWith(expect.objectContaining({ errorCode: "AI_OUTPUT_INVALID" }));
   });
 });
