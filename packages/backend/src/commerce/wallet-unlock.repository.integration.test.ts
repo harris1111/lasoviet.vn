@@ -906,6 +906,9 @@ describe("wallet unlock repository integration", () => {
       const combo=await service.createPurchaseIntent(owner.actor,{chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"});if(!combo.ok)throw new Error(combo.code);expect(combo.value.amountLa).toBe(1300);
       const bundled=await service.unlock(owner.actor,{purchaseIntentId:combo.value.id,expectedIntentVersion:1,expectedWalletVersion:initial.value.balance.stateVersion,idempotencyKey:randomUUID()});if(!bundled.ok)throw new Error(bundled.code);expect(bundled.value.reportId).toBe(initial.value.reportId);expect(bundled.value.balance.totalLa).toBe(2580);
       const reports=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));expect(reports).toHaveLength(2);expect(reports.filter(row=>row.promptVersion!=="ziwei.period-reading.prompt.v1")).toHaveLength(1);
+      const library = await createDatabaseCommerceRepository(database, {now: () => frozenNow}).readAccountLibraryV2(owner.actor);
+      expect(library.totalCount).toBe(3);
+      expect(library.items.filter(item => item.reportId === initial.value.reportId)).toHaveLength(2);
       const other=await ownerFixture("Already annual");const otherPorts=walletPorts(audit.userId);await otherPorts.repository.grant({targetOwnerId:other.userId,grant:grant(audit.userId,`annual-owned-${randomUUID()}`,3000),topUpOrderId:null,trustedGrantToken:otherPorts.authority.token});
       const year=await otherPorts.service.createPurchaseIntent(other.actor,{chartId:other.chartId,chartVersionId:other.chartVersionId,sku:"ZIWEI-YEAR-2026-P0",locale:"vi"});if(!year.ok)throw new Error(year.code);expect((await otherPorts.service.unlock(other.actor,{purchaseIntentId:year.value.id,expectedIntentVersion:1,expectedWalletVersion:2,idempotencyKey:randomUUID()})).ok).toBe(true);
       expect(await otherPorts.service.createPurchaseIntent(other.actor,{chartId:other.chartId,chartVersionId:other.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"})).toMatchObject({ok:false,code:"WALLET_ENTITLEMENT_EXISTS"});
@@ -921,7 +924,11 @@ describe("wallet unlock repository integration", () => {
       const before=await createWalletService(ports.repository).readBalance(owner.actor);if(!before.ok)throw new Error("balance");
       const intent=await ports.service.createPurchaseIntent(owner.actor,{chartId:owner.chartId,chartVersionId:owner.chartVersionId,sku:"ZIWEI-COMBO-2026-P0",locale:"vi"});if(!intent.ok)throw new Error(intent.code);expect(intent.value.amountLa).toBe(1040);
       const paid=await ports.service.unlock(owner.actor,{purchaseIntentId:intent.value.id,expectedIntentVersion:1,expectedWalletVersion:before.value.stateVersion,idempotencyKey:randomUUID()});if(!paid.ok)throw new Error(paid.code);expect(paid.value.balance.totalLa).toBe(before.value.totalLa-1040);
-      current=new Date(frozenNow.getTime()+31*86400000);const query=createDatabaseReportQueryRepository(database,()=>current);const reports=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));expect(reports).toHaveLength(2);for(const report of reports)expect(await query.readAuthorizedReport(owner.userId,report.reportId)).not.toBeNull();
+      const library = createDatabaseCommerceRepository(database, {now: () => current});
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(2);
+      current=new Date(frozenNow.getTime()+31*86400000);
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(2);
+      const query=createDatabaseReportQueryRepository(database,()=>current);const reports=await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId,owner.chartVersionId));expect(reports).toHaveLength(2);for(const report of reports)expect(await query.readAuthorizedReport(owner.userId,report.reportId)).not.toBeNull();
     } finally {topicCatalogGate.enabled=false;}
   });
 
@@ -1025,6 +1032,58 @@ describe("wallet unlock repository integration", () => {
         if (!balance.ok) throw new Error("missing balance");
         walletVersion = balance.value.stateVersion;
     } finally { topicCatalogGate.enabled = false; }
+  });
+
+  it.each([
+    {sku: "ZIWEI-COMBO-P0", targetYear: 2027, now: "2027-02-06T12:00:00Z"},
+    {sku: "ZIWEI-COMBO-P0", targetYear: 2028, now: "2027-02-06T12:00:00Z"},
+    {sku: "ZIWEI-COMBO-2026-P0", targetYear: 2026, now: "2026-10-10T12:00:00Z"},
+  ])("lists exactly two complete Combo library children for $sku/$targetYear and fails closed on incomplete authority", async ({sku, targetYear, now: instant}) => {
+    const owner = await ownerFixture("Combo library buyer"), foreign = await ownerFixture("Combo library foreign");
+    const now = new Date(instant), ports = walletPorts(owner.userId, {now: () => now, reportVersionResolver: v4_1SensitivityReportVersions});
+    topicCatalogGate.enabled = true;
+    try {
+      await ports.repository.grant({targetOwnerId: owner.userId, grant: grant(owner.userId, randomUUID(), 3000), topUpOrderId: null, trustedGrantToken: ports.authority.token});
+      const intent = await ports.service.createPurchaseIntent(owner.actor, {chartId: owner.chartId, chartVersionId: owner.chartVersionId, sku, locale: "vi", ...(sku === "ZIWEI-COMBO-P0" ? {targetYear} : {})});
+      if (!intent.ok) throw new Error(intent.code);
+      const paid = await ports.service.unlock(owner.actor, {purchaseIntentId: intent.value.id, expectedIntentVersion: 1, expectedWalletVersion: 2, idempotencyKey: randomUUID()});
+      if (!paid.ok) throw new Error(paid.code);
+      const children = await database.select().from(commerceEntitlements).where(eq(commerceEntitlements.chartId, owner.chartId));
+      const annual = children.find(child => child.sku !== "ZIWEI-IDENTITY-P0")!;
+      const reservations = await database.select().from(reportReservations).where(eq(reportReservations.chartVersionId, owner.chartVersionId));
+      const year = reservations.find(row => row.entitlementId === annual.id)!;
+      const library = createDatabaseCommerceRepository(database, {now: () => now});
+      const balance = await createWalletService(ports.repository).readBalance(owner.actor);
+      const transactions = await database.select().from(walletTransactions).where(eq(walletTransactions.id, annual.ledgerSpendId!));
+      const result = await library.readAccountLibraryV2(owner.actor);
+      expect(result.totalCount).toBe(2);
+      expect(new Set(result.items.map(item => item.entitlementId))).toEqual(new Set(children.map(child => child.id)));
+      expect(new Set(result.items.map(item => item.reportId))).toEqual(new Set(reservations.map(row => row.reportId)));
+      expect(result.items.every(item => item.source === "ledger_spend" && item.entitlementStatus === "active" && item.readUrl === null)).toBe(true);
+      expect(await createWalletService(ports.repository).readBalance(owner.actor)).toEqual(balance);
+      expect(await database.select().from(walletTransactions).where(eq(walletTransactions.id, annual.ledgerSpendId!))).toEqual(transactions);
+      expect((await library.readAccountLibraryV2(foreign.actor)).totalCount).toBe(0);
+      await expect(database.update(commerceEntitlements).set({periodKey: String(targetYear + 1)}).where(eq(commerceEntitlements.id, annual.id))).rejects.toThrow();
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(2);
+      await database.update(commerceEntitlements).set({revokedAt: now}).where(eq(commerceEntitlements.id, annual.id));
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(0);
+      await database.update(commerceEntitlements).set({revokedAt: null}).where(eq(commerceEntitlements.id, annual.id));
+      await database.update(reportReservations).set({locale: "en"}).where(eq(reportReservations.id, year.id));
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(0);
+      await database.update(reportReservations).set({locale: "vi"}).where(eq(reportReservations.id, year.id));
+      await database.update(reportReservations).set({promptVersion: "invalid.combo.period"}).where(eq(reportReservations.id, year.id));
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(0);
+      await database.update(reportReservations).set({promptVersion: year.promptVersion}).where(eq(reportReservations.id, year.id));
+      await expect(database.insert(commerceEntitlements).values({ownerId: owner.userId, chartId: foreign.chartId, sku: annual.sku,
+        scope: {sections: ["periodReading"]}, periodKey: String(targetYear), ledgerSpendId: annual.ledgerSpendId})).rejects.toThrow();
+      await expect(database.insert(commerceEntitlements).values({ownerId: foreign.userId, chartId: owner.chartId, sku: annual.sku,
+        scope: {sections: ["periodReading"]}, periodKey: String(targetYear), ledgerSpendId: annual.ledgerSpendId})).rejects.toThrow();
+      expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(2);
+      const restored = await ports.repository.restore({actor: owner.actor, restoration: {kind: "restoration", actorId: owner.userId,
+        originalSpendId: annual.ledgerSpendId!, expectedWalletVersion: paid.value.balance.stateVersion, reasonCode: "test.combo.library.restore",
+        requestId: randomUUID(), traceId: randomUUID(), idempotencyKey: randomUUID()}});
+      expect(restored.ok).toBe(true); expect((await library.readAccountLibraryV2(owner.actor)).totalCount).toBe(0);
+    } finally {topicCatalogGate.enabled = false;}
   });
 
   it("grants the generic combo annual child for its chosen year and rejects mismatched period authority", async () => {

@@ -1,0 +1,27 @@
+{
+  "status": "PLAN_GO",
+  "task": "LSV102",
+  "taskId": "xia81dbtp9vpg291hfe7c4nm",
+  "observedAt": "2026-10-10T19:28:29.445293+00:00",
+  "baseSha": "e799c9badc3b5e0de73a26d61f933dd310f9e78c",
+  "briefPath": "plan/2026-10-10-combo-wallet-library-authority.md",
+  "briefSha256": "013cf3608b934837c5a7fc25f23e32ca6a8274bfb3ec2a71e605db8185316034",
+  "scope": "Closed Combo parent/child wallet-library authority correction; separate release after frozen FD124 correction release.",
+  "constraints": [
+    "Candidate joins limited to generic Combo and historical2026 parent/component mappings.",
+    "Existing hasCompleteComboAuthority must validate each Combo candidate before ready-report query and library projection.",
+    "Preserve ordinary matching-SKU path and lifetime children legitimately linked to reused natal reservations.",
+    "Preserve completed-intent/spend/wallet/owner/chart/version/evidence/locale/restoration/revocation and authorized-ready reader fences.",
+    "Exactly two distinct child entries for a valid shared spend, no join duplicates, correct annual selected-year identity.",
+    "Read-only library operation must leave all financial state unchanged.",
+    "Current/next1300, historical2026, frozen1040 and real-PG incomplete/wrong-period/owner/chart/extra-child/restored/revoked cases required.",
+    "No repricing, schema/FE/catalog availability/payment/customer outbound/native authority changes.",
+    "Reconcile actual master after current correction release; independent working/exact-head review, mandatory checks, both fresh CI, audited deployment and installed smoke required."
+  ],
+  "sourceEffects": 0,
+  "physicalProviderCalls": 0,
+  "authorityWrites": 0,
+  "productionWrites": 0,
+  "parentTicketsDone": false,
+  "unresolvedQuestions": []
+}

@@ -1,0 +1,36 @@
+{
+  "status": "WORKING_SOURCE_GO",
+  "task": "LSV102",
+  "observedAt": "2026-10-10T19:33:26.623628+00:00",
+  "baseSha": "e799c9badc3b5e0de73a26d61f933dd310f9e78c",
+  "sourceSha256": {
+    "packages/backend/src/commerce/commerce.repository.ts": "11cf7cca0b354bf89c42372c6f2e169c5369b8f3d4759eae72062735383d6a36",
+    "packages/backend/src/commerce/wallet-unlock.repository.integration.test.ts": "88fe42c91089791cc0ecfc0b0e9e019e0f3bd92c3ad96fdc0b8aede4d6579e55"
+  },
+  "briefPath": "plan/2026-10-10-combo-wallet-library-authority.md",
+  "briefSha256": "013cf3608b934837c5a7fc25f23e32ca6a8274bfb3ec2a71e605db8185316034",
+  "review": "Two closed candidate parent/component mappings; complete bundle authority cached by shared spend before authorized ready queries and projection; ordinary matching-SKU and linked natal reuse authority preserved.",
+  "testScope": [
+    "Current2027 and next2028 generic Combo; historical2026 alias.",
+    "Frozen1040 membership price retained after expiry.",
+    "Exactly two distinct entries and reused natal report compatibility.",
+    "Foreign owner, revoked child, locale/tuple mismatch, SQL-rejected wrong-chart/wrong-owner child and restoration omission.",
+    "Wrong annual period SQL rejection and unchanged two-entry library assertion added."
+  ],
+  "checks": "Root reported 91 passing tests and three fixture failures caused by stronger SQL rejection. Corrected final run is pending; no full pass inferred. Runtime source hash unchanged.",
+  "remainingGates": [
+    "Passing final affected PG suite and mandatory checks.",
+    "Generated current/next Combo QA with fixed rebuilt backend; old compiled library-HOLD diagnostic does not prove this correction.",
+    "Exact committed-head review and fresh CI.",
+    "Separate audited deployment and installed evidence after frozen native correction release."
+  ],
+  "exactCommitApproved": false,
+  "effects": {
+    "sourceWrites": 0,
+    "providerCalls": 0,
+    "productionWrites": 0,
+    "authorityWrites": 0
+  },
+  "parentTicketsDone": false,
+  "reviewedCorrection": "Malformed additional wrong-chart and wrong-owner ledger children are now expected to be rejected by the existing SQL trigger, after which the valid library remains two entries; no impossible-row insertion or trigger weakening."
+}
